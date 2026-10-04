@@ -281,7 +281,7 @@ export class BallparkGame implements Game {
                 </div>
                 <div class="bp-guessers">
                   {guessers.map((p) => (
-                    <span class="bp-guesser" style={{ color: colorHex(p.color) }}>
+                    <span class="bp-guesser" style={{ background: colorHex(p.color) }}>
                       {p.name}
                     </span>
                   ))}
