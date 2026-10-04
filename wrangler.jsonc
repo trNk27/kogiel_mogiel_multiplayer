@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "couch-party",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-09-01",
+  // Frontend built by Vite into ./dist and served as static assets.
+  // "/join" resolves to join.html, "/dev" to dev.html (auto html handling).
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/ws/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "RoomDO" }]
+  },
+  // The free plan requires SQLite-backed Durable Object classes.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomDO"] }],
+  "observability": { "enabled": true }
+}
