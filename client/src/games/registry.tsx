@@ -1,7 +1,8 @@
 import type { GameId } from '../../../shared/protocol';
 import type { Game, GameHost } from './types';
+import { QuizGame } from './quiz/QuizGame';
 
-/** Placeholder until the games land: shows a card and returns to the results screen. */
+/** Placeholder until the remaining games land: shows a card and returns to the results screen. */
 class ComingSoon implements Game {
   private timer: number | undefined;
   constructor(
@@ -25,5 +26,6 @@ class ComingSoon implements Game {
 }
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
+  if (id === 'quiz') return new QuizGame(host, ids);
   return new ComingSoon(id, host, ids);
 }

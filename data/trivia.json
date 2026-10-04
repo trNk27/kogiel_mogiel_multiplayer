@@ -1,0 +1,1302 @@
+[
+ {
+  "id": "q001",
+  "category": "General Knowledge",
+  "difficulty": "easy",
+  "question": "How many days are there in a leap year?",
+  "options": [
+   "365",
+   "366",
+   "364",
+   "367"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q002",
+  "category": "General Knowledge",
+  "difficulty": "easy",
+  "question": "In which city would you find the Colosseum?",
+  "options": [
+   "Athens",
+   "Rome",
+   "Istanbul",
+   "Naples"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q003",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "What is the name of the fairy in J. M. Barrie's \"Peter Pan\"?",
+  "options": [
+   "Thumbelina",
+   "Titania",
+   "Tinker Bell",
+   "Fairy Godmother"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q004",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "How many strings does a standard guitar have?",
+  "options": [
+   "4",
+   "5",
+   "6",
+   "8"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q005",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "What is the Roman numeral for 50?",
+  "options": [
+   "V",
+   "X",
+   "L",
+   "C"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q006",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "How many minutes are there in a full day?",
+  "options": [
+   "1,240",
+   "1,440",
+   "1,640",
+   "2,400"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q007",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "Which chess piece can only ever move diagonally?",
+  "options": [
+   "Knight",
+   "Rook",
+   "Bishop",
+   "Queen"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q008",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "In Greek mythology, who flew too close to the Sun on wings of wax?",
+  "options": [
+   "Daedalus",
+   "Icarus",
+   "Perseus",
+   "Hermes"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q009",
+  "category": "General Knowledge",
+  "difficulty": "easy",
+  "question": "Who wrote \"Romeo and Juliet\"?",
+  "options": [
+   "Charles Dickens",
+   "Christopher Marlowe",
+   "William Shakespeare",
+   "Jane Austen"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q010",
+  "category": "General Knowledge",
+  "difficulty": "easy",
+  "question": "How many zeros are there in one million?",
+  "options": [
+   "5",
+   "6",
+   "7",
+   "9"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q011",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "Which fictional detective lived at 221B Baker Street?",
+  "options": [
+   "Hercule Poirot",
+   "Sherlock Holmes",
+   "Miss Marple",
+   "Inspector Morse"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q012",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "In which country was the Rubik's Cube invented?",
+  "options": [
+   "Japan",
+   "Hungary",
+   "Germany",
+   "United States"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q013",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "What is the main language spoken in Brazil?",
+  "options": [
+   "Spanish",
+   "Portuguese",
+   "French",
+   "Italian"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q014",
+  "category": "General Knowledge",
+  "difficulty": "easy",
+  "question": "Who painted the \"Mona Lisa\"?",
+  "options": [
+   "Michelangelo",
+   "Raphael",
+   "Leonardo da Vinci",
+   "Sandro Botticelli"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q015",
+  "category": "General Knowledge",
+  "difficulty": "medium",
+  "question": "What does \"www\" stand for in a web address?",
+  "options": [
+   "World Wide Web",
+   "Wide Web World",
+   "Web World Wide",
+   "World Web Window"
+  ],
+  "answerIndex": 0
+ },
+ {
+  "id": "q016",
+  "category": "Science",
+  "difficulty": "easy",
+  "question": "Which planet is known as the Red Planet?",
+  "options": [
+   "Venus",
+   "Mars",
+   "Jupiter",
+   "Mercury"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q017",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "What is the chemical symbol for gold?",
+  "options": [
+   "Ag",
+   "Au",
+   "Gd",
+   "Go"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q018",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "Which gas do plants take in from the air for photosynthesis?",
+  "options": [
+   "Oxygen",
+   "Nitrogen",
+   "Carbon dioxide",
+   "Hydrogen"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q019",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "What is the hardest naturally occurring substance?",
+  "options": [
+   "Quartz",
+   "Diamond",
+   "Granite",
+   "Topaz"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q020",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "What is the largest organ of the human body?",
+  "options": [
+   "Liver",
+   "Skin",
+   "Brain",
+   "Lungs"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q021",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "Which element has the chemical symbol \"Fe\"?",
+  "options": [
+   "Fluorine",
+   "Iron",
+   "Lead",
+   "Francium"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q022",
+  "category": "Science",
+  "difficulty": "easy",
+  "question": "Which planet is closest to the Sun?",
+  "options": [
+   "Venus",
+   "Mercury",
+   "Mars",
+   "Earth"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q023",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "Which part of a cell is often called its \"powerhouse\"?",
+  "options": [
+   "Nucleus",
+   "Ribosome",
+   "Mitochondria",
+   "Golgi apparatus"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q024",
+  "category": "Science",
+  "difficulty": "easy",
+  "question": "At sea level, at what temperature does water boil?",
+  "options": [
+   "90 °C",
+   "100 °C",
+   "110 °C",
+   "120 °C"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q025",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "What is the most abundant gas in Earth's atmosphere?",
+  "options": [
+   "Oxygen",
+   "Nitrogen",
+   "Argon",
+   "Carbon dioxide"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q026",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "Which scientist developed the theory of general relativity?",
+  "options": [
+   "Isaac Newton",
+   "Albert Einstein",
+   "Niels Bohr",
+   "Stephen Hawking"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q027",
+  "category": "Science",
+  "difficulty": "easy",
+  "question": "Which is the largest planet in our Solar System?",
+  "options": [
+   "Saturn",
+   "Neptune",
+   "Jupiter",
+   "Uranus"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q028",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "What do bees collect from flowers to make honey?",
+  "options": [
+   "Pollen",
+   "Nectar",
+   "Sap",
+   "Dew"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q029",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "Which blood cells help the body fight infections?",
+  "options": [
+   "Red blood cells",
+   "White blood cells",
+   "Platelets",
+   "Plasma cells"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q030",
+  "category": "Science",
+  "difficulty": "medium",
+  "question": "What is the dense centre of an atom called?",
+  "options": [
+   "Electron cloud",
+   "Nucleus",
+   "Orbital",
+   "Ion"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q031",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "What is the capital city of Australia?",
+  "options": [
+   "Sydney",
+   "Melbourne",
+   "Canberra",
+   "Perth"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q032",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "Which is the longest river in South America?",
+  "options": [
+   "Paraná",
+   "Amazon",
+   "Orinoco",
+   "São Francisco"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q033",
+  "category": "Geography",
+  "difficulty": "easy",
+  "question": "What is the largest ocean on Earth?",
+  "options": [
+   "Atlantic",
+   "Indian",
+   "Pacific",
+   "Arctic"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q034",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "What is the capital city of Canada?",
+  "options": [
+   "Toronto",
+   "Vancouver",
+   "Ottawa",
+   "Montreal"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q035",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "In which country is Mount Kilimanjaro?",
+  "options": [
+   "Kenya",
+   "Tanzania",
+   "Uganda",
+   "Ethiopia"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q036",
+  "category": "Geography",
+  "difficulty": "easy",
+  "question": "In which country is the city of Kraków?",
+  "options": [
+   "Czechia",
+   "Poland",
+   "Slovakia",
+   "Hungary"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q037",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "What is the smallest country in the world by area?",
+  "options": [
+   "Monaco",
+   "Vatican City",
+   "San Marino",
+   "Liechtenstein"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q038",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "What is the largest hot desert in the world?",
+  "options": [
+   "Gobi",
+   "Kalahari",
+   "Sahara",
+   "Arabian"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q039",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "Which river flows through Warsaw?",
+  "options": [
+   "Oder",
+   "Vistula",
+   "Danube",
+   "Elbe"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q040",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "What is the capital city of Turkey?",
+  "options": [
+   "Istanbul",
+   "Ankara",
+   "Izmir",
+   "Antalya"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q041",
+  "category": "Geography",
+  "difficulty": "easy",
+  "question": "On which continent are the Andes mountains?",
+  "options": [
+   "Asia",
+   "Africa",
+   "South America",
+   "North America"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q042",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "Which strait separates Spain from Morocco?",
+  "options": [
+   "Bosphorus",
+   "Strait of Gibraltar",
+   "Strait of Dover",
+   "Strait of Messina"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q043",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "What is the capital city of New Zealand?",
+  "options": [
+   "Auckland",
+   "Wellington",
+   "Christchurch",
+   "Queenstown"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q044",
+  "category": "Geography",
+  "difficulty": "medium",
+  "question": "In which country are the ruins of Machu Picchu?",
+  "options": [
+   "Mexico",
+   "Peru",
+   "Chile",
+   "Bolivia"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q045",
+  "category": "Geography",
+  "difficulty": "hard",
+  "question": "Which is the largest island in the world that is not a continent?",
+  "options": [
+   "New Guinea",
+   "Borneo",
+   "Greenland",
+   "Madagascar"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q046",
+  "category": "History",
+  "difficulty": "easy",
+  "question": "In which year did World War II end?",
+  "options": [
+   "1939",
+   "1944",
+   "1945",
+   "1950"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q047",
+  "category": "History",
+  "difficulty": "easy",
+  "question": "Who was the first person to walk on the Moon?",
+  "options": [
+   "Buzz Aldrin",
+   "Yuri Gagarin",
+   "Neil Armstrong",
+   "Michael Collins"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q048",
+  "category": "History",
+  "difficulty": "easy",
+  "question": "Which ancient civilisation built the pyramids of Giza?",
+  "options": [
+   "The Romans",
+   "The Egyptians",
+   "The Greeks",
+   "The Maya"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q049",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "In which year did the Berlin Wall fall?",
+  "options": [
+   "1985",
+   "1989",
+   "1991",
+   "1993"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q050",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "Who was the first Roman emperor?",
+  "options": [
+   "Julius Caesar",
+   "Augustus",
+   "Nero",
+   "Caligula"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q051",
+  "category": "History",
+  "difficulty": "easy",
+  "question": "Which ocean liner sank on its maiden voyage in 1912?",
+  "options": [
+   "Lusitania",
+   "Titanic",
+   "Britannic",
+   "Queen Mary"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q052",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "Which queen of Egypt formed an alliance with Mark Antony?",
+  "options": [
+   "Nefertiti",
+   "Hatshepsut",
+   "Cleopatra",
+   "Nefertari"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q053",
+  "category": "History",
+  "difficulty": "easy",
+  "question": "Who was the first President of the United States?",
+  "options": [
+   "Abraham Lincoln",
+   "Thomas Jefferson",
+   "George Washington",
+   "John Adams"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q054",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "In which country did the Renaissance begin?",
+  "options": [
+   "France",
+   "Italy",
+   "England",
+   "Spain"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q055",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "Nicolaus Copernicus argued that the planets revolve around what?",
+  "options": [
+   "The Earth",
+   "The Sun",
+   "The Moon",
+   "The Pole Star"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q056",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "Marie Skłodowska-Curie was the first woman to win what?",
+  "options": [
+   "An Olympic gold medal",
+   "A Nobel Prize",
+   "An Academy Award",
+   "The Fields Medal"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q057",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "Genghis Khan founded which empire?",
+  "options": [
+   "Ottoman Empire",
+   "Mongol Empire",
+   "Persian Empire",
+   "Mughal Empire"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q058",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "In which year did Christopher Columbus first reach the Americas?",
+  "options": [
+   "1066",
+   "1492",
+   "1588",
+   "1620"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q059",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "What was the name of the Polish trade union movement led by Lech Wałęsa?",
+  "options": [
+   "Unity",
+   "Solidarity",
+   "Liberty",
+   "Workers' Front"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q060",
+  "category": "History",
+  "difficulty": "medium",
+  "question": "Who was the British Prime Minister for most of World War II?",
+  "options": [
+   "Neville Chamberlain",
+   "Winston Churchill",
+   "Clement Attlee",
+   "Anthony Eden"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q061",
+  "category": "Film & Music",
+  "difficulty": "easy",
+  "question": "Which band released the album \"Abbey Road\"?",
+  "options": [
+   "The Rolling Stones",
+   "The Beatles",
+   "Queen",
+   "The Who"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q062",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "Which composer, born in Poland in 1810, wrote the \"Minute Waltz\"?",
+  "options": [
+   "Franz Liszt",
+   "Frédéric Chopin",
+   "Wolfgang Amadeus Mozart",
+   "Ludwig van Beethoven"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q063",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "In the 1939 film \"The Wizard of Oz\", what are Dorothy's slippers made to look like?",
+  "options": [
+   "Silver",
+   "Rubies",
+   "Gold",
+   "Emeralds"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q064",
+  "category": "Film & Music",
+  "difficulty": "easy",
+  "question": "Which film series features the line \"May the Force be with you\"?",
+  "options": [
+   "Star Trek",
+   "Star Wars",
+   "Dune",
+   "The Matrix"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q065",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "How many keys does a standard piano have?",
+  "options": [
+   "76",
+   "88",
+   "92",
+   "100"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q066",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "Who directed the 1975 film \"Jaws\"?",
+  "options": [
+   "Steven Spielberg",
+   "George Lucas",
+   "Martin Scorsese",
+   "Francis Ford Coppola"
+  ],
+  "answerIndex": 0
+ },
+ {
+  "id": "q067",
+  "category": "Film & Music",
+  "difficulty": "easy",
+  "question": "What is the name of the young lion in Disney's \"The Lion King\" (1994)?",
+  "options": [
+   "Mufasa",
+   "Simba",
+   "Scar",
+   "Nala"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q068",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "Which composer wrote \"Für Elise\"?",
+  "options": [
+   "Mozart",
+   "Beethoven",
+   "Bach",
+   "Haydn"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q069",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "Who played Jack Dawson in the 1997 film \"Titanic\"?",
+  "options": [
+   "Brad Pitt",
+   "Leonardo DiCaprio",
+   "Matt Damon",
+   "Johnny Depp"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q070",
+  "category": "Film & Music",
+  "difficulty": "easy",
+  "question": "Which singer was known as the \"King of Pop\"?",
+  "options": [
+   "Elvis Presley",
+   "Michael Jackson",
+   "Prince",
+   "Freddie Mercury"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q071",
+  "category": "Film & Music",
+  "difficulty": "easy",
+  "question": "\"Bohemian Rhapsody\" was a hit for which band?",
+  "options": [
+   "Queen",
+   "ABBA",
+   "Led Zeppelin",
+   "Pink Floyd"
+  ],
+  "answerIndex": 0
+ },
+ {
+  "id": "q072",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "How many symphonies did Beethoven complete?",
+  "options": [
+   "5",
+   "7",
+   "9",
+   "12"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q073",
+  "category": "Film & Music",
+  "difficulty": "easy",
+  "question": "What is the name of the school of witchcraft and wizardry in Harry Potter?",
+  "options": [
+   "Durmstrang",
+   "Beauxbatons",
+   "Hogwarts",
+   "Ilvermorny"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q074",
+  "category": "Film & Music",
+  "difficulty": "medium",
+  "question": "Which studio made the 1995 film \"Toy Story\"?",
+  "options": [
+   "DreamWorks",
+   "Pixar",
+   "Studio Ghibli",
+   "Aardman"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q075",
+  "category": "Sport",
+  "difficulty": "easy",
+  "question": "How many players does a football (soccer) team have on the pitch?",
+  "options": [
+   "9",
+   "10",
+   "11",
+   "12"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q076",
+  "category": "Sport",
+  "difficulty": "easy",
+  "question": "In which sport would you perform a \"slam dunk\"?",
+  "options": [
+   "Volleyball",
+   "Basketball",
+   "Handball",
+   "Water polo"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q077",
+  "category": "Sport",
+  "difficulty": "easy",
+  "question": "How often are the Summer Olympic Games normally held?",
+  "options": [
+   "Every 2 years",
+   "Every 3 years",
+   "Every 4 years",
+   "Every 5 years"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q078",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "How long is a marathon?",
+  "options": [
+   "40 km",
+   "42.195 km",
+   "44.5 km",
+   "50 km"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q079",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "In tennis, what is a score of zero called?",
+  "options": [
+   "Nil",
+   "Love",
+   "Duck",
+   "Zip"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q080",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "What is the maximum break in a standard frame of snooker?",
+  "options": [
+   "100",
+   "147",
+   "155",
+   "180"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q081",
+  "category": "Sport",
+  "difficulty": "easy",
+  "question": "How many rings are on the Olympic flag?",
+  "options": [
+   "4",
+   "5",
+   "6",
+   "7"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q082",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "In which sport is the Stanley Cup awarded?",
+  "options": [
+   "Baseball",
+   "Ice hockey",
+   "American football",
+   "Basketball"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q083",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "In golf, what is a score of one under par on a hole called?",
+  "options": [
+   "Eagle",
+   "Birdie",
+   "Bogey",
+   "Albatross"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q084",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "How many points is a touchdown worth in American football?",
+  "options": [
+   "3",
+   "5",
+   "6",
+   "7"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q085",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "In which country did the ancient Olympic Games take place?",
+  "options": [
+   "Italy",
+   "Greece",
+   "Egypt",
+   "Turkey"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q086",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "How many balls are bowled in a standard over in cricket?",
+  "options": [
+   "4",
+   "5",
+   "6",
+   "8"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q087",
+  "category": "Sport",
+  "difficulty": "medium",
+  "question": "In judo and karate, which belt colour traditionally marks an expert?",
+  "options": [
+   "Brown",
+   "Red",
+   "Black",
+   "White"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q088",
+  "category": "Food",
+  "difficulty": "easy",
+  "question": "Pierogi are a traditional dumpling dish from which country?",
+  "options": [
+   "Poland",
+   "Italy",
+   "Greece",
+   "Portugal"
+  ],
+  "answerIndex": 0
+ },
+ {
+  "id": "q089",
+  "category": "Food",
+  "difficulty": "easy",
+  "question": "Paella originally comes from which country?",
+  "options": [
+   "Mexico",
+   "Italy",
+   "Spain",
+   "Portugal"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q090",
+  "category": "Food",
+  "difficulty": "easy",
+  "question": "Guacamole is mainly made from which fruit?",
+  "options": [
+   "Lime",
+   "Avocado",
+   "Mango",
+   "Green tomato"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q091",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "What is the main ingredient of traditional hummus?",
+  "options": [
+   "Lentils",
+   "Chickpeas",
+   "Fava beans",
+   "White beans"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q092",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "Which nut is used to make marzipan?",
+  "options": [
+   "Hazelnut",
+   "Almond",
+   "Walnut",
+   "Cashew"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q093",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "Which type of pastry is used to make profiteroles and éclairs?",
+  "options": [
+   "Puff pastry",
+   "Shortcrust pastry",
+   "Choux pastry",
+   "Filo pastry"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q094",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "Which spice gives risotto alla milanese its golden-yellow colour?",
+  "options": [
+   "Turmeric",
+   "Saffron",
+   "Paprika",
+   "Cumin"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q095",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "Which vegetable gives red borscht its deep colour?",
+  "options": [
+   "Red cabbage",
+   "Beetroot",
+   "Red pepper",
+   "Tomato"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q096",
+  "category": "Food",
+  "difficulty": "easy",
+  "question": "Which cheese is traditionally used on a Margherita pizza?",
+  "options": [
+   "Cheddar",
+   "Mozzarella",
+   "Parmesan",
+   "Gouda"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q097",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "Feta cheese traditionally comes from which country?",
+  "options": [
+   "Greece",
+   "Turkey",
+   "Bulgaria",
+   "Cyprus"
+  ],
+  "answerIndex": 0
+ },
+ {
+  "id": "q098",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "Kimchi is a traditional fermented dish from which country?",
+  "options": [
+   "China",
+   "Japan",
+   "Korea",
+   "Thailand"
+  ],
+  "answerIndex": 2
+ },
+ {
+  "id": "q099",
+  "category": "Food",
+  "difficulty": "medium",
+  "question": "What is tofu made from?",
+  "options": [
+   "Rice",
+   "Soybeans",
+   "Wheat",
+   "Chickpeas"
+  ],
+  "answerIndex": 1
+ },
+ {
+  "id": "q100",
+  "category": "Food",
+  "difficulty": "easy",
+  "question": "What kind of fruit is a Granny Smith?",
+  "options": [
+   "Pear",
+   "Apple",
+   "Plum",
+   "Grape"
+  ],
+  "answerIndex": 1
+ }
+]
