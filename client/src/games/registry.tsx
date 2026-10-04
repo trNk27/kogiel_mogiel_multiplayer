@@ -1,6 +1,7 @@
 import type { GameId } from '../../../shared/protocol';
 import type { Game, GameHost } from './types';
 import { QuizGame } from './quiz/QuizGame';
+import { TrailsGame } from './trails/TrailsGame';
 
 /** Placeholder until the remaining games land: shows a card and returns to the results screen. */
 class ComingSoon implements Game {
@@ -27,5 +28,6 @@ class ComingSoon implements Game {
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
   if (id === 'quiz') return new QuizGame(host, ids);
+  if (id === 'trails') return new TrailsGame(host, ids);
   return new ComingSoon(id, host, ids);
 }
