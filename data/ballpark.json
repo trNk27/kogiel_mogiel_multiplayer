@@ -1,0 +1,242 @@
+[
+ {
+  "id": "b01",
+  "question": "How many bones are there in an adult human body?",
+  "answer": 206,
+  "unit": "bones"
+ },
+ {
+  "id": "b02",
+  "question": "In what year was the Eiffel Tower completed?",
+  "answer": 1889,
+  "unit": "year"
+ },
+ {
+  "id": "b03",
+  "question": "How fast does light travel in a vacuum, in kilometres per second?",
+  "answer": 299792,
+  "unit": "km/s"
+ },
+ {
+  "id": "b04",
+  "question": "At what temperature does water boil at sea level, in degrees Fahrenheit?",
+  "answer": 212,
+  "unit": "°F"
+ },
+ {
+  "id": "b05",
+  "question": "What is the average distance from the Earth to the Moon, in kilometres?",
+  "answer": 384400,
+  "unit": "km"
+ },
+ {
+  "id": "b06",
+  "question": "In what year did humans first land on the Moon?",
+  "answer": 1969,
+  "unit": "year"
+ },
+ {
+  "id": "b07",
+  "question": "How many teeth are in a full set of adult human teeth?",
+  "answer": 32,
+  "unit": "teeth"
+ },
+ {
+  "id": "b08",
+  "question": "How many hearts does an octopus have?",
+  "answer": 3,
+  "unit": "hearts"
+ },
+ {
+  "id": "b09",
+  "question": "How many squares are there on a chessboard?",
+  "answer": 64,
+  "unit": "squares"
+ },
+ {
+  "id": "b10",
+  "question": "How long is a marathon, in metres?",
+  "answer": 42195,
+  "unit": "m"
+ },
+ {
+  "id": "b11",
+  "question": "How many minutes are there in a week?",
+  "answer": 10080,
+  "unit": "minutes"
+ },
+ {
+  "id": "b12",
+  "question": "How many seconds are there in a day?",
+  "answer": 86400,
+  "unit": "seconds"
+ },
+ {
+  "id": "b13",
+  "question": "What is the Earth's diameter at the equator, in kilometres?",
+  "answer": 12756,
+  "unit": "km"
+ },
+ {
+  "id": "b14",
+  "question": "How many strings does a standard concert pedal harp have?",
+  "answer": 47,
+  "unit": "strings"
+ },
+ {
+  "id": "b15",
+  "question": "How many cards are in a standard deck, not counting jokers?",
+  "answer": 52,
+  "unit": "cards"
+ },
+ {
+  "id": "b16",
+  "question": "In what year was the Battle of Hastings fought?",
+  "answer": 1066,
+  "unit": "year"
+ },
+ {
+  "id": "b17",
+  "question": "How many sonnets did Shakespeare publish in his 1609 collection?",
+  "answer": 154,
+  "unit": "sonnets"
+ },
+ {
+  "id": "b18",
+  "question": "How many Earth days does it take Mars to orbit the Sun?",
+  "answer": 687,
+  "unit": "days"
+ },
+ {
+  "id": "b19",
+  "question": "How tall is the Statue of Liberty from the ground to the tip of the torch, in metres?",
+  "answer": 93,
+  "unit": "m"
+ },
+ {
+  "id": "b20",
+  "question": "How many bones are there in one human hand (including the wrist)?",
+  "answer": 27,
+  "unit": "bones"
+ },
+ {
+  "id": "b21",
+  "question": "How fast does sound travel through air at 20 °C, in metres per second?",
+  "answer": 343,
+  "unit": "m/s"
+ },
+ {
+  "id": "b22",
+  "question": "How many hours are there in a year that is not a leap year?",
+  "answer": 8760,
+  "unit": "hours"
+ },
+ {
+  "id": "b23",
+  "question": "In what year was the first FIFA World Cup held?",
+  "answer": 1930,
+  "unit": "year"
+ },
+ {
+  "id": "b24",
+  "question": "In what year did the Great Fire of London take place?",
+  "answer": 1666,
+  "unit": "year"
+ },
+ {
+  "id": "b25",
+  "question": "What is the average distance from the Earth to the Sun, in millions of kilometres?",
+  "answer": 149.6,
+  "unit": "million km"
+ },
+ {
+  "id": "b26",
+  "question": "How wide is a football (soccer) goal, in metres?",
+  "answer": 7.32,
+  "unit": "m"
+ },
+ {
+  "id": "b27",
+  "question": "How high is a basketball hoop's rim above the floor, in centimetres (to the nearest cm)?",
+  "answer": 305,
+  "unit": "cm"
+ },
+ {
+  "id": "b28",
+  "question": "How long is a tennis court, in metres?",
+  "answer": 23.77,
+  "unit": "m"
+ },
+ {
+  "id": "b29",
+  "question": "How many grams are in one pound (to the nearest gram)?",
+  "answer": 454,
+  "unit": "g"
+ },
+ {
+  "id": "b30",
+  "question": "How many metres are in one mile (to the nearest metre)?",
+  "answer": 1609,
+  "unit": "m"
+ },
+ {
+  "id": "b31",
+  "question": "How many coloured stickers are on a standard 3×3 Rubik's Cube?",
+  "answer": 54,
+  "unit": "stickers"
+ },
+ {
+  "id": "b32",
+  "question": "What is the maximum depth of Lake Baikal, the world's deepest lake, in metres?",
+  "answer": 1642,
+  "unit": "m"
+ },
+ {
+  "id": "b33",
+  "question": "In what year were the first modern Olympic Games held in Athens?",
+  "answer": 1896,
+  "unit": "year"
+ },
+ {
+  "id": "b34",
+  "question": "What is the atomic number of gold?",
+  "answer": 79,
+  "unit": ""
+ },
+ {
+  "id": "b35",
+  "question": "In what year did the Chernobyl nuclear disaster happen?",
+  "answer": 1986,
+  "unit": "year"
+ },
+ {
+  "id": "b36",
+  "question": "On average, how many seconds does sunlight take to reach the Earth?",
+  "answer": 499,
+  "unit": "seconds"
+ },
+ {
+  "id": "b37",
+  "question": "In what year was the Battle of Grunwald fought?",
+  "answer": 1410,
+  "unit": "year"
+ },
+ {
+  "id": "b38",
+  "question": "In what year was Copernicus's \"On the Revolutions of the Heavenly Spheres\" published?",
+  "answer": 1543,
+  "unit": "year"
+ },
+ {
+  "id": "b39",
+  "question": "What is the highest possible score with three darts?",
+  "answer": 180,
+  "unit": "points"
+ },
+ {
+  "id": "b40",
+  "question": "What is a perfect score in ten-pin bowling?",
+  "answer": 300,
+  "unit": "points"
+ }
+]
