@@ -93,7 +93,30 @@ npm test             # unit tests
 npm run typecheck    # TypeScript for client + worker
 ```
 
-## Deploying (free plan, no credit card)
+## Deploying from a phone (no computer needed)
+
+Cloudflare can build and deploy straight from this GitHub repo, all from a phone browser:
+
+1. Sign up at <https://dash.cloudflare.com/sign-up> (free, no card).
+2. In the dashboard open **Workers & Pages → Create → Import a repository**, connect GitHub,
+   and pick `kogiel_mogiel_multiplayer`.
+3. Settings:
+   - **Project / Worker name:** `couch-party` (must match `name` in `wrangler.jsonc`)
+   - **Build command:** `npm run build`
+   - **Deploy command:** `npx wrangler deploy`
+   - **Branch:** the branch holding this code
+4. Deploy. You get a URL like `https://couch-party.<your-subdomain>.workers.dev`, and every
+   push to that branch redeploys automatically.
+
+### One link for everyone
+
+Share that single URL:
+
+- **Laptop, TV or tablet** → the host screen. Press **Host a party**.
+- **Phone** → automatically sent to `/join` (the controller). Scan the QR code on the laptop,
+  or type the 4-letter code. To host on a phone anyway, use `/?host`.
+
+## Deploying from a computer (free plan, no credit card)
 
 1. Create a free Cloudflare account at <https://dash.cloudflare.com/sign-up>.
 2. Log in from the terminal and deploy:

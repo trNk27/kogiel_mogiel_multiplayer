@@ -127,6 +127,17 @@ body.phone-body input {
 .join-form .btn {
   margin-top: 8px;
 }
+.host-link {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+.host-link a {
+  color: var(--yolk);
+}
 .form-rosette {
   position: absolute;
   right: -24px;

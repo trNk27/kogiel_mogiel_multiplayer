@@ -221,6 +221,10 @@ export function PhoneApp() {
             Join the party
           </button>
         </form>
+        <p class="host-link">
+          To host, open this same link on a laptop or TV.{' '}
+          <a href="/?host">Host on this phone instead</a>
+        </p>
         <Rosette size={90} class="form-rosette" />
       </div>
     );
