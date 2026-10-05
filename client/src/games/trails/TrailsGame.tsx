@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
-import { DT, POWERUP_RADIUS, TrailsSim, WORLD_W, type PowerKind } from './sim';
+import { DT, POWERUP_RADIUS, POWER_KINDS, TrailsSim, WORLD_W, type PowerKind } from './sim';
+import { POWER_INFO, PowerIcon, TARGET_COLOR, drawPowerIcon, powerColor } from './powerIcons';
 import { awardDeaths, trailsTarget, trailsWinner } from './scoring';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
@@ -12,12 +13,7 @@ const CANVAS_W = 1440;
 const CANVAS_H = 864;
 const SCALE = CANVAS_W / WORLD_W;
 
-const POWER_STYLE: Record<PowerKind, { color: string; icon: string; label: string }> = {
-  speed: { color: '#ffd23f', icon: '⚡', label: 'Speed boost' },
-  slow: { color: '#4f9dff', icon: '🐌', label: 'Slow the others' },
-  thin: { color: '#a3e048', icon: '✂', label: 'Thin line' },
-  wrap: { color: '#b27bff', icon: '🌀', label: 'Through walls' },
-};
+const TOAST_MS = 2600;
 
 type Phase = 'countdown' | 'play' | 'roundOver';
 
@@ -40,6 +36,8 @@ export class TrailsGame implements Game {
   private canvas: HTMLCanvasElement | null = null;
   private trailLayer: HTMLCanvasElement;
   private flashes: { x: number; y: number; color: string; t: number }[] = [];
+  /** "Kasia makes everyone else fat!" */
+  private toast: { idx: number; kind: PowerKind; until: number } | null = null;
 
   constructor(
     private host: GameHost,
@@ -54,6 +52,8 @@ export class TrailsGame implements Game {
   }
 
   start() {
+    // For automated tests: /?debug exposes the running game.
+    if (new URLSearchParams(location.search).has('debug')) (window as unknown as { trails: TrailsGame }).trails = this;
     this.newRound();
     this.lastFrame = performance.now();
     this.raf = requestAnimationFrame(this.frame);
@@ -136,9 +136,15 @@ export class TrailsGame implements Game {
       ctx.lineTo(seg.x1 * SCALE, seg.y1 * SCALE);
       ctx.stroke();
     }
+    if (ev.cleared) {
+      ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+      sound.whoosh();
+    }
     for (const p of ev.pickups) {
       sound.pickup();
       this.host.buzz(this.ids[p.idx], [40]);
+      this.toast = { idx: p.idx, kind: p.kind, until: performance.now() + TOAST_MS };
+      this.host.changed();
     }
     if (ev.deaths.length) {
       const alive = this.sim.snakes.filter((s) => s.alive && !this.removed.has(s.idx)).map((s) => s.idx);
@@ -173,10 +179,10 @@ export class TrailsGame implements Game {
 
     // Power-ups
     for (const p of this.sim.powerups) {
-      const st = POWER_STYLE[p.kind];
+      const color = powerColor(p.kind);
       const pulse = 1 + Math.sin(now / 180 + p.id) * 0.08;
       ctx.beginPath();
-      ctx.fillStyle = st.color;
+      ctx.fillStyle = color;
       ctx.globalAlpha = 0.25;
       ctx.arc(p.x * SCALE, p.y * SCALE, POWERUP_RADIUS * SCALE * 1.4 * pulse, 0, Math.PI * 2);
       ctx.fill();
@@ -184,11 +190,7 @@ export class TrailsGame implements Game {
       ctx.beginPath();
       ctx.arc(p.x * SCALE, p.y * SCALE, POWERUP_RADIUS * SCALE * pulse, 0, Math.PI * 2);
       ctx.fill();
-      ctx.font = `${Math.round(POWERUP_RADIUS * SCALE * 1.1)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#2a120a';
-      ctx.fillText(st.icon, p.x * SCALE, p.y * SCALE + 1);
+      drawPowerIcon(ctx, p.kind, p.x * SCALE, p.y * SCALE, POWERUP_RADIUS * SCALE * 1.2, '#2a120a');
     }
 
     // Crash flashes
@@ -240,6 +242,27 @@ export class TrailsGame implements Game {
       ctx.beginPath();
       ctx.arc(x, y, Math.max(2, r * 0.45), 0, Math.PI * 2);
       ctx.fill();
+      // Show effects on the head: a hop ring while jumping, a dashed ring for through-walls.
+      if (s.fx.jump > 0) {
+        ctx.strokeStyle = '#fff4dc';
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.arc(x, y, r + 10 + Math.sin(now / 70) * 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      if (s.fx.wrap > 0) {
+        ctx.save();
+        ctx.strokeStyle = TARGET_COLOR.self;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 6]);
+        ctx.lineDashOffset = -now / 30;
+        ctx.beginPath();
+        ctx.arc(x, y, r + 16, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
 
       if (this.phase === 'countdown') {
         // Heading arrow + name so everyone can find themselves.
@@ -346,6 +369,10 @@ export class TrailsGame implements Game {
       winnerColor: w !== null ? colorHex(this.colorOf(w)) : null,
       gameOver: this.gameWinner !== null,
       powerups: this.host.options.powerups,
+      toast:
+        this.toast && this.toast.until > performance.now()
+          ? { ...this.toast, name: this.host.player(this.ids[this.toast.idx])?.name ?? '?', color: colorHex(this.colorOf(this.toast.idx)) }
+          : null,
     };
   }
 }
@@ -363,6 +390,14 @@ function TrailsView({ game }: { game: TrailsGame }) {
       <div class="trails-arena">
         <canvas ref={ref} width={CANVAS_W} height={CANVAS_H} class="trails-canvas" />
         {info.phase !== 'roundOver' && <Countdown endsAt={info.countdownEnds} key={info.round} />}
+        {info.toast && (
+          <div class="trails-toast pop-in" key={info.toast.until}>
+            <PowerIcon kind={info.toast.kind} size={44} />
+            <span>
+              <b style={{ color: info.toast.color }}>{info.toast.name}</b> {POWER_INFO[info.toast.kind].toast}
+            </span>
+          </div>
+        )}
         {info.phase === 'roundOver' && (
           <div class="trails-banner pop-in">
             {info.winnerName ? (
@@ -395,14 +430,18 @@ function TrailsView({ game }: { game: TrailsGame }) {
         </div>
         {info.powerups && (
           <div class="trails-legend">
-            {Object.values(POWER_STYLE).map((s) => (
-              <div class="trails-legend-row">
-                <span class="trails-legend-dot" style={{ background: s.color }}>
-                  {s.icon}
-                </span>
-                {s.label}
-              </div>
-            ))}
+            <div class="trails-legend-key">
+              <span style={{ color: TARGET_COLOR.self }}>● you</span> <span style={{ color: TARGET_COLOR.others }}>● others</span>{' '}
+              <span style={{ color: TARGET_COLOR.all }}>● all</span>
+            </div>
+            <div class="trails-legend-grid">
+              {POWER_KINDS.map((k) => (
+                <div class="trails-legend-row">
+                  <PowerIcon kind={k} size={26} />
+                  {POWER_INFO[k].label}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </aside>

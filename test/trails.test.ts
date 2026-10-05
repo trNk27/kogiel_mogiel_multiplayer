@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Grid, TICK_HZ, TrailsSim, TUNING, mulberry32, type TrailsTuning } from '../client/src/games/trails/sim';
+import { Grid, POWER_KINDS, POWER_TUNING, TICK_HZ, TrailsSim, TUNING, mulberry32, type TrailsTuning } from '../client/src/games/trails/sim';
 import { awardDeaths, trailsTarget, trailsWinner } from '../client/src/games/trails/scoring';
 
 /** A tuning without gaps or ghost phase, so tests are about collisions only. */
@@ -172,5 +172,127 @@ describe('Trails scoring', () => {
     expect(trailsWinner([10, 3], 10)).toBe(0);
     expect(trailsWinner([31, 31, 2], 30)).toBeNull();
     expect(trailsWinner([31, 32, 2], 30)).toBe(1);
+  });
+});
+
+describe('power-ups', () => {
+  const NORMAL: TrailsTuning = { ...TUNING, ghostTime: 0 };
+  const fresh = (n = 3, tuning = NORMAL) => {
+    const sim = new TrailsSim(n, { rng: mulberry32(21), tuning });
+    sim.snakes.forEach((s, i) => place(sim, i, 150 + i * 200, 240, -Math.PI / 2));
+    return sim;
+  };
+
+  it('speeds up or slows down you or everyone else', () => {
+    const sim = fresh();
+    const [a, b, c] = sim.snakes;
+    sim.apply(a, 'speed');
+    expect(sim.speedOf(a)).toBeCloseTo(TUNING.speed * POWER_TUNING.fast);
+    sim.apply(a, 'rush');
+    expect(sim.speedOf(a)).toBeCloseTo(TUNING.speed * POWER_TUNING.fast);
+    expect(sim.speedOf(b)).toBeCloseTo(TUNING.speed * POWER_TUNING.fast);
+    sim.apply(b, 'slow');
+    // a is boosted and rushed, then slowed by b; c is rushed and slowed.
+    expect(sim.speedOf(a)).toBeCloseTo(TUNING.speed * POWER_TUNING.fast * POWER_TUNING.slow);
+    expect(sim.speedOf(c)).toBeCloseTo(TUNING.speed * POWER_TUNING.fast * POWER_TUNING.slow);
+    expect(sim.speedOf(b)).toBeCloseTo(TUNING.speed * POWER_TUNING.fast);
+    sim.apply(c, 'brake');
+    expect(sim.speedOf(c)).toBeCloseTo(TUNING.speed * POWER_TUNING.fast * POWER_TUNING.slow ** 2);
+  });
+
+  it('makes your line thin, or everyone else’s fat, and the two cancel', () => {
+    const sim = fresh();
+    const [a, b] = sim.snakes;
+    sim.apply(a, 'fat');
+    expect(sim.radiusOf(a)).toBe(TUNING.radius);
+    expect(sim.radiusOf(b)).toBeCloseTo(TUNING.radius * POWER_TUNING.fat);
+    sim.apply(b, 'thin');
+    expect(sim.radiusOf(b)).toBeCloseTo(TUNING.radius * POWER_TUNING.thin);
+  });
+
+  it('fat lines paint wider trails and survive their own fresh trail', () => {
+    const sim = fresh(2, SOLID);
+    sim.apply(sim.snakes[1], 'fat');
+    run(sim, TICK_HZ);
+    expect(sim.snakes[0].alive).toBe(true);
+    const s = sim.snakes[0];
+    const behind = Math.floor(s.y + 30);
+    let width = 0;
+    for (let x = 0; x < sim.w; x++) if (sim.grid.owner[behind * sim.w + x] === 1) width++;
+    expect(width).toBeGreaterThanOrEqual(Math.floor(TUNING.radius * POWER_TUNING.fat * 2) - 1);
+  });
+
+  /** Count trail-less ticks for snake 0 over `ticks`. */
+  function gapTicks(sim: TrailsSim, ticks: number) {
+    let n = 0;
+    for (let i = 0; i < ticks; i++) {
+      sim.step();
+      if (sim.snakes[0].gapTicks > 0) n++;
+      sim.snakes.forEach((s, k) => (s.alive ? null : place(sim, k, 400, 240, 0)));
+      sim.snakes.forEach((s) => (s.alive = true));
+    }
+    return n;
+  }
+
+  it('gives you big frequent gaps, or takes everyone else’s away', () => {
+    const holes = fresh(2);
+    holes.snakes[0].fx.holes = 100_000;
+    const normal = fresh(2);
+    expect(gapTicks(holes, 3 * TICK_HZ)).toBeGreaterThan(gapTicks(normal, 3 * TICK_HZ) * 2);
+
+    const solid = fresh(2);
+    solid.apply(solid.snakes[1], 'solid');
+    expect(gapTicks(solid, 4 * TICK_HZ)).toBe(0);
+  });
+
+  it('lets a jumping line hop over other trails (but not walls)', () => {
+    const sim = new TrailsSim(2, { rng: mulberry32(3), tuning: SOLID });
+    // Snake 0 draws a horizontal line across the middle while snake 1 waits.
+    place(sim, 0, 100, 240, 0);
+    sim.snakes[1].alive = false;
+    run(sim, 4 * TICK_HZ);
+    // Snake 1 drives straight up through that line, jumping.
+    place(sim, 1, 300, 290, -Math.PI / 2);
+    sim.snakes[1].alive = true;
+    sim.apply(sim.snakes[1], 'jump');
+    run(sim, 50);
+    expect(sim.snakes[1].alive).toBe(true);
+    expect(sim.snakes[1].y).toBeLessThan(230);
+    // Once the jump is over it hits the top wall.
+    run(sim, 4 * TICK_HZ);
+    expect(sim.snakes[1].alive).toBe(false);
+  });
+
+  it('clears the arena', () => {
+    const sim = fresh(2, SOLID);
+    run(sim, 30);
+    expect(sim.grid.owner.some((o) => o !== 0)).toBe(true);
+    sim.apply(sim.snakes[0], 'clear');
+    expect(sim.grid.owner.some((o) => o !== 0)).toBe(false);
+  });
+
+  it('spawns every kind of power-up and lets lines pick them up', () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed < 40 && seen.size < POWER_KINDS.length; seed++) {
+      const sim = new TrailsSim(2, { rng: mulberry32(seed), powerups: true, tuning: NORMAL });
+      for (let i = 0; i < 30 * TICK_HZ; i++) {
+        sim.step();
+        for (const p of sim.powerups) seen.add(p.kind);
+        sim.snakes.forEach((s, k) => {
+          if (!s.alive) {
+            s.alive = true;
+            place(sim, k, 400, 240, k);
+          }
+        });
+      }
+    }
+    expect(seen.size).toBe(POWER_KINDS.length);
+    const sim = new TrailsSim(1, { rng: mulberry32(1), powerups: true, tuning: SOLID });
+    place(sim, 0, 100, 240, 0);
+    sim.powerups.push({ id: 99, kind: 'thin', x: 120, y: 240 });
+    let got = null as string | null;
+    for (let i = 0; i < 30 && !got; i++) got = sim.step().pickups[0]?.kind ?? null;
+    expect(got).toBe('thin');
+    expect(sim.snakes[0].fx.thin).toBeGreaterThan(0);
   });
 });

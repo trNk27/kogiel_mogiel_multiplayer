@@ -10,7 +10,7 @@ are named after the brand: a glass of kogiel mogiel.
 
 | Game | What happens | Players |
 | --- | --- | --- |
-| **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups (speed, slow the others, thin line, through walls) can be switched on in the lobby. | 2–8 |
+| **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups can be switched on in the lobby: 11 pickups that change speed, line width and gaps (green ones affect you, red ones everyone else, blue ones everyone). | 2–8 |
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
@@ -155,6 +155,27 @@ Trails' feel is set in `TUNING` in [`client/src/games/trails/sim.ts`](client/src
 | `gapMin`/`gapMax` | 1.6–3.4 s | time between gaps |
 | `gapLength` | 15 units | wide enough for one line to slip through |
 | `ghostTime` | 0.55 s | invulnerable, trail-less start after "GO" |
+
+Trails power-ups live in `POWER_KINDS` / `POWER_SECONDS` / `POWER_TUNING` in the same file. Up to
+4 are on the arena at once, and a new one appears every 4–8 s:
+
+| Pickup | Ring | Effect | Time |
+| --- | --- | --- | --- |
+| Faster | green | you move 1.6× faster | 4 s |
+| Slower | green | you move 0.6× slower, for tight steering | 5 s |
+| Others faster | red | everyone else moves 1.6× faster | 4 s |
+| Others slower | red | everyone else moves 0.6× slower | 4 s |
+| Thin line | green | your line is half as wide | 6 s |
+| Others fat | red | everyone else's line is 2.2× as wide | 5 s |
+| Big gaps | green | your gaps are 2.4× longer and come every 0.35–0.75 s | 6 s |
+| Others no gaps | red | everyone else leaves a solid line | 6 s |
+| Jump | green | you leave no trail and hop over lines (walls still count) | 1.6 s |
+| Through walls | green | you wrap around the edges | 6 s |
+| Clear arena | blue | wipes every trail | – |
+
+Speed effects multiply; thin/fat and big gaps/no gaps cancel each other. The TV announces each
+pickup ("Kasia makes everyone else fat!"). `/?debug` on the TV exposes the running game as
+`window.trails`, for testing.
 
 Quiz and Ballpark timings are constants at the top of their `logic.ts` / game files.
 

@@ -35,11 +35,63 @@ export const TUNING: TrailsTuning = {
   ghostTime: 0.55,
 };
 
-export type PowerKind = 'speed' | 'slow' | 'thin' | 'wrap';
-export const POWER_KINDS: PowerKind[] = ['speed', 'slow', 'thin', 'wrap'];
-export const POWER_SECONDS: Record<PowerKind, number> = { speed: 4, slow: 4, thin: 6, wrap: 6 };
+/**
+ * Power-ups. Each one affects either the player who picks it up ('self'), everyone else
+ * ('others') or the whole arena ('all'). Effects are timers, so they wear off.
+ */
+export type PowerKind =
+  | 'speed' // you: faster
+  | 'brake' // you: slower, for precise steering
+  | 'rush' // others: faster
+  | 'slow' // others: slower
+  | 'thin' // you: thin line
+  | 'fat' // others: fat line
+  | 'holes' // you: big, frequent gaps
+  | 'solid' // others: no gaps at all
+  | 'jump' // you: hop over lines (no trail, no line collisions) for a moment
+  | 'wrap' // you: through the walls
+  | 'clear'; // everyone: wipe the arena
+
+export const POWER_KINDS: PowerKind[] = ['speed', 'brake', 'rush', 'slow', 'thin', 'fat', 'holes', 'solid', 'jump', 'wrap', 'clear'];
+export const POWER_TARGET: Record<PowerKind, 'self' | 'others' | 'all'> = {
+  speed: 'self',
+  brake: 'self',
+  rush: 'others',
+  slow: 'others',
+  thin: 'self',
+  fat: 'others',
+  holes: 'self',
+  solid: 'others',
+  jump: 'self',
+  wrap: 'self',
+  clear: 'all',
+};
+export const POWER_SECONDS: Record<PowerKind, number> = {
+  speed: 4,
+  brake: 5,
+  rush: 4,
+  slow: 4,
+  thin: 6,
+  fat: 5,
+  holes: 6,
+  solid: 6,
+  jump: 1.6,
+  wrap: 6,
+  clear: 0,
+};
+/** How strong each effect is. */
+export const POWER_TUNING = {
+  fast: 1.6,
+  slow: 0.6,
+  thin: 0.5,
+  fat: 2.2,
+  /** "holes": gaps this much longer, every holesMin..holesMax seconds. */
+  holesLength: 2.4,
+  holesMin: 0.35,
+  holesMax: 0.75,
+};
 const POWER_RADIUS = 9;
-const MAX_POWERUPS = 3;
+const MAX_POWERUPS = 4;
 
 export interface PowerUp {
   id: number;
@@ -76,6 +128,8 @@ export interface StepEvents {
   deaths: number[];
   segments: Segment[];
   pickups: { idx: number; kind: PowerKind }[];
+  /** A "clear" was picked up: the arena was wiped. */
+  cleared: boolean;
 }
 
 import type { Rng } from '../rng';
@@ -211,7 +265,7 @@ export class TrailsSim {
         gapTicks: 0,
         nextGapTicks: this.randTicks(this.tuning.gapMin, this.tuning.gapMax),
         ghostTicks: Math.round(this.tuning.ghostTime * TICK_HZ),
-        fx: { speed: 0, slow: 0, thin: 0, wrap: 0 },
+        fx: Object.fromEntries(POWER_KINDS.map((k) => [k, 0])) as Record<PowerKind, number>,
       });
     }
   }
@@ -230,20 +284,33 @@ export class TrailsSim {
     return this.snakes.filter((s) => s.alive).length;
   }
 
+  /** Speed effects multiply, so a sped-up player who gets slowed is about normal again. */
   speedOf(s: Snake) {
+    const P = POWER_TUNING;
     let v = this.tuning.speed;
-    if (s.fx.speed > 0) v *= 1.6;
-    if (s.fx.slow > 0) v *= 0.6;
+    if (s.fx.speed > 0) v *= P.fast;
+    if (s.fx.rush > 0) v *= P.fast;
+    if (s.fx.brake > 0) v *= P.slow;
+    if (s.fx.slow > 0) v *= P.slow;
     return v;
   }
 
   radiusOf(s: Snake) {
-    return s.fx.thin > 0 ? this.tuning.radius * 0.5 : this.tuning.radius;
+    let r = this.tuning.radius;
+    if (s.fx.thin > 0) r *= POWER_TUNING.thin;
+    if (s.fx.fat > 0) r *= POWER_TUNING.fat;
+    return r;
+  }
+
+  /** Seconds until the next gap starts. */
+  private nextGap(s: Snake) {
+    if (s.fx.holes > 0) return this.randTicks(POWER_TUNING.holesMin, POWER_TUNING.holesMax);
+    return this.randTicks(this.tuning.gapMin, this.tuning.gapMax);
   }
 
   step(): StepEvents {
     this.tick++;
-    const ev: StepEvents = { deaths: [], segments: [], pickups: [] };
+    const ev: StepEvents = { deaths: [], segments: [], pickups: [], cleared: false };
     const paints: { x: number; y: number; r: number; owner: number; wrap: boolean }[] = [];
 
     for (const s of this.snakes) {
@@ -252,17 +319,20 @@ export class TrailsSim {
       const r = this.radiusOf(s);
       const wrap = s.fx.wrap > 0;
       const ghost = s.ghostTicks > 0;
+      const jumping = s.fx.jump > 0;
       s.angle += s.turn * this.tuning.turnRate * DT;
 
-      // Gap bookkeeping
+      // Gap bookkeeping. "solid" stops gaps; "holes" makes them long and frequent.
       if (!ghost) {
-        if (s.gapTicks > 0) s.gapTicks--;
+        if (s.fx.solid > 0) s.gapTicks = 0;
+        else if (s.gapTicks > 0) s.gapTicks--;
         else if (--s.nextGapTicks <= 0) {
-          s.gapTicks = Math.max(1, Math.round((this.tuning.gapLength / v) * TICK_HZ));
-          s.nextGapTicks = this.randTicks(this.tuning.gapMin, this.tuning.gapMax);
+          const len = this.tuning.gapLength * (s.fx.holes > 0 ? POWER_TUNING.holesLength : 1) + Math.max(0, r - this.tuning.radius) * 2;
+          s.gapTicks = Math.max(1, Math.round((len / v) * TICK_HZ));
+          s.nextGapTicks = this.nextGap(s);
         }
       }
-      const drawing = !ghost && s.gapTicks === 0;
+      const drawing = !ghost && !jumping && s.gapTicks === 0;
 
       // Move in sub-steps of at most 1 unit so fast lines can't tunnel through thin ones.
       const dist = v * DT;
@@ -270,7 +340,7 @@ export class TrailsSim {
       const dx = (Math.cos(s.angle) * dist) / subs;
       const dy = (Math.sin(s.angle) * dist) / subs;
       // Own cells younger than this many ticks are safe (we just painted them).
-      const grace = Math.ceil((2 * this.tuning.radius + 3) / Math.max(0.3, dist)) + 1;
+      const grace = Math.ceil((2 * Math.max(r, this.tuning.radius) + 3) / Math.max(0.3, dist)) + 1;
 
       for (let k = 0; k < subs && s.alive; k++) {
         const px = s.x;
@@ -295,7 +365,8 @@ export class TrailsSim {
           s.y = Math.min(this.h - r, Math.max(r, s.y));
         }
 
-        if (!ghost) {
+        // Jumping lines hop over trails (but walls still count).
+        if (!ghost && !jumping) {
           for (const phi of PROBES) {
             const a = s.angle + phi;
             const qx = s.x + Math.cos(a) * (r + 0.6);
@@ -314,7 +385,12 @@ export class TrailsSim {
 
       if (!s.alive) ev.deaths.push(s.idx);
       if (s.ghostTicks > 0) s.ghostTicks--;
-      for (const kind of POWER_KINDS) if (s.fx[kind] > 0) s.fx[kind]--;
+      for (const kind of POWER_KINDS) {
+        if (s.fx[kind] <= 0) continue;
+        s.fx[kind]--;
+        // When holes wear off, go back to normal gap timing.
+        if (kind === 'holes' && s.fx.holes === 0) s.nextGapTicks = this.nextGap(s);
+      }
     }
 
     // Paint after everyone moved, so simultaneous head-on crashes are symmetric.
@@ -322,6 +398,29 @@ export class TrailsSim {
 
     if (this.powerupsOn) this.stepPowerups(ev);
     return ev;
+  }
+
+  /** Apply a power-up picked up by `s`. */
+  apply(s: Snake, kind: PowerKind, ev?: StepEvents) {
+    const ticks = Math.round(POWER_SECONDS[kind] * TICK_HZ);
+    const target = POWER_TARGET[kind];
+    if (kind === 'clear') {
+      this.grid.clear();
+      if (ev) ev.cleared = true;
+      return;
+    }
+    const who = target === 'self' ? [s] : this.snakes.filter((o) => o !== s && o.alive);
+    for (const o of who) {
+      o.fx[kind] = ticks;
+      // Opposites cancel: a new effect replaces its counterpart.
+      if (kind === 'thin') o.fx.fat = 0;
+      if (kind === 'fat') o.fx.thin = 0;
+      if (kind === 'holes') {
+        o.fx.solid = 0;
+        o.nextGapTicks = Math.min(o.nextGapTicks, this.nextGap(o));
+      }
+      if (kind === 'solid') o.fx.holes = 0;
+    }
   }
 
   private stepPowerups(ev: StepEvents) {
@@ -343,12 +442,7 @@ export class TrailsSim {
       const hit = this.powerups.find((p) => Math.hypot(p.x - s.x, p.y - s.y) < POWER_RADIUS + this.radiusOf(s));
       if (!hit) continue;
       this.powerups = this.powerups.filter((p) => p !== hit);
-      const ticks = POWER_SECONDS[hit.kind] * TICK_HZ;
-      if (hit.kind === 'slow') {
-        for (const o of this.snakes) if (o !== s && o.alive) o.fx.slow = ticks;
-      } else {
-        s.fx[hit.kind] = ticks;
-      }
+      this.apply(s, hit.kind, ev);
       ev.pickups.push({ idx: s.idx, kind: hit.kind });
     }
   }
