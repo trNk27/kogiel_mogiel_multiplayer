@@ -14,7 +14,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a new randomly generated track. 15/12/10/8/6/4/2/1 cup points per race. | 1–8 |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a new randomly generated track. 15/12/10/8 cup points per race. | 1–4 |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 
 ## How a party works
@@ -209,7 +209,8 @@ changes.
   you down and let you slide along them. Cars bump each other. Progress is measured along the track,
   so driving backwards over the line never counts as a lap.
 - **Rendering** (`render3d.ts`): one three.js canvas with a viewport per player (1 full screen, 2
-  stacked, then 2×2, 3×2, 4×2; a spare slot shows the map and standings). It renders at 45 % of
+  stacked, 3–4 in a 2×2 grid; with 3 players the spare slot shows the map and standings). The game
+  takes at most 4 players: with more people in the room, the VIP can’t start it. It renders at 45 % of
   1080p and is scaled up with nearest-neighbour filtering. Flat-shaded low-poly meshes, 4–32 px
   textures, blob shadows and fog give it the PS2 feel.
 - The phone sends the stick (−100…100 on both axes, in steps of 5) at most 20 times a second, only

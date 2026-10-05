@@ -1929,28 +1929,6 @@ body.tv {
 .rally-speed small {
   font-size: 24px;
 }
-.rally-slot.small .rally-tag {
-  font-size: 22px;
-  left: 12px;
-  top: 10px;
-}
-.rally-slot.small .rally-pos {
-  font-size: 70px;
-  right: 14px;
-}
-.rally-slot.small .rally-pos small {
-  font-size: 28px;
-}
-.rally-slot.small .rally-lap {
-  font-size: 28px;
-  left: 14px;
-  bottom: 10px;
-}
-.rally-slot.small .rally-speed {
-  font-size: 36px;
-  right: 14px;
-  bottom: 8px;
-}
 .rally-finished {
   position: absolute;
   inset: 0;
@@ -1966,9 +1944,6 @@ body.tv {
 .rally-finished small {
   font-size: 50px;
   color: var(--cream);
-}
-.rally-slot.small .rally-finished {
-  font-size: 54px;
 }
 .rally-away {
   position: absolute;

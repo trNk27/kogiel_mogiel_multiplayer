@@ -53,9 +53,9 @@ export interface Slot {
   h: number;
 }
 
-/** Split-screen layout in stage pixels (top-left origin). Odd counts leave one slot free for the map. */
+/** Split-screen layout in stage pixels (top-left origin), for up to 4 players. Three players leave a slot free for the map. */
 export function splitLayout(n: number, W = 1920, H = 1080): { slots: Slot[]; free: Slot | null } {
-  const [cols, rows] = n <= 1 ? [1, 1] : n === 2 ? [1, 2] : n <= 4 ? [2, 2] : n <= 6 ? [3, 2] : [4, 2];
+  const [cols, rows] = n <= 1 ? [1, 1] : n === 2 ? [1, 2] : [2, 2];
   const w = W / cols;
   const h = H / rows;
   const cells: Slot[] = [];

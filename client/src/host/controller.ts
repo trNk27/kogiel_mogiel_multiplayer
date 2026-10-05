@@ -7,6 +7,7 @@ import {
   MAX_PLAYERS,
   RECONNECT_GRACE_MS,
   gameInfo,
+  playerCountProblem,
   isColorId,
   sanitizeName,
   type ColorId,
@@ -407,7 +408,11 @@ export class HostController implements GameHost {
   // ---- games ------------------------------------------------------------------
 
   canStart(game: GameId = this.selected) {
-    return this.connectedCount() >= gameInfo(game).minPlayers;
+    return this.startProblem(game) === null;
+  }
+
+  startProblem(game: GameId = this.selected) {
+    return playerCountProblem(gameInfo(game), this.connectedCount(), this.players.size);
   }
 
   private startGame(id: GameId) {

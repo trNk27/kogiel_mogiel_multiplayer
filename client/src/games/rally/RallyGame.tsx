@@ -318,7 +318,6 @@ export class RallyGame implements Game {
     const order = this.sim.order().filter((k) => !this.removed.has(k));
     const players = this.ids.map((id) => this.host.player(id));
     const free = this.layout.free;
-    const small = this.ids.length > 4;
     return (
       <>
         {this.layout.slots.map((slot, i) => {
@@ -327,9 +326,9 @@ export class RallyGame implements Game {
           if (!c || !p) return null;
           const pos = order.indexOf(i) + 1;
           return (
-            <div class={`rally-slot ${small ? 'small' : ''}`} style={{ left: slot.x, top: slot.y, width: slot.w, height: slot.h, '--pc': colorHex(p.color) }}>
+            <div class="rally-slot" style={{ left: slot.x, top: slot.y, width: slot.w, height: slot.h, '--pc': colorHex(p.color) }}>
               <div class="rally-tag">
-                <Pierogi color={colorHex(p.color)} size={small ? 34 : 44} mood={c.finished ? 'wow' : p.connected ? 'happy' : 'sleep'} />
+                <Pierogi color={colorHex(p.color)} size={44} mood={c.finished ? 'wow' : p.connected ? 'happy' : 'sleep'} />
                 <span>{p.name}</span>
               </div>
               {this.removed.has(i) ? null : (

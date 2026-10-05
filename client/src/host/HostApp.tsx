@@ -146,7 +146,6 @@ function Lobby() {
   const joinUrl = `${location.origin}/join?code=${c.code}`;
   const vip = players.find((p) => p.vip);
   const party = [...c.players.values()].filter((p) => p.party > 0).sort((a, b) => b.party - a.party);
-  const info = gameInfo(c.selected);
   const enough = c.canStart();
   return (
     <div class="screen lobby">
@@ -216,6 +215,7 @@ function Lobby() {
               <div>
                 <div class="game-card-title">{g.title}</div>
                 <div class="game-card-tag">{g.tagline}</div>
+                {g.maxPlayers && <div class="game-card-flag">Up to {g.maxPlayers} players</div>}
                 {g.id === 'trails' && c.options.powerups && <div class="game-card-flag">Power-ups on</div>}
                 {g.id === 'kitchen' && (
                   <div class="game-card-flag">
@@ -230,7 +230,7 @@ function Lobby() {
           {!vip
             ? 'Scan the code to join – the first player becomes the VIP.'
             : !enough
-              ? `${info.title} needs at least ${info.minPlayers} players.`
+              ? c.startProblem()
               : `${vip.name} (VIP) picks a game and presses Start on their phone.`}
         </div>
       </div>

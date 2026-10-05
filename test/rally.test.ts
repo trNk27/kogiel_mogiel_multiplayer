@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { WALL, generateTrack, pointAt, project, validTrack } from '../client/src/games/rally/track';
 import { DT, LAPS, RallySim, racePoints } from '../client/src/games/rally/sim';
+import { gameInfo, playerCountProblem } from '../shared/protocol';
 
 describe('generateTrack', () => {
   it('always builds a valid closed loop of sensible length', () => {
@@ -93,5 +94,15 @@ describe('RallySim', () => {
   });
   it('awards cup points by place', () => {
     expect([1, 2, 3, 8, 9].map(racePoints)).toEqual([15, 12, 10, 1, 0]);
+  });
+});
+
+describe('player limit', () => {
+  it('takes 1 to 4 players', () => {
+    const info = gameInfo('rally');
+    expect(playerCountProblem(info, 1, 1)).toBeNull();
+    expect(playerCountProblem(info, 4, 4)).toBeNull();
+    expect(playerCountProblem(info, 4, 5)).toMatch(/up to 4/);
+    expect(playerCountProblem(gameInfo('quiz'), 8, 8)).toBeNull();
   });
 });

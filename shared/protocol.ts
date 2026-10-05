@@ -86,6 +86,8 @@ export interface GameInfo {
   title: string;
   tagline: string;
   minPlayers: number;
+  /** Most players the game takes (default MAX_PLAYERS). */
+  maxPlayers?: number;
 }
 
 export const GAMES: readonly GameInfo[] = [
@@ -93,12 +95,19 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
   { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
   { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1 },
-  { id: 'rally', title: 'Maluch Rally', tagline: 'Split-screen racing. Your thumb is the wheel.', minPlayers: 1 },
+  { id: 'rally', title: 'Maluch Rally', tagline: 'Split-screen racing for up to 4. Your thumb is the wheel.', minPlayers: 1, maxPlayers: 4 },
   { id: 'toty', title: 'To Ty!', tagline: 'Selfies, “who’s most likely to…” and doodles.', minPlayers: 3 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
   return GAMES.find((g) => g.id === id)!;
+}
+
+/** Why a game can't start with this many players in the room, or null if it can. */
+export function playerCountProblem(info: GameInfo, connected: number, inRoom: number): string | null {
+  if (connected < info.minPlayers) return `${info.title} needs at least ${info.minPlayers} players.`;
+  if (info.maxPlayers && inRoom > info.maxPlayers) return `${info.title} is for up to ${info.maxPlayers} players.`;
+  return null;
 }
 
 export interface LobbyOptions {

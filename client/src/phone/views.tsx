@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { ANSWER_STYLES, DIFFICULTIES, GAMES, KITCHEN_LEVELS, colorHex, difficultyName, gameInfo, type GameId, type PhoneView } from '../../../shared/protocol';
+import { ANSWER_STYLES, DIFFICULTIES, GAMES, KITCHEN_LEVELS, colorHex, difficultyName, gameInfo, playerCountProblem, type GameId, type PhoneView } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
 import { Shape } from '../lib/shapes';
 import { GameIcon } from '../host/GameIcon';
@@ -77,7 +77,8 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
   }
   const selected = gameInfo(view.selected);
   const connected = view.players.filter((p) => p.connected).length;
-  const canStart = connected >= selected.minPlayers;
+  const problem = playerCountProblem(selected, connected, view.players.length);
+  const canStart = problem === null;
   return (
     <div class="pv pv-lobby">
       <div class="section-label">You’re the VIP – pick a game</div>
@@ -126,7 +127,11 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         <Toggle label="TV sound" on={view.options.sound} onChange={(v) => send({ t: 'option', key: 'sound', value: v })} />
       </div>
       <button class="btn btn-big btn-yolk start-btn" disabled={!canStart} onClick={() => send({ t: 'start' })}>
-        {canStart ? `Start ${selected.title}` : `Needs ${selected.minPlayers}+ players`}
+        {canStart
+          ? `Start ${selected.title}`
+          : selected.maxPlayers && view.players.length > selected.maxPlayers
+            ? `Max ${selected.maxPlayers} players`
+            : `Needs ${selected.minPlayers}+ players`}
       </button>
       <div class="section-label">Players</div>
       <div class="plist">
