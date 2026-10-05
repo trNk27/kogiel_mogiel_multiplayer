@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { ANSWER_STYLES, GAMES, colorHex, gameInfo, type GameId, type PhoneView } from '../../../shared/protocol';
+import { ANSWER_STYLES, DIFFICULTIES, GAMES, KITCHEN_LEVELS, colorHex, difficultyName, gameInfo, type GameId, type PhoneView } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
 import { Shape } from '../lib/shapes';
 import { GameIcon } from '../host/GameIcon';
@@ -81,6 +81,33 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         {view.selected === 'trails' && (
           <Toggle label="Power-ups" hint="Speed, slow-mo, thin line, through walls" on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
+        {view.selected === 'kitchen' && (
+          <>
+            <Slider
+              label="Difficulty"
+              hint="How fast the orders come in"
+              min={1}
+              max={DIFFICULTIES.length}
+              value={view.options.difficulty}
+              format={difficultyName}
+              onChange={(v) => send({ t: 'option', key: 'difficulty', value: v })}
+            />
+            <div class="segmented-wrap">
+              <div class="toggle-text">
+                <b>Start at level</b>
+                <small>{KITCHEN_LEVELS[view.options.level - 1]?.news}</small>
+              </div>
+              <div class="segmented">
+                {KITCHEN_LEVELS.map((l, i) => (
+                  <button class={view.options.level === i + 1 ? 'on' : ''} onClick={() => send({ t: 'option', key: 'level', value: i + 1 })}>
+                    <b>{i + 1}</b>
+                    <small>{l.name}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
         <Toggle label="TV sound" on={view.options.sound} onChange={(v) => send({ t: 'option', key: 'sound', value: v })} />
       </div>
       <button class="btn btn-big btn-yolk start-btn" disabled={!canStart} onClick={() => send({ t: 'start' })}>
@@ -116,6 +143,36 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
       </div>
       {me.vip && <div class="muted small center">Tip: the TV needs no remote – you run the show from here.</div>}
     </div>
+  );
+}
+
+function Slider(props: { label: string; hint?: string; min: number; max: number; value: number; format: (v: number) => string; onChange: (v: number) => void }) {
+  const [local, setLocal] = useState<number | null>(null);
+  const v = local ?? props.value;
+  useEffect(() => setLocal(null), [props.value]);
+  return (
+    <label class="slider">
+      <span class="toggle-text">
+        <b>
+          {props.label}: <span class="slider-value">{props.format(v)}</span>
+        </b>
+        {props.hint && <small>{props.hint}</small>}
+      </span>
+      <input
+        type="range"
+        min={props.min}
+        max={props.max}
+        step={1}
+        value={v}
+        style={{ '--fill': `${((v - props.min) / (props.max - props.min)) * 100}%` }}
+        onInput={(e) => setLocal(Number((e.target as HTMLInputElement).value))}
+        onChange={(e) => props.onChange(Number((e.target as HTMLInputElement).value))}
+      />
+      <span class="slider-ends">
+        <small>{props.format(props.min)}</small>
+        <small>{props.format(props.max)}</small>
+      </span>
+    </label>
   );
 }
 

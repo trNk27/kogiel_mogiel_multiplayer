@@ -104,7 +104,32 @@ export interface LobbyOptions {
   powerups: boolean;
   /** TV sound effects. */
   sound: boolean;
+  /** Pierogi Panic: how often orders arrive, 1 (relaxed) to 5 (chaos). */
+  difficulty: number;
+  /** Pierogi Panic: level to start from (1-based). */
+  level: number;
 }
+
+export const DEFAULT_OPTIONS: LobbyOptions = { powerups: false, sound: true, difficulty: 3, level: 1 };
+
+export const DIFFICULTIES = [
+  { name: 'Relaxed', pace: 1.6, ttl: 1.3 },
+  { name: 'Easy', pace: 1.3, ttl: 1.15 },
+  { name: 'Normal', pace: 1, ttl: 1 },
+  { name: 'Hard', pace: 0.8, ttl: 0.9 },
+  { name: 'Chaos', pace: 0.62, ttl: 0.8 },
+] as const;
+
+export function difficultyName(d: number) {
+  return DIFFICULTIES[Math.max(1, Math.min(5, Math.round(d))) - 1].name;
+}
+
+/** Pierogi Panic levels, in order (details live with the game). */
+export const KITCHEN_LEVELS = [
+  { name: 'Babcia’s Kitchen', news: 'Potato & cheese pierogi, boiled' },
+  { name: 'The Village Inn', news: 'New fillings: sauerkraut and meat' },
+  { name: 'The Wedding Feast', news: 'Blueberries – and fried pierogi in the pans!' },
+] as const;
 
 export interface PlayerSummary {
   id: string;
@@ -147,11 +172,11 @@ export type KitchenItem =
   | { k: 'dough' }
   | { k: 'fill'; f: Filling }
   | { k: 'raw'; f: Filling }
-  /** A clean plate, optionally with cooked pierogi on it. */
-  | { k: 'plate'; f?: Filling }
+  /** A clean plate, optionally with boiled (or fried) pierogi on it. */
+  | { k: 'plate'; f?: Filling; fried?: boolean }
   | { k: 'dirty'; n: number };
 
-export type KitchenMiniKind = 'roll' | 'fold' | 'boil' | 'wash';
+export type KitchenMiniKind = 'roll' | 'fold' | 'boil' | 'fry' | 'wash';
 
 export interface KitchenMini {
   /** Unique per started minigame, so stale messages can be ignored. */
@@ -207,6 +232,9 @@ export type PhoneView =
       hint: string | null;
       mini: KitchenMini | null;
       score: number;
+      /** 1-based level number and how many levels there are. */
+      level: number;
+      levels: number;
     }
   | {
       v: 'results';
@@ -238,7 +266,7 @@ export type PhoneMsg =
   | { t: 'mini'; id: number; ev: 'prog' | 'done' | 'cancel'; p?: number }
   // VIP-only actions (the host ignores them from anybody else)
   | { t: 'select'; game: GameId }
-  | { t: 'option'; key: keyof LobbyOptions; value: boolean }
+  | { t: 'option'; key: keyof LobbyOptions; value: boolean | number }
   | { t: 'start' }
   | { t: 'kick'; id: string }
   | { t: 'again' }

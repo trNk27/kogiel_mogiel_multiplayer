@@ -1,5 +1,8 @@
 import {
   CLOSE,
+  DEFAULT_OPTIONS,
+  DIFFICULTIES,
+  KITCHEN_LEVELS,
   GAMES,
   MAX_PLAYERS,
   RECONNECT_GRACE_MS,
@@ -75,7 +78,7 @@ export class HostController implements GameHost {
   /** Connected phones that have not joined yet (they are looking at the colour picker). */
   private pending = new Set<string>();
   selected: GameId = 'quiz';
-  options: LobbyOptions = { powerups: false, sound: true };
+  options: LobbyOptions = { ...DEFAULT_OPTIONS };
   screen: Screen = { s: 'landing' };
   game: Game | null = null;
   gamesPlayed = 0;
@@ -150,7 +153,7 @@ export class HostController implements GameHost {
     this.code = saved.code;
     this.hostKey = saved.hostKey;
     this.selected = saved.selected;
-    this.options = saved.options;
+    this.options = { ...DEFAULT_OPTIONS, ...saved.options };
     this.gamesPlayed = saved.gamesPlayed;
     sound.muted = !this.options.sound;
     const now = Date.now();
@@ -310,11 +313,17 @@ export class HostController implements GameHost {
         }
         return;
       case 'option':
-        if (isVip && (m.key === 'powerups' || m.key === 'sound')) {
-          this.options = { ...this.options, [m.key]: !!m.value };
-          sound.muted = !this.options.sound;
-          this.afterLobbyChange();
-        }
+        if (!isVip) return;
+        if (m.key === 'powerups' || m.key === 'sound') this.options = { ...this.options, [m.key]: !!m.value };
+        else if (m.key === 'difficulty' || m.key === 'level') {
+          const max = m.key === 'difficulty' ? DIFFICULTIES.length : KITCHEN_LEVELS.length;
+          const v = Math.round(Number(m.value));
+          if (!(v >= 1 && v <= max)) return;
+          this.options = { ...this.options, [m.key]: v };
+          sound.tick();
+        } else return;
+        sound.muted = !this.options.sound;
+        this.afterLobbyChange();
         return;
       case 'start':
         if (isVip && this.screen.s === 'lobby' && this.canStart()) this.startGame(this.selected);

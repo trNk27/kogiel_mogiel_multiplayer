@@ -15,12 +15,22 @@ export interface GameHost {
   readonly options: LobbyOptions;
 }
 
+export interface CoopLevel {
+  name: string;
+  stars: number;
+  score: number;
+  served: number;
+  missed: number;
+}
+
 export interface CoopResult {
   score: number;
   /** 0–3. Every player earns this many party points. */
   stars: number;
   served: number;
   missed: number;
+  /** Per-level results, for games played in levels. */
+  levels?: CoopLevel[];
 }
 
 export interface Game {

@@ -13,7 +13,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups (speed, slow the others, thin line, through walls) can be switched on in the lobby. | 2–8 |
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
-| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling and washing are quick minigames on your phone. 3 minutes, up to 3 stars. | 1–8 |
+| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
 
 ## How a party works
 
@@ -22,7 +22,7 @@ are named after the brand: a glass of kogiel mogiel.
 3. The **first player to join is the VIP**. The VIP picks the game, toggles options, starts rounds,
    ends a game early (⋯ menu) and can remove players, all from their phone.
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
-   places; in the co-op Pierogi Panic everyone gets 1 point per star). The VIP chooses **Play again** or another game.
+   places; in the co-op Pierogi Panic everyone gets 1 point per star, averaged over the levels played). The VIP chooses **Play again** or another game.
 
 Phones can lock, refresh or drop off Wi-Fi. The player's id lives in `localStorage`, and the TV
 keeps their slot and score for **60 seconds**, so reopening the page puts them straight back where
@@ -154,16 +154,34 @@ Quiz and Ballpark timings are constants at the top of their `logic.ts` / game fi
 
 ### Pierogi Panic
 
-The kitchen layout is the `LAYOUT` string grid in
-[`client/src/games/kitchen/logic.ts`](client/src/games/kitchen/logic.ts). Each character is one tile
-(`#` counter, `F` flour, `1`–`4` filling crates, `R` rolling board, `P` pierogi board, `S` stove,
-`W` sink, `K` plate rack, `H` serving hatch, `D` dirty-dish return, `T` bin, `.` floor). Edit it and
-the TV redraws the new kitchen. The unit tests check that the floor is connected and that every
-station can be reached.
+The three levels live in `LEVELS` in
+[`client/src/games/kitchen/logic.ts`](client/src/games/kitchen/logic.ts). Each level has a name, the
+fillings that can be ordered, the share of fried orders, a round length and a 16 × 9 layout. Each
+character of the layout is one tile:
 
-`KTUNING` in the same file holds the walking speed (4.2 tiles/s), the round length (3 min), the
-ticket time (80 s), how long cooked pierogi wait before they turn to mush (25 s), and the points.
-Orders arrive faster and star targets rise with more players (`orderInterval`, `starThresholds`).
+| Tile | Meaning | Tile | Meaning |
+| --- | --- | --- | --- |
+| `.` | floor | `X` | wall |
+| `#` | counter (storage) | `F` | flour sack |
+| `1`–`4` | crate: potato, sauerkraut, meat, blueberry | `R` | rolling board |
+| `P` | pierogi (folding) board | `S` | stove with a pot |
+| `G` | frying pan | `W` | sink |
+| `K` | plate rack | `H` | serving hatch |
+| `D` | dirty-dish return | `T` | bin |
+
+Edit a layout and the TV redraws the kitchen. Spawn points are picked automatically. The unit tests
+check every layout: closed, connected floor, every station reachable, a crate for each filling the
+level orders, and pans only where fried orders exist.
+
+`KTUNING` in the same file holds the walking speed (4.2 tiles/s), the ticket time (80 s), how long
+cooked pierogi wait before they turn to mush or burn (25 s), and the points (fried pierogi earn 30
+extra). The lobby difficulty (`DIFFICULTIES` in `shared/protocol.ts`: Relaxed, Easy, Normal, Hard,
+Chaos) scales how often orders arrive and how long tickets last. Star targets follow the number of
+orders a team can expect, so they scale with team size and difficulty.
+
+The item and station sprites in `client/public/sprites/kitchen/` were painted with FLUX.2 [pro]
+(Black Forest Labs), cut out of their white backgrounds and saved as 192 px WebP (about 350 KB in
+total). Chefs are still drawn in code so they can wear each player's colour.
 
 Phones send the joystick 20 times a second at most, quantised to 32 directions and two speeds, and
 only when it changes. The button and the minigame results are single messages. The TV runs the

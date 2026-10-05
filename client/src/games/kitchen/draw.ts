@@ -1,8 +1,8 @@
-/** Canvas renderer for the Pierogi Panic kitchen (TV only). A 3/4 top-down view. */
-import type { KitchenItem } from '../../../../shared/protocol';
+/** Canvas renderer for the Pierogi Panic kitchen (TV only). A 3/4 top-down view with painted sprites. */
+import type { Filling, KitchenItem } from '../../../../shared/protocol';
 import { PIEROGI_PATH } from '../../lib/art';
 import { GRID_H, GRID_W, type Cook, type KitchenSim, type Station } from './logic';
-import { fillingImage, itemImage } from './art';
+import { itemBadge, itemSprite, spriteImage, type Sprite } from './art';
 
 /** Pixels per tile. */
 export const T = 90;
@@ -17,6 +17,16 @@ const WOOD = { top: '#c98a4b', front: '#874c22', edge: '#e2ab6c' };
 const STEEL = { top: '#b6bfcb', front: '#6b7487', edge: '#e4e9f0' };
 const STOVE = { top: '#43434f', front: '#24242c', edge: '#686880' };
 const INK = '#2a120a';
+
+/** Floor tiles and wall colours per level. */
+const THEMES = [
+  // Babcia's kitchen: cream and biscuit tiles with folk diamonds.
+  { a: '#f8ecd2', b: '#ecd5aa', motif: 'rgba(214, 58, 79, 0.16)', dot: 'rgba(47, 95, 174, 0.18)', wall: '#5b2333', trim: '#e8335a' },
+  // The village inn: warm terracotta.
+  { a: '#f0cfa8', b: '#e2b68a', motif: 'rgba(120, 60, 20, 0.14)', dot: 'rgba(255, 244, 220, 0.4)', wall: '#3f2a1c', trim: '#ffc93c' },
+  // The wedding hall: white and cobalt, like Boleslawiec pottery.
+  { a: '#f6f3ec', b: '#dfe7f4', motif: 'rgba(47, 95, 174, 0.22)', dot: 'rgba(232, 51, 90, 0.25)', wall: '#26304f', trim: '#4f9dff' },
+];
 
 let bodyPath: Path2D | null = null;
 const body = () => (bodyPath ??= new Path2D(PIEROGI_PATH));
@@ -36,9 +46,14 @@ function ellipse(ctx: Ctx, x: number, y: number, rx: number, ry: number) {
   ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
 }
 
-/** Does this station show its front face (nothing solid in front of it)? */
+/** Is the tile walkable floor? */
+function isFloor(sim: KitchenSim, x: number, y: number) {
+  return x >= 0 && y >= 0 && x < GRID_W && y < GRID_H && !sim.stationAt(x, y) && !sim.isWall(x, y);
+}
+
+/** Does this station show its front face (floor in front of it)? */
 function hasFront(sim: KitchenSim, s: Station) {
-  return s.y + 1 >= GRID_H || !sim.stationAt(s.x, s.y + 1);
+  return s.y + 1 >= GRID_H || isFloor(sim, s.x, s.y + 1);
 }
 
 /** The station's top face rectangle. */
@@ -47,13 +62,27 @@ export function topRect(sim: KitchenSim, s: Station) {
   return { x: s.x * T, y: s.y * T, w: T, h, cx: s.x * T + T / 2, cy: s.y * T + h / 2 };
 }
 
-function drawImg(ctx: Ctx, img: HTMLImageElement, cx: number, cy: number, size: number) {
+function sprite(ctx: Ctx, name: Sprite, cx: number, cy: number, size: number) {
+  const img = spriteImage(name);
   if (!img.complete || img.naturalWidth === 0) return;
   ctx.drawImage(img, cx - size / 2, cy - size / 2, size, size);
 }
 
+/** A filling badge: the ingredient in a white circle. */
+function fillingBadge(ctx: Ctx, f: Filling, x: number, y: number, r: number) {
+  ctx.fillStyle = '#fff';
+  ellipse(ctx, x, y, r, r);
+  ctx.fill();
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  sprite(ctx, `ing-${f}`, x, y, r * 1.75);
+}
+
 export function drawItem(ctx: Ctx, it: KitchenItem, cx: number, cy: number, size: number) {
-  drawImg(ctx, itemImage(it), cx, cy, size);
+  sprite(ctx, itemSprite(it), cx, cy, size);
+  const f = itemBadge(it);
+  if (f) fillingBadge(ctx, f, cx + size * 0.36, cy - size * 0.3, Math.max(11, size * 0.2));
   if (it.k === 'dirty' && it.n > 1) countBadge(ctx, it.n, cx + size * 0.38, cy - size * 0.3);
 }
 
@@ -69,22 +98,26 @@ function countBadge(ctx: Ctx, n: number, x: number, y: number) {
 }
 
 // ---------------------------------------------------------------------------
-// Static layer: floor and station bodies (drawn once)
+// Static layer: floor, walls and station bodies (drawn once per level)
 // ---------------------------------------------------------------------------
 
 export function drawStatic(ctx: Ctx, sim: KitchenSim) {
+  const th = THEMES[sim.levelIndex % THEMES.length];
   ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
-  // Kitchen tiles: cream and biscuit, with a little folk diamond on every other one.
   for (let y = 0; y < GRID_H; y++) {
     for (let x = 0; x < GRID_W; x++) {
+      if (sim.isWall(x, y)) {
+        drawWall(ctx, sim, x, y, th);
+        continue;
+      }
       if (sim.stationAt(x, y)) continue;
       const dark = (x + y) % 2 === 1;
-      ctx.fillStyle = dark ? '#ecd5aa' : '#f8ecd2';
+      ctx.fillStyle = dark ? th.b : th.a;
       ctx.fillRect(x * T, y * T, T, T);
       if (dark) {
         const cx = x * T + T / 2;
         const cy = y * T + T / 2;
-        ctx.fillStyle = 'rgba(214, 58, 79, 0.16)';
+        ctx.fillStyle = th.motif;
         ctx.beginPath();
         ctx.moveTo(cx, cy - 13);
         ctx.lineTo(cx + 13, cy);
@@ -92,7 +125,7 @@ export function drawStatic(ctx: Ctx, sim: KitchenSim) {
         ctx.lineTo(cx - 13, cy);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = 'rgba(47, 95, 174, 0.18)';
+        ctx.fillStyle = th.dot;
         ellipse(ctx, cx, cy, 4, 4);
         ctx.fill();
       }
@@ -101,23 +134,46 @@ export function drawStatic(ctx: Ctx, sim: KitchenSim) {
       ctx.strokeRect(x * T + 1, y * T + 1, T - 2, T - 2);
     }
   }
-  // Soft shadows cast onto the floor by the counters.
-  for (const s of sim.stations) {
-    const below = s.y + 1 < GRID_H && !sim.stationAt(s.x, s.y + 1);
-    if (below) {
-      const g = ctx.createLinearGradient(0, (s.y + 1) * T, 0, (s.y + 1) * T + 18);
+  // Soft shadows cast onto the floor by counters and walls.
+  for (let y = 0; y < GRID_H - 1; y++)
+    for (let x = 0; x < GRID_W; x++) {
+      if (isFloor(sim, x, y) || !isFloor(sim, x, y + 1)) continue;
+      const g = ctx.createLinearGradient(0, (y + 1) * T, 0, (y + 1) * T + 18);
       g.addColorStop(0, 'rgba(70, 30, 10, 0.28)');
       g.addColorStop(1, 'rgba(70, 30, 10, 0)');
       ctx.fillStyle = g;
-      ctx.fillRect(s.x * T, (s.y + 1) * T, T, 18);
+      ctx.fillRect(x * T, (y + 1) * T, T, 18);
     }
-  }
   for (const s of sim.stations) drawStationBase(ctx, sim, s);
+}
+
+function drawWall(ctx: Ctx, sim: KitchenSim, x: number, y: number, th: (typeof THEMES)[number]) {
+  ctx.fillStyle = th.wall;
+  ctx.fillRect(x * T, y * T, T, T);
+  // Vertical boards…
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.22)';
+  ctx.lineWidth = 2;
+  for (let i = 1; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x * T + (T * i) / 3, y * T);
+    ctx.lineTo(x * T + (T * i) / 3, y * T + T);
+    ctx.stroke();
+  }
+  // …and a folk-painted trim where the wall meets the floor.
+  if (y + 1 < GRID_H && isFloor(sim, x, y + 1)) {
+    ctx.fillStyle = th.trim;
+    ctx.fillRect(x * T, y * T + T - 10, T, 6);
+  }
+  ctx.fillStyle = 'rgba(255, 244, 220, 0.12)';
+  for (let i = 0; i < 3; i++) {
+    ellipse(ctx, x * T + T / 6 + (T * i) / 3, y * T + T / 2, 3, 3);
+    ctx.fill();
+  }
 }
 
 function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
   const r = topRect(sim, s);
-  const pal = s.kind === 'stove' ? STOVE : s.kind === 'sink' ? STEEL : WOOD;
+  const pal = s.kind === 'stove' || s.kind === 'pan' ? STOVE : s.kind === 'sink' ? STEEL : WOOD;
   ctx.fillStyle = pal.top;
   ctx.fillRect(r.x, r.y, T, r.h);
   if (hasFront(sim, s)) {
@@ -152,23 +208,11 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
   const { cx, cy } = r;
   switch (s.kind) {
     case 'flour':
-      drawImg(ctx, itemImage({ k: 'flour' }), cx, cy, T * 0.78);
+      sprite(ctx, 'flour', cx, cy, T * 0.86);
       break;
-    case 'crate': {
-      // A slatted crate full of the filling.
-      ctx.fillStyle = '#9b5e2c';
-      rr(ctx, r.x + 8, r.y + 8, T - 16, r.h - 16, 8);
-      ctx.fill();
-      ctx.strokeStyle = '#6b3a14';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      drawImg(ctx, fillingImage(s.crate!), cx, cy, T * 0.66);
-      if (hasFront(sim, s)) {
-        ctx.fillStyle = '#e8d7b0';
-        ctx.fillRect(r.x + 14, r.y + r.h + 4, T - 28, D - 8);
-      }
+    case 'crate':
+      sprite(ctx, `crate-${s.crate!}`, cx, cy, T * 0.98);
       break;
-    }
     case 'roll':
     case 'fold':
       ctx.fillStyle = s.kind === 'roll' ? '#ead0a0' : '#f3dfb5';
@@ -196,15 +240,11 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
       }
       break;
     case 'stove':
+    case 'pan':
       ctx.strokeStyle = '#1b1b22';
       ctx.lineWidth = 5;
       ellipse(ctx, cx, cy, T * 0.36, T * 0.3);
       ctx.stroke();
-      ctx.strokeStyle = '#5c5c70';
-      ctx.lineWidth = 2;
-      ellipse(ctx, cx, cy, T * 0.26, T * 0.21);
-      ctx.stroke();
-      // Knobs on the front
       if (hasFront(sim, s)) {
         ctx.fillStyle = '#c9ccd3';
         for (const k of [-1, 1]) {
@@ -246,6 +286,7 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
           ctx.fillStyle = (i + j) % 2 ? '#d63a4f' : '#fff4dc';
           ctx.fillRect(r.x + 6 + i * cw, r.y + 6 + j * ch, cw + 0.5, ch + 0.5);
         }
+      sprite(ctx, 'bell', r.x + T - 24, r.y + 22, 40);
       break;
     }
     case 'return':
@@ -257,23 +298,7 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
       ctx.fill();
       break;
     case 'trash':
-      ctx.fillStyle = '#2f4a32';
-      ellipse(ctx, cx, cy, T * 0.34, T * 0.28);
-      ctx.fill();
-      ctx.strokeStyle = '#1a2c1c';
-      ctx.lineWidth = 4;
-      ctx.stroke();
-      ctx.fillStyle = '#4c7350';
-      ellipse(ctx, cx, cy, T * 0.24, T * 0.19);
-      ctx.fill();
-      ctx.strokeStyle = '#a3e048';
-      ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.moveTo(cx - 10, cy - 6);
-      ctx.lineTo(cx + 10, cy + 6);
-      ctx.moveTo(cx + 10, cy - 6);
-      ctx.lineTo(cx - 10, cy + 6);
-      ctx.stroke();
+      sprite(ctx, 'bin', cx, cy, T * 0.8);
       break;
     default:
       break;
@@ -300,22 +325,8 @@ export interface Popup {
   t0: number;
 }
 
-const COOKED = '#f1c46a';
-const RAW = '#f7ead0';
-
-function smallPierogi(ctx: Ctx, x: number, y: number, w: number, fill: string, rot = 0) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(rot);
-  ctx.scale(w / 120, w / 120);
-  ctx.translate(-60, -56);
-  ctx.fillStyle = fill;
-  ctx.strokeStyle = 'rgba(120, 70, 20, 0.7)';
-  ctx.lineWidth = 6;
-  ctx.fill(body());
-  ctx.stroke(body());
-  ctx.restore();
-}
+const POT_SPRITE = { none: 'pot', raw: 'pot-raw', cooked: 'pot-cooked', mushy: 'mushy' } as const;
+const PAN_SPRITE = { none: 'pan', raw: 'pan-raw', cooked: 'fried-pan', mushy: 'burnt' } as const;
 
 function drawStationContents(ctx: Ctx, sim: KitchenSim, s: Station, now: number) {
   const r = topRect(sim, s);
@@ -323,150 +334,74 @@ function drawStationContents(ctx: Ctx, sim: KitchenSim, s: Station, now: number)
   switch (s.kind) {
     case 'counter':
     case 'roll':
-      if (s.item) drawItem(ctx, s.item, cx, cy, T * 0.74);
-      else if (s.kind === 'roll') {
-        // Rolling pin waiting on the board.
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(-0.5);
-        ctx.fillStyle = '#d9a66a';
-        rr(ctx, -26, -6, 52, 12, 6);
-        ctx.fill();
-        ctx.fillStyle = '#9b6230';
-        rr(ctx, -36, -3.5, 12, 7, 3);
-        ctx.fill();
-        rr(ctx, 24, -3.5, 12, 7, 3);
-        ctx.fill();
-        ctx.restore();
-      }
+      if (s.item) drawItem(ctx, s.item, cx, cy, T * 0.78);
+      else if (s.kind === 'roll') sprite(ctx, 'pin', cx, cy, T * 0.8);
       break;
     case 'fold':
-      if (s.item) drawItem(ctx, s.item, cx, cy, T * 0.74);
+      if (s.item) drawItem(ctx, s.item, cx, cy, T * 0.78);
       else {
-        if (s.dough) drawItem(ctx, { k: 'dough' }, s.fill ? cx - 12 : cx, cy + 4, T * 0.62);
-        if (s.fill) drawItem(ctx, { k: 'fill', f: s.fill }, s.dough ? cx + 14 : cx, cy - 4, T * 0.56);
+        if (s.dough) drawItem(ctx, { k: 'dough' }, s.fill ? cx - 12 : cx, cy + 4, T * 0.66);
+        if (s.fill) drawItem(ctx, { k: 'fill', f: s.fill }, s.dough ? cx + 14 : cx, cy - 4, T * 0.6);
       }
       break;
-    case 'stove': {
+    case 'stove':
+    case 'pan': {
       const pot = s.pot;
-      const boiling = !!s.busy;
-      if (boiling) {
-        const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, T * 0.48);
-        g.addColorStop(0, 'rgba(255, 150, 40, 0.9)');
+      const busy = !!s.busy;
+      if (busy) {
+        const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, T * 0.55);
+        g.addColorStop(0, 'rgba(255, 150, 40, 0.95)');
         g.addColorStop(1, 'rgba(255, 80, 20, 0)');
         ctx.fillStyle = g;
-        ellipse(ctx, cx, cy, T * 0.5, T * 0.44);
+        ellipse(ctx, cx, cy, T * 0.56, T * 0.5);
         ctx.fill();
       }
-      // The pot
-      ctx.fillStyle = '#9aa1ad';
-      ctx.fillRect(cx - T * 0.44, cy - 5, T * 0.88, 10);
-      ctx.fillStyle = '#dfe3e9';
-      ellipse(ctx, cx, cy, T * 0.36, T * 0.31);
-      ctx.fill();
-      ctx.strokeStyle = '#6f7787';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      const inner = pot?.state === 'mushy' ? '#8b7d5c' : '#86c4e4';
-      ctx.fillStyle = inner;
-      ellipse(ctx, cx, cy, T * 0.29, T * 0.24);
-      ctx.fill();
+      const names = s.kind === 'pan' ? PAN_SPRITE : POT_SPRITE;
+      const bob = pot?.state === 'cooked' || busy ? Math.sin(now / 160) * 1.5 : 0;
+      const size = s.kind === 'pan' ? T * 1.04 : T * 0.98;
+      sprite(ctx, names[pot?.state ?? 'none'], cx + (s.kind === 'pan' ? 6 : 0), cy - 4 + bob, size);
       if (pot) {
-        if (pot.state === 'mushy') {
-          ctx.fillStyle = '#6e6448';
-          for (const [dx, dy, rr2] of [
-            [-8, -4, 7],
-            [9, 3, 6],
-            [-2, 8, 5],
-          ])
-            (ellipse(ctx, cx + dx, cy + dy, rr2, rr2 * 0.8), ctx.fill());
-          ctx.strokeStyle = 'rgba(120, 170, 60, 0.85)';
-          ctx.lineWidth = 3;
-          for (const k of [-1, 0, 1]) {
-            ctx.beginPath();
-            const sx = cx + k * 14;
-            const off = (now / 300 + k) % 1;
-            ctx.moveTo(sx, cy - 14 - off * 10);
-            ctx.bezierCurveTo(sx + 6, cy - 22 - off * 10, sx - 6, cy - 30 - off * 10, sx, cy - 38 - off * 10);
+        if (pot.state === 'cooked') {
+          // Warning: about to turn to mush / burn.
+          const left = sim.tuning.overcookMs - (sim.t - pot.since);
+          if (left < 8000 && Math.floor(now / 220) % 2 === 0) {
+            ctx.strokeStyle = '#ff3d6e';
+            ctx.lineWidth = 5;
+            ellipse(ctx, cx, cy, T * 0.46, T * 0.4);
             ctx.stroke();
           }
-        } else {
-          const fill = pot.state === 'cooked' ? COOKED : RAW;
-          const bobAmp = pot.state === 'cooked' || boiling ? 2.5 : 0;
-          smallPierogi(ctx, cx - 9, cy + 4 + Math.sin(now / 200) * bobAmp, 26, fill, -0.2);
-          smallPierogi(ctx, cx + 10, cy + 5 + Math.sin(now / 230 + 1) * bobAmp, 26, fill, 0.25);
-          smallPierogi(ctx, cx, cy - 6 + Math.sin(now / 260 + 2) * bobAmp, 26, fill, 0);
-          if (pot.state === 'cooked') {
-            // Steam
-            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-            ctx.lineWidth = 3;
-            for (const k of [-1, 1]) {
-              const off = (now / 900 + (k + 1) * 0.3) % 1;
-              ctx.globalAlpha = 1 - off;
-              ctx.beginPath();
-              const sx = cx + k * 12;
-              ctx.moveTo(sx, cy - 16 - off * 24);
-              ctx.bezierCurveTo(sx + 7, cy - 22 - off * 24, sx - 7, cy - 30 - off * 24, sx, cy - 36 - off * 24);
-              ctx.stroke();
-            }
-            ctx.globalAlpha = 1;
-            // Warning: about to turn to mush.
-            const left = sim.tuning.overcookMs - (sim.t - pot.since);
-            if (left < 8000 && Math.floor(now / 220) % 2 === 0) {
-              ctx.strokeStyle = '#ff3d6e';
-              ctx.lineWidth = 5;
-              ellipse(ctx, cx, cy, T * 0.42, T * 0.37);
-              ctx.stroke();
-            }
-          }
-          if (boiling) {
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            for (let i = 0; i < 5; i++) {
-              const a = now / 150 + i * 1.7;
-              ellipse(ctx, cx + Math.cos(a * 1.3) * 16, cy + Math.sin(a) * 12, 2.5, 2.5);
-              ctx.fill();
-            }
+        }
+        if (busy) {
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          for (let i = 0; i < 5; i++) {
+            const a = now / 150 + i * 1.7;
+            ellipse(ctx, cx + Math.cos(a * 1.3) * 16, cy - 4 + Math.sin(a) * 10, 2.5, 2.5);
+            ctx.fill();
           }
         }
-        // Which filling is in there
-        ctx.fillStyle = '#fff';
-        ellipse(ctx, r.x + T - 16, r.y + 15, 13, 13);
-        ctx.fill();
-        ctx.strokeStyle = INK;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        drawImg(ctx, fillingImage(pot.f), r.x + T - 16, r.y + 15, 21);
+        fillingBadge(ctx, pot.f, r.x + T - 14, r.y + 13, 13);
       }
       break;
     }
     case 'sink':
-      for (let i = 0; i < Math.min(3, s.count); i++) drawItem(ctx, { k: 'dirty', n: 1 }, cx - 6 + i * 6, cy + 4 - i * 5, T * 0.55);
+      for (let i = 0; i < Math.min(3, s.count); i++) drawItem(ctx, { k: 'dirty', n: 1 }, cx - 6 + i * 6, cy + 4 - i * 5, T * 0.6);
       if (s.count > 1) countBadge(ctx, s.count, r.x + T - 14, r.y + 14);
       break;
     case 'rack':
     case 'return': {
       const it: KitchenItem = s.kind === 'rack' ? { k: 'plate' } : { k: 'dirty', n: 1 };
-      for (let i = 0; i < Math.min(6, s.count); i++) drawItem(ctx, it, cx, cy + 6 - i * 5, T * 0.7);
+      for (let i = 0; i < Math.min(6, s.count); i++) drawItem(ctx, it, cx, cy + 6 - i * 5, T * 0.74);
       if (s.count > 1) countBadge(ctx, s.count, r.x + T - 14, r.y + 14);
       if (s.kind === 'rack' && s.count === 0) {
-        ctx.fillStyle = 'rgba(42, 18, 10, 0.55)';
-        ctx.font = '700 15px "Fredoka Variable", "Fredoka", sans-serif';
+        ctx.font = '700 16px "Fredoka Variable", "Fredoka", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#fff4dc';
+        ctx.strokeText('no plates', cx, cy);
+        ctx.fillStyle = '#a51c3d';
         ctx.fillText('no plates', cx, cy);
       }
-      break;
-    }
-    case 'hatch': {
-      // Bell
-      ctx.fillStyle = '#f2b705';
-      ctx.beginPath();
-      ctx.arc(r.x + T - 22, r.y + 26, 11, Math.PI, 0);
-      ctx.fill();
-      ctx.fillRect(r.x + T - 36, r.y + 26, 28, 4);
-      ctx.fillStyle = '#c48a00';
-      ellipse(ctx, r.x + T - 22, r.y + 13, 3, 3);
-      ctx.fill();
       break;
     }
     default:

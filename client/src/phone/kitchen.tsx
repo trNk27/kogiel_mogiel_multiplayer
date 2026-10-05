@@ -191,7 +191,9 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
         <span class="k-pad-score">
           <b>{view.score}</b> tips
         </span>
-        <span class="muted">Look at the TV</span>
+        <span class="muted">
+          Level {view.level}/{view.levels} · look at the TV
+        </span>
       </div>
       <div class={`k-stick-zone ${active ? 'active' : ''}`} ref={zone}>
         <div class="k-stick-base" ref={baseEl}>
@@ -238,7 +240,7 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
 }
 
 function holdText(it: NonNullable<View['hold']>) {
-  if (it.k === 'plate' && it.f) return `${fillingInfo(it.f).name} pierogi`;
+  if (it.k === 'plate' && it.f) return `${it.fried ? 'fried ' : ''}${fillingInfo(it.f).name.toLowerCase()} pierogi`;
   if (it.k === 'raw') return `raw ${fillingInfo(it.f).name.toLowerCase()} pierogi`;
   if (it.k === 'dirty' && it.n > 1) return `${it.n} dirty plates`;
   return itemName(it);
@@ -252,6 +254,7 @@ const MINI_TEXT: Record<KitchenMini['kind'], { title: string; how: string }> = {
   roll: { title: 'Roll the dough', how: 'Swipe up and down to roll it thin' },
   fold: { title: 'Make pierogi', how: 'Swipe across to fold, then pinch the edge' },
   boil: { title: 'Boil the pierogi', how: 'Stir in circles until they float' },
+  fry: { title: 'Fry the pierogi', how: 'Tap each one to flip it when it turns golden' },
   wash: { title: 'Wash the plate', how: 'Scrub off every spot' },
 };
 
@@ -291,6 +294,7 @@ function Minigame({ mini, send }: { mini: KitchenMini; send: Send }) {
         {mini.kind === 'roll' && <RollGame {...props} />}
         {mini.kind === 'fold' && <FoldGame {...props} />}
         {mini.kind === 'boil' && <BoilGame {...props} />}
+        {mini.kind === 'fry' && <FryGame {...props} />}
         {mini.kind === 'wash' && <WashGame {...props} />}
         {finished && <div class="k-mini-done pop-in">✓</div>}
       </div>
@@ -613,6 +617,146 @@ function WashGame({ seed, progress, done }: MiniProps) {
         <circle cx={b.x} cy={b.y} r="9" fill="#fff" fill-opacity=".55" stroke="#bfe3f5" stroke-width="2" class="k-bubble-pop" key={b.id} />
       ))}
       <ProgressArc p={p} />
+    </svg>
+  );
+}
+
+// ---- Fry -------------------------------------------------------------------
+
+/** Heat at which a side is golden (flip now!) and when it burns. */
+const GOLDEN = 0.55;
+const BURNT = 1.12;
+const FRY_STOPS: [number, [number, number, number]][] = [
+  [0, [247, 234, 208]],
+  [0.55, [241, 196, 106]],
+  [0.95, [208, 138, 50]],
+  [1.12, [58, 36, 18]],
+];
+
+function fryColor(heat: number) {
+  for (let i = 1; i < FRY_STOPS.length; i++) {
+    const [h1, c1] = FRY_STOPS[i];
+    const [h0, c0] = FRY_STOPS[i - 1];
+    if (heat <= h1) {
+      const k = (heat - h0) / (h1 - h0);
+      return `rgb(${c0.map((v, j) => Math.round(v + (c1[j] - v) * Math.max(0, k))).join(',')})`;
+    }
+  }
+  return 'rgb(58,36,18)';
+}
+
+interface FryPiece {
+  x: number;
+  y: number;
+  rot: number;
+  rate: number;
+  heat: number;
+  side: number;
+  /** Time a burn or a flip happened (for the animations). */
+  burntAt: number;
+  flipAt: number;
+  nopeAt: number;
+}
+
+function FryGame({ seed, f, progress, done, setHow }: MiniProps & { setHow: (s: string) => void }) {
+  const pieces = useRef<FryPiece[]>([]);
+  if (!pieces.current.length) {
+    const rng = mulberry32(seed * 13 + 5);
+    pieces.current = [
+      [76, 124],
+      [204, 126],
+      [140, 214],
+    ].map(([x, y]) => ({ x, y, rot: rng() * 40 - 20, rate: 0.24 + rng() * 0.14, heat: rng() * 0.15, side: 0, burntAt: -1e9, flipAt: -1e9, nopeAt: -1e9 }));
+  }
+  const [, setFrame] = useState(0);
+  const finished = useRef(false);
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const loop = (now: number) => {
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      for (const p of pieces.current) {
+        if (p.side >= 2 || now - p.burntAt < 700) continue;
+        p.heat += p.rate * dt;
+        if (p.heat > BURNT) {
+          // Burnt: scrape it and start this side again.
+          p.burntAt = now;
+          p.heat = 0;
+          vibrate([60, 40, 60]);
+          setHow('Burnt! Flip them while they are golden');
+        }
+      }
+      setFrame((n) => n + 1);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  const ref = useDrag((pt, _prev, isDown) => {
+    if (!isDown || finished.current) return;
+    const now = performance.now();
+    const p = pieces.current.find((q) => q.side < 2 && Math.hypot(q.x - pt.x, q.y - pt.y) < 52);
+    if (!p || now - p.burntAt < 700) return;
+    if (p.heat < GOLDEN) {
+      // Too early: lifting it off the pan cools it down a little.
+      p.nopeAt = now;
+      p.heat = Math.max(0, p.heat - 0.12);
+      return;
+    }
+    p.side++;
+    p.heat = 0;
+    p.flipAt = now;
+    vibrate(15);
+    const flips = pieces.current.reduce((a, q) => a + q.side, 0);
+    progress(flips / 6);
+    if (flips === 6) {
+      finished.current = true;
+      done();
+    }
+  });
+  const now = performance.now();
+  const color = f ? fillingInfo(f).hex : '#f3cf6b';
+  return (
+    <svg ref={ref} viewBox="0 0 300 300" class="k-mini-svg">
+      <rect x="236" y="138" width="62" height="26" rx="10" fill="#a0632e" stroke="#5a3010" stroke-width="5" />
+      <circle cx="140" cy="155" r="132" fill="#2a2a30" stroke="#121216" stroke-width="6" />
+      <circle cx="140" cy="155" r="114" fill="#4a3b22" />
+      <ellipse cx="110" cy="120" rx="60" ry="26" fill="#d9a43a" opacity=".22" />
+      {Array.from({ length: 8 }, (_, i) => {
+        const a = now / 400 + i * 0.8;
+        return <circle cx={140 + Math.cos(a * 0.7 + i) * (40 + i * 8)} cy={155 + Math.sin(a + i) * (30 + i * 7)} r={2 + (i % 3)} fill="#f6d27a" opacity=".5" />;
+      })}
+      {pieces.current.map((p) => {
+        const doneP = p.side >= 2;
+        const burning = now - p.burntAt < 700;
+        const flipK = Math.min(1, (now - p.flipAt) / 260);
+        const nopeK = Math.min(1, (now - p.nopeAt) / 300);
+        const sx = flipK < 1 ? Math.abs(Math.cos(flipK * Math.PI)) * 0.9 + 0.1 : 1;
+        const wiggle = nopeK < 1 ? Math.sin(nopeK * Math.PI * 4) * 8 : 0;
+        const golden = !doneP && !burning && p.heat >= GOLDEN;
+        return (
+          <g transform={`translate(${p.x} ${p.y}) rotate(${p.rot + wiggle})`} opacity={doneP ? 0.9 : 1}>
+            {golden && <ellipse cx="0" cy="2" rx="54" ry="40" fill="none" stroke="#ffd23f" stroke-width="5" class="k-pulse" />}
+            <g transform={`scale(1 ${sx})`}>
+              <path d={crescentPath(0, 13, 42)} fill={burning ? '#2a1a0c' : doneP ? 'rgb(214,150,62)' : fryColor(p.heat)} stroke="#7a4a1f" stroke-width="4" stroke-linejoin="round" />
+              <circle cx="0" cy="-2" r="5" fill={color} opacity=".8" />
+            </g>
+            {burning && <text y="-34" text-anchor="middle" font-size="26">💨</text>}
+            {doneP && (
+              <text y="-30" text-anchor="middle" font-size="28" fill="#2fd6a8" font-weight="700" stroke="#1a0a0e" stroke-width="5" paint-order="stroke">
+                ✓
+              </text>
+            )}
+            {!doneP && !burning && (
+              <text y="62" text-anchor="middle" font-size="16" font-weight="700" fill="#fff4dc" stroke="#1a0a0e" stroke-width="4" paint-order="stroke">
+                {p.side === 0 ? 'side 1' : 'side 2'}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      <ProgressArc p={pieces.current.reduce((a, q) => a + q.side, 0) / 6} />
     </svg>
   );
 }

@@ -4,8 +4,10 @@ import {
   GRID_W,
   KTUNING,
   KitchenSim,
-  LAYOUT,
+  LEVELS,
   TICK_HZ,
+  orderInterval,
+  spawnPoints,
   expectedOrders,
   pointsFor,
   starThresholds,
@@ -19,8 +21,8 @@ function run(sim: KitchenSim, ms: number) {
 }
 
 /** A sim that is already serving (prep skipped). */
-function playing(ids = ['a'], seed = 1) {
-  const sim = new KitchenSim(ids, seed);
+function playing(ids = ['a'], seed = 1, level = 0) {
+  const sim = new KitchenSim(ids, seed, { level });
   run(sim, KTUNING.prepMs + 20);
   expect(sim.phase).toBe('play');
   return sim;
@@ -61,18 +63,15 @@ function finishMini(sim: KitchenSim, id: string) {
   expect(sim.miniDone(id, c.mini!.id)).toBe(true);
 }
 
-describe('kitchen layout', () => {
-  it('is a closed rectangle of stations around a connected floor', () => {
-    expect(LAYOUT.every((r) => r.length === GRID_W)).toBe(true);
-    const sim = new KitchenSim(['a']);
-    for (let x = 0; x < GRID_W; x++) {
-      expect(sim.stationAt(x, 0)).not.toBeNull();
-      expect(sim.stationAt(x, GRID_H - 1)).not.toBeNull();
-    }
-    for (let y = 0; y < GRID_H; y++) {
-      expect(sim.stationAt(0, y)).not.toBeNull();
-      expect(sim.stationAt(GRID_W - 1, y)).not.toBeNull();
-    }
+describe.each(LEVELS.map((l, i) => [l.name, i] as const))('kitchen layout: %s', (_name, level) => {
+  const L = LEVELS[level];
+  it('is a closed rectangle of stations and walls around a connected floor', () => {
+    expect(L.layout.length).toBe(GRID_H);
+    expect(L.layout.every((r) => r.length === GRID_W)).toBe(true);
+    const sim = new KitchenSim(['a'], 1, { level });
+    const solid = (x: number, y: number) => !!sim.stationAt(x, y) || sim.isWall(x, y);
+    for (let x = 0; x < GRID_W; x++) expect(solid(x, 0) && solid(x, GRID_H - 1)).toBe(true);
+    for (let y = 0; y < GRID_H; y++) expect(solid(0, y) && solid(GRID_W - 1, y)).toBe(true);
     // Flood fill the floor from the first cook.
     const c = sim.cook('a')!;
     const seen = new Set<number>();
@@ -80,11 +79,11 @@ describe('kitchen layout', () => {
     while (stack.length) {
       const [x, y] = stack.pop()!;
       const k = y * GRID_W + x;
-      if (seen.has(k) || sim.stationAt(x, y)) continue;
+      if (seen.has(k) || solid(x, y)) continue;
       seen.add(k);
       stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
     }
-    const floor = LAYOUT.join('').split('').filter((ch) => ch === '.').length;
+    const floor = L.layout.join('').split('').filter((ch) => ch === '.').length;
     expect(seen.size).toBe(floor);
     // Every non-plain station touches the floor.
     for (const s of sim.stations) {
@@ -99,11 +98,16 @@ describe('kitchen layout', () => {
     }
   });
 
-  it('has every kind of station the recipe needs', () => {
-    const sim = new KitchenSim(['a']);
+  it('has every station its recipes need and room for 8 cooks', () => {
+    const sim = new KitchenSim(['a'], 1, { level });
     const count = (k: StationKind) => sim.stations.filter((s) => s.kind === k).length;
-    for (const k of ['flour', 'roll', 'fold', 'stove', 'sink', 'rack', 'hatch', 'return', 'trash'] as const) expect(count(k)).toBeGreaterThan(0);
-    expect(sim.stations.filter((s) => s.kind === 'crate').map((s) => s.crate)).toEqual(['potato', 'cabbage', 'meat', 'berry']);
+    for (const k of ['flour', 'roll', 'fold', 'stove', 'sink', 'rack', 'hatch', 'return', 'trash'] as const) expect(count(k), k).toBeGreaterThan(0);
+    const crates = sim.stations.filter((s) => s.kind === 'crate').map((s) => s.crate);
+    expect(crates).toEqual(L.fillings);
+    expect(count('pan') > 0).toBe(L.fried > 0);
+    const spawns = spawnPoints(L.layout);
+    expect(spawns.length).toBe(8);
+    expect(new Set(spawns.map((p) => p.join())).size).toBe(8);
   });
 });
 
@@ -152,6 +156,7 @@ describe('kitchen rules', () => {
     sim.act('a');
     expect(sim.served).toBe(1);
     expect(sim.score).toBeGreaterThanOrEqual(KTUNING.basePoints);
+    expect(sim.score).toBeLessThanOrEqual(KTUNING.basePoints + KTUNING.tipPoints);
     expect(sim.cook('a')!.hold).toBeNull();
     expect(sim.cook('a')!.jobs).toBe(3);
 
@@ -167,6 +172,41 @@ describe('kitchen rules', () => {
     sim.act('a');
     finishMini(sim, 'a');
     expect(rack.count).toBe(plates);
+  });
+
+  it('fries pierogi in a pan for fried orders', () => {
+    const sim = playing(['a'], 3, 2);
+    sim.orders = [{ id: 99, f: 'meat', fried: true, born: sim.t, ttl: sim.tuning.orderTtlMs }];
+    const c = sim.cook('a')!;
+    c.hold = { k: 'raw', f: 'meat' };
+    act(sim, 'a', 'pan');
+    expect(sim.hint('a')).toBe('Fry pierogi');
+    sim.act('a');
+    expect(sim.viewState('a')!.mini).toMatchObject({ kind: 'fry', f: 'meat' });
+    finishMini(sim, 'a');
+    c.hold = { k: 'plate' };
+    expect(sim.hint('a')).toBe('Plate up');
+    sim.act('a');
+    expect(c.hold).toEqual({ k: 'plate', f: 'meat', fried: true });
+    // A boiled plate of the same filling doesn't count as fried.
+    goTo(sim, 'a', 'hatch');
+    c.hold = { k: 'plate', f: 'meat' };
+    expect(sim.hint('a')).toBe('Not ordered');
+    c.hold = { k: 'plate', f: 'meat', fried: true };
+    expect(sim.hint('a')).toBe('Serve!');
+    sim.act('a');
+    expect(sim.score).toBeGreaterThanOrEqual(KTUNING.basePoints + KTUNING.friedBonus);
+  });
+
+  it('burns fried pierogi left in the pan', () => {
+    const sim = playing(['a'], 3, 2);
+    sim.cook('a')!.hold = { k: 'raw', f: 'berry' };
+    act(sim, 'a', 'pan');
+    sim.act('a');
+    finishMini(sim, 'a');
+    run(sim, KTUNING.overcookMs + 100);
+    expect(sim.stations.find((s) => s.kind === 'pan')!.pot?.state).toBe('mushy');
+    expect(sim.hint('a')).toBe('Scrape the pan');
   });
 
   it('ignores the button during the prep countdown', () => {
@@ -272,7 +312,7 @@ describe('kitchen rules', () => {
   it('ends service after the round and freezes everyone', () => {
     const sim = playing();
     sim.setStick('a', 1, 0);
-    run(sim, KTUNING.roundMs + 100);
+    run(sim, sim.tuning.roundMs + 100);
     expect(sim.phase).toBe('over');
     const c = sim.cook('a')!;
     const x = c.x;
@@ -307,9 +347,9 @@ describe('kitchen movement', () => {
     const a = sim.cook('a')!;
     const b = sim.cook('b')!;
     a.x = 7.5;
-    a.y = 7.5;
+    a.y = 5.5;
     b.x = 7.6;
-    b.y = 7.5;
+    b.y = 5.5;
     run(sim, 100);
     expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(KTUNING.radius * 2 - 1e-3);
   });
@@ -330,6 +370,31 @@ describe('kitchen scoring', () => {
     expect(pointsFor(0, KTUNING.orderTtlMs)).toBe(KTUNING.basePoints);
   });
 
+  it('sends orders faster on harder difficulties', () => {
+    for (let d = 1; d < 5; d++) expect(orderInterval(4, d + 1)).toBeLessThan(orderInterval(4, d));
+    const easy = new KitchenSim(['a'], 1, { difficulty: 1 });
+    const chaos = new KitchenSim(['a'], 1, { difficulty: 5 });
+    expect(easy.tuning.orderTtlMs).toBeGreaterThan(chaos.tuning.orderTtlMs);
+    expect(easy.thresholds[2]).toBeLessThan(chaos.thresholds[2]);
+  });
+
+  it('only orders what the level teaches', () => {
+    for (let level = 0; level < LEVELS.length; level++) {
+      const sim = playing(['a', 'b', 'c', 'd', 'e', 'f'], 7, level);
+      const seen = new Set<string>();
+      let fried = 0;
+      for (let i = 0; i < sim.tuning.roundMs / 500; i++) {
+        run(sim, 500);
+        for (const o of sim.orders) seen.add(o.f);
+        for (const e of sim.drain()) if (e.e === 'order' && e.fried) fried++;
+        sim.orders = []; // keep the board empty so new ones keep coming
+      }
+      expect([...seen].every((f) => LEVELS[level].fillings.includes(f as never))).toBe(true);
+      if (level === 0) expect([...seen]).toEqual(['potato']);
+      expect(fried > 0).toBe(LEVELS[level].fried > 0);
+    }
+  });
+
   it('asks more of bigger teams', () => {
     let prev = 0;
     for (let n = 1; n <= 8; n++) {
@@ -347,10 +412,10 @@ describe('kitchen scoring', () => {
   it('keeps spawning orders through the round', () => {
     const sim = playing(['a', 'b', 'c', 'd']);
     let spawned = 1;
-    for (let i = 0; i < KTUNING.roundMs / 100; i++) {
+    for (let i = 0; i < sim.tuning.roundMs / 100; i++) {
       run(sim, 100);
       spawned += sim.drain().filter((e) => e.e === 'order').length;
     }
-    expect(spawned).toBeGreaterThanOrEqual(expectedOrders(4) - 1);
+    expect(spawned).toBeGreaterThanOrEqual(expectedOrders(4, sim.tuning.roundMs) - 1);
   });
 });

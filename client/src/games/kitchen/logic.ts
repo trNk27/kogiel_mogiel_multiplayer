@@ -6,7 +6,7 @@
  * single action button does whatever makes sense for that station and what the cook is holding.
  * Some actions start a minigame on the cook's phone; the cook is frozen until it is done.
  */
-import { FILLINGS, type Filling, type KitchenItem, type KitchenMini, type KitchenMiniKind } from '../../../../shared/protocol';
+import { DIFFICULTIES, FILLINGS, KITCHEN_LEVELS, type Filling, type KitchenItem, type KitchenMini, type KitchenMiniKind } from '../../../../shared/protocol';
 import { mulberry32, type Rng } from '../rng';
 
 export const TICK_HZ = 60;
@@ -21,6 +21,7 @@ export const KTUNING = {
   /** How far beyond its body a cook can reach a station. */
   reach: 0.38,
   prepMs: 9_000,
+  /** Default round length (each level sets its own). */
   roundMs: 180_000,
   orderTtlMs: 80_000,
   dirtyReturnMs: 7_000,
@@ -28,44 +29,89 @@ export const KTUNING = {
   expirePenalty: 20,
   basePoints: 60,
   tipPoints: 40,
+  /** Extra points for fried pierogi. */
+  friedBonus: 30,
 };
 export type KitchenTuning = typeof KTUNING;
 
-/**
- * The kitchen. Legend:
- *  .  floor        #  counter       F  flour sack     1-4  filling crates (FILLINGS order)
- *  R  rolling board  P  pierogi (folding) board  S  stove with pot
- *  W  sink         K  plate rack    H  serving hatch  D  dirty dish return   T  bin
- */
-export const LAYOUT = [
-  '##R#R#####S#S#S#',
-  'F..............#',
-  '1..............H',
-  '2..............H',
-  '#....#P##P#....#',
-  '3....##P###....D',
-  '4..............#',
-  '#..............#',
-  '##T####K#WW#####',
-];
-export const GRID_W = LAYOUT[0].length;
-export const GRID_H = LAYOUT.length;
+export interface KitchenLevel {
+  name: string;
+  /** Fillings that can be ordered (each needs a crate in the layout). */
+  fillings: Filling[];
+  /** Share of orders that are fried (needs pans in the layout). */
+  fried: number;
+  roundMs: number;
+  /**
+   * One character per tile:
+   *  .  floor        #  counter       X  wall          F  flour sack     1-4  filling crates (FILLINGS order)
+   *  R  rolling board  P  pierogi (folding) board  S  stove with pot   G  frying pan
+   *  W  sink         K  plate rack    H  serving hatch  D  dirty dish return   T  bin
+   */
+  layout: string[];
+}
 
-const SPAWNS: [number, number][] = [
-  [4.5, 6.5],
-  [11.5, 6.5],
-  [6.5, 6.5],
-  [9.5, 6.5],
-  [3.5, 2.5],
-  [12.5, 2.5],
-  [6.5, 2.5],
-  [9.5, 2.5],
+export const LEVELS: KitchenLevel[] = [
+  {
+    name: KITCHEN_LEVELS[0].name,
+    fillings: ['potato'],
+    fried: 0,
+    roundMs: 150_000,
+    layout: [
+      'X###R##R##S#S##X',
+      'XF............HX',
+      'X1............HX',
+      'X#....####....#X',
+      'X#....#PP#....DX',
+      'X#............#X',
+      'XT............#X',
+      'X#####K#WW#####X',
+      'XXXXXXXXXXXXXXXX',
+    ],
+  },
+  {
+    name: KITCHEN_LEVELS[1].name,
+    fillings: ['potato', 'cabbage', 'meat'],
+    fried: 0,
+    roundMs: 165_000,
+    layout: [
+      '##R#R###S#S#S###',
+      'F......#.......H',
+      '1......#.......H',
+      '2..P...#.......#',
+      '#..P.......#...D',
+      '3..P...#...#...#',
+      '#......#.......#',
+      '#......#.......#',
+      '##T#####KWW#T###',
+    ],
+  },
+  {
+    name: KITCHEN_LEVELS[2].name,
+    fillings: ['potato', 'cabbage', 'meat', 'berry'],
+    fried: 0.4,
+    roundMs: 180_000,
+    layout: [
+      '##R#R##S#S#G#G##',
+      'F..............H',
+      '1..............H',
+      '2..#P#....#P#..#',
+      '#..###....###..#',
+      '3..#P#....#P#..D',
+      '4..............#',
+      '#..............#',
+      '##T###K#WW#K##T#',
+    ],
+  },
 ];
 
-export type StationKind = 'counter' | 'flour' | 'crate' | 'roll' | 'fold' | 'stove' | 'sink' | 'rack' | 'hatch' | 'return' | 'trash';
+export const GRID_W = 16;
+export const GRID_H = 9;
+
+export type StationKind = 'counter' | 'flour' | 'crate' | 'roll' | 'fold' | 'stove' | 'pan' | 'sink' | 'rack' | 'hatch' | 'return' | 'trash';
 
 export interface Pot {
   f: Filling;
+  /** In a pan, "mushy" means burnt. */
   state: 'raw' | 'cooked' | 'mushy';
   /** Sim time when it reached this state. */
   since: number;
@@ -84,6 +130,7 @@ export interface Station {
   /** Folding board ingredients. */
   dough: boolean;
   fill: Filling | null;
+  /** Contents of a stove's pot or a frying pan. */
   pot: Pot | null;
   /** Plates in a sink / rack / dish return. */
   count: number;
@@ -119,14 +166,15 @@ export interface Cook {
 export interface Order {
   id: number;
   f: Filling;
+  fried: boolean;
   born: number;
   ttl: number;
 }
 
 export type KEvent =
   | { e: 'phase'; phase: KitchenPhase }
-  | { e: 'order'; f: Filling }
-  | { e: 'served'; by: string; f: Filling; points: number; x: number; y: number }
+  | { e: 'order'; f: Filling; fried: boolean }
+  | { e: 'served'; by: string; f: Filling; fried: boolean; points: number; x: number; y: number }
   | { e: 'expired'; f: Filling }
   | { e: 'reject'; by: string; x: number; y: number }
   | { e: 'pick'; by: string }
@@ -134,7 +182,7 @@ export type KEvent =
   | { e: 'trash'; by: string; x: number; y: number }
   | { e: 'mini'; by: string; kind: KitchenMiniKind }
   | { e: 'made'; by: string; kind: KitchenMiniKind; x: number; y: number }
-  | { e: 'mushy'; x: number; y: number }
+  | { e: 'mushy'; x: number; y: number; pan: boolean }
   | { e: 'dishes' };
 
 export type KitchenPhase = 'prep' | 'play' | 'over';
@@ -155,7 +203,7 @@ export function itemName(it: KitchenItem): string {
     case 'raw':
       return 'raw pierogi';
     case 'plate':
-      return it.f ? 'pierogi' : 'plate';
+      return it.f ? (it.fried ? 'fried pierogi' : 'pierogi') : 'plate';
     case 'dirty':
       return it.n === 1 ? 'dirty plate' : 'dirty plates';
   }
@@ -165,9 +213,17 @@ export function fillName(f: Filling) {
   return FILLINGS.find((x) => x.id === f)!.name;
 }
 
-/** Seconds between new orders for a given team size. */
-export function orderInterval(players: number): number {
-  return Math.max(12, 34 - 3.5 * (Math.max(1, players) - 1));
+export function dishName(f: Filling, fried: boolean) {
+  return fried ? `Fried ${fillName(f).toLowerCase()}` : fillName(f);
+}
+
+function difficulty(d: number) {
+  return DIFFICULTIES[Math.max(1, Math.min(5, Math.round(d) || 3)) - 1];
+}
+
+/** Seconds between new orders for a given team size and difficulty (1–5). */
+export function orderInterval(players: number, diff = 3): number {
+  return Math.max(12, 34 - 3.5 * (Math.max(1, players) - 1)) * difficulty(diff).pace;
 }
 
 export function maxOrders(players: number): number {
@@ -179,15 +235,15 @@ export function startingPlates(players: number): number {
 }
 
 /** How many orders a team can expect to see in one round. */
-export function expectedOrders(players: number, t: KitchenTuning = KTUNING): number {
+export function expectedOrders(players: number, roundMs = KTUNING.roundMs, diff = 3): number {
   const first = players >= 3 ? 2 : 1;
   // No new orders in the last 15 seconds.
-  return first + Math.floor((t.roundMs - 15_000) / 1000 / orderInterval(players));
+  return first + Math.floor((roundMs - 15_000) / 1000 / orderInterval(players, diff));
 }
 
 /** Team score needed for 1, 2 and 3 stars. */
-export function starThresholds(players: number, t: KitchenTuning = KTUNING): [number, number, number] {
-  const e = expectedOrders(players, t) * 80;
+export function starThresholds(players: number, roundMs = KTUNING.roundMs, diff = 3, friedShare = 0): [number, number, number] {
+  const e = expectedOrders(players, roundMs, diff) * (80 + friedShare * KTUNING.friedBonus);
   const r = (k: number) => Math.round((e * k) / 10) * 10;
   return [r(0.3), r(0.55), r(0.8)];
 }
@@ -196,8 +252,33 @@ export function starsFor(score: number, thresholds: readonly number[]): number {
   return thresholds.filter((x) => score >= x).length;
 }
 
-export function pointsFor(leftMs: number, ttl: number, t: KitchenTuning = KTUNING): number {
-  return t.basePoints + Math.round(t.tipPoints * Math.max(0, Math.min(1, leftMs / ttl)));
+export function pointsFor(leftMs: number, ttl: number, t: KitchenTuning = KTUNING, fried = false): number {
+  return t.basePoints + (fried ? t.friedBonus : 0) + Math.round(t.tipPoints * Math.max(0, Math.min(1, leftMs / ttl)));
+}
+
+/** Floor tiles spread around the kitchen, used as spawn points (farthest-point sampling). */
+export function spawnPoints(layout: string[], n = 8): [number, number][] {
+  const floor: [number, number][] = [];
+  layout.forEach((row, y) => [...row].forEach((ch, x) => ch === '.' && floor.push([x, y])));
+  // Start with the floor tile closest to the middle of the bottom half.
+  const mid: [number, number] = [GRID_W / 2, GRID_H * 0.65];
+  floor.sort((a, b) => Math.hypot(a[0] - mid[0], a[1] - mid[1]) - Math.hypot(b[0] - mid[0], b[1] - mid[1]));
+  const out: [number, number][] = [floor[0]];
+  while (out.length < Math.min(n, floor.length)) {
+    let best = floor[0];
+    let bestD = -1;
+    for (const f of floor) {
+      // Prefer tiles at least 2 away from everyone, but not hugging the far corners.
+      const d = Math.min(...out.map((o) => Math.hypot(o[0] - f[0], o[1] - f[1])));
+      const score = Math.min(d, 3) - Math.hypot(f[0] - mid[0], f[1] - mid[1]) * 0.05;
+      if (score > bestD) {
+        bestD = score;
+        best = f;
+      }
+    }
+    out.push(best);
+  }
+  return out.map(([x, y]) => [x + 0.5, y + 0.5]);
 }
 
 const KIND_OF: Record<string, StationKind> = {
@@ -210,6 +291,7 @@ const KIND_OF: Record<string, StationKind> = {
   R: 'roll',
   P: 'fold',
   S: 'stove',
+  G: 'pan',
   W: 'sink',
   K: 'rack',
   H: 'hatch',
@@ -217,9 +299,17 @@ const KIND_OF: Record<string, StationKind> = {
   T: 'trash',
 };
 
+export interface KitchenOptions {
+  /** 0-based index into LEVELS. */
+  level?: number;
+  /** 1 (relaxed) … 5 (chaos). */
+  difficulty?: number;
+  tuning?: Partial<KitchenTuning>;
+}
+
 export class KitchenSim {
   readonly stations: Station[] = [];
-  /** Station id per tile, -1 for floor. */
+  /** Station id per tile, -1 for floor, -2 for wall. */
   readonly grid: Int16Array;
   readonly cooks: Cook[] = [];
   orders: Order[] = [];
@@ -230,6 +320,10 @@ export class KitchenSim {
   served = 0;
   expired = 0;
   readonly players: number;
+  readonly level: KitchenLevel;
+  readonly levelIndex: number;
+  readonly difficulty: number;
+  readonly tuning: KitchenTuning;
   readonly thresholds: [number, number, number];
   private events: KEvent[] = [];
   private rng: Rng;
@@ -239,30 +333,43 @@ export class KitchenSim {
   private dirtyQueue: number[] = [];
   private lastFillings: Filling[] = [];
 
-  constructor(
-    ids: string[],
-    seed = Date.now(),
-    readonly tuning: KitchenTuning = KTUNING,
-  ) {
+  constructor(ids: string[], seed = Date.now(), opts: KitchenOptions = {}) {
     this.rng = mulberry32(seed);
     this.players = ids.length;
-    this.thresholds = starThresholds(ids.length, tuning);
+    this.levelIndex = Math.max(0, Math.min(LEVELS.length - 1, opts.level ?? 0));
+    this.level = LEVELS[this.levelIndex];
+    this.difficulty = Math.max(1, Math.min(5, Math.round(opts.difficulty ?? 3)));
+    this.tuning = { ...KTUNING, roundMs: this.level.roundMs, ...opts.tuning };
+    this.tuning.orderTtlMs = Math.round(this.tuning.orderTtlMs * difficulty(this.difficulty).ttl);
+    this.thresholds = starThresholds(ids.length, this.tuning.roundMs, this.difficulty, this.level.fried);
     this.grid = new Int16Array(GRID_W * GRID_H).fill(-1);
-    LAYOUT.forEach((row, y) =>
+    this.level.layout.forEach((row, y) =>
       [...row].forEach((ch, x) => {
+        if (ch === 'X') {
+          this.grid[y * GRID_W + x] = -2;
+          return;
+        }
         const kind = KIND_OF[ch];
         if (!kind) return;
         const st: Station = { id: this.stations.length, kind, x, y, item: null, dough: false, fill: null, pot: null, count: 0, busy: null, progress: 0 };
         if (kind === 'crate') st.crate = FILLINGS[Number(ch) - 1].id;
-        if (kind === 'rack') st.count = startingPlates(ids.length);
         this.grid[y * GRID_W + x] = st.id;
         this.stations.push(st);
       }),
     );
+    // Share the starting plates between the racks.
+    const racks = this.stations.filter((s) => s.kind === 'rack');
+    for (let i = 0; i < startingPlates(ids.length); i++) racks[i % racks.length].count++;
+    const spawns = spawnPoints(this.level.layout);
     ids.forEach((id, i) => {
-      const [x, y] = SPAWNS[i % SPAWNS.length];
+      const [x, y] = spawns[i % spawns.length];
       this.cooks.push({ id, x, y, vx: 0, vy: 0, fx: 0, fy: 1, sx: 0, sy: 0, hold: null, mini: null, target: null, jobs: 0, served: 0, moving: false });
     });
+  }
+
+  /** Tile is a wall (not a station, not floor). */
+  isWall(x: number, y: number) {
+    return this.grid[y * GRID_W + x] === -2;
   }
 
   // ---- queries ------------------------------------------------------------------
@@ -279,7 +386,7 @@ export class KitchenSim {
 
   private solid(x: number, y: number) {
     if (x < 0 || y < 0 || x >= GRID_W || y >= GRID_H) return true;
-    return this.grid[y * GRID_W + x] >= 0;
+    return this.grid[y * GRID_W + x] !== -1;
   }
 
   get playStart() {
@@ -357,6 +464,7 @@ export class KitchenSim {
         s.fill = null;
         break;
       case 'boil':
+      case 'fry':
         s.pot = { f: s.pot!.f, state: 'cooked', since: this.t };
         break;
       case 'wash': {
@@ -524,6 +632,37 @@ export class KitchenSim {
           };
         return null;
       }
+      case 'pan': {
+        const pan = s.pot;
+        if (!pan) {
+          if (h?.k === 'raw') {
+            const f = h.f;
+            return put('Into the pan', () => (s.pot = { f, state: 'raw', since: this.t }));
+          }
+          return null;
+        }
+        if (pan.state === 'raw' && !h) return mini('Fry pierogi', 'fry', pan.f);
+        if (pan.state === 'cooked' && h?.k === 'plate' && !h.f) {
+          const f = pan.f;
+          return {
+            label: 'Plate up',
+            run: () => {
+              c.hold = { k: 'plate', f, fried: true };
+              s.pot = null;
+              this.events.push({ e: 'pick', by: c.id });
+            },
+          };
+        }
+        if (pan.state === 'mushy' && !h)
+          return {
+            label: 'Scrape the pan',
+            run: () => {
+              s.pot = null;
+              this.events.push({ e: 'trash', by: c.id, x: s.x + 0.5, y: s.y + 0.5 });
+            },
+          };
+        return null;
+      }
       case 'sink':
         if (h?.k === 'dirty') {
           const n = h.n;
@@ -538,10 +677,11 @@ export class KitchenSim {
       case 'hatch':
         if (h?.k === 'plate' && h.f) {
           const f = h.f;
-          const ok = this.orders.some((o) => o.f === f);
+          const fried = !!h.fried;
+          const ok = this.orders.some((o) => o.f === f && o.fried === fried);
           return {
             label: ok ? 'Serve!' : 'Not ordered',
-            run: () => (ok ? this.serve(c, s, f) : this.events.push({ e: 'reject', by: c.id, x: s.x + 0.5, y: s.y + 0.5 })),
+            run: () => (ok ? this.serve(c, s, f, fried) : this.events.push({ e: 'reject', by: c.id, x: s.x + 0.5, y: s.y + 0.5 })),
           };
         }
         return null;
@@ -578,19 +718,19 @@ export class KitchenSim {
     }
   }
 
-  private serve(c: Cook, s: Station, f: Filling) {
+  private serve(c: Cook, s: Station, f: Filling, fried: boolean) {
     // The matching order closest to running out.
     let best: Order | null = null;
-    for (const o of this.orders) if (o.f === f && (!best || o.born + o.ttl < best.born + best.ttl)) best = o;
+    for (const o of this.orders) if (o.f === f && o.fried === fried && (!best || o.born + o.ttl < best.born + best.ttl)) best = o;
     if (!best) return;
-    const points = pointsFor(best.born + best.ttl - this.t, best.ttl, this.tuning);
+    const points = pointsFor(best.born + best.ttl - this.t, best.ttl, this.tuning, fried);
     this.orders = this.orders.filter((o) => o !== best);
     this.score += points;
     this.served++;
     c.served++;
     c.hold = null;
     this.dirtyQueue.push(this.t + this.tuning.dirtyReturnMs);
-    this.events.push({ e: 'served', by: c.id, f, points, x: s.x + 0.5, y: s.y + 0.5 });
+    this.events.push({ e: 'served', by: c.id, f, fried, points, x: s.x + 0.5, y: s.y + 0.5 });
     // Don't leave the team idle when the board is empty.
     if (this.orders.length === 0) this.nextOrderAt = Math.min(this.nextOrderAt, this.t + 2500);
   }
@@ -604,12 +744,13 @@ export class KitchenSim {
       this.events.push({ e: 'phase', phase: 'play' });
       this.spawnOrder();
       if (this.players >= 3) this.nextOrderAt = this.t + 6000;
-      else this.nextOrderAt = this.t + orderInterval(this.players) * 1000;
+      else this.nextOrderAt = this.t + orderInterval(this.players, this.difficulty) * 1000;
     }
     if (this.phase === 'play') {
       this.tickKitchen();
       if (this.t >= this.playEnd) {
         this.phase = 'over';
+        this.orders = [];
         for (const c of this.cooks) this.endMini(c);
         this.events.push({ e: 'phase', phase: 'over' });
       }
@@ -630,13 +771,13 @@ export class KitchenSim {
     if (t >= this.nextOrderAt && t < this.playEnd - 15_000) {
       if (this.orders.length < maxOrders(this.players)) {
         this.spawnOrder();
-        this.nextOrderAt = t + orderInterval(this.players) * 1000;
+        this.nextOrderAt = t + orderInterval(this.players, this.difficulty) * 1000;
       }
     }
     for (const s of this.stations) {
       if (s.pot?.state === 'cooked' && t - s.pot.since >= this.tuning.overcookMs) {
         s.pot = { ...s.pot, state: 'mushy', since: t };
-        this.events.push({ e: 'mushy', x: s.x + 0.5, y: s.y + 0.5 });
+        this.events.push({ e: 'mushy', x: s.x + 0.5, y: s.y + 0.5, pan: s.kind === 'pan' });
       }
     }
     if (this.dirtyQueue.length && this.dirtyQueue[0] <= t) {
@@ -650,17 +791,20 @@ export class KitchenSim {
   }
 
   private spawnOrder() {
+    const menu = this.level.fillings;
     let f: Filling;
-    if (this.orderSeq === 0) f = 'potato';
+    let fried = false;
+    if (this.orderSeq === 0) f = menu[0];
     else {
       // Random, but never three of the same in a row.
       const [a, b] = this.lastFillings.slice(-2);
-      const options = FILLINGS.map((x) => x.id).filter((x) => !(a === b && x === a));
+      const options = menu.length > 1 ? menu.filter((x) => !(a === b && x === a)) : menu;
       f = options[Math.floor(this.rng() * options.length)];
+      fried = this.rng() < this.level.fried;
     }
     this.lastFillings.push(f);
-    this.orders.push({ id: ++this.orderSeq, f, born: this.t, ttl: this.tuning.orderTtlMs });
-    this.events.push({ e: 'order', f });
+    this.orders.push({ id: ++this.orderSeq, f, fried, born: this.t, ttl: this.tuning.orderTtlMs });
+    this.events.push({ e: 'order', f, fried });
   }
 
   private moveCooks() {

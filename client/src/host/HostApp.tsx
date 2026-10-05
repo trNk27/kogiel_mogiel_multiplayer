@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
-import { GAMES, MAX_PLAYERS, colorHex, gameInfo, type GameId } from '../../../shared/protocol';
+import { GAMES, MAX_PLAYERS, colorHex, difficultyName, gameInfo, type GameId } from '../../../shared/protocol';
 import { FolkBorder, Logo, Pierogi, Rosette } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
@@ -215,6 +215,11 @@ function Lobby() {
                 <div class="game-card-title">{g.title}</div>
                 <div class="game-card-tag">{g.tagline}</div>
                 {g.id === 'trails' && c.options.powerups && <div class="game-card-flag">Power-ups on</div>}
+                {g.id === 'kitchen' && (
+                  <div class="game-card-flag">
+                    {difficultyName(c.options.difficulty)} · from level {c.options.level}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -250,7 +255,7 @@ const HOW_TO: Record<GameId, string[]> = {
   kitchen: [
     'Everyone cooks together! Walk your chef with the joystick on your phone.',
     'Press the big button to pick up, put down and use stations. Some jobs are a quick minigame on your phone.',
-    'Serve the pierogi on the tickets before they run out. Earn up to 3 stars!',
+    'Serve the pierogi on the tickets before they run out. Three levels, up to 3 stars each!',
   ],
 };
 
@@ -360,6 +365,17 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
               <small>orders missed</small>
             </div>
           </div>
+          {coop.levels && coop.levels.length > 1 && (
+            <div class="coop-levels">
+              {coop.levels.map((l) => (
+                <div class="coop-level">
+                  <b>{l.name}</b>
+                  <Stars n={l.stars} size={34} />
+                  <span class="muted">{l.score.toLocaleString('en-US')} tips</span>
+                </div>
+              ))}
+            </div>
+          )}
           <div class="coop-crew">
             {crew.map((st) => (
               <div class="coop-chef">
@@ -374,7 +390,7 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
         <div class="results-side">
           <div class="party-table card-paper">
             <div class="party-title">Party standings</div>
-            <div class="party-sub">Co-op: everyone gets 1 point per star</div>
+            <div class="party-sub">Co-op: everyone gets 1 point per star (average over the levels)</div>
             {party.map((p, i) => (
               <div class="party-row">
                 <span class="party-rank">{i + 1}</span>
