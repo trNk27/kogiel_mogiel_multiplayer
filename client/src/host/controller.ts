@@ -17,7 +17,7 @@ import {
   type PlayerSummary,
   type ServerToHost,
 } from '../../../shared/protocol';
-import type { Game, GameHost } from '../games/types';
+import type { CoopResult, Game, GameHost } from '../games/types';
 import { createGame } from '../games/registry';
 import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { sound } from '../lib/sound';
@@ -48,7 +48,7 @@ export type Screen =
   | { s: 'lobby' }
   | { s: 'intro'; game: GameId }
   | { s: 'game' }
-  | { s: 'results'; game: GameId; standings: Standing[] };
+  | { s: 'results'; game: GameId; standings: Standing[]; coop?: CoopResult };
 
 const SESSION_KEY = 'cp.host';
 const SESSION_MAX_AGE = 30 * 60_000;
@@ -449,7 +449,7 @@ export class HostController implements GameHost {
     this.sendTo([id], { t: 'buzz', pattern });
   }
 
-  finish(scores: Record<string, number>) {
+  finish(scores: Record<string, number>, coop?: CoopResult) {
     const game = this.game?.id ?? this.selected;
     const entries = Object.entries(scores)
       .filter(([id]) => this.players.has(id))
@@ -462,11 +462,12 @@ export class HostController implements GameHost {
     entries.sort((a, b) => a.place - b.place);
     for (const e of entries) {
       const p = this.players.get(e.id)!;
-      if (entries.length > 1) p.party += e.place === 1 ? 3 : e.place === 2 ? 2 : e.place === 3 ? 1 : 0;
+      if (coop) p.party += coop.stars;
+      else if (entries.length > 1) p.party += e.place === 1 ? 3 : e.place === 2 ? 2 : e.place === 3 ? 1 : 0;
     }
     this.endGame();
     this.gamesPlayed++;
-    this.screen = { s: 'results', game, standings: entries };
+    this.screen = { s: 'results', game, standings: entries, ...(coop ? { coop } : {}) };
     sound.fanfare();
     this.refresh();
     this.persist();
@@ -517,7 +518,15 @@ export class HostController implements GameHost {
         return { v: 'wait', title: 'Game in progress', text: 'Hang tight – you’ll be in the next one!', icon: 'sleep' };
       case 'results': {
         const st = s.standings.find((x) => x.id === id);
-        return { v: 'results', game: s.game, place: st?.place ?? 0, score: st?.score ?? 0, players: s.standings.length, vip };
+        return {
+          v: 'results',
+          game: s.game,
+          place: st?.place ?? 0,
+          score: st?.score ?? 0,
+          players: s.standings.length,
+          vip,
+          ...(s.coop ? { coop: { stars: s.coop.stars, score: s.coop.score } } : {}),
+        };
       }
       default:
         return { v: 'wait', title: 'Hold on…' };

@@ -5,6 +5,8 @@ import { Shape } from '../lib/shapes';
 import { GameIcon } from '../host/GameIcon';
 import { formatNumber } from '../../../shared/format';
 import type { Me, Send } from './PhoneApp';
+import { KitchenPad } from './kitchen';
+import { Stars } from '../lib/stars';
 
 interface Props<V extends PhoneView['v']> {
   view: Extract<PhoneView, { v: V }>;
@@ -31,6 +33,8 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <BpBet view={view} me={me} send={send} offset={offset} />;
     case 'bpResult':
       return <BpResult view={view} me={me} send={send} offset={offset} />;
+    case 'kitchen':
+      return <KitchenPad view={view} me={me} send={send} />;
     case 'results':
       return <Results view={view} me={me} send={send} offset={offset} />;
   }
@@ -515,8 +519,15 @@ function Results({ view, me, send }: Props<'results'>) {
   const medal = view.place === 1 ? '🥇' : view.place === 2 ? '🥈' : view.place === 3 ? '🥉' : '';
   return (
     <div class="pv pv-center">
-      <Pierogi color={colorHex(me.color)} size={150} mood={view.place === 1 ? 'wow' : 'happy'} class="bob" />
-      {view.place > 0 ? (
+      <Pierogi color={colorHex(me.color)} size={150} mood={(view.coop ? view.coop.stars >= 2 : view.place === 1) ? 'wow' : 'happy'} class="bob" />
+      {view.coop ? (
+        <>
+          <Stars n={view.coop.stars} size={64} />
+          <p class="muted">
+            Team tips: {view.coop.score.toLocaleString('en-US')} · +{view.coop.stars} party point{view.coop.stars === 1 ? '' : 's'} each
+          </p>
+        </>
+      ) : view.place > 0 ? (
         <>
           <div class="phone-huge">
             {medal} {ordinal(view.place)} place

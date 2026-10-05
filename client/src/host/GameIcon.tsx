@@ -1,6 +1,6 @@
 import type { GameId } from '../../../shared/protocol';
 
-/** Illustrated icons for the three games. */
+/** Illustrated icons for the games. */
 export function GameIcon({ game, size = 80 }: { game: GameId; size?: number }) {
   if (game === 'trails')
     return (
@@ -23,6 +23,19 @@ export function GameIcon({ game, size = 80 }: { game: GameId; size?: number }) {
         <text x="50" y="66" text-anchor="middle" font-size="46" font-weight="700" fill="#fff4dc" font-family="Fredoka Variable, sans-serif" stroke="#2a120a" stroke-width="3" paint-order="stroke">
           ?
         </text>
+      </svg>
+    );
+  if (game === 'kitchen')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <path d="M30 18 q8 -8 0 -14 M50 18 q8 -8 0 -14 M70 18 q8 -8 0 -14" fill="none" stroke="rgba(255,244,220,.55)" stroke-width="4" stroke-linecap="round" transform="translate(0 10)" />
+        <path d="M14 46 H86 L80 82 Q50 92 20 82 Z" fill="#c9ccd3" stroke="#6f7787" stroke-width="4" stroke-linejoin="round" />
+        <rect x="8" y="42" width="84" height="9" rx="4.5" fill="#e3e6eb" stroke="#6f7787" stroke-width="3" />
+        <path d="M30 48 Q30 34 42 34 Q54 34 54 48 Z M48 48 Q48 30 62 30 Q76 30 76 48 Z" fill="#f1c46a" stroke="#b5842c" stroke-width="3" stroke-linejoin="round" />
+        <circle cx="50" cy="66" r="5" fill="#2f5fae" />
+        <circle cx="34" cy="66" r="3.5" fill="#2f5fae" />
+        <circle cx="66" cy="66" r="3.5" fill="#2f5fae" />
       </svg>
     );
   return (

@@ -92,6 +92,22 @@ class Sound {
     const times = [0, 0.12, 0.24, 0.36, 0.6, 0.78, 0.96];
     notes.forEach((f, i) => this.tone(f, i === notes.length - 1 ? 0.7 : 0.18, { type: 'square', vol: 0.09, delay: times[i] }));
   }
+  bell() {
+    this.tone(1568, 0.5, { type: 'sine', vol: 0.12 });
+    this.tone(2093, 0.4, { type: 'sine', vol: 0.06, delay: 0.01 });
+  }
+  serve() {
+    this.tone(1319, 0.1, { type: 'triangle', vol: 0.14 });
+    this.tone(1760, 0.25, { type: 'triangle', vol: 0.14, delay: 0.09 });
+    this.tone(2637, 0.3, { type: 'sine', vol: 0.06, delay: 0.16 });
+  }
+  plop() {
+    this.tone(420, 0.07, { type: 'sine', vol: 0.12, slide: 200 });
+  }
+  whistle() {
+    this.tone(1800, 0.25, { type: 'square', vol: 0.06 });
+    this.tone(1800, 0.6, { type: 'square', vol: 0.06, delay: 0.32 });
+  }
   whoosh() {
     this.tone(300, 0.25, { type: 'sine', vol: 0.1, slide: 900 });
   }

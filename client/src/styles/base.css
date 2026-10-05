@@ -317,3 +317,29 @@ h3 {
   border-radius: 18px;
   background: var(--bg);
 }
+
+/* ---- Stars (co-op results) ------------------------------------------------ */
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.08em;
+  line-height: 1;
+}
+.stars span {
+  color: rgba(255, 244, 220, 0.16);
+  display: inline-block;
+}
+.stars span.on {
+  color: #ffc93c;
+  text-shadow: 0 0.06em 0 var(--beet-deep);
+  animation: star-pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.4) backwards;
+}
+@keyframes star-pop {
+  from {
+    transform: scale(0) rotate(-40deg);
+  }
+  to {
+    transform: none;
+  }
+}

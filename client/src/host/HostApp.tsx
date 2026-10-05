@@ -4,6 +4,8 @@ import { FolkBorder, Logo, Pierogi, Rosette } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
 import { HostController, type Standing } from './controller';
+import type { CoopResult } from '../games/types';
+import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
 
 const controller = new HostController();
@@ -59,7 +61,7 @@ export function HostApp() {
       body = c.game?.render();
       break;
     case 'results':
-      body = <Results game={s.game} standings={s.standings} />;
+      body = s.coop ? <CoopResults game={s.game} standings={s.standings} coop={s.coop} /> : <Results game={s.game} standings={s.standings} />;
       break;
   }
 
@@ -245,6 +247,11 @@ const HOW_TO: Record<GameId, string[]> = {
     'Then bet on the guess you think is closest without going over.',
     'Win points for the best guess and for smart bets – edges pay more!',
   ],
+  kitchen: [
+    'Everyone cooks together! Walk your chef with the joystick on your phone.',
+    'Press the big button to pick up, put down and use stations. Some jobs are a quick minigame on your phone.',
+    'Serve the pierogi on the tickets before they run out. Earn up to 3 stars!',
+  ],
 };
 
 function Intro({ game }: { game: GameId }) {
@@ -309,6 +316,65 @@ function Results({ game, standings }: { game: GameId; standings: Standing[] }) {
           <div class="party-table card-paper">
             <div class="party-title">Party standings</div>
             <div class="party-sub">3 points for a win, 2 for second, 1 for third</div>
+            {party.map((p, i) => (
+              <div class="party-row">
+                <span class="party-rank">{i + 1}</span>
+                <Pierogi color={colorHex(p.color)} size={44} />
+                <span class="grow">{p.name}</span>
+                <b>{p.party}</b>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>
+    </div>
+  );
+}
+
+const STAR_LINES = ['The kitchen is a disaster!', 'Not bad, chefs!', 'Babcia would be proud!', 'Michelin pierogi!'];
+
+function CoopResults({ game, standings, coop }: { game: GameId; standings: Standing[]; coop: CoopResult }) {
+  const c = controller;
+  const party = [...c.players.values()].sort((a, b) => b.party - a.party);
+  const vip = c.summaries().find((p) => p.vip);
+  const crew = [...standings].sort((a, b) => b.score - a.score);
+  return (
+    <div class="screen results coop-results">
+      <h1 class="results-title">{gameInfo(game).title} – service report</h1>
+      <div class="results-body">
+        <div class="coop-main">
+          <Stars n={coop.stars} size={150} />
+          <div class="coop-line">{STAR_LINES[coop.stars]}</div>
+          <div class="coop-stats">
+            <div>
+              <b>{coop.score.toLocaleString('en-US')}</b>
+              <small>team tips</small>
+            </div>
+            <div>
+              <b>{coop.served}</b>
+              <small>orders served</small>
+            </div>
+            <div>
+              <b>{coop.missed}</b>
+              <small>orders missed</small>
+            </div>
+          </div>
+          <div class="coop-crew">
+            {crew.map((st) => (
+              <div class="coop-chef">
+                <Pierogi color={colorHex(st.color)} size={86} mood={coop.stars >= 2 ? 'wow' : 'happy'} class="bob" />
+                <span class="coop-chef-name">{st.name}</span>
+                <span class="muted">{st.score} {st.score === 1 ? 'job' : 'jobs'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {coop.stars > 0 && <Confetti />}
+        <div class="results-side">
+          <div class="party-table card-paper">
+            <div class="party-title">Party standings</div>
+            <div class="party-sub">Co-op: everyone gets 1 point per star</div>
             {party.map((p, i) => (
               <div class="party-row">
                 <span class="party-rank">{i + 1}</span>

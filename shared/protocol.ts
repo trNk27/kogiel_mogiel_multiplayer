@@ -79,7 +79,7 @@ export const ANSWER_STYLES = [
 // Games
 // ---------------------------------------------------------------------------
 
-export type GameId = 'trails' | 'quiz' | 'ballpark';
+export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen';
 
 export interface GameInfo {
   id: GameId;
@@ -92,6 +92,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'trails', title: 'Trails', tagline: 'Steer your noodle. Don’t touch anything.', minPlayers: 2 },
   { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
   { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
+  { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
@@ -121,6 +122,42 @@ export interface BetSlot {
   payout: number;
   /** Names of the players who guessed this value. */
   guessers: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Pierogi Panic (co-op kitchen)
+// ---------------------------------------------------------------------------
+
+export type Filling = 'potato' | 'cabbage' | 'meat' | 'berry';
+
+export const FILLINGS: readonly { id: Filling; name: string; hex: string }[] = [
+  { id: 'potato', name: 'Potato & cheese', hex: '#f3cf6b' },
+  { id: 'cabbage', name: 'Sauerkraut', hex: '#a9c94a' },
+  { id: 'meat', name: 'Meat', hex: '#c0583a' },
+  { id: 'berry', name: 'Blueberry', hex: '#5a4bb5' },
+];
+
+export function fillingInfo(f: Filling) {
+  return FILLINGS.find((x) => x.id === f)!;
+}
+
+/** Something a cook can carry or put down. */
+export type KitchenItem =
+  | { k: 'flour' }
+  | { k: 'dough' }
+  | { k: 'fill'; f: Filling }
+  | { k: 'raw'; f: Filling }
+  /** A clean plate, optionally with cooked pierogi on it. */
+  | { k: 'plate'; f?: Filling }
+  | { k: 'dirty'; n: number };
+
+export type KitchenMiniKind = 'roll' | 'fold' | 'boil' | 'wash';
+
+export interface KitchenMini {
+  /** Unique per started minigame, so stale messages can be ignored. */
+  id: number;
+  kind: KitchenMiniKind;
+  f?: Filling;
 }
 
 // ---------------------------------------------------------------------------
@@ -162,7 +199,25 @@ export type PhoneView =
   | { v: 'bpGuess'; q: number; total: number; question: string; unit: string; endsAt: number; submitted: number | null }
   | { v: 'bpBet'; slots: BetSlot[]; unit: string; endsAt: number; picked: number | null }
   | { v: 'bpResult'; guessWon: boolean; betWon: boolean; points: number; total: number }
-  | { v: 'results'; game: GameId; place: number; score: number; players: number; vip: boolean };
+  | {
+      v: 'kitchen';
+      phase: 'prep' | 'play' | 'over';
+      hold: KitchenItem | null;
+      /** What the action button does right now ("Take flour"), or null if nothing. */
+      hint: string | null;
+      mini: KitchenMini | null;
+      score: number;
+    }
+  | {
+      v: 'results';
+      game: GameId;
+      place: number;
+      score: number;
+      players: number;
+      vip: boolean;
+      /** Co-op games: the team result instead of a place. */
+      coop?: { stars: number; score: number };
+    };
 
 // ---------------------------------------------------------------------------
 // Phone -> host (relayed by the Durable Object)
@@ -175,6 +230,12 @@ export type PhoneMsg =
   | { t: 'answer'; i: number }
   | { t: 'guess'; value: number }
   | { t: 'bet'; slot: number }
+  /** Pierogi Panic joystick, each axis -100..100. Sent when it changes (throttled). */
+  | { t: 'stick'; x: number; y: number }
+  /** Pierogi Panic action button. */
+  | { t: 'act' }
+  /** Pierogi Panic station minigame: progress (0..1), finished or abandoned. */
+  | { t: 'mini'; id: number; ev: 'prog' | 'done' | 'cancel'; p?: number }
   // VIP-only actions (the host ignores them from anybody else)
   | { t: 'select'; game: GameId }
   | { t: 'option'; key: keyof LobbyOptions; value: boolean }

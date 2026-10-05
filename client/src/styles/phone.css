@@ -766,3 +766,218 @@ body.phone-body input {
   width: 100%;
   margin-top: 10px;
 }
+
+/* ---- Pierogi Panic controller --------------------------------------------- */
+
+.k-pad {
+  position: relative;
+  gap: 10px;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+}
+.k-pad-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 6px;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+.k-pad-score b {
+  font-size: 28px;
+  color: var(--yolk);
+}
+.k-stick-zone {
+  flex: 1 1 auto;
+  min-height: 180px;
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--me) 14%, transparent), transparent 70%),
+    rgba(20, 6, 10, 0.4);
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+.k-stick-zone.active {
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--me) 60%, transparent);
+}
+.k-stick-base {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.k-stick-ring {
+  position: absolute;
+  left: -78px;
+  top: -78px;
+  width: 156px;
+  height: 156px;
+  border-radius: 50%;
+  border: 4px dashed color-mix(in srgb, var(--me) 55%, transparent);
+  background: rgba(255, 244, 220, 0.05);
+}
+.k-stick-knob {
+  position: absolute;
+  left: -42px;
+  top: -42px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--me) 30%, #2b0f14);
+  box-shadow:
+    0 0 0 4px var(--me),
+    0 8px 18px rgba(0, 0, 0, 0.4);
+}
+.k-stick-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  pointer-events: none;
+}
+.k-hold {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  font-size: 18px;
+}
+.k-hold b {
+  color: var(--yolk);
+}
+.k-act {
+  flex: 0 0 30%;
+  min-height: 120px;
+  border: 0;
+  border-radius: 28px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  color: rgba(255, 244, 220, 0.5);
+  background: rgba(255, 244, 220, 0.1);
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.2);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transition:
+    transform 0.05s,
+    background 0.15s;
+}
+.k-act.ready {
+  background: var(--me);
+  color: var(--ink);
+  box-shadow:
+    inset 0 -10px 0 rgba(0, 0, 0, 0.22),
+    0 8px 30px color-mix(in srgb, var(--me) 45%, transparent);
+}
+.k-act.down {
+  transform: translateY(4px) scale(0.98);
+  filter: brightness(1.15);
+}
+
+/* Minigames */
+.k-mini {
+  gap: 10px;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+}
+.k-mini-head {
+  text-align: center;
+}
+.k-mini-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  color: var(--yolk);
+}
+.k-mini-how {
+  font-size: 18px;
+  min-height: 1.4em;
+}
+.k-mini-stage {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.k-mini-svg {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.k-mini-done {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 140px;
+  color: var(--dill);
+  text-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.k-mini-leave {
+  align-self: center;
+  padding: 10px 26px;
+}
+.k-pulse {
+  animation: k-pulse 0.9s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes k-pulse {
+  50% {
+    transform: scale(1.18);
+  }
+}
+.k-float {
+  animation: k-float 1.4s ease-in-out infinite;
+}
+@keyframes k-float {
+  50% {
+    transform: translateY(-6px) rotate(4deg);
+  }
+}
+.k-bubble {
+  animation: k-bubble 1.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes k-bubble {
+  0%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+}
+.k-bubble-pop {
+  animation: k-bubble-pop 0.8s ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes k-bubble-pop {
+  to {
+    transform: translateY(-30px) scale(1.6);
+    opacity: 0;
+  }
+}
+.k-fold-closed {
+  animation: pop-in 0.35s both;
+}

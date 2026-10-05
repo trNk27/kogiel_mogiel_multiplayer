@@ -13,6 +13,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups (speed, slow the others, thin line, through walls) can be switched on in the lobby. | 2–8 |
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
+| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling and washing are quick minigames on your phone. 3 minutes, up to 3 stars. | 1–8 |
 
 ## How a party works
 
@@ -21,7 +22,7 @@ are named after the brand: a glass of kogiel mogiel.
 3. The **first player to join is the VIP**. The VIP picks the game, toggles options, starts rounds,
    ends a game early (⋯ menu) and can remove players, all from their phone.
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
-   places). The VIP chooses **Play again** or another game.
+   places; in the co-op Pierogi Panic everyone gets 1 point per star). The VIP chooses **Play again** or another game.
 
 Phones can lock, refresh or drop off Wi-Fi. The player's id lives in `localStorage`, and the TV
 keeps their slot and score for **60 seconds**, so reopening the page puts them straight back where
@@ -65,7 +66,8 @@ worker/room.ts              RoomDO – the relay Durable Object
 client/index.html           TV (host) entry   → client/src/host
 client/join.html            phone entry       → client/src/phone
 client/dev.html             /dev test bench   → client/src/dev
-client/src/games/*          quiz, trails, ballpark (pure logic + TV views)
+client/src/games/*          quiz, trails, ballpark, kitchen (pure logic + TV views)
+client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigames
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
 test/*.test.ts              Vitest unit tests (scoring, Trails collisions, data checks)
@@ -149,6 +151,24 @@ Trails' feel is set in `TUNING` in [`client/src/games/trails/sim.ts`](client/src
 | `ghostTime` | 0.55 s | invulnerable, trail-less start after "GO" |
 
 Quiz and Ballpark timings are constants at the top of their `logic.ts` / game files.
+
+### Pierogi Panic
+
+The kitchen layout is the `LAYOUT` string grid in
+[`client/src/games/kitchen/logic.ts`](client/src/games/kitchen/logic.ts). Each character is one tile
+(`#` counter, `F` flour, `1`–`4` filling crates, `R` rolling board, `P` pierogi board, `S` stove,
+`W` sink, `K` plate rack, `H` serving hatch, `D` dirty-dish return, `T` bin, `.` floor). Edit it and
+the TV redraws the new kitchen. The unit tests check that the floor is connected and that every
+station can be reached.
+
+`KTUNING` in the same file holds the walking speed (4.2 tiles/s), the round length (3 min), the
+ticket time (80 s), how long cooked pierogi wait before they turn to mush (25 s), and the points.
+Orders arrive faster and star targets rise with more players (`orderInterval`, `starThresholds`).
+
+Phones send the joystick 20 times a second at most, quantised to 32 directions and two speeds, and
+only when it changes. The button and the minigame results are single messages. The TV runs the
+simulation at 60 Hz and sends each phone its button label ("Take flour", "Serve!") whenever it
+changes.
 
 ## Adding questions
 

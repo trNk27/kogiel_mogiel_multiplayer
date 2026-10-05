@@ -10,9 +10,17 @@ export interface GameHost {
   buzz(id: string, pattern: number[]): void;
   /** Ask the TV to re-render. */
   changed(): void;
-  /** End the game with final scores. */
-  finish(scores: Record<string, number>): void;
+  /** End the game with final scores. Co-op games also pass the team result. */
+  finish(scores: Record<string, number>, coop?: CoopResult): void;
   readonly options: LobbyOptions;
+}
+
+export interface CoopResult {
+  score: number;
+  /** 0–3. Every player earns this many party points. */
+  stars: number;
+  served: number;
+  missed: number;
 }
 
 export interface Game {

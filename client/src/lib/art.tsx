@@ -17,6 +17,8 @@ function pierogiPath(): string {
   return d;
 }
 const PIEROGI = pierogiPath();
+/** SVG path of the pierogi body (viewBox 0 0 120 96), also drawn on canvases. */
+export const PIEROGI_PATH = PIEROGI;
 
 interface PierogiProps {
   color: string;
