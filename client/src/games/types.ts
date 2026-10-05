@@ -15,6 +15,8 @@ export interface GameHost {
   /** End the game with final scores. Co-op games also pass the team result. */
   finish(scores: Record<string, number>, coop?: CoopResult): void;
   readonly options: LobbyOptions;
+  /** No TV in this room: phones show the game themselves, and `render()` is never shown. */
+  readonly noTv: boolean;
 }
 
 export interface CoopLevel {

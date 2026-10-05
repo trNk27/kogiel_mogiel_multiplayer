@@ -14,7 +14,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a different randomly generated track shape (forest ring, kidney, clover, figure eight with a bridge, town circuit, speedway), with a little Polish town along the way. Drive through ? boxes for items and **lift your thumb for a moment to use them**: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm and the Maluch Rocket. The VIP can switch items off. 15/12/10/8 cup points per race. | 1–4 |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a different randomly generated track shape (forest ring, kidney, clover, figure eight with a bridge, town circuit, speedway), with a little Polish town along the way. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment to use them**: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost and Hay Bale. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or dragging, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 
 ## How a party works
@@ -25,6 +25,24 @@ are named after the brand: a glass of kogiel mogiel.
    ends a game early (⋯ menu) and can remove players, all from their phone.
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
    places; in the co-op Pierogi Panic everyone gets 1 point per star, averaged over the levels played). The VIP chooses **Play again** or another game.
+
+### No TV? Play on phones only
+
+On the join page, enter your name and tap **Play without a TV**. Your phone starts the party: it
+runs the host in the background (the same code the TV would run) and joins as the first player, so
+you're the VIP. Your lobby shows the room code (tap it for a QR code), and friends join at `/join`
+as usual. Only games that don't need a shared screen are offered. So far that's **Maluch Rally**,
+where every phone renders the race itself:
+
+- **Your phone is the screen.** A full-screen 3D chase view of your own car, with your position,
+  lap, speed and a **minimap** (with the river, bridges and tunnel) in the corner.
+- **Steering made for a phone you're looking at.** The car speeds up by itself. Choose during the
+  countdown: **tilt** (hold the phone like a steering wheel and turn it; works in portrait and
+  landscape) or **drag** (put a thumb anywhere on the steering pad and slide it sideways; a wheel
+  under your thumb shows how far you're turning). BRAKE slows you down or reverses, and the item
+  button fires your item.
+- Keep the host phone's page open: if it locks or loses signal, the game pauses for everyone until
+  it's back (it resumes the room after a reload, like the TV does).
 
 Phones can lock, refresh or drop off Wi-Fi. The player's id lives in `localStorage`, and the TV
 keeps their slot and score for **60 seconds**, so reopening the page puts them straight back where
@@ -70,8 +88,10 @@ client/join.html            phone entry       → client/src/phone
 client/dev.html             /dev test bench   → client/src/dev
 client/src/games/*          quiz, trails, ballpark, kitchen (pure logic + TV views)
 client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigames
-client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js split-screen renderer
-client/src/phone/rally.tsx  Maluch Rally thumb pad
+client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js renderer, no-TV race client
+client/src/phone/rally.tsx  Maluch Rally thumb pad (with a TV)
+client/src/phone/rallyDrive.tsx  Maluch Rally on the phone (no TV): 3D view, tilt/drag steering, minimap
+client/src/phone/notvHost.ts     a phone hosting a party without a TV
 client/src/phone/toty.tsx   To Ty! selfie camera, voting and doodle canvas
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
@@ -92,6 +112,9 @@ npm run dev          # builds the frontend (in watch mode) and runs `wrangler de
 - Phone: <http://localhost:8787/join>
 - **Test bench:** <http://localhost:8787/dev?n=4> opens the host and 4 simulated phones in iframes.
   The phones join automatically. Click a phone and use ← → (or A / D) to steer in Trails.
+- **No-TV test bench:** <http://localhost:8787/dev?notv&n=3>: the first phone starts a party
+  without a TV and the others join it. In a race, ← → steer, ↓ brakes and Space fires the item.
+  `/join?debug` exposes a phone's race as `window.rally` (`rally.autodrive = true` drives for you).
 
 To try it with real phones on your Wi-Fi, run `npx wrangler dev --ip 0.0.0.0` and open
 `http://<your-computer-ip>:8787` on the TV. The QR code uses whatever address the TV is on.
@@ -235,7 +258,13 @@ changes.
 
   A candidate is rejected if a corner is tighter than an 18 m radius, or if two parts of the track
   come within 36 m of each other (except at the figure eight's single crossing, which must be at
-  50° or more). Every race in a cup uses a different shape. The race starts on the straightest
+  50° or more). Every race in a cup uses a different shape.
+- **Tunnels and bridges**: most tracks also get a **river**, a straight line across the map that
+  the road crosses two (sometimes four) times at 55° or more, well away from the start. Each
+  crossing gets a humpback deck with red bow-string arches, and the terrain is carved into a
+  channel under it. Most tracks also get a **tunnel**: a 120–160 m stretch where nothing else comes
+  close is buried under a grassy hill, with stone portals, ceiling lamps and darker lighting inside.
+  The barriers close in smoothly (13 m → 9 m on bridges, 8.6 m in tunnels; `track.wall`). The race starts on the straightest
   stretch, away from the bridge. Physics only ever looks for the road near where the car was last
   frame, so a car on the bridge never jumps to the road below. Cars, butter and pickles only touch
   when they're on the same level.
@@ -255,6 +284,10 @@ changes.
   | Pot Lid | a shield that blocks the next hit (10 s) |
   | Thunderstorm | everyone ahead of you is slowed to 55 % for 3 s |
   | Maluch Rocket | 3.5 s of autopilot at 62 m/s, immune to everything, shoving cars aside |
+  | Cabbage Bomb | lobbed down the road; after 0.8 s it goes off and spins everyone within 8 m (you too) |
+  | Beet Splash | barszcz on the windscreen of everyone ahead: their view is blotted for 4 s |
+  | Babcia’s Ghost | 4.5 s see-through and untouchable (no bumps, no hits), and you steal the item of the nearest car ahead |
+  | Hay Bale | dropped behind you; whoever drives into it stops dead |
 - **Physics** (`sim.ts`, `RTUNING`): top speed 42 m/s (≈150 km/h), 20 on the grass verge.
   Steering needs some speed and calms down near top speed. Barriers 13 m from the centre line slow
   you down and let you slide along them. Cars bump each other. Progress is measured along the track,
@@ -268,6 +301,15 @@ changes.
   when it changes, and zero when the thumb lifts.
 - `/?debug&shape=figure8` on the TV forces the first track shape and exposes the running game as
   `window.rally`, for testing.
+- **Without a TV** (`client.ts`), each phone runs the car physics for its **own** car (so steering
+  has no network lag) and reports its position ~15 times a second (`car`). The host phone referees
+  with the same simulation, where every car is "remote" and is moved by those reports (dead-reckoned
+  for up to 0.25 s). It counts laps, hands out items, moves missiles and cabbages, and decides
+  who's hit. It sends each phone what happened to its car (`rfx`), and everyone a snapshot of all
+  cars and items ~15 times a second (`rs`, about 300 bytes for 4 cars). Phones draw the other cars
+  120 ms in the past, interpolated between snapshots. Every phone builds the same track from the
+  seed in its view. A 3-race cup with 4 phones is about 1,500 billed Durable Object requests, well
+  within the free plan.
 
 ### To Ty!
 

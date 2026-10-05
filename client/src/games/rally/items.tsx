@@ -51,10 +51,62 @@ export function ItemIcon({ item, size = 64 }: { item: RallyItem; size?: number }
         <path d="M38 62 Q50 96 62 62 Z" fill="#ff8a2a" stroke={INK} stroke-width="3" stroke-linejoin="round" />
       </>
     ),
+    bomb: (
+      <>
+        <circle cx="50" cy="56" r="34" fill="#9fcf5a" stroke={INK} stroke-width="4" />
+        <path d="M50 22 Q34 40 36 88 M50 22 Q66 40 64 88 M18 52 Q50 44 82 52" fill="none" stroke="#5f9e2f" stroke-width="4" stroke-linecap="round" />
+        <path d="M50 22 Q56 10 66 8" fill="none" stroke={INK} stroke-width="4" stroke-linecap="round" />
+        <path d="M66 8 l6 -4 M66 8 l7 3 M66 8 l2 -7" stroke="#ff8a2a" stroke-width="4" stroke-linecap="round" />
+      </>
+    ),
+    beet: (
+      <>
+        <path d="M14 58 Q8 40 24 42 Q22 22 40 30 Q50 14 60 30 Q80 22 76 44 Q94 46 86 62 Q96 78 76 78 Q70 94 54 84 Q40 96 32 80 Q12 82 14 58 Z" fill="#c2185b" stroke={INK} stroke-width="4" stroke-linejoin="round" />
+        <circle cx="12" cy="30" r="5" fill="#c2185b" stroke={INK} stroke-width="3" />
+        <circle cx="90" cy="26" r="4" fill="#c2185b" stroke={INK} stroke-width="3" />
+        <ellipse cx="42" cy="50" rx="8" ry="5" fill="#f06292" />
+      </>
+    ),
+    ghost: (
+      <>
+        <path d="M22 88 V46 Q22 14 50 14 Q78 14 78 46 V88 L68 80 L59 88 L50 80 L41 88 L32 80 Z" fill="#f4f0ff" fill-opacity="0.9" stroke={INK} stroke-width="4" stroke-linejoin="round" />
+        <path d="M24 40 Q50 22 76 40 L74 30 Q50 6 26 30 Z" fill="#ff7ad1" stroke={INK} stroke-width="3" stroke-linejoin="round" />
+        <circle cx="40" cy="52" r="5" fill={INK} />
+        <circle cx="60" cy="52" r="5" fill={INK} />
+        <ellipse cx="50" cy="68" rx="6" ry="8" fill={INK} />
+      </>
+    ),
+    hay: (
+      <>
+        <rect x="12" y="34" width="76" height="48" rx="10" fill="#e9c25a" stroke={INK} stroke-width="4" />
+        <path d="M20 46 H80 M20 58 H80 M20 70 H80" stroke="#b8902c" stroke-width="3" stroke-linecap="round" />
+        <path d="M34 34 V82 M66 34 V82" stroke="#a5462e" stroke-width="5" />
+        <path d="M14 34 l-6 -8 M22 34 l-2 -10 M86 34 l6 -8 M78 34 l2 -10" stroke="#e9c25a" stroke-width="3" stroke-linecap="round" />
+      </>
+    ),
   }[item];
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
       {art}
     </svg>
   );
+}
+
+/** Short labels for what just happened to a car. */
+export function hitLabel(kind: RallyItem, blocked: boolean) {
+  if (blocked) return 'BLOCKED!';
+  switch (kind) {
+    case 'butter':
+      return 'SPLAT!';
+    case 'pickle':
+      return 'PICKLED!';
+    case 'bomb':
+      return 'KA-BOOM!';
+    case 'beet':
+      return 'BARSZCZ!';
+    case 'hay':
+      return 'BONK!';
+    default:
+      return 'ZAP!';
+  }
 }

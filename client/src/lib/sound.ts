@@ -2,7 +2,7 @@
 
 type Wave = OscillatorType;
 
-class Sound {
+export class Sound {
   private ctx: AudioContext | null = null;
   muted = false;
 

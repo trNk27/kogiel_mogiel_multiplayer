@@ -50,6 +50,53 @@ export interface Track {
   crossing: { over: number; under: number } | null;
   /** Sample range [from, to) lined with houses (may wrap past the start), or the whole lap. */
   town: { from: number; to: number } | null;
+  /** How far the barriers are from the centre line at each sample: tighter in the tunnel and on river bridges. */
+  wall: Float64Array;
+  /** A tunnel through a hill: `len` samples from `from` (may wrap). The hill spreads `hill` metres either side. */
+  tunnel: { from: number; len: number; hill: number } | null;
+  /** A river in a straight line across the map, bridged wherever the road crosses it. */
+  river: River | null;
+}
+
+export interface River {
+  /** A point on the river and its unit direction. */
+  x0: number;
+  z0: number;
+  dx: number;
+  dz: number;
+  /** Half the width of the water. */
+  half: number;
+  /** Water level at distances `s` along the river (sorted by s); flat beyond the ends. */
+  levels: { s: number; y: number }[];
+  /** Bridges: sample range [from, from + len) and the sample nearest the middle of the water. */
+  bridges: { from: number; len: number; at: number }[];
+}
+
+/** Tunnel walls are this far from the centre line. */
+export const TUNNEL_WALL = ROAD_HALF + 1.6;
+/** River bridges have railings this far out. */
+export const BRIDGE_WALL = ROAD_HALF + 2;
+/** Samples over which the barriers close in before a tunnel or bridge. */
+const TAPER = 14;
+export const TUNNEL_HEIGHT = 6.5;
+
+/** Is sample i inside a range of `len` samples starting at `from` (wrapping)? */
+export function inRange(i: number, from: number, len: number, n: number) {
+  return (((i - from) % n) + n) % n < len;
+}
+
+/** Signed distance from (x, z) to the river's centre line, and how far along the river that is. */
+export function riverCoords(r: River, x: number, z: number) {
+  const ex = x - r.x0;
+  const ez = z - r.z0;
+  return { d: ex * r.dz - ez * r.dx, s: ex * r.dx + ez * r.dz };
+}
+
+export function waterLevel(r: River, s: number) {
+  const L = r.levels;
+  if (s <= L[0].s) return L[0].y;
+  for (let k = 1; k < L.length; k++) if (s <= L[k].s) return L[k - 1].y + ((L[k].y - L[k - 1].y) * (s - L[k - 1].s)) / (L[k].s - L[k - 1].s || 1);
+  return L[L.length - 1].y;
 }
 
 /** Closed Catmull-Rom spline through control points, sampled `per` times per segment. */
@@ -479,7 +526,117 @@ export function generateTrack(seed: number, shape: Shape = shapeFor(seed)): Trac
     }
   }
 
-  return { seed, shape, name: SHAPE_NAMES[shape], n, xs, zs, hs, tx, tz, dist, length, bridge, crossing, town };
+  const ringNear = (k: number, centre: number, d: number) => ringDist(k, centre) <= d;
+  const inTown = (k: number) => !!town && (town.to - town.from >= n || inRange(k, town.from, town.to - town.from, n));
+  const nearCrossing = (k: number, d: number) => !!crossing && (ringNear(k, crossing.over, d) || ringNear(k, crossing.under, d));
+
+  // A river: a straight line across the map that the road crosses twice (or four times), cleanly.
+  let river: River | null = null;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
+  for (let i = 0; i < n; i++) {
+    minX = Math.min(minX, xs[i]);
+    maxX = Math.max(maxX, xs[i]);
+    minZ = Math.min(minZ, zs[i]);
+    maxZ = Math.max(maxZ, zs[i]);
+  }
+  const half = 9;
+  for (let tryR = 0; tryR < 60 && !river; tryR++) {
+    const a = rng() * Math.PI;
+    const dx = Math.cos(a);
+    const dz = Math.sin(a);
+    const x0 = (minX + maxX) / 2 + (rng() - 0.5) * (maxX - minX) * 0.5;
+    const z0 = (minZ + maxZ) / 2 + (rng() - 0.5) * (maxZ - minZ) * 0.5;
+    const side = (i: number) => (xs[i] - x0) * dz - (zs[i] - z0) * dx;
+    const hits: number[] = [];
+    for (let i = 0; i < n; i++) if (Math.sign(side(i)) !== Math.sign(side((i + 1) % n))) hits.push(i);
+    if (hits.length !== 2 && hits.length !== 4) continue;
+    // Cross at a decent angle, away from the start, the figure-eight bridge and each other.
+    const ok = hits.every((i) => Math.abs(tx[i] * dz - tz[i] * dx) > Math.sin((55 * Math.PI) / 180) && ringDist(i, 0) > 70 && !nearCrossing(i, CROSS_ZONE * 1.5)) && hits.every((i, k) => k === 0 || ringDist(i, hits[k - 1]) > 90) && ringDist(hits[0], hits[hits.length - 1]) > 90;
+    if (!ok) continue;
+    // Elsewhere the road keeps well clear of the water.
+    let clear = true;
+    for (let i = 0; i < n && clear; i++) if (!hits.some((h) => ringDist(i, h) < 30) && Math.abs(side(i)) < half + WALL + 12) clear = false;
+    if (!clear) continue;
+    const bridges = hits.map((at) => {
+      let from = at;
+      while (Math.abs(side((from - 1 + n) % n)) < half + 7 && ringDist(from, at) < 20) from = (from - 1 + n) % n;
+      let to = (at + 1) % n;
+      while (Math.abs(side(to)) < half + 7 && ringDist(to, at) < 20) to = (to + 1) % n;
+      return { from, len: ((to - from + n) % n) + 1, at };
+    });
+    const levels = hits
+      .map((i) => ({ s: (xs[i] - x0) * dx + (zs[i] - z0) * dz, y: hs[i] - 2.3 }))
+      .sort((p, q) => p.s - q.s);
+    river = { x0, z0, dx, dz, half, levels, bridges };
+  }
+  // Humpback bridges: lift the road a little over the water.
+  if (river) {
+    for (const b of river.bridges) {
+      const centre = (b.from + Math.floor(b.len / 2)) % n;
+      for (let k = 0; k < n; k++) {
+        const d = ringDist(k, centre);
+        if (d > b.len / 2 + 16) continue;
+        const u = Math.max(0, Math.min(1, 1 - (d - b.len / 2) / 16));
+        hs[k] += 1.8 * u * u * (3 - 2 * u);
+      }
+    }
+  }
+  const nearRiverBridge = (k: number, d: number) => !!river && river.bridges.some((b) => ringDist(k, (b.from + Math.floor(b.len / 2)) % n) <= b.len / 2 + d);
+
+  // A tunnel through a hill, where the road has room around it for the hill.
+  let tunnel: Track['tunnel'] = null;
+  if (shape !== 'town') {
+    // Clearance: distance from each sample to any part of the road that isn't just before or after it.
+    const clearance = new Float64Array(n).fill(Infinity);
+    for (let i = 0; i < n; i += 2)
+      for (let j = 0; j < n; j += 2) {
+        if (ringDist(i, j) < 70) continue;
+        const d = Math.hypot(xs[i] - xs[j], zs[i] - zs[j]);
+        if (d < clearance[i]) clearance[i] = d;
+      }
+    for (let i = 1; i < n; i += 2) clearance[i] = Math.min(clearance[i - 1], clearance[(i + 1) % n]);
+    const len = 60 + Math.floor(rng() * 20);
+    let best: { from: number; score: number } | null = null;
+    for (let from = 0; from < n; from += 3) {
+      let worst = Infinity;
+      for (let k = -TAPER; k < len + TAPER && worst > 0; k++) {
+        const i = (from + k + n) % n;
+        if (ringDist(i, 0) < 30 || bridge[i] || nearCrossing(i, CROSS_ZONE) || inTown(i) || nearRiverBridge(i, 20)) worst = 0;
+        else if (k >= 0 && k < len) worst = Math.min(worst, clearance[i]);
+      }
+      if (river) for (let k = 0; k < len; k++) worst = Math.min(worst, Math.abs(riverCoords(river, xs[(from + k) % n], zs[(from + k) % n]).d) - river.half);
+      const score = worst + rng() * 15;
+      if (worst >= WALL + 24 && (!best || score > best.score)) best = { from, score };
+    }
+    if (best) {
+      let worst = Infinity;
+      for (let k = 0; k < len; k++) {
+        const i = (best.from + k) % n;
+        worst = Math.min(worst, clearance[i]);
+        if (river) worst = Math.min(worst, Math.abs(riverCoords(river, xs[i], zs[i]).d) - river.half);
+      }
+      tunnel = { from: best.from, len, hill: Math.min(60, worst - WALL - 8) };
+    }
+  }
+
+  // Barriers close in through the tunnel and over river bridges.
+  const wall = new Float64Array(n).fill(WALL);
+  const squeeze = (from: number, len: number, to: number) => {
+    for (let k = -TAPER; k < len + TAPER; k++) {
+      const i = (from + k + n) % n;
+      const out = k < 0 ? -k : k >= len ? k - len + 1 : 0;
+      const u = Math.min(1, out / TAPER);
+      const w = to + (WALL - to) * u * u * (3 - 2 * u);
+      wall[i] = Math.min(wall[i], w);
+    }
+  };
+  if (tunnel) squeeze(tunnel.from, tunnel.len, TUNNEL_WALL);
+  if (river) for (const b of river.bridges) squeeze(b.from, b.len, BRIDGE_WALL);
+
+  return { seed, shape, name: SHAPE_NAMES[shape], n, xs, zs, hs, tx, tz, dist, length, bridge, crossing, town, wall, tunnel, river };
 }
 
 export interface Projection {

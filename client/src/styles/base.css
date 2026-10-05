@@ -318,6 +318,15 @@ h3 {
   background: var(--bg);
 }
 
+/* No TV: the phones get the whole page, at a phone-like size. */
+.dev:has(.dev-phones.notv) {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.dev-phones.notv iframe {
+  width: 390px;
+  max-height: 844px;
+}
+
 /* ---- Stars (co-op results) ------------------------------------------------ */
 
 .stars {

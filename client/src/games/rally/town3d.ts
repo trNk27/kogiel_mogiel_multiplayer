@@ -26,6 +26,8 @@ export interface TownContext {
   rnd: () => number;
   keep: <T extends BufferGeometry | Material | CanvasTexture>(x: T) => T;
   world: Group;
+  /** Places the town must keep clear of (the river, the tunnel hill). */
+  blocked?: (x: number, z: number, r: number) => boolean;
 }
 
 export interface Obstacle {
@@ -125,7 +127,8 @@ export function buildTown(ctx: TownContext): Obstacle[] {
   let houses = 0;
   let nBlocks = 0;
   let nLamps = 0;
-  const free = (x: number, z: number, r: number) => roadDist(x, z) > WALL + 2 + r && obstacles.every((o) => Math.hypot(o.x - x, o.z - z) > o.r + r + 1.5);
+  const free = (x: number, z: number, r: number) =>
+    roadDist(x, z) > WALL + 2 + r && !ctx.blocked?.(x, z, r) && obstacles.every((o) => Math.hypot(o.x - x, o.z - z) > o.r + r + 1.5);
   /** A spot `off` metres from the road at sample i (side +1 = left), facing the road. */
   const spot = (i: number, side: number, off: number) => {
     const x = t.xs[i] + t.tz[i] * off * side;
@@ -141,7 +144,7 @@ export function buildTown(ctx: TownContext): Obstacle[] {
     const i = (t.town.from + s) % n;
     for (const side of [1, -1]) {
       // Street lamps along the barrier.
-      if (s % (step * 2) === 0 && nLamps < 200) {
+      if (s % (step * 2) === 0 && nLamps < 200 && t.wall[i] >= WALL) {
         const p = spot(i, side, WALL + 2.8);
         dummy.position.set(p.x, terrain(p.x, p.z) - 0.2, p.z);
         dummy.rotation.set(0, p.rot + Math.PI, 0);

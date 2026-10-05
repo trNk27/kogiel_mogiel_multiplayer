@@ -1540,3 +1540,482 @@ body.phone-body input {
 .fx-shield {
   background: rgba(79, 157, 255, 0.5);
 }
+
+/* ---- No TV: start a party on this phone ------------------------------------ */
+
+.notv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: rgba(20, 6, 10, 0.4);
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+.notv-card p {
+  margin: 0;
+  font-size: 15px;
+}
+.notv-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--yolk);
+}
+.invite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.invite-text {
+  display: flex;
+  flex-direction: column;
+}
+.invite-text small {
+  color: var(--ink);
+  opacity: 0.7;
+}
+.invite-code {
+  font-family: var(--font-display);
+  font-size: 40px;
+  letter-spacing: 0.18em;
+  color: var(--beet-deep);
+  line-height: 1.1;
+}
+.invite-qr {
+  flex: 0 0 auto;
+  background: var(--cream);
+  padding: 6px;
+  border-radius: 10px;
+  line-height: 0;
+}
+.pv-center .invite {
+  width: 100%;
+}
+.board {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  text-align: left;
+}
+.board-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 17px;
+}
+.board-row.me {
+  color: var(--yolk);
+}
+.board-place {
+  width: 22px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* ---- No TV: Maluch Rally on the phone -------------------------------------- */
+
+.drive {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #f2b38a;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.drive-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.drive-ink {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.drive-top {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
+}
+.drive-top .vip-menu-btn {
+  pointer-events: auto;
+  background: rgba(20, 6, 10, 0.55);
+}
+.drive-pos,
+.drive-lap,
+.drive-speed,
+.drive-closing {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--cream);
+  text-shadow:
+    0 3px 0 rgba(42, 18, 10, 0.85),
+    0 0 6px rgba(42, 18, 10, 0.6);
+}
+.drive-pos {
+  font-size: 54px;
+  line-height: 1;
+  color: var(--me);
+}
+.drive-pos small {
+  font-size: 22px;
+}
+.drive-of {
+  font-size: 20px;
+  color: var(--cream);
+}
+.drive-lap {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  font-size: 20px;
+  line-height: 1.1;
+  padding-top: 4px;
+}
+.drive-lap small {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.drive-map {
+  width: 118px;
+  height: 118px;
+  border-radius: 18px;
+  background: rgba(20, 6, 10, 0.45);
+  box-shadow: inset 0 0 0 2px rgba(255, 244, 220, 0.25);
+}
+.drive-flash {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 34px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--yolk);
+  text-shadow:
+    0 4px 0 var(--beet-deep),
+    0 0 10px rgba(42, 18, 10, 0.6);
+  pointer-events: none;
+  animation: drive-flash 1.6s ease-out both;
+}
+@keyframes drive-flash {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.5);
+  }
+  12% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.12);
+  }
+  22% {
+    transform: translateX(-50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+.drive-closing {
+  position: absolute;
+  top: calc(max(8px, env(safe-area-inset-top)) + 128px);
+  right: 12px;
+  font-size: 16px;
+  color: var(--yolk);
+}
+.drive-fx {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(20, 6, 10, 0.6);
+  font-family: var(--font-display);
+  font-size: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.drive-fx.fx-boost,
+.drive-fx.fx-rocket {
+  color: var(--yolk);
+}
+.drive-fx.fx-spin,
+.drive-fx.fx-ink {
+  color: #ff8fab;
+}
+.drive-fx.fx-ghost {
+  color: #e8d0f0;
+}
+.drive-speed {
+  position: absolute;
+  left: 50%;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 150px);
+  transform: translateX(-50%);
+  font-size: 30px;
+  pointer-events: none;
+}
+.drive-speed small {
+  font-size: 14px;
+}
+.drive-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 150px;
+  padding: 0 10px max(10px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.drive-pad {
+  position: relative;
+  flex: 1;
+  border-radius: 24px;
+  background: rgba(20, 6, 10, 0.32);
+  box-shadow: inset 0 0 0 2px rgba(255, 244, 220, 0.2);
+  touch-action: none;
+}
+.drive-pad-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  color: rgba(255, 244, 220, 0.75);
+  font-size: 17px;
+  pointer-events: none;
+}
+.drive-pad-wheel {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  pointer-events: none;
+}
+.drive-wheel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 26px);
+  width: 96px;
+  height: 96px;
+  pointer-events: none;
+  opacity: 0.9;
+}
+.drive-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 112px;
+}
+.mode-tilt .drive-right {
+  width: 128px;
+}
+.drive-item,
+.drive-brake {
+  border: 0;
+  border-radius: 22px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  touch-action: none;
+}
+.drive-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 6, 10, 0.45);
+  box-shadow: inset 0 0 0 3px rgba(255, 244, 220, 0.25);
+}
+.drive-item.has {
+  background: var(--cream);
+  box-shadow:
+    0 0 0 4px var(--yolk),
+    0 0 24px rgba(255, 201, 60, 0.7);
+  animation: pop-in 0.4s both;
+}
+.drive-item-empty {
+  font-size: 34px;
+  color: rgba(255, 244, 220, 0.4);
+}
+.drive-brake {
+  height: 52px;
+  background: var(--beet);
+  color: var(--cream);
+  font-size: 17px;
+  box-shadow: inset 0 -5px 0 var(--beet-deep);
+}
+.drive-brake.big {
+  height: auto;
+  flex: 0 0 128px;
+  font-size: 22px;
+}
+.drive-brake.down {
+  transform: translateY(3px);
+  box-shadow: inset 0 -2px 0 var(--beet-deep);
+}
+.mode-tilt {
+  justify-content: space-between;
+}
+.mode-tilt .drive-right .drive-item {
+  flex: 1;
+}
+.drive-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  background: rgba(31, 10, 16, 0.55);
+  text-align: center;
+}
+.drive-count-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  display: flex;
+  flex-direction: column;
+}
+.drive-count-title small {
+  font-size: 22px;
+  color: var(--yolk);
+}
+.drive-count {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 120px;
+  line-height: 1;
+  color: var(--yolk);
+  text-shadow: 0 8px 0 var(--beet-deep);
+  animation: pop-in 0.5s both;
+}
+.drive-count.go {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--dill);
+  pointer-events: none;
+}
+.drive-modes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  background: rgba(255, 244, 220, 0.14);
+}
+.chip.on {
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 0 0 3px var(--yolk);
+}
+.drive-banner {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 22px;
+  border-radius: 20px;
+  background: rgba(20, 6, 10, 0.7);
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--yolk);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+}
+.drive-banner small {
+  font-size: 15px;
+  color: var(--cream);
+}
+.drive-standings {
+  background: rgba(31, 10, 16, 0.88);
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding-top: max(24px, env(safe-area-inset-top));
+}
+.drive-board {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.drive-board li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: rgba(255, 244, 220, 0.08);
+  font-family: var(--font-display);
+  font-size: 17px;
+  text-align: left;
+}
+.drive-board li.me {
+  background: rgba(255, 201, 60, 0.22);
+  box-shadow: inset 0 0 0 2px var(--yolk);
+}
+.db-place {
+  width: 20px;
+}
+.db-time {
+  opacity: 0.75;
+  font-size: 14px;
+}
+.drive-board b {
+  min-width: 32px;
+  text-align: right;
+  color: var(--yolk);
+}
+@media (orientation: landscape) {
+  .drive-controls {
+    height: 120px;
+  }
+  .drive-speed {
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 124px);
+  }
+  .drive-pad {
+    flex: 0 0 42%;
+  }
+  .mode-touch {
+    justify-content: space-between;
+  }
+}

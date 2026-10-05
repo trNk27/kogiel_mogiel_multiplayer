@@ -3,10 +3,10 @@ import {
   DEFAULT_OPTIONS,
   DIFFICULTIES,
   KITCHEN_LEVELS,
-  GAMES,
   MAX_PLAYERS,
   RECONNECT_GRACE_MS,
   gameInfo,
+  gamesFor,
   playerCountProblem,
   isColorId,
   sanitizeName,
@@ -55,6 +55,8 @@ export type Screen =
   | { s: 'results'; game: GameId; standings: Standing[]; coop?: CoopResult };
 
 const SESSION_KEY = 'cp.host';
+/** A phone hosting a room without a TV keeps its session separately (the /dev page runs several phones in one tab). */
+export const noTvSessionKey = (dev: string | null) => `cp.notvhost${dev ? `.${dev}` : ''}`;
 const SESSION_MAX_AGE = 30 * 60_000;
 const INTRO_MS = 6000;
 
@@ -66,13 +68,22 @@ interface SavedSession {
   options: LobbyOptions;
   gamesPlayed: number;
   savedAt: number;
+  noTv?: boolean;
+}
+
+export interface HostOptions {
+  /** No TV: this controller runs hidden on a phone, and every phone shows the game itself. */
+  noTv?: boolean;
+  sessionKey?: string;
 }
 
 /**
- * The authoritative brain of a room. Lives on the TV.
+ * The authoritative brain of a room. Lives on the TV (or, without a TV, hidden on the phone that started the party).
  * Owns the roster, VIP rules, reconnection grace periods and the running game.
  */
 export class HostController implements GameHost {
+  readonly noTv: boolean;
+  private readonly sessionKey: string;
   code = '';
   private hostKey = '';
   players = new Map<string, Player>();
@@ -92,6 +103,16 @@ export class HostController implements GameHost {
   private sweepTimer: number | undefined;
   private version = 0;
 
+  constructor(opts: HostOptions = {}) {
+    this.noTv = !!opts.noTv;
+    this.sessionKey = opts.sessionKey ?? SESSION_KEY;
+    if (this.noTv) {
+      this.selected = gamesFor(true)[0].id;
+      // The host phone is somebody's controller: it stays quiet.
+      sound.muted = true;
+    }
+  }
+
   // ---- store plumbing ---------------------------------------------------------
 
   subscribe(fn: () => void) {
@@ -108,9 +129,9 @@ export class HostController implements GameHost {
 
   // ---- room lifecycle ---------------------------------------------------------
 
-  static savedSession(): SavedSession | null {
+  static savedSession(key = SESSION_KEY): SavedSession | null {
     try {
-      const raw = sessionStorage.getItem(SESSION_KEY);
+      const raw = sessionStorage.getItem(key);
       if (!raw) return null;
       const s = JSON.parse(raw) as SavedSession;
       if (Date.now() - s.savedAt > SESSION_MAX_AGE) return null;
@@ -146,17 +167,17 @@ export class HostController implements GameHost {
     const res = await fetch(`/api/rooms/${saved.code}`).catch(() => null);
     const info = res && res.ok ? ((await res.json()) as { exists: boolean }) : { exists: false };
     if (!info.exists) {
-      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(this.sessionKey);
       this.screen = { s: 'landing', error: `Room ${saved.code} has expired.` };
       this.changed();
       return;
     }
     this.code = saved.code;
     this.hostKey = saved.hostKey;
-    this.selected = saved.selected;
+    if (gamesFor(this.noTv).some((g) => g.id === saved.selected)) this.selected = saved.selected;
     this.options = { ...DEFAULT_OPTIONS, ...saved.options };
     this.gamesPlayed = saved.gamesPlayed;
-    sound.muted = !this.options.sound;
+    sound.muted = this.noTv || !this.options.sound;
     const now = Date.now();
     for (const p of saved.players) {
       this.players.set(p.id, { ...p, connected: false, disconnectedAt: now });
@@ -164,6 +185,19 @@ export class HostController implements GameHost {
     this.screen = { s: 'lobby' };
     this.connect();
     this.changed();
+  }
+
+  /** Close the room from this side for good (a phone that stops hosting). */
+  stop() {
+    this.endGame();
+    clearInterval(this.sweepTimer);
+    this.socket?.close();
+    this.socket = null;
+    try {
+      sessionStorage.removeItem(this.sessionKey);
+    } catch {
+      /* private mode */
+    }
   }
 
   private connect() {
@@ -178,7 +212,7 @@ export class HostController implements GameHost {
       fatalCodes: [CLOSE.replaced, CLOSE.expired],
       onFatal: (code) => {
         this.endGame();
-        sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(this.sessionKey);
         this.screen = {
           s: 'landing',
           error: code === CLOSE.replaced ? 'This room was opened on another screen.' : 'The room expired.',
@@ -199,9 +233,10 @@ export class HostController implements GameHost {
       options: this.options,
       gamesPlayed: this.gamesPlayed,
       savedAt: Date.now(),
+      noTv: this.noTv,
     };
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+      sessionStorage.setItem(this.sessionKey, JSON.stringify(data));
     } catch {
       /* private mode */
     }
@@ -307,7 +342,7 @@ export class HostController implements GameHost {
     const isVip = this.vipId() === id;
     switch (m.t) {
       case 'select':
-        if (isVip && this.screen.s === 'lobby' && GAMES.some((g) => g.id === m.game)) {
+        if (isVip && this.screen.s === 'lobby' && gamesFor(this.noTv).some((g) => g.id === m.game)) {
           this.selected = m.game;
           sound.tick();
           this.afterLobbyChange();
@@ -323,7 +358,7 @@ export class HostController implements GameHost {
           this.options = { ...this.options, [m.key]: v };
           sound.tick();
         } else return;
-        sound.muted = !this.options.sound;
+        sound.muted = this.noTv || !this.options.sound;
         this.afterLobbyChange();
         return;
       case 'start':
@@ -412,7 +447,7 @@ export class HostController implements GameHost {
   }
 
   startProblem(game: GameId = this.selected) {
-    return playerCountProblem(gameInfo(game), this.connectedCount(), this.players.size);
+    return playerCountProblem(gameInfo(game), this.connectedCount(), this.players.size, this.noTv);
   }
 
   private startGame(id: GameId) {
@@ -530,7 +565,7 @@ export class HostController implements GameHost {
           vipName: this.players.get(this.vipId() ?? '')?.name ?? '',
         };
       case 'intro':
-        return { v: 'wait', title: gameInfo(s.game).title, text: 'Get ready – look at the TV!', icon: s.game };
+        return { v: 'wait', title: gameInfo(s.game).title, text: this.noTv ? 'Get ready – it starts right here on your phone!' : 'Get ready – look at the TV!', icon: s.game };
       case 'game':
         if (this.game?.ids.includes(id)) return this.game.viewFor(id);
         return { v: 'wait', title: 'Game in progress', text: 'Hang tight – you’ll be in the next one!', icon: 'sleep' };
@@ -544,6 +579,10 @@ export class HostController implements GameHost {
           players: s.standings.length,
           vip,
           ...(s.coop ? { coop: { stars: s.coop.stars, score: s.coop.score } } : {}),
+          // Without a TV, every phone gets the scoreboard the TV would show.
+          ...(this.noTv
+            ? { board: s.standings.map((x) => ({ name: x.name, color: x.color, score: x.score, place: x.place, party: this.players.get(x.id)?.party ?? 0 })) }
+            : {}),
         };
       }
       default:
@@ -559,7 +598,7 @@ export class HostController implements GameHost {
     const key = JSON.stringify([view, me]);
     if (!force && this.lastSent.get(id) === key) return;
     this.lastSent.set(id, key);
-    this.sendTo([id], { t: 'view', view, me, now: Date.now() });
+    this.sendTo([id], { t: 'view', view, me, now: Date.now(), ...(this.noTv ? { noTv: true } : {}) });
   }
 
   private sendTo(ids: string[], m: HostToPhone) {

@@ -7,8 +7,10 @@ import '../styles/base.css';
  * /dev – the host plus N simulated phones on one screen.
  *   /dev?n=4        number of phones (1–8)
  *   /dev?code=ABCD  attach phones to an existing room instead of creating one
+ *   /dev?notv       no TV: the first phone starts the party and hosts it
  */
 const params = new URLSearchParams(location.search);
+const NOTV = params.has('notv');
 const NAMES = ['Babcia', 'Dziadek', 'Kasia', 'Tomek', 'Ola', 'Bartek', 'Zosia', 'Kuba'];
 
 function Dev() {
@@ -33,20 +35,22 @@ function Dev() {
           Phones{' '}
           <input type="number" min={1} max={8} value={n} onInput={(e) => setN(Math.min(8, Math.max(1, Number((e.target as HTMLInputElement).value) || 1)))} />
         </label>
-        <span class="muted">Click a phone, then use ← → / A D for Trails.</span>
+        <span class="muted">Click a phone, then use ← → / A D to steer (↓ brakes and space fires items in a no-TV rally).</span>
       </div>
-      <div class="dev-tv">
-        {!params.get('code') && <iframe src="/?autohost=1&new=1" title="TV" />}
-      </div>
-      <div class="dev-phones">
+      {!NOTV && <div class="dev-tv">{!params.get('code') && <iframe src="/?autohost=1&new=1" title="TV" />}</div>}
+      <div class={`dev-phones ${NOTV ? 'notv' : ''}`}>
+        {NOTV && <iframe key="host" title="Phone 1 (host)" src={`/join?notv=1&dev=${run}-0&auto=1&name=${encodeURIComponent(NAMES[0])}`} />}
         {code &&
-          Array.from({ length: n }, (_, i) => (
-            <iframe
-              key={`${code}-${i}`}
-              title={`Phone ${i + 1}`}
-              src={`/join?code=${code}&dev=${run}-${i}&auto=1&name=${encodeURIComponent(NAMES[i])}`}
-            />
-          ))}
+          Array.from({ length: NOTV ? n - 1 : n }, (_, k) => {
+            const i = NOTV ? k + 1 : k;
+            return (
+              <iframe
+                key={`${code}-${i}`}
+                title={`Phone ${i + 1}`}
+                src={`/join?code=${code}&dev=${run}-${i}&auto=1&name=${encodeURIComponent(NAMES[i])}`}
+              />
+            );
+          })}
       </div>
     </div>
   );

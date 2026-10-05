@@ -17,10 +17,14 @@ import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { forgetRoom, loadStored, saveStored, type Stored } from './storage';
 import { setWakeLock } from './wakelock';
 import { ViewRouter } from './views';
+import { rallyBus, savedHostCode } from './rallyBus';
+import { VipMenu } from './vipMenu';
 import { putPhoto } from './photos';
 
 const params = new URLSearchParams(location.search);
 const AUTO = params.has('auto'); // used by the /dev page
+/** /dev: this phone starts a no-TV party by itself. */
+const AUTO_NOTV = AUTO && params.has('notv');
 
 type Stage =
   | { s: 'form'; error?: string }
@@ -33,6 +37,12 @@ export interface Me {
   name: string;
   color: ColorId;
   vip: boolean;
+  /** The room has no TV: phones show everything. */
+  noTv?: boolean;
+  /** This phone is the one hosting the room. */
+  hosting?: boolean;
+  /** Room code. */
+  room?: string;
 }
 
 export type Send = (m: PhoneMsg) => void;
@@ -45,6 +55,10 @@ export function PhoneApp() {
   const [status, setStatus] = useState<SocketStatus>('closed');
   const [hostOnline, setHostOnline] = useState(true);
   const [view, setView] = useState<{ view: PhoneView; me: Me; offset: number } | null>(null);
+  /** Code of the room this phone hosts without a TV, if any. */
+  const [hosting, setHosting] = useState<string | null>(null);
+  const hostingRef = useRef(hosting);
+  hostingRef.current = hosting;
   const socket = useRef<ReconnectingSocket<ServerToPhone, PhoneMsg> | null>(null);
   const storedRef = useRef(stored);
   storedRef.current = stored;
@@ -65,6 +79,10 @@ export function PhoneApp() {
     socket.current = null;
     setWakeLock(false);
     if (forget) setStored(forgetRoom(storedRef.current));
+    if (forget && hostingRef.current) {
+      setHosting(null);
+      void import('./notvHost').then((h) => h.stopHosting());
+    }
     setView(null);
     setStage({ s: 'gone', title, text });
   };
@@ -108,7 +126,7 @@ export function PhoneApp() {
             break;
           case 'view':
             update({ code: roomCode, at: Date.now(), color: m.me.color, name: m.me.name });
-            setView({ view: m.view, me: m.me, offset: Date.now() - m.now });
+            setView({ view: m.view, me: { ...m.me, noTv: !!m.noTv, hosting: hostingRef.current === roomCode, room: roomCode }, offset: Date.now() - m.now });
             setStage({ s: 'in' });
             break;
           case 'buzz':
@@ -117,6 +135,10 @@ export function PhoneApp() {
             } catch {
               /* not supported (iOS) */
             }
+            break;
+          case 'rs':
+          case 'rfx':
+            rallyBus.emit(m);
             break;
           case 'photo':
             putPhoto(m.id, m.rev, m.data);
@@ -130,12 +152,45 @@ export function PhoneApp() {
     socket.current = s;
   };
 
+  /** Start a party without a TV: this phone hosts it in the background and joins it. */
+  const startNoTv = async () => {
+    const n = sanitizeName(name);
+    if (!n) return setStage({ s: 'form', error: 'Please enter your name first.' });
+    setStage({ s: 'connecting' });
+    try {
+      const { startHosting } = await import('./notvHost');
+      const c = await startHosting();
+      update({ name: n });
+      setHosting(c);
+      setCode(c);
+      if (window.parent !== window) window.parent.postMessage({ type: 'couch-party-room', code: c }, location.origin);
+      connect(c);
+    } catch (err) {
+      setStage({ s: 'form', error: `Could not start a party. ${(err as Error).message}` });
+    }
+  };
+
   // Seamless rejoin: if we were in this room recently, reconnect without asking anything.
   useEffect(() => {
     const st = storedRef.current;
     const urlCode = normalizeCode(params.get('code') ?? '');
     const recent = st.at && Date.now() - st.at < 3 * 60 * 60_000;
-    if (st.code && recent && (!urlCode || urlCode === st.code)) {
+    const hosted = savedHostCode(params.get('dev'));
+    if (hosted && (!urlCode || urlCode === hosted)) {
+      // This phone was hosting a no-TV party before it reloaded: host it again, then rejoin.
+      setStage({ s: 'connecting' });
+      setCode(hosted);
+      void import('./notvHost')
+        .then((h) => h.resumeHosting())
+        .then((c) => {
+          if (c) {
+            setHosting(c);
+            connect(c);
+          } else setStage({ s: 'form', error: `Room ${hosted} has expired.` });
+        });
+    } else if (AUTO_NOTV) {
+      void startNoTv();
+    } else if (st.code && recent && (!urlCode || urlCode === st.code)) {
       setCode(st.code);
       connect(st.code);
     } else if (AUTO && urlCode) {
@@ -145,11 +200,11 @@ export function PhoneApp() {
     return () => socket.current?.close();
   }, []);
 
-  // Keep the screen awake while a game is running.
+  // Keep the screen awake while a game is running (and all the time on a phone hosting without a TV).
   useEffect(() => {
     const v = view?.view.v;
-    setWakeLock(!!v && v !== 'lobby' && v !== 'results');
-  }, [view?.view.v]);
+    setWakeLock(!!hosting || (!!v && v !== 'lobby' && v !== 'results'));
+  }, [view?.view.v, hosting]);
 
   const submitForm = async (e: Event) => {
     e.preventDefault();
@@ -225,9 +280,16 @@ export function PhoneApp() {
             Join the party
           </button>
         </form>
+        <div class="notv-card">
+          <div class="notv-title">No TV? No problem.</div>
+          <p class="muted">Start a party right here – every phone shows the game itself. Friends join with the code you’ll see.</p>
+          <button class="btn btn-big btn-ghost" type="button" onClick={startNoTv}>
+            Play without a TV
+          </button>
+        </div>
         <p class="host-link">
-          To host, open this same link on a laptop or TV.{' '}
-          <a href="/?host">Host on this phone instead</a>
+          To host on a TV, open this same link on a laptop or TV.{' '}
+          <a href="/?host">Show the TV screen on this phone</a>
         </p>
         <Rosette size={90} class="form-rosette" />
       </div>
@@ -291,40 +353,10 @@ export function PhoneApp() {
       {(!hostOnline || status === 'connecting') && (
         <div class="phone-overlay">
           <Pierogi color={colorHex(me.color)} size={100} mood="sleep" class="bob" />
-          <div class="phone-big">{status === 'connecting' ? 'Reconnecting…' : 'Waiting for the TV…'}</div>
+          <div class="phone-big">{status === 'connecting' ? 'Reconnecting…' : me.noTv ? 'Waiting for the host’s phone…' : 'Waiting for the TV…'}</div>
           <div class="muted">Your spot and score are safe.</div>
         </div>
       )}
     </div>
-  );
-}
-
-function VipMenu({ send }: { send: Send }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <button class="vip-menu-btn" onClick={() => setOpen(true)} aria-label="VIP menu">
-        ⋯
-      </button>
-      {open && (
-        <div class="sheet-backdrop" onClick={() => setOpen(false)}>
-          <div class="sheet" onClick={(e) => e.stopPropagation()}>
-            <div class="sheet-title">VIP menu</div>
-            <button
-              class="btn btn-big btn-beet"
-              onClick={() => {
-                send({ t: 'lobby' });
-                setOpen(false);
-              }}
-            >
-              End game & back to lobby
-            </button>
-            <button class="btn btn-ghost" onClick={() => setOpen(false)}>
-              Keep playing
-            </button>
-          </div>
-        </div>
-      )}
-    </>
   );
 }

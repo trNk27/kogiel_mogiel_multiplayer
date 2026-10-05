@@ -86,8 +86,13 @@ export interface GameInfo {
   title: string;
   tagline: string;
   minPlayers: number;
-  /** Most players the game takes (default MAX_PLAYERS). */
+  /** Most players the game takes with a TV (default MAX_PLAYERS). */
   maxPlayers?: number;
+  /**
+   * Games that work without a TV (every phone shows its own screen) have a tagline for that mode.
+   * Without a TV there's no split screen, so the player limit is MAX_PLAYERS.
+   */
+  noTv?: string;
 }
 
 export const GAMES: readonly GameInfo[] = [
@@ -95,7 +100,13 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
   { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
   { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1 },
-  { id: 'rally', title: 'Maluch Rally', tagline: 'Split-screen racing for up to 4. Your thumb is the wheel.', minPlayers: 1, maxPlayers: 4 },
+  {
+    id: 'rally',
+    title: 'Maluch Rally', tagline: 'Split-screen racing for up to 4. Your thumb is the wheel.',
+    minPlayers: 1,
+    maxPlayers: 4,
+    noTv: 'Low-poly racing on every phone. Tilt or drag to steer, up to 8 cars.',
+  },
   { id: 'toty', title: 'To Ty!', tagline: 'Selfies, “who’s most likely to…” and doodles.', minPlayers: 3 },
 ];
 
@@ -103,10 +114,17 @@ export function gameInfo(id: GameId): GameInfo {
   return GAMES.find((g) => g.id === id)!;
 }
 
+/** Games you can pick in a room with (or without) a TV. */
+export function gamesFor(noTv: boolean): readonly GameInfo[] {
+  return noTv ? GAMES.filter((g) => g.noTv) : GAMES;
+}
+
 /** Why a game can't start with this many players in the room, or null if it can. */
-export function playerCountProblem(info: GameInfo, connected: number, inRoom: number): string | null {
+export function playerCountProblem(info: GameInfo, connected: number, inRoom: number, noTv = false): string | null {
+  if (noTv && !info.noTv) return `${info.title} needs a TV.`;
   if (connected < info.minPlayers) return `${info.title} needs at least ${info.minPlayers} players.`;
-  if (info.maxPlayers && inRoom > info.maxPlayers) return `${info.title} is for up to ${info.maxPlayers} players.`;
+  const max = noTv ? MAX_PLAYERS : info.maxPlayers;
+  if (max && inRoom > max) return `${info.title} is for up to ${max} players.`;
   return null;
 }
 
@@ -145,7 +163,7 @@ export const KITCHEN_LEVELS = [
 ] as const;
 
 /** Maluch Rally items. You pick one up from a ? box and fire it by lifting your thumb. */
-export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket';
+export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket' | 'bomb' | 'beet' | 'ghost' | 'hay';
 
 export const RALLY_ITEMS: Record<RallyItem, { name: string; does: string }> = {
   boost: { name: 'Kompot Boost', does: 'A burst of speed' },
@@ -154,10 +172,31 @@ export const RALLY_ITEMS: Record<RallyItem, { name: string; does: string }> = {
   lid: { name: 'Pot Lid', does: 'Blocks the next hit' },
   storm: { name: 'Thunderstorm', does: 'Slows down everyone ahead of you' },
   rocket: { name: 'Maluch Rocket', does: 'Drives itself, very fast, and nothing can stop it' },
+  bomb: { name: 'Cabbage Bomb', does: 'Lobbed down the road – it goes off and spins everyone near it' },
+  beet: { name: 'Beet Splash', does: 'Barszcz on the windscreen of everyone ahead of you' },
+  ghost: { name: 'Babcia’s Ghost', does: 'Go see-through and untouchable, and steal an item from someone ahead' },
+  hay: { name: 'Hay Bale', does: 'Dropped behind you – anyone who drives into it stops dead' },
 };
 
 /** What's happening to a car right now (for the phone). */
-export type RallyEffect = 'spin' | 'rocket' | 'boost' | 'shield' | 'slow';
+export type RallyEffect = 'spin' | 'rocket' | 'boost' | 'shield' | 'slow' | 'ink' | 'ghost';
+
+/** No-TV Maluch Rally: what each phone needs to build the race locally. */
+export interface RallyNet {
+  /** Track seed and shape: every phone generates the same track from them. */
+  seed: number;
+  shape: string;
+  /** Your car. */
+  idx: number;
+  items: boolean;
+  cars: { name: string; color: ColorId }[];
+  /** When the lights go green, in host clock ms. */
+  goAt: number;
+  /** Seconds left for the stragglers once someone finished (host clock ms deadline), or null. */
+  closesAt: number | null;
+  /** Between races: this race's result and the cup so far, in finishing order. */
+  board?: { idx: number; time: number | null; pts: number; cup: number }[];
+}
 
 export interface PlayerSummary {
   id: string;
@@ -298,6 +337,8 @@ export type PhoneView =
       of: number;
       item: RallyItem | null;
       fx: RallyEffect | null;
+      /** Only in rooms without a TV: the phone shows the race itself. */
+      net?: RallyNet;
     }
   /** To Ty! Take a selfie. `rev` is the host's version of your photo (null = none yet). */
   | { v: 'tySelfie'; id: string; endsAt: number; rev: number | null; done: boolean }
@@ -336,6 +377,8 @@ export type PhoneView =
       vip: boolean;
       /** Co-op games: the team result instead of a place. */
       coop?: { stars: number; score: number };
+      /** Rooms without a TV: the final scores and party standings that the TV would show. */
+      board?: { name: string; color: ColorId; score: number; place: number; party: number }[];
     };
 
 // ---------------------------------------------------------------------------
@@ -353,6 +396,8 @@ export type PhoneMsg =
   | { t: 'stick'; x: number; y: number }
   /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
   | { t: 'act' }
+  /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number. */
+  | { t: 'car'; r: number; x: number; z: number; a: number; v: number }
   /** Pierogi Panic station minigame: progress (0..1), finished or abandoned. */
   | { t: 'mini'; id: number; ev: 'prog' | 'done' | 'cancel'; p?: number }
   /** To Ty! selfie as a JPEG data URL, '' to skip and be a pierogi, or 'keep' for last game's photo. */
@@ -381,11 +426,25 @@ export type HostToPhone =
   | { t: 'hello'; taken: ColorId[]; full: boolean; inGame: boolean }
   | { t: 'joinError'; reason: string; taken: ColorId[] }
   /** `now` is the host's clock when sending, so phones can convert `endsAt` deadlines. */
-  | { t: 'view'; view: PhoneView; me: { name: string; color: ColorId; vip: boolean }; now: number }
+  | { t: 'view'; view: PhoneView; me: { name: string; color: ColorId; vip: boolean }; now: number; noTv?: boolean }
   | { t: 'buzz'; pattern: number[] }
   /** To Ty! A player's selfie (`data` '' = no photo, show their pierogi). */
   | { t: 'photo'; id: string; rev: number; data: string }
+  /**
+   * No-TV Maluch Rally, ~15 times a second: where everything is. `r` is the race number.
+   * c: per car [x, z, heading, speed, effect bits (RALLY_FX_BITS)]; b: indices of boxes that are gone;
+   * s: per slick/bale [x, z, h, heading, 0 = butter / 1 = hay]; p: per pickle [d, lateral];
+   * k: per cabbage [d, lateral, speed, age]; x: per blast [x, z, h, age].
+   */
+  | { t: 'rs'; r: number; c: number[]; b: number[]; s: number[]; p: number[]; k: number[]; x: number[] }
+  /** No-TV Maluch Rally: something happened to your car (you used an item, or got hit). */
+  | { t: 'rfx'; r: number; use?: RallyItem; hit?: RallyItem; blocked?: boolean; by?: string; lost?: RallyItem; got?: string }
   | { t: 'kicked' };
+
+/** Effect bits in a no-TV rally snapshot. */
+export const RALLY_FX_BITS = { spin: 1, rocket: 2, boost: 4, shield: 8, slow: 16, ghost: 32, parked: 64 } as const;
+/** Numbers per car in the snapshot's `c` array. */
+export const RALLY_CAR_STRIDE = 5;
 
 /** Extra messages the Durable Object itself sends to phones. */
 export type ServerToPhone =

@@ -126,6 +126,9 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
         )}
       </div>
       {error && <p class="landing-error">{error}</p>}
+      <p class="landing-notv">
+        No TV? Open <b>{location.host}</b> on your phone and tap <b>Play without a TV</b> – every phone shows the race itself.
+      </p>
       <div class="landing-games">
         {GAMES.map((g) => (
           <div class="landing-game">
@@ -263,7 +266,7 @@ const HOW_TO: Record<GameId, string[]> = {
   rally: [
     'Hold your thumb on the pad on your phone: up is gas, down is brake, left and right steer.',
     'Drive through a ? box to grab an item, then lift your thumb for a moment to use it.',
-    `${RACES} races of ${LAPS} laps on random tracks. 15 points for a win, 12 for second, and so on.`,
+    `${RACES} races of ${LAPS} laps on random tracks with bridges and tunnels. 15 points for a win, 12 for second, and so on.`,
   ],
   toty: [
     'Take a selfie on your phone (or skip it and be a pierogi).',

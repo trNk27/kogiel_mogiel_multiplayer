@@ -1,6 +1,6 @@
 import type { RallyEffect, RallyItem } from '../../../../shared/protocol';
 import type { Rng } from '../rng';
-import { ROAD_HALF, WALL, pointAt, project, type Track } from './track';
+import { ROAD_HALF, pointAt, project, type Track } from './track';
 
 export const DT = 1 / 60;
 
@@ -33,6 +33,13 @@ export const ITUNING = {
   pickleSpeed: 72,
   pickleLife: 7,
   slickLife: 30,
+  hayLife: 25,
+  /** Cabbage bombs fly this long before they go off, and hit everything this close. */
+  bombFuse: 0.8,
+  bombRadius: 8,
+  bombSpin: 1.4,
+  inkTime: 4,
+  ghostTime: 4.5,
   boxRespawn: 3,
   /** Box rows along the lap (fractions of its length) and their lateral offsets. */
   boxRows: [0.24, 0.56, 0.83],
@@ -65,6 +72,13 @@ export interface Car {
   maxLap: number;
   /** Disconnected or removed players stop. */
   parked: boolean;
+  /**
+   * Driven somewhere else: the car's position comes from the network instead of its input.
+   * (No-TV races: every phone drives its own car and the host only hears where it is.)
+   */
+  remote: boolean;
+  /** Sim time of the last position report (remote cars). */
+  seen: number;
   item: RallyItem | null;
   /** Seconds left of each effect. */
   boost: number;
@@ -72,6 +86,10 @@ export interface Car {
   shield: number;
   spin: number;
   slow: number;
+  /** Beet juice on the windscreen (only the driver's view cares). */
+  ink: number;
+  /** See-through and untouchable. */
+  ghost: number;
   /** Extra yaw while spinning out (just for show). */
   spinAngle: number;
 }
@@ -84,13 +102,38 @@ export interface ItemBox {
   back: number;
 }
 
+export type HazardKind = 'butter' | 'hay';
+
+/** Something dropped on the road: a butter slick or a hay bale. */
 export interface Slick {
+  kind: HazardKind;
   x: number;
   z: number;
   h: number;
+  heading: number;
   until: number;
   owner: number;
   safeUntil: number;
+}
+
+/** A cabbage lobbed down the road; it goes off when its fuse runs out. */
+export interface Bomb {
+  d: number;
+  lateral: number;
+  speed: number;
+  x: number;
+  z: number;
+  h: number;
+  age: number;
+  owner: number;
+}
+
+/** A cabbage going off (for show). */
+export interface Blast {
+  x: number;
+  z: number;
+  h: number;
+  at: number;
 }
 
 export interface Pickle {
@@ -120,6 +163,8 @@ export interface StepEvents {
   pickups: { idx: number; item: RallyItem }[];
   used: { idx: number; item: RallyItem }[];
   hits: Hit[];
+  /** A ghost took someone's item. */
+  steals: { idx: number; from: number; item: RallyItem }[];
 }
 
 /** Grid slot `k`: two columns, rows going back from the start line. */
@@ -134,14 +179,18 @@ export function gridSlot(track: Track, k: number) {
  * Leaders mostly get defence; the back of the field gets the catch-up items.
  */
 export function itemWeights(f: number, cars: number): Record<RallyItem, number> {
-  if (cars <= 1) return { boost: 3, butter: 0, pickle: 0, lid: 0, storm: 0, rocket: 1 };
+  if (cars <= 1) return { boost: 3, butter: 0, pickle: 0, lid: 0, storm: 0, rocket: 1, bomb: 0, beet: 0, ghost: 0.5, hay: 0 };
   return {
     boost: 2 + 2 * f,
-    butter: 3 - 2 * f,
+    butter: 2.4 - 1.6 * f,
     pickle: 1.5 + 1.5 * f,
-    lid: 2.2 - 1.6 * f,
+    lid: 2 - 1.4 * f,
     storm: f < 0.3 ? 0 : 2 * f,
     rocket: f < 0.6 ? 0 : 3 * f,
+    bomb: 1.2 + 0.6 * f,
+    beet: f < 0.2 ? 0 : 1.8 * f,
+    ghost: 0.5 + 1.2 * f,
+    hay: 2 - 1.6 * f,
   };
 }
 
@@ -156,14 +205,73 @@ export function rollItem(f: number, cars: number, rng: Rng): RallyItem {
   return 'boost';
 }
 
+/** What using an item does to your own car (the rest happens out on the track). */
+export function selfEffect(c: Car, item: RallyItem) {
+  const I = ITUNING;
+  switch (item) {
+    case 'boost':
+      c.boost = I.boostTime;
+      c.speed = Math.max(c.speed, 46);
+      break;
+    case 'rocket':
+      c.rocket = I.rocketTime;
+      c.spin = 0;
+      c.slow = 0;
+      break;
+    case 'lid':
+      c.shield = I.shieldTime;
+      break;
+    case 'ghost':
+      c.ghost = I.ghostTime;
+      c.spin = 0;
+      break;
+  }
+}
+
+/** What being hit does to a car (shields, rockets and ghosts are dealt with by the caller). */
+export function hitEffect(c: Car, kind: RallyItem) {
+  const I = ITUNING;
+  if (kind === 'beet') {
+    c.ink = I.inkTime;
+    return;
+  }
+  if (kind === 'storm') {
+    c.slow = I.slowTime;
+    c.spin = Math.max(c.spin, 0.5);
+  } else if (kind === 'hay') {
+    c.speed = Math.min(c.speed, 5);
+    c.spin = Math.max(c.spin, 0.45);
+  } else c.spin = kind === 'bomb' ? I.bombSpin : I.spinTime;
+  c.boost = 0;
+}
+
+/** Are a car's item effects protecting it from hits? */
+export function immune(c: Car) {
+  return c.rocket > 0 || c.ghost > 0 || c.finished;
+}
+
+export interface SimOptions {
+  /**
+   * Does this sim run the items (boxes, hits, missiles)? The host's does; a phone's copy in a
+   * no-TV race only drives its own car and shows what the host says is on the track.
+   */
+  authority?: boolean;
+  /** Indices of the cars driven elsewhere (see Car.remote). */
+  remote?: (idx: number) => boolean;
+}
+
 export class RallySim {
   cars: Car[];
   time = 0;
   boxes: ItemBox[] = [];
   slicks: Slick[] = [];
   pickles: Pickle[] = [];
+  bombs: Bomb[] = [];
+  blasts: Blast[] = [];
+  readonly authority: boolean;
   private pending: StepEvents['used'] = [];
   private pendingHits: Hit[] = [];
+  private pendingSteals: StepEvents['steals'] = [];
 
   constructor(
     public track: Track,
@@ -171,7 +279,9 @@ export class RallySim {
     public laps = LAPS,
     items = true,
     private rng: Rng = Math.random,
+    opts: SimOptions = {},
   ) {
+    this.authority = opts.authority ?? true;
     this.cars = Array.from({ length: count }, (_, idx) => {
       const p = gridSlot(track, idx);
       const pr = project(track, p.x, p.z);
@@ -193,12 +303,16 @@ export class RallySim {
         finishTime: null,
         maxLap: 0,
         parked: false,
+        remote: opts.remote?.(idx) ?? false,
+        seen: 0,
         item: null,
         boost: 0,
         rocket: 0,
         shield: 0,
         spin: 0,
         slow: 0,
+        ink: 0,
+        ghost: 0,
         spinAngle: 0,
       };
     });
@@ -230,14 +344,16 @@ export class RallySim {
   effect(c: Car): RallyEffect | null {
     if (c.spin > 0) return 'spin';
     if (c.rocket > 0) return 'rocket';
+    if (c.ghost > 0) return 'ghost';
     if (c.boost > 0) return 'boost';
     if (c.slow > 0) return 'slow';
+    if (c.ink > 0) return 'ink';
     if (c.shield > 0) return 'shield';
     return null;
   }
 
   /** Steering and gas that drive along the middle of the road. */
-  private autopilot(c: Car, cruise: number): { x: number; y: number } {
+  autopilot(c: Car, cruise: number): { x: number; y: number } {
     const ahead = pointAt(this.track, c.along + 10 + Math.max(0, c.speed) * 0.25, 0);
     let d = Math.atan2(ahead.z - c.z, ahead.x - c.x) - c.heading;
     d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -248,20 +364,42 @@ export class RallySim {
     return Math.abs(a.h - b.h) < ITUNING.sameLevel;
   }
 
-  /** Something hit car `c`. Shields and rockets protect. */
+  /** Something hit car `c`. Shields, rockets and ghosts protect. */
   private hit(c: Car, by: number, kind: RallyItem) {
-    if (c.rocket > 0 || c.finished) return;
+    if (immune(c)) return;
     if (c.shield > 0) {
       c.shield = 0;
       this.pendingHits.push({ idx: c.idx, by, kind, blocked: true });
       return;
     }
-    if (kind === 'storm') {
-      c.slow = ITUNING.slowTime;
-      c.spin = Math.max(c.spin, 0.5);
-    } else c.spin = ITUNING.spinTime;
-    c.boost = 0;
+    hitEffect(c, kind);
     this.pendingHits.push({ idx: c.idx, by, kind, blocked: false });
+  }
+
+  /** The nearest car ahead of `c` (by distance driven) that `ok` accepts. */
+  private ahead(c: Car, ok: (o: Car) => boolean = () => true): Car | null {
+    let best: Car | null = null;
+    let gap = Infinity;
+    for (const o of this.cars) {
+      if (o.idx === c.idx || o.finished || o.parked || !ok(o)) continue;
+      const g = o.progress - c.progress;
+      if (g > 0 && g < gap) {
+        gap = g;
+        best = o;
+      }
+    }
+    return best;
+  }
+
+  /** A remote car reported where it is. */
+  report(idx: number, x: number, z: number, heading: number, speed: number) {
+    const c = this.cars[idx];
+    if (!c) return;
+    c.x = x;
+    c.z = z;
+    c.heading = heading;
+    c.speed = speed;
+    c.seen = this.time;
   }
 
   /** Fire the item a car is holding. Returns false if it had none. */
@@ -271,26 +409,18 @@ export class RallySim {
     const item = c.item;
     c.item = null;
     const I = ITUNING;
+    selfEffect(c, item);
     switch (item) {
-      case 'boost':
-        c.boost = I.boostTime;
-        c.speed = Math.max(c.speed, 46);
-        break;
-      case 'rocket':
-        c.rocket = I.rocketTime;
-        c.spin = 0;
-        c.slow = 0;
-        break;
-      case 'lid':
-        c.shield = I.shieldTime;
-        break;
-      case 'butter': {
-        const back = 3.6;
+      case 'butter':
+      case 'hay': {
+        const back = item === 'hay' ? 4.2 : 3.6;
         this.slicks.push({
+          kind: item,
           x: c.x - Math.cos(c.heading) * back,
           z: c.z - Math.sin(c.heading) * back,
           h: c.h,
-          until: this.time + I.slickLife,
+          heading: c.heading,
+          until: this.time + (item === 'hay' ? I.hayLife : I.slickLife),
           owner: idx,
           safeUntil: this.time + 1,
         });
@@ -298,23 +428,30 @@ export class RallySim {
       }
       case 'pickle': {
         // Aim at the nearest car ahead (by distance driven).
-        let target: number | null = null;
-        let gap = Infinity;
-        for (const o of this.cars) {
-          if (o.idx === idx || o.finished || o.parked) continue;
-          const g = o.progress - c.progress;
-          if (g > 0 && g < gap) {
-            gap = g;
-            target = o.idx;
-          }
-        }
+        const target = this.ahead(c)?.idx ?? null;
         const p = pointAt(this.track, c.along + 3, c.lateral);
         this.pickles.push({ d: c.along + 3, lateral: c.lateral, x: p.x, z: p.z, h: p.h, heading: p.heading, owner: idx, target, until: this.time + I.pickleLife });
         break;
       }
-      case 'storm':
-        for (const o of this.cars) if (o.idx !== idx && !o.parked && o.progress > c.progress) this.hit(o, idx, 'storm');
+      case 'bomb': {
+        const p = pointAt(this.track, c.along + 4, c.lateral * 0.5);
+        this.bombs.push({ d: c.along + 4, lateral: c.lateral * 0.5, speed: Math.max(0, c.speed) + 30, x: p.x, z: p.z, h: p.h, age: 0, owner: idx });
         break;
+      }
+      case 'storm':
+      case 'beet':
+        for (const o of this.cars) if (o.idx !== idx && !o.parked && o.progress > c.progress) this.hit(o, idx, item);
+        break;
+      case 'ghost': {
+        // Steal the item of the nearest car ahead that has one (or anybody's, if you lead).
+        const victim = this.ahead(c, (o) => !!o.item) ?? this.cars.find((o) => o.idx !== idx && !o.parked && !o.finished && o.item) ?? null;
+        if (victim?.item) {
+          c.item = victim.item;
+          victim.item = null;
+          this.pendingSteals.push({ idx, from: victim.idx, item: c.item });
+        }
+        break;
+      }
     }
     this.pending.push({ idx, item });
     return true;
@@ -323,9 +460,10 @@ export class RallySim {
   step(): StepEvents {
     const T = RTUNING;
     const I = ITUNING;
-    const ev: StepEvents = { laps: [], finished: [], bumps: [], pickups: [], used: this.pending, hits: this.pendingHits };
+    const ev: StepEvents = { laps: [], finished: [], bumps: [], pickups: [], used: this.pending, hits: this.pendingHits, steals: this.pendingSteals };
     this.pending = [];
     this.pendingHits = [];
+    this.pendingSteals = [];
     this.time += DT;
     const L = this.track.length;
 
@@ -334,6 +472,17 @@ export class RallySim {
       c.rocket = Math.max(0, c.rocket - DT);
       c.shield = Math.max(0, c.shield - DT);
       c.slow = Math.max(0, c.slow - DT);
+      c.ink = Math.max(0, c.ink - DT);
+      c.ghost = Math.max(0, c.ghost - DT);
+      if (c.remote) {
+        // Keep moving between reports (briefly), but the driving happens elsewhere.
+        c.spin = Math.max(0, c.spin - DT);
+        if (this.time - c.seen < 0.25 && !c.parked) {
+          c.x += Math.cos(c.heading) * c.speed * DT;
+          c.z += Math.sin(c.heading) * c.speed * DT;
+        }
+        continue;
+      }
       // The player's own input stays in c.input; finished cars and rockets drive themselves.
       const input = c.finished ? this.autopilot(c, 18) : c.rocket > 0 ? this.autopilot(c, I.rocketSpeed) : c.input;
       const parked = c.parked && !c.finished;
@@ -376,15 +525,15 @@ export class RallySim {
       for (let j = i + 1; j < this.cars.length; j++) {
         const a = this.cars[i];
         const b = this.cars[j];
-        if (!this.sameLevel(a, b)) continue;
+        if ((a.remote && b.remote) || a.ghost > 0 || b.ghost > 0 || !this.sameLevel(a, b)) continue;
         const dx = b.x - a.x;
         const dz = b.z - a.z;
         const d2 = dx * dx + dz * dz;
         if (d2 >= r2 || d2 === 0) continue;
         const d = Math.sqrt(d2);
         const push = (T.carRadius * 2 - d) / 2;
-        // A rocket shoves the other car out of the way.
-        const wa = a.rocket > 0 ? 0.2 : b.rocket > 0 ? 1.8 : 1;
+        // A rocket shoves the other car out of the way; a car driven elsewhere doesn't budge here.
+        const wa = b.remote ? 2 : a.remote ? 0 : a.rocket > 0 ? 0.2 : b.rocket > 0 ? 1.8 : 1;
         a.x -= (dx / d) * push * wa;
         a.z -= (dz / d) * push * wa;
         b.x += (dx / d) * push * (2 - wa);
@@ -398,8 +547,9 @@ export class RallySim {
     for (const c of this.cars) {
       let p = project(this.track, c.x, c.z, c.hint);
       // Barriers: slide along them and lose speed.
-      if (Math.abs(p.lateral) > WALL) {
-        const back = Math.abs(p.lateral) - WALL;
+      const wall = this.track.wall[p.i];
+      if (!c.remote && Math.abs(p.lateral) > wall) {
+        const back = Math.abs(p.lateral) - wall;
         const nx = this.track.tz[p.i] * Math.sign(p.lateral);
         const nz = -this.track.tx[p.i] * Math.sign(p.lateral);
         c.x -= nx * back;
@@ -431,7 +581,7 @@ export class RallySim {
       }
     }
 
-    this.stepItems(ev);
+    if (this.authority) this.stepItems(ev);
     ev.hits.push(...this.pendingHits);
     this.pendingHits = [];
     return ev;
@@ -457,17 +607,35 @@ export class RallySim {
       }
     }
 
-    // Butter slicks.
+    // Butter slicks and hay bales.
     this.slicks = this.slicks.filter((s) => {
       if (s.until < this.time) return false;
       for (const c of this.cars) {
-        if (c.parked || (c.idx === s.owner && this.time < s.safeUntil) || !this.sameLevel(c, s)) continue;
-        if ((c.x - s.x) ** 2 + (c.z - s.z) ** 2 < r2) {
-          this.hit(c, s.owner, 'butter');
+        if (c.parked || immune(c) || (c.idx === s.owner && this.time < s.safeUntil) || !this.sameLevel(c, s)) continue;
+        if ((c.x - s.x) ** 2 + (c.z - s.z) ** 2 < r2 * (s.kind === 'hay' ? 1.3 : 1)) {
+          this.hit(c, s.owner, s.kind);
           return false;
         }
       }
       return true;
+    });
+
+    // Cabbage bombs roll down the road and go off.
+    this.blasts = this.blasts.filter((b) => this.time - b.at < 0.6);
+    this.bombs = this.bombs.filter((b) => {
+      b.age += DT;
+      b.d += b.speed * DT;
+      const p = pointAt(this.track, b.d, b.lateral);
+      b.x = p.x;
+      b.z = p.z;
+      b.h = p.h;
+      if (b.age < I.bombFuse) return true;
+      this.blasts.push({ x: b.x, z: b.z, h: b.h, at: this.time });
+      for (const c of this.cars) {
+        if (c.parked || !this.sameLevel(c, b)) continue;
+        if ((c.x - b.x) ** 2 + (c.z - b.z) ** 2 < I.bombRadius ** 2) this.hit(c, b.owner, 'bomb');
+      }
+      return false;
     });
 
     // Pickle missiles follow the road and home in on their target's lane.

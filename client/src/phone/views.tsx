@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { ANSWER_STYLES, DIFFICULTIES, GAMES, KITCHEN_LEVELS, colorHex, difficultyName, gameInfo, playerCountProblem, type GameId, type PhoneView } from '../../../shared/protocol';
+import { ANSWER_STYLES, DIFFICULTIES, GAMES, KITCHEN_LEVELS, MAX_PLAYERS, gamesFor, colorHex, difficultyName, gameInfo, playerCountProblem, type GameId, type PhoneView } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
+import { QrCode } from '../lib/qr';
 import { Shape } from '../lib/shapes';
 import { GameIcon } from '../host/GameIcon';
 import { formatNumber } from '../../../shared/format';
@@ -69,36 +70,41 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         <p class="muted">
           {view.vipName ? `${view.vipName} is the VIP and will start the game.` : 'Waiting for the VIP…'}
           <br />
-          Look at the TV.
+          {me.noTv ? 'No TV needed – the game plays right here on your phone.' : 'Look at the TV.'}
         </p>
         <div class="pill">{view.playerCount} player{view.playerCount === 1 ? '' : 's'} in the room</div>
+        {me.noTv && <Invite room={me.room ?? ''} />}
       </div>
     );
   }
+  const noTv = !!me.noTv;
   const selected = gameInfo(view.selected);
   const connected = view.players.filter((p) => p.connected).length;
-  const problem = playerCountProblem(selected, connected, view.players.length);
+  const problem = playerCountProblem(selected, connected, view.players.length, noTv);
   const canStart = problem === null;
+  const max = noTv ? MAX_PLAYERS : selected.maxPlayers;
   return (
     <div class="pv pv-lobby">
-      <div class="section-label">You’re the VIP – pick a game</div>
+      {noTv && <Invite room={me.room ?? ''} />}
+      <div class="section-label">{noTv ? 'You’re the VIP – games without a TV' : 'You’re the VIP – pick a game'}</div>
       <div class="pgames">
-        {GAMES.map((g) => (
+        {gamesFor(noTv).map((g) => (
           <button class={`pgame ${g.id === view.selected ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
             <GameIcon game={g.id} size={54} />
             <span class="pgame-text">
               <b>{g.title}</b>
-              <small>{g.tagline}</small>
+              <small>{noTv ? g.noTv : g.tagline}</small>
             </span>
           </button>
         ))}
       </div>
+      {noTv && <div class="muted small">Quiz, Trails and the rest need a shared screen – start a party from a TV or laptop to play them.</div>}
       <div class="toggles">
         {view.selected === 'trails' && (
           <Toggle label="Power-ups" hint="Speed, line size, gaps, jumps, through walls and more" on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
         {view.selected === 'rally' && (
-          <Toggle label="Items" hint="? boxes on the track – lift your thumb to use one" on={view.options.items} onChange={(v) => send({ t: 'option', key: 'items', value: v })} />
+          <Toggle label="Items" hint={noTv ? '? boxes on the track – tap the item button to use one' : '? boxes on the track – lift your thumb to use one'} on={view.options.items} onChange={(v) => send({ t: 'option', key: 'items', value: v })} />
         )}
         {view.selected === 'kitchen' && (
           <>
@@ -127,13 +133,13 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
             </div>
           </>
         )}
-        <Toggle label="TV sound" on={view.options.sound} onChange={(v) => send({ t: 'option', key: 'sound', value: v })} />
+        {!noTv && <Toggle label="TV sound" on={view.options.sound} onChange={(v) => send({ t: 'option', key: 'sound', value: v })} />}
       </div>
       <button class="btn btn-big btn-yolk start-btn" disabled={!canStart} onClick={() => send({ t: 'start' })}>
         {canStart
           ? `Start ${selected.title}`
-          : selected.maxPlayers && view.players.length > selected.maxPlayers
-            ? `Max ${selected.maxPlayers} players`
+          : max && view.players.length > max
+            ? `Max ${max} players`
             : `Needs ${selected.minPlayers}+ players`}
       </button>
       <div class="section-label">Players</div>
@@ -164,7 +170,31 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
           </div>
         ))}
       </div>
-      {me.vip && <div class="muted small center">Tip: the TV needs no remote – you run the show from here.</div>}
+      {me.vip && (
+        <div class="muted small center">
+          {me.hosting ? 'Keep this page open – your phone is hosting the party.' : noTv ? 'You run the show from here.' : 'Tip: the TV needs no remote – you run the show from here.'}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** No TV, so the room code and QR code live on the phones. */
+function Invite({ room }: { room: string }) {
+  const [big, setBig] = useState(false);
+  const url = `${location.origin}/join?code=${room}`;
+  return (
+    <div class="invite card-paper" onClick={() => setBig(!big)}>
+      <div class="invite-text">
+        <small>Friends join at {location.host}/join with</small>
+        <b class="invite-code">{room}</b>
+        <small>{big ? 'Tap to hide the QR code' : 'Tap to show a QR code'}</small>
+      </div>
+      {big && (
+        <div class="invite-qr">
+          <QrCode text={url} size={200} />
+        </div>
+      )}
     </div>
   );
 }
@@ -598,6 +628,7 @@ function Results({ view, me, send }: Props<'results'>) {
       ) : (
         <div class="phone-big">Game over!</div>
       )}
+      {view.board && <Board board={view.board} me={me} />}
       {view.vip ? (
         <div class="vip-actions">
           <button class="btn btn-big btn-yolk" onClick={() => send({ t: 'again' })}>
@@ -609,6 +640,35 @@ function Results({ view, me, send }: Props<'results'>) {
         </div>
       ) : (
         <p class="muted">The VIP decides what’s next.</p>
+      )}
+    </div>
+  );
+}
+
+/** Rooms without a TV: the final scores and party standings on the phone. */
+function Board({ board, me }: { board: NonNullable<Props<'results'>['view']['board']>; me: Me }) {
+  const party = [...board].sort((a, b) => b.party - a.party);
+  return (
+    <div class="board card-dark">
+      {board.map((r) => (
+        <div class={`board-row ${r.name === me.name ? 'me' : ''}`}>
+          <span class="board-place">{r.place}</span>
+          <Pierogi color={colorHex(r.color)} size={30} />
+          <span class="grow">{r.name}</span>
+          <b>{r.score.toLocaleString('en-US')}</b>
+        </div>
+      ))}
+      {board.length > 1 && (
+        <>
+          <div class="section-label">Party standings</div>
+          {party.map((r) => (
+            <div class={`board-row ${r.name === me.name ? 'me' : ''}`}>
+              <Pierogi color={colorHex(r.color)} size={24} />
+              <span class="grow">{r.name}</span>
+              <b>{r.party}</b>
+            </div>
+          ))}
+        </>
       )}
     </div>
   );

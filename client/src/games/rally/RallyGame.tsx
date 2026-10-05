@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { RALLY_ITEMS, colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
+import { RALLY_FX_BITS, RALLY_ITEMS, colorHex, type HostToPhone, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { DT, LAPS, RallySim, racePoints } from './sim';
 import { generateTrack, type Track } from './track';
 import { RENDER_SCALE, RallyScene, splitLayout, type Slot } from './render3d';
-import { ItemIcon } from './items';
+import { ItemIcon, hitLabel } from './items';
+import { Minimap } from './minimap';
 import { SHAPES, type Shape } from './track';
 import { shuffle } from '../quiz/logic';
 import { Pierogi } from '../../lib/art';
@@ -17,6 +18,10 @@ const RESULTS_MS = 9000;
 const FINISH_GRACE_MS = 25_000;
 const RACE_LIMIT_MS = 5 * 60_000;
 const HUD_MS = 200;
+/** No-TV races: how often the host tells every phone where everything is. */
+export const SNAPSHOT_MS = 66;
+
+const round = (v: number, k = 100) => Math.round(v * k) / k;
 
 type Phase = 'countdown' | 'race' | 'results';
 
@@ -53,6 +58,13 @@ export class RallyGame implements Game {
   private shapes: Shape[];
   /** Short labels shown in a player's view when something happens to them ("SPLAT!"). */
   private flash: { text: string; until: number }[];
+  /** No TV: every phone drives its own car and renders the race; this host referees. */
+  private readonly net: boolean;
+  private loop: number | undefined;
+  private lastSnapshot = 0;
+  /** Host clock (Date.now) when the lights go green, and when the first car finished. */
+  private goAt = 0;
+  private firstFinishAt: number | null = null;
 
   constructor(
     private host: GameHost,
@@ -64,6 +76,7 @@ export class RallyGame implements Game {
     this.layout = splitLayout(ids.length);
     this.shapes = shuffle(SHAPES);
     this.flash = ids.map(() => ({ text: '', until: 0 }));
+    this.net = host.noTv;
   }
 
   start() {
@@ -76,11 +89,14 @@ export class RallyGame implements Game {
     }
     this.newRace();
     this.lastFrame = performance.now();
-    this.raf = requestAnimationFrame(this.frame);
+    // Without a TV nothing is drawn here, and timers keep going where animation frames might not.
+    if (this.net) this.loop = window.setInterval(() => this.frame(performance.now()), 16);
+    else this.raf = requestAnimationFrame(this.frame);
   }
 
   dispose() {
     clearTimeout(this.timer);
+    clearInterval(this.loop);
     cancelAnimationFrame(this.raf);
     this.detach();
   }
@@ -116,9 +132,11 @@ export class RallyGame implements Game {
   private newRace() {
     this.race++;
     this.track = generateTrack((Math.random() * 2 ** 31) | 0, this.shapes[(this.race - 1) % this.shapes.length]);
-    this.sim = new RallySim(this.track, this.ids.length, LAPS, this.host.options.items);
+    this.sim = new RallySim(this.track, this.ids.length, LAPS, this.host.options.items, Math.random, { remote: this.net ? () => true : undefined });
     this.sim.cars.forEach((c, i) => (c.parked = this.removed.has(i) || !this.host.player(this.ids[i])?.connected));
     this.firstFinish = null;
+    this.firstFinishAt = null;
+    this.goAt = Date.now() + COUNTDOWN_MS;
     this.scene?.setTrack(this.track);
     this.scene?.resetCameras(this.sim.cars);
     this.phase = 'countdown';
@@ -170,7 +188,7 @@ export class RallyGame implements Game {
   // ---- loop -------------------------------------------------------------------
 
   private frame = (now: number) => {
-    this.raf = requestAnimationFrame(this.frame);
+    if (!this.net) this.raf = requestAnimationFrame(this.frame);
     const elapsed = Math.min(0.25, (now - this.lastFrame) / 1000);
     this.lastFrame = now;
     if (this.phase === 'race') {
@@ -180,8 +198,15 @@ export class RallyGame implements Game {
         this.tick(now);
       }
     }
-    this.scene?.render(this.sim, this.layout.slots, elapsed);
-    this.drawMap();
+    if (this.net) {
+      if (this.phase === 'race' && now - this.lastSnapshot >= SNAPSHOT_MS) {
+        this.lastSnapshot = now;
+        this.snapshot();
+      }
+    } else {
+      this.scene?.render(this.sim, this.layout.slots, elapsed);
+      this.drawMap();
+    }
     if (now - this.lastHud > HUD_MS) {
       this.lastHud = now;
       this.host.refresh();
@@ -198,6 +223,7 @@ export class RallyGame implements Game {
     for (const idx of ev.finished) {
       if (this.firstFinish === null) {
         this.firstFinish = now;
+        this.firstFinishAt = Date.now();
         sound.fanfare();
       } else sound.correct();
       this.host.buzz(this.ids[idx], [120, 60, 120, 60, 240]);
@@ -210,17 +236,28 @@ export class RallyGame implements Game {
     for (const u of ev.used) {
       sound.whoosh();
       this.say(u.idx, RALLY_ITEMS[u.item].name, 1400);
+      this.tell(u.idx, { use: u.item });
       this.host.refresh(this.ids[u.idx]);
     }
     for (const h of ev.hits) {
-      const label = h.blocked ? 'BLOCKED!' : h.kind === 'butter' ? 'SPLAT!' : h.kind === 'pickle' ? 'PICKLED!' : 'ZAP!';
-      this.say(h.idx, label, 1500);
+      this.say(h.idx, hitLabel(h.kind, h.blocked), 1500);
+      this.tell(h.idx, { hit: h.kind, blocked: h.blocked, by: this.name(h.by) });
       if (h.blocked) sound.tick();
       else {
         sound.crash();
-        this.host.buzz(this.ids[h.idx], [200, 60, 120]);
+        this.host.buzz(this.ids[h.idx], h.kind === 'beet' ? [60] : [200, 60, 120]);
       }
-      if (h.by !== h.idx && !h.blocked) this.say(h.by, 'Got one!', 1200);
+      if (h.by !== h.idx && !h.blocked) {
+        this.say(h.by, 'Got one!', 1200);
+        this.tell(h.by, { got: this.name(h.idx) });
+      }
+    }
+    for (const st of ev.steals) {
+      this.say(st.idx, 'Stolen!', 1400);
+      this.say(st.from, 'ROBBED!', 1400);
+      this.tell(st.from, { lost: st.item, by: this.name(st.idx) });
+      this.host.refresh(this.ids[st.idx]);
+      this.host.refresh(this.ids[st.from]);
     }
     for (const idx of ev.bumps) {
       if (now - this.lastBump[idx] < 700) continue;
@@ -237,63 +274,60 @@ export class RallyGame implements Game {
     this.flash[idx] = { text, until: performance.now() + ms };
   }
 
+  private name(idx: number) {
+    return this.host.player(this.ids[idx])?.name ?? '?';
+  }
+
+  /** No TV: tell a phone what just happened to its car. */
+  private tell(idx: number, e: Omit<Extract<HostToPhone, { t: 'rfx' }>, 't' | 'r'>) {
+    if (this.net && this.ids[idx]) this.host.message([this.ids[idx]], { t: 'rfx', r: this.race, ...e });
+  }
+
+  /** No TV: send every phone where all the cars and items are. */
+  private snapshot() {
+    const sim = this.sim;
+    const B = RALLY_FX_BITS;
+    const c: number[] = [];
+    for (const car of sim.cars) {
+      const bits =
+        (car.spin > 0 ? B.spin : 0) |
+        (car.rocket > 0 ? B.rocket : 0) |
+        (car.boost > 0 ? B.boost : 0) |
+        (car.shield > 0 ? B.shield : 0) |
+        (car.slow > 0 ? B.slow : 0) |
+        (car.ghost > 0 ? B.ghost : 0) |
+        (car.parked || this.removed.has(car.idx) ? B.parked : 0);
+      c.push(round(car.x), round(car.z), round(car.heading, 1000), round(car.speed, 10), bits);
+    }
+    const b: number[] = [];
+    sim.boxes.forEach((box, i) => box.back > sim.time && b.push(i));
+    const sl: number[] = [];
+    for (const x of sim.slicks) sl.push(round(x.x), round(x.z), round(x.h), round(x.heading, 100), x.kind === 'hay' ? 1 : 0);
+    const p: number[] = [];
+    for (const x of sim.pickles) p.push(round(x.d), round(x.lateral));
+    const k: number[] = [];
+    for (const x of sim.bombs) k.push(round(x.d), round(x.lateral), round(x.speed, 10), round(x.age, 1000));
+    const bl: number[] = [];
+    for (const x of sim.blasts) bl.push(round(x.x), round(x.z), round(x.h), round(sim.time - x.at, 1000));
+    const ids = this.ids.filter((id, i) => !this.removed.has(i) && this.host.player(id)?.connected);
+    this.host.message(ids, { t: 'rs', r: this.race, c, b, s: sl, p, k, x: bl });
+  }
+
+  private minimap: Minimap | null = null;
+
   private drawMap() {
     const cv = this.map;
     const t = this.track;
     if (!cv || !t) return;
     const ctx = cv.getContext('2d');
     if (!ctx) return;
-    const W = cv.width;
-    const H = cv.height;
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minZ = Infinity;
-    let maxZ = -Infinity;
-    for (let i = 0; i < t.n; i++) {
-      minX = Math.min(minX, t.xs[i]);
-      maxX = Math.max(maxX, t.xs[i]);
-      minZ = Math.min(minZ, t.zs[i]);
-      maxZ = Math.max(maxZ, t.zs[i]);
-    }
-    const s = Math.min((W - 40) / (maxX - minX), (H - 40) / (maxZ - minZ));
-    const ox = W / 2 - ((minX + maxX) / 2) * s;
-    const oz = H / 2 - ((minZ + maxZ) / 2) * s;
-    ctx.clearRect(0, 0, W, H);
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    const path = () => {
-      ctx.beginPath();
-      for (let i = 0; i <= t.n; i++) {
-        const j = i % t.n;
-        if (i === 0) ctx.moveTo(ox + t.xs[j] * s, oz + t.zs[j] * s);
-        else ctx.lineTo(ox + t.xs[j] * s, oz + t.zs[j] * s);
-      }
-    };
-    path();
-    ctx.strokeStyle = 'rgba(20,6,10,.7)';
-    ctx.lineWidth = 16;
-    ctx.stroke();
-    path();
-    ctx.strokeStyle = '#fff4dc';
-    ctx.lineWidth = 7;
-    ctx.stroke();
-    // Start line.
-    ctx.strokeStyle = '#e8335a';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(ox + (t.xs[0] + t.tz[0] * 14) * s, oz + (t.zs[0] - t.tx[0] * 14) * s);
-    ctx.lineTo(ox + (t.xs[0] - t.tz[0] * 14) * s, oz + (t.zs[0] + t.tx[0] * 14) * s);
-    ctx.stroke();
-    for (const c of [...this.sim.cars].reverse()) {
-      if (this.removed.has(c.idx)) continue;
-      ctx.beginPath();
-      ctx.arc(ox + c.x * s, oz + c.z * s, 9, 0, Math.PI * 2);
-      ctx.fillStyle = colorHex(this.host.player(this.ids[c.idx])?.color ?? 'sourcream');
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = '#2a120a';
-      ctx.stroke();
-    }
+    if (!this.minimap || this.minimap.track !== t) this.minimap = new Minimap(t, cv.width, 7);
+    this.minimap.draw(
+      ctx,
+      this.sim.cars
+        .filter((c) => !this.removed.has(c.idx))
+        .map((c) => ({ x: c.x, z: c.z, color: colorHex(this.host.player(this.ids[c.idx])?.color ?? 'sourcream') })),
+    );
   }
 
   // ---- phones ---------------------------------------------------------------------
@@ -301,6 +335,13 @@ export class RallyGame implements Game {
   onMessage(id: string, m: PhoneMsg) {
     const i = this.ids.indexOf(id);
     const c = this.sim.cars[i];
+    if (m.t === 'car') {
+      if (!this.net || !c || m.r !== this.race || this.phase !== 'race' || this.removed.has(i)) return;
+      const v = [m.x, m.z, m.a, m.v].map(Number);
+      if (!v.every((x) => Number.isFinite(x) && Math.abs(x) < 1e4)) return;
+      this.sim.report(i, v[0], v[1], v[2], Math.max(-20, Math.min(80, v[3])));
+      return;
+    }
     if (m.t === 'act') {
       // Lifting the thumb fires the item.
       if (this.phase === 'race' && c && !this.removed.has(i)) this.sim.useItem(i);
@@ -350,6 +391,30 @@ export class RallyGame implements Game {
       of: order.length,
       item: c && this.phase === 'race' ? c.item : null,
       fx: c && this.phase === 'race' ? this.sim.effect(c) : null,
+      ...(this.net ? { net: this.netView(i) } : {}),
+    };
+  }
+
+  private netView(i: number): RallyNet {
+    return {
+      seed: this.track.seed,
+      shape: this.track.shape,
+      idx: i,
+      items: this.host.options.items,
+      cars: this.ids.map((id) => {
+        const p = this.host.player(id);
+        return { name: p?.name ?? '?', color: p?.color ?? 'sourcream' };
+      }),
+      goAt: this.goAt,
+      closesAt: this.firstFinishAt === null ? null : this.firstFinishAt + FINISH_GRACE_MS,
+      ...(this.phase === 'results'
+        ? {
+            board: this.lastOrder.map((idx) => {
+              const car = this.sim.cars[idx];
+              return { idx, time: car.finished ? round(car.finishTime!) : null, pts: this.lastPoints[idx], cup: this.cup[idx] };
+            }),
+          }
+        : {}),
     };
   }
 
@@ -394,6 +459,7 @@ export class RallyGame implements Game {
                       <small>Let go!</small>
                     </div>
                   )}
+                  {c.ink > 0 && <div class="rally-ink" style={{ opacity: Math.min(1, c.ink / 1.2) }} />}
                   {this.flash[i].until > now && (
                     <div class="rally-flash pop-in" key={`${this.flash[i].text}${this.flash[i].until}`}>
                       {this.flash[i].text}

@@ -4,6 +4,7 @@ import { RALLY_ITEMS, colorHex, type RallyEffect } from '../../../shared/protoco
 import { ItemIcon } from '../games/rally/items';
 import { Pierogi } from '../lib/art';
 import type { Props } from './views';
+import { RallyDrive } from './rallyDrive';
 
 const SEND_EVERY_MS = 50;
 const DEAD = 6;
@@ -21,6 +22,8 @@ const FX_TEXT: Record<RallyEffect, string> = {
   boost: 'Boost!',
   shield: 'Pot lid up',
   slow: 'Caught in the storm!',
+  ink: 'Beet juice on your windscreen!',
+  ghost: 'Ghost mode – nothing can touch you',
 };
 
 function ordinal(n: number) {
@@ -29,7 +32,14 @@ function ordinal(n: number) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-export function RallyPad({ view, me, send }: Props<'rally'>) {
+export function RallyPad(props: Props<'rally'>) {
+  const { view } = props;
+  // Without a TV, the phone shows the race itself.
+  if (view.net) return <RallyDrive {...props} view={{ ...view, net: view.net }} />;
+  return <TvPad {...props} />;
+}
+
+function TvPad({ view, me, send }: Props<'rally'>) {
   const pad = useRef<HTMLDivElement>(null);
   const [dot, setDot] = useState<{ x: number; y: number } | null>(null);
   const sendRef = useRef(send);
