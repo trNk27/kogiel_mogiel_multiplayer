@@ -1851,3 +1851,307 @@ body.tv {
   font-size: 20px;
   font-weight: 500;
 }
+
+/* ---- Maluch Rally ------------------------------------------------------------ */
+
+.rally {
+  position: absolute;
+  inset: -54px -96px;
+  overflow: hidden;
+  background: #000;
+  animation: fade-in 0.4s both;
+}
+.rally-canvas {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.rally-map {
+  position: absolute;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+  z-index: 2;
+}
+.rally-slot {
+  position: absolute;
+  box-shadow: inset 0 0 0 3px #1f0a10;
+  pointer-events: none;
+  font-family: var(--font-display);
+  color: var(--cream);
+  text-shadow:
+    0 3px 0 #1f0a10,
+    0 0 12px rgba(0, 0, 0, 0.6);
+}
+.rally-tag {
+  position: absolute;
+  left: 22px;
+  top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px 4px 8px;
+  border-radius: 999px;
+  background: rgba(31, 10, 16, 0.7);
+  box-shadow: inset 0 0 0 3px var(--pc);
+  font-size: 28px;
+  font-weight: 600;
+  text-shadow: none;
+}
+.rally-pos {
+  position: absolute;
+  right: 26px;
+  top: 6px;
+  font-size: 110px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--yolk);
+}
+.rally-pos small {
+  font-size: 44px;
+}
+.rally-lap {
+  position: absolute;
+  left: 26px;
+  bottom: 18px;
+  font-size: 40px;
+  font-weight: 600;
+}
+.rally-speed {
+  position: absolute;
+  right: 26px;
+  bottom: 14px;
+  font-size: 56px;
+  font-weight: 700;
+}
+.rally-speed small {
+  font-size: 24px;
+}
+.rally-slot.small .rally-tag {
+  font-size: 22px;
+  left: 12px;
+  top: 10px;
+}
+.rally-slot.small .rally-pos {
+  font-size: 70px;
+  right: 14px;
+}
+.rally-slot.small .rally-pos small {
+  font-size: 28px;
+}
+.rally-slot.small .rally-lap {
+  font-size: 28px;
+  left: 14px;
+  bottom: 10px;
+}
+.rally-slot.small .rally-speed {
+  font-size: 36px;
+  right: 14px;
+  bottom: 8px;
+}
+.rally-finished {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 90px;
+  font-weight: 700;
+  color: var(--yolk);
+  background: rgba(31, 10, 16, 0.35);
+}
+.rally-finished small {
+  font-size: 50px;
+  color: var(--cream);
+}
+.rally-slot.small .rally-finished {
+  font-size: 54px;
+}
+.rally-away {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 34px;
+  padding: 10px 24px;
+  border-radius: 18px;
+  background: rgba(31, 10, 16, 0.8);
+}
+.rally-free {
+  position: absolute;
+  background:
+    radial-gradient(600px 400px at 30% 20%, rgba(232, 51, 90, 0.25), transparent 70%),
+    var(--bg-deep);
+  box-shadow: inset 0 0 0 3px #1f0a10;
+  padding: 18px 24px;
+}
+.rally-free-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 40px;
+  color: var(--yolk);
+}
+.rally-board {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  counter-reset: pos;
+}
+.rally-board li {
+  counter-increment: pos;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-family: var(--font-display);
+}
+.rally-board li::before {
+  content: counter(pos);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--pc);
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.rally-board li span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rally-board li b {
+  color: var(--muted);
+  font-size: 20px;
+}
+.rally-count {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 200px;
+  color: var(--yolk);
+  text-shadow:
+    0 10px 0 var(--beet-deep),
+    0 0 40px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  animation: pop-in 0.35s both;
+  pointer-events: none;
+  z-index: 3;
+}
+.rally-count.go {
+  color: var(--dill);
+  font-size: 260px;
+}
+.rally-count.small {
+  font-size: 48px;
+}
+.rally-clock {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  transform: translateX(-50%);
+  padding: 8px 26px;
+  border-radius: 999px;
+  background: rgba(31, 10, 16, 0.85);
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--yolk);
+  z-index: 3;
+}
+.rally-results {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(31, 10, 16, 0.55);
+  z-index: 4;
+  animation: fade-in 0.4s both;
+}
+.rally-results-card {
+  padding: 40px 56px;
+  min-width: 1100px;
+  animation: pop-in 0.45s both;
+}
+.rally-results-card h2 {
+  font-size: 60px;
+  text-align: center;
+  color: var(--beet-deep);
+  margin-bottom: 18px;
+}
+.rally-results-cols {
+  display: flex;
+  gap: 50px;
+}
+.rally-results-list {
+  flex: 1.4;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rally-results-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-size: 34px;
+}
+.rr-place {
+  width: 46px;
+  font-weight: 700;
+  color: var(--beet-deep);
+}
+.rr-time {
+  color: rgba(42, 18, 10, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+.rr-pts {
+  width: 80px;
+  text-align: right;
+  color: #13916f;
+}
+.rally-cup {
+  flex: 1;
+  padding: 16px 22px;
+  border-radius: 18px;
+  background: rgba(42, 18, 10, 0.08);
+  font-family: var(--font-display);
+}
+.rally-cup-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--beet-deep);
+  margin-bottom: 6px;
+}
+.rally-cup-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 28px;
+}
+.rally-next {
+  margin-top: 18px;
+  text-align: center;
+  color: rgba(42, 18, 10, 0.6);
+  font-size: 26px;
+}
+/* The split screen uses the whole stage; the room code would cover a player's HUD. */
+.stage:has(.rally) .corner {
+  display: none;
+}

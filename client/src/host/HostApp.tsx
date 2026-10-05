@@ -7,6 +7,8 @@ import { HostController, type Standing } from './controller';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
+import { RACES } from '../games/rally/RallyGame';
+import { LAPS } from '../games/rally/sim';
 
 const controller = new HostController();
 const params = new URLSearchParams(location.search);
@@ -256,6 +258,11 @@ const HOW_TO: Record<GameId, string[]> = {
     'Everyone cooks together! Walk your chef with the joystick on your phone.',
     'Press the big button to pick up, put down and use stations. Some jobs are a quick minigame on your phone.',
     'Serve the pierogi on the tickets before they run out. Three levels, up to 3 stars each!',
+  ],
+  rally: [
+    'Hold your thumb on the pad on your phone: up is gas, down is brake, left and right steer.',
+    'The further you push, the harder you go. Let go to coast.',
+    `${RACES} races of ${LAPS} laps on random tracks. 15 points for a win, 12 for second, and so on.`,
   ],
   toty: [
     'Take a selfie on your phone (or skip it and be a pierogi).',

@@ -5,6 +5,7 @@ import { TrailsGame } from './trails/TrailsGame';
 import { BallparkGame } from './ballpark/BallparkGame';
 import { KitchenGame } from './kitchen/KitchenGame';
 import { TotyGame } from './toty/TotyGame';
+import { RallyGame } from './rally/RallyGame';
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
   switch (id) {
@@ -16,6 +17,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new BallparkGame(host, ids);
     case 'kitchen':
       return new KitchenGame(host, ids);
+    case 'rally':
+      return new RallyGame(host, ids);
     case 'toty':
       return new TotyGame(host, ids);
   }

@@ -79,7 +79,7 @@ export const ANSWER_STYLES = [
 // Games
 // ---------------------------------------------------------------------------
 
-export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty';
+export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty' | 'rally';
 
 export interface GameInfo {
   id: GameId;
@@ -93,6 +93,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
   { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
   { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1 },
+  { id: 'rally', title: 'Maluch Rally', tagline: 'Split-screen racing. Your thumb is the wheel.', minPlayers: 1 },
   { id: 'toty', title: 'To Ty!', tagline: 'Selfies, “who’s most likely to…” and doodles.', minPlayers: 3 },
 ];
 
@@ -259,6 +260,17 @@ export type PhoneView =
       level: number;
       levels: number;
     }
+  /** Maluch Rally. `pos` is your current race position (1-based) out of `of`. */
+  | {
+      v: 'rally';
+      phase: 'countdown' | 'race' | 'finished' | 'standings';
+      race: number;
+      races: number;
+      lap: number;
+      laps: number;
+      pos: number;
+      of: number;
+    }
   /** To Ty! Take a selfie. `rev` is the host's version of your photo (null = none yet). */
   | { v: 'tySelfie'; id: string; endsAt: number; rev: number | null; done: boolean }
   /** To Ty! Vote for a player. `ph` maps player id → photo version, so the phone can fetch missing photos. */
@@ -309,7 +321,7 @@ export type PhoneMsg =
   | { t: 'answer'; i: number }
   | { t: 'guess'; value: number }
   | { t: 'bet'; slot: number }
-  /** Pierogi Panic joystick, each axis -100..100. Sent when it changes (throttled). */
+  /** Joystick, each axis -100..100 (Pierogi Panic: walk; Maluch Rally: x steers, -y is gas). Sent when it changes (throttled). */
   | { t: 'stick'; x: number; y: number }
   /** Pierogi Panic action button. */
   | { t: 'act' }

@@ -38,6 +38,23 @@ export function GameIcon({ game, size = 80 }: { game: GameId; size?: number }) {
         <circle cx="66" cy="66" r="3.5" fill="#2f5fae" />
       </svg>
     );
+  if (game === 'rally')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <path d="M8 74 L92 74 L92 96 L8 96 Z" fill="#4c4a52" />
+        <path d="M44 74 l6 0 l-1 22 l-6 0 Z" fill="#fff4dc" opacity=".7" />
+        <path d="M18 66 L24 50 Q28 42 38 42 L60 42 Q70 42 74 50 L82 66 Z" fill="#ff3d6e" stroke="#2a120a" stroke-width="3" stroke-linejoin="round" />
+        <path d="M30 50 Q32 34 44 32 L56 32 Q68 34 70 50 Z" fill="#2b3d55" stroke="#2a120a" stroke-width="3" stroke-linejoin="round" />
+        <rect x="14" y="62" width="72" height="12" rx="5" fill="#ff3d6e" stroke="#2a120a" stroke-width="3" />
+        <circle cx="30" cy="76" r="8" fill="#1d1a22" stroke="#c9ccd3" stroke-width="3" />
+        <circle cx="70" cy="76" r="8" fill="#1d1a22" stroke="#c9ccd3" stroke-width="3" />
+        <rect x="18" y="64" width="8" height="5" rx="2" fill="#fff4c8" />
+        <rect x="74" y="64" width="8" height="5" rx="2" fill="#fff4c8" />
+        <path d="M70 12 h18 v12 h-18 Z" fill="#fff4dc" />
+        <path d="M70 12 h6 v6 h-6 Z M82 12 h6 v6 h-6 Z M76 18 h6 v6 h-6 Z" fill="#2a120a" />
+      </svg>
+    );
   if (game === 'toty')
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
