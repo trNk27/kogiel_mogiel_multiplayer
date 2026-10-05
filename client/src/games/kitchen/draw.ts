@@ -2,7 +2,8 @@
 import type { Filling, KitchenItem } from '../../../../shared/protocol';
 import { PIEROGI_PATH } from '../../lib/art';
 import { GRID_H, GRID_W, type Cook, type KitchenSim, type Station } from './logic';
-import { itemBadge, itemSprite, spriteImage, type Sprite } from './art';
+import { chefSprite, itemBadge, itemSprite, spriteImage, type ChefPose, type Sprite, type Texture } from './art';
+import type { ColorId } from '../../../../shared/protocol';
 
 /** Pixels per tile. */
 export const T = 90;
@@ -21,11 +22,11 @@ const INK = '#2a120a';
 /** Floor tiles and wall colours per level. */
 const THEMES = [
   // Babcia's kitchen: cream and biscuit tiles with folk diamonds.
-  { a: '#f8ecd2', b: '#ecd5aa', motif: 'rgba(214, 58, 79, 0.16)', dot: 'rgba(47, 95, 174, 0.18)', wall: '#5b2333', trim: '#e8335a' },
+  { tex: ['floor-1a', 'floor-1b'], a: '#f8ecd2', b: '#ecd5aa', motif: 'rgba(214, 58, 79, 0.16)', dot: 'rgba(47, 95, 174, 0.18)', wall: '#5b2333', trim: '#e8335a' },
   // The village inn: warm terracotta.
-  { a: '#f0cfa8', b: '#e2b68a', motif: 'rgba(120, 60, 20, 0.14)', dot: 'rgba(255, 244, 220, 0.4)', wall: '#3f2a1c', trim: '#ffc93c' },
+  { tex: ['floor-2a', 'floor-2b'], a: '#f0cfa8', b: '#e2b68a', motif: 'rgba(120, 60, 20, 0.14)', dot: 'rgba(255, 244, 220, 0.4)', wall: '#3f2a1c', trim: '#ffc93c' },
   // The wedding hall: white and cobalt, like Boleslawiec pottery.
-  { a: '#f6f3ec', b: '#dfe7f4', motif: 'rgba(47, 95, 174, 0.22)', dot: 'rgba(232, 51, 90, 0.25)', wall: '#26304f', trim: '#4f9dff' },
+  { tex: ['floor-3a', 'floor-3b'], a: '#f6f3ec', b: '#dfe7f4', motif: 'rgba(47, 95, 174, 0.22)', dot: 'rgba(232, 51, 90, 0.25)', wall: '#26304f', trim: '#4f9dff' },
 ];
 
 let bodyPath: Path2D | null = null;
@@ -66,6 +67,14 @@ function sprite(ctx: Ctx, name: Sprite, cx: number, cy: number, size: number) {
   const img = spriteImage(name);
   if (!img.complete || img.naturalWidth === 0) return;
   ctx.drawImage(img, cx - size / 2, cy - size / 2, size, size);
+}
+
+/** Fill a rectangle with a texture tile; false if it hasn't loaded yet. */
+function texture(ctx: Ctx, name: Texture, x: number, y: number, w: number, h: number) {
+  const img = spriteImage(name);
+  if (!img.complete || img.naturalWidth === 0) return false;
+  ctx.drawImage(img, 0, 0, img.naturalWidth, (img.naturalHeight * h) / w, x, y, w, h);
+  return true;
 }
 
 /** A filling badge: the ingredient in a white circle. */
@@ -112,6 +121,7 @@ export function drawStatic(ctx: Ctx, sim: KitchenSim) {
       }
       if (sim.stationAt(x, y)) continue;
       const dark = (x + y) % 2 === 1;
+      if (texture(ctx, th.tex[dark ? 1 : 0] as Texture, x * T, y * T, T, T)) continue;
       ctx.fillStyle = dark ? th.b : th.a;
       ctx.fillRect(x * T, y * T, T, T);
       if (dark) {
@@ -150,6 +160,13 @@ export function drawStatic(ctx: Ctx, sim: KitchenSim) {
 function drawWall(ctx: Ctx, sim: KitchenSim, x: number, y: number, th: (typeof THEMES)[number]) {
   ctx.fillStyle = th.wall;
   ctx.fillRect(x * T, y * T, T, T);
+  if (texture(ctx, 'wall', x * T, y * T, T, T)) {
+    if (y + 1 < GRID_H && isFloor(sim, x, y + 1)) {
+      ctx.fillStyle = th.trim;
+      ctx.fillRect(x * T, y * T + T - 10, T, 6);
+    }
+    return;
+  }
   // Vertical boards…
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.22)';
   ctx.lineWidth = 2;
@@ -176,6 +193,7 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
   const pal = s.kind === 'stove' || s.kind === 'pan' ? STOVE : s.kind === 'sink' ? STEEL : WOOD;
   ctx.fillStyle = pal.top;
   ctx.fillRect(r.x, r.y, T, r.h);
+  const textured = pal === WOOD && texture(ctx, 'counter', r.x, r.y, T, r.h);
   if (hasFront(sim, s)) {
     ctx.fillStyle = pal.front;
     ctx.fillRect(r.x, r.y + r.h, T, D);
@@ -183,7 +201,7 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
     ctx.fillRect(r.x, r.y + r.h, T, 3);
   }
   // Wood grain / bevel
-  if (pal === WOOD) {
+  if (pal === WOOD && !textured) {
     ctx.strokeStyle = 'rgba(110, 58, 18, 0.16)';
     ctx.lineWidth = 2;
     for (let i = 1; i < 4; i++) {
@@ -311,6 +329,7 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
 
 export interface CookLook {
   color: string;
+  colorId: ColorId;
   name: string;
   offline: boolean;
   /** The action button would do something right now. */
@@ -409,7 +428,71 @@ function drawStationContents(ctx: Ctx, sim: KitchenSim, s: Station, now: number)
   }
 }
 
+function chefPose(c: Cook): { pose: ChefPose; flip: boolean } {
+  if (c.fy < -0.6) return { pose: 'back', flip: false };
+  if (Math.abs(c.fx) > 0.55) return { pose: 'side', flip: c.fx < 0 };
+  return { pose: 'front', flip: false };
+}
+
+/** A painted chef sprite (falls back to the vector chef until the sprite has loaded). */
 function drawCook(ctx: Ctx, c: Cook, look: CookLook, now: number, seed: number) {
+  const { pose, flip } = chefPose(c);
+  const img = spriteImage(chefSprite(look.colorId, pose));
+  if (!img.complete || img.naturalWidth === 0) return drawCookVector(ctx, c, look, now, seed);
+  const x = c.x * T;
+  const y = c.y * T;
+  const S = T * 1.32;
+  const feet = y + T * 0.27;
+  const phase = now / 85 + seed;
+  const bob = c.moving ? Math.abs(Math.sin(phase)) * 5 : Math.sin(now / 500 + seed) * 1.2;
+  const tilt = c.moving ? Math.sin(phase) * 0.1 : 0;
+  ctx.globalAlpha = look.offline ? 0.45 : 1;
+
+  // Shadow + a facing chevron on the floor
+  ctx.fillStyle = 'rgba(60, 30, 10, 0.25)';
+  ellipse(ctx, x, feet - 2, T * 0.3, T * 0.1);
+  ctx.fill();
+  if (!c.hold && !c.mini) {
+    const fx = x + c.fx * T * 0.46;
+    const fy = feet - 4 + c.fy * T * 0.3;
+    ctx.fillStyle = look.color;
+    ctx.beginPath();
+    ctx.moveTo(fx + c.fx * 9, fy + c.fy * 7);
+    ctx.lineTo(fx - c.fy * 7, fy + c.fx * 5);
+    ctx.lineTo(fx + c.fy * 7, fy - c.fx * 5);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.save();
+  ctx.translate(x, feet - bob);
+  ctx.rotate(tilt);
+  if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(img, -S / 2, -S, S, S);
+  ctx.restore();
+
+  if (c.hold) {
+    // Held in front at belly height; over the shoulder when walking away.
+    const hx = pose === 'side' ? x + c.fx * T * 0.34 : pose === 'back' ? x + T * 0.2 : x;
+    const hy = pose === 'back' ? feet - S * 0.62 - bob : feet - S * 0.3 - bob;
+    drawItem(ctx, c.hold, hx, hy, T * (pose === 'back' ? 0.46 : 0.52));
+  }
+
+  // Name tag
+  ctx.font = '700 21px "Fredoka Variable", "Fredoka", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(42, 18, 10, 0.9)';
+  ctx.lineJoin = 'round';
+  const name = look.offline ? `${look.name} 💤` : look.name;
+  ctx.strokeText(name, x, feet + 4);
+  ctx.fillStyle = look.color;
+  ctx.fillText(name, x, feet + 4);
+  ctx.globalAlpha = 1;
+}
+
+function drawCookVector(ctx: Ctx, c: Cook, look: CookLook, now: number, seed: number) {
   const x = c.x * T;
   const y = c.y * T;
   const w = T * 0.84;
@@ -581,7 +664,7 @@ export function drawDynamic(ctx: Ctx, sim: KitchenSim, looks: Map<string, CookLo
   for (const c of sim.cooks) {
     if (!c.mini) continue;
     const s = sim.stations[c.mini.station];
-    progressRing(ctx, c.x * T, c.y * T - T * 0.86, s.progress, looks.get(c.id)?.color ?? '#fff');
+    progressRing(ctx, c.x * T, c.y * T - T * 1.2, s.progress, looks.get(c.id)?.color ?? '#fff');
   }
 
   // Floating texts

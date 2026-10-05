@@ -5,3 +5,5 @@ dist/
 *.log
 test-results/
 tools/sprites/raw/
+tools/sprites/chef/
+tools/sprites/tex/

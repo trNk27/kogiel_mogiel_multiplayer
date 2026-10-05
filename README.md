@@ -180,8 +180,11 @@ Chaos) scales how often orders arrive and how long tickets last. Star targets fo
 orders a team can expect, so they scale with team size and difficulty.
 
 The item and station sprites in `client/public/sprites/kitchen/` were painted with FLUX.2 [pro]
-(Black Forest Labs), cut out of their white backgrounds and saved as 192 px WebP (about 350 KB in
-total). Chefs are still drawn in code so they can wear each player's colour.
+(Black Forest Labs), cut out of their white backgrounds and saved as 192 px WebP (about 750 KB in
+total). The chefs were painted the same way: one base chef, back and side views made with FLUX.2
+image editing, then the dough recoloured into each player colour so every chef is the same
+character. Floors, counter tops and walls are FLUX.2 textures too, with a different floor per
+level. The scripts are in [`tools/sprites`](tools/sprites).
 
 Phones send the joystick 20 times a second at most, quantised to 32 directions and two speeds, and
 only when it changes. The button and the minigame results are single messages. The TV runs the

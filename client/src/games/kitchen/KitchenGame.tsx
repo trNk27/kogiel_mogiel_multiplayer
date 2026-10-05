@@ -211,7 +211,7 @@ export class KitchenGame implements Game {
     for (const c of this.sim.cooks) {
       const p = this.host.player(c.id);
       if (!p) continue;
-      looks.set(c.id, { color: colorHex(p.color), name: p.name, offline: !p.connected, canAct: this.sim.hint(c.id) !== null });
+      looks.set(c.id, { color: colorHex(p.color), colorId: p.color, name: p.name, offline: !p.connected, canAct: this.sim.hint(c.id) !== null });
     }
     drawDynamic(ctx, this.sim, looks, this.popups, now);
   }

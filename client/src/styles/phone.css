@@ -1069,3 +1069,9 @@ body.phone-body input {
 .segmented button.on small {
   color: rgba(42, 18, 10, 0.7);
 }
+.k-stick-chef {
+  width: 86px;
+  height: 86px;
+  margin-top: -10px;
+  pointer-events: none;
+}

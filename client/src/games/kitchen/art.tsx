@@ -3,7 +3,7 @@
  * and saved as 192 px WebP in client/public/sprites/kitchen). The same files are used as <img> on
  * the phones and TV tickets and drawn onto the TV canvas.
  */
-import type { Filling, KitchenItem } from '../../../../shared/protocol';
+import { PLAYER_COLORS, type ColorId, type Filling, type KitchenItem } from '../../../../shared/protocol';
 
 export const SPRITES = [
   'flour',
@@ -39,7 +39,18 @@ export const SPRITES = [
 ] as const;
 export type Sprite = (typeof SPRITES)[number];
 
-export function spriteUrl(name: Sprite) {
+/** Floor, counter and wall textures (square tiles). */
+export const TEXTURES = ['floor-1a', 'floor-1b', 'floor-2a', 'floor-2b', 'floor-3a', 'floor-3b', 'counter', 'wall'] as const;
+export type Texture = (typeof TEXTURES)[number];
+
+export type ChefPose = 'front' | 'back' | 'side';
+/** Painted chef in a player colour: chef-<colour>-<pose>. Feet sit on the bottom edge. */
+export function chefSprite(color: ColorId, pose: ChefPose) {
+  return `chef-${color}-${pose}`;
+}
+const CHEFS = PLAYER_COLORS.flatMap((c) => (['front', 'back', 'side'] as const).map((p) => chefSprite(c.id, p)));
+
+export function spriteUrl(name: Sprite | Texture | string) {
   return `/sprites/kitchen/${name}.webp`;
 }
 
@@ -80,9 +91,9 @@ export function FillingIcon({ f, size = 48 }: { f: Filling; size?: number }) {
 }
 
 /** Image cache for drawing sprites onto a canvas. */
-const images = new Map<Sprite, HTMLImageElement>();
+const images = new Map<string, HTMLImageElement>();
 
-export function spriteImage(name: Sprite): HTMLImageElement {
+export function spriteImage(name: Sprite | Texture | string): HTMLImageElement {
   let img = images.get(name);
   if (!img) {
     img = new Image();
@@ -95,5 +106,5 @@ export function spriteImage(name: Sprite): HTMLImageElement {
 
 /** Resolves once every sprite has decoded (or failed). */
 export function loadSprites() {
-  return Promise.all(SPRITES.map((n) => spriteImage(n)).map((img) => (img.complete ? Promise.resolve() : img.decode().catch(() => {}))));
+  return Promise.all([...SPRITES, ...TEXTURES, ...CHEFS].map((n) => spriteImage(n)).map((img) => (img.complete ? Promise.resolve() : img.decode().catch(() => {}))));
 }

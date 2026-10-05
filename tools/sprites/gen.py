@@ -2,7 +2,7 @@
 
 Usage: BFL_API_KEY=... python3 gen.py model out.png "prompt" [w h] [ref1 ref2 ...]
 """
-import base64, json, sys, time, urllib.request, os
+import base64, json, sys, time, urllib.request, urllib.error, os
 KEY = os.environ.get('BFL_API_KEY', '')
 if not KEY:
     raise SystemExit('Set BFL_API_KEY to your Black Forest Labs API key.')
@@ -12,6 +12,10 @@ def call(url, body=None):
     for attempt in range(6):
         try:
             return _call(url, body)
+        except urllib.error.HTTPError as e:
+            if e.code != 429 and (body is not None or attempt == 5): raise
+            if attempt == 5: raise
+            time.sleep(4 * (attempt + 1))
         except Exception:
             if body is not None or attempt == 5: raise
             time.sleep(2 * (attempt + 1))

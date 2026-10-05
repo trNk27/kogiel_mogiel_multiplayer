@@ -1,10 +1,9 @@
 /** Pierogi Panic phone controller: a floating joystick, one big action button and the station minigames. */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { colorHex, fillingInfo, type Filling, type KitchenMini, type PhoneView } from '../../../shared/protocol';
-import { ItemIcon } from '../games/kitchen/art';
+import { ItemIcon, chefSprite, spriteUrl } from '../games/kitchen/art';
 import { itemName } from '../games/kitchen/logic';
 import { mulberry32 } from '../games/rng';
-import { Pierogi } from '../lib/art';
 import type { Me, Send } from './PhoneApp';
 
 type View = Extract<PhoneView, { v: 'kitchen' }>;
@@ -199,7 +198,7 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
         <div class="k-stick-base" ref={baseEl}>
           <div class="k-stick-ring" />
           <div class="k-stick-knob" ref={knobEl}>
-            <Pierogi color={colorHex(me.color)} size={58} />
+            <img class="k-stick-chef" src={spriteUrl(chefSprite(me.color, 'front'))} alt="" draggable={false} />
           </div>
         </div>
         {!active && <div class="k-stick-label">Drag anywhere here to walk</div>}
