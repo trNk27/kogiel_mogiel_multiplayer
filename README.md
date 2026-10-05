@@ -14,7 +14,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a new randomly generated track. 15/12/10/8 cup points per race. | 1–4 |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a different randomly generated track shape (forest ring, kidney, clover, figure eight with a bridge, town circuit, speedway), with a little Polish town along the way. Drive through ? boxes for items and **lift your thumb for a moment to use them**: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm and the Maluch Rocket. The VIP can switch items off. 15/12/10/8 cup points per race. | 1–4 |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 
 ## How a party works
@@ -199,22 +199,54 @@ changes.
 
 ### Maluch Rally
 
-- **Tracks** (`client/src/games/rally/track.ts`): 9–14 points around a squashed circle at random
-  radii, joined by a closed Catmull-Rom spline and resampled every 2 m. A candidate is rejected if
-  a corner is tighter than the barriers allow, or if two parts of the track come within 36 m of each
-  other. Gentle hills come from a few sine waves. The race starts on the straightest stretch. Laps
-  are 700–1,600 m, about 25–40 s at full speed.
+- **Tracks** (`client/src/games/rally/track.ts`): six shape families. Each one makes control
+  points that are joined by a closed Catmull-Rom spline, scaled to a 1.0–1.35 km lap and resampled
+  every 2 m:
+
+  | Shape | How it's made |
+  | --- | --- |
+  | Forest Ring | random radii around a squashed circle |
+  | Kidney Bend | a circle with a deep dent on one side |
+  | Clover Hills | three or four lobes (`r = R(0.7 + 0.3 cos nθ)`) |
+  | Figure Eight | a lemniscate that crosses itself once; one road goes over the other on an 8 m bridge |
+  | Town Circuit | a rectangle, L, U or notched block outline with rounded 90° corners, lined with houses |
+  | Speedway | a long stadium oval with an S-bend on one straight |
+
+  A candidate is rejected if a corner is tighter than an 18 m radius, or if two parts of the track
+  come within 36 m of each other (except at the figure eight's single crossing, which must be at
+  50° or more). Every race in a cup uses a different shape. The race starts on the straightest
+  stretch, away from the bridge. Physics only ever looks for the road near where the car was last
+  frame, so a car on the bridge never jumps to the road below. Cars, butter and pickles only touch
+  when they're on the same level.
+- **Town** (`town3d.ts`): every track gets a stretch of town (the town circuit gets the whole
+  lap). It has houses with gable roofs, a few PRL apartment blocks, a church with a spire, a SKLEP
+  corner shop and street lamps. Everything is instanced and flat-shaded.
+- **Items** (`sim.ts`, `ITUNING`): three rows of four ? boxes per lap, which come back 3 s after
+  being taken. You hold one item at a time. Lifting your thumb off the pad sends `act`, which fires
+  it (Space does the same on the dev bench). Leaders are more likely to get defence items, and the
+  back of the field gets catch-up items: no Rocket or Thunderstorm for the leader.
+
+  | Item | Effect |
+  | --- | --- |
+  | Kompot Boost | 2.2 s at up to 56 m/s |
+  | Butter Slick | dropped behind you; whoever drives over it spins out for 1.1 s |
+  | Pickle Missile | follows the road and homes in on the car directly ahead |
+  | Pot Lid | a shield that blocks the next hit (10 s) |
+  | Thunderstorm | everyone ahead of you is slowed to 55 % for 3 s |
+  | Maluch Rocket | 3.5 s of autopilot at 62 m/s, immune to everything, shoving cars aside |
 - **Physics** (`sim.ts`, `RTUNING`): top speed 42 m/s (≈150 km/h), 20 on the grass verge.
   Steering needs some speed and calms down near top speed. Barriers 13 m from the centre line slow
   you down and let you slide along them. Cars bump each other. Progress is measured along the track,
   so driving backwards over the line never counts as a lap.
 - **Rendering** (`render3d.ts`): one three.js canvas with a viewport per player (1 full screen, 2
   stacked, 3–4 in a 2×2 grid; with 3 players the spare slot shows the map and standings). The game
-  takes at most 4 players: with more people in the room, the VIP can’t start it. It renders at 45 % of
-  1080p and is scaled up with nearest-neighbour filtering. Flat-shaded low-poly meshes, 4–32 px
+  takes at most 4 players: with more people in the room, the VIP can’t start it. It renders at 45 %
+  of 1080p and is scaled up with nearest-neighbour filtering. Flat-shaded low-poly meshes, 4–32 px
   textures, blob shadows and fog give it the PS2 feel.
 - The phone sends the stick (−100…100 on both axes, in steps of 5) at most 20 times a second, only
   when it changes, and zero when the thumb lifts.
+- `/?debug&shape=figure8` on the TV forces the first track shape and exposes the running game as
+  `window.rally`, for testing.
 
 ### To Ty!
 

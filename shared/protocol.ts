@@ -119,9 +119,11 @@ export interface LobbyOptions {
   difficulty: number;
   /** Pierogi Panic: level to start from (1-based). */
   level: number;
+  /** Maluch Rally: item boxes on the track. */
+  items: boolean;
 }
 
-export const DEFAULT_OPTIONS: LobbyOptions = { powerups: false, sound: true, difficulty: 3, level: 1 };
+export const DEFAULT_OPTIONS: LobbyOptions = { powerups: false, sound: true, difficulty: 3, level: 1, items: true };
 
 export const DIFFICULTIES = [
   { name: 'Relaxed', pace: 1.6, ttl: 1.3 },
@@ -141,6 +143,21 @@ export const KITCHEN_LEVELS = [
   { name: 'The Village Inn', news: 'New fillings: sauerkraut and meat' },
   { name: 'The Wedding Feast', news: 'Blueberries – and fried pierogi in the pans!' },
 ] as const;
+
+/** Maluch Rally items. You pick one up from a ? box and fire it by lifting your thumb. */
+export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket';
+
+export const RALLY_ITEMS: Record<RallyItem, { name: string; does: string }> = {
+  boost: { name: 'Kompot Boost', does: 'A burst of speed' },
+  butter: { name: 'Butter Slick', does: 'Dropped behind you – anyone who drives over it spins' },
+  pickle: { name: 'Pickle Missile', does: 'Chases the car in front of you' },
+  lid: { name: 'Pot Lid', does: 'Blocks the next hit' },
+  storm: { name: 'Thunderstorm', does: 'Slows down everyone ahead of you' },
+  rocket: { name: 'Maluch Rocket', does: 'Drives itself, very fast, and nothing can stop it' },
+};
+
+/** What's happening to a car right now (for the phone). */
+export type RallyEffect = 'spin' | 'rocket' | 'boost' | 'shield' | 'slow';
 
 export interface PlayerSummary {
   id: string;
@@ -279,6 +296,8 @@ export type PhoneView =
       laps: number;
       pos: number;
       of: number;
+      item: RallyItem | null;
+      fx: RallyEffect | null;
     }
   /** To Ty! Take a selfie. `rev` is the host's version of your photo (null = none yet). */
   | { v: 'tySelfie'; id: string; endsAt: number; rev: number | null; done: boolean }
@@ -332,7 +351,7 @@ export type PhoneMsg =
   | { t: 'bet'; slot: number }
   /** Joystick, each axis -100..100 (Pierogi Panic: walk; Maluch Rally: x steers, -y is gas). Sent when it changes (throttled). */
   | { t: 'stick'; x: number; y: number }
-  /** Pierogi Panic action button. */
+  /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
   | { t: 'act' }
   /** Pierogi Panic station minigame: progress (0..1), finished or abandoned. */
   | { t: 'mini'; id: number; ev: 'prog' | 'done' | 'cancel'; p?: number }

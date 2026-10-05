@@ -97,6 +97,9 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         {view.selected === 'trails' && (
           <Toggle label="Power-ups" hint="Speed, slow-mo, thin line, through walls" on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
+        {view.selected === 'rally' && (
+          <Toggle label="Items" hint="? boxes on the track – lift your thumb to use one" on={view.options.items} onChange={(v) => send({ t: 'option', key: 'items', value: v })} />
+        )}
         {view.selected === 'kitchen' && (
           <>
             <Slider

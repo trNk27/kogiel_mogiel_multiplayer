@@ -315,7 +315,7 @@ export class HostController implements GameHost {
         return;
       case 'option':
         if (!isVip) return;
-        if (m.key === 'powerups' || m.key === 'sound') this.options = { ...this.options, [m.key]: !!m.value };
+        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items') this.options = { ...this.options, [m.key]: !!m.value };
         else if (m.key === 'difficulty' || m.key === 'level') {
           const max = m.key === 'difficulty' ? DIFFICULTIES.length : KITCHEN_LEVELS.length;
           const v = Math.round(Number(m.value));

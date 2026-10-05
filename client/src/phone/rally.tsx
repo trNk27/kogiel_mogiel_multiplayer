@@ -1,6 +1,7 @@
 /** Maluch Rally phone controller: hold a finger on the pad. Up/down is gas/brake, left/right steers. */
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { colorHex } from '../../../shared/protocol';
+import { RALLY_ITEMS, colorHex, type RallyEffect } from '../../../shared/protocol';
+import { ItemIcon } from '../games/rally/items';
 import { Pierogi } from '../lib/art';
 import type { Props } from './views';
 
@@ -14,6 +15,14 @@ function shape(v: number) {
   return Math.sign(v) * Math.min(100, Math.round(a / STEP) * STEP);
 }
 
+const FX_TEXT: Record<RallyEffect, string> = {
+  spin: 'Spinning out!',
+  rocket: 'Rocket! Hands off – it steers itself',
+  boost: 'Boost!',
+  shield: 'Pot lid up',
+  slow: 'Caught in the storm!',
+};
+
 function ordinal(n: number) {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
@@ -25,6 +34,8 @@ export function RallyPad({ view, me, send }: Props<'rally'>) {
   const [dot, setDot] = useState<{ x: number; y: number } | null>(null);
   const sendRef = useRef(send);
   sendRef.current = send;
+  const hasItem = useRef(false);
+  hasItem.current = !!view.item;
 
   useEffect(() => {
     const el = pad.current!;
@@ -79,6 +90,11 @@ export function RallyPad({ view, me, send }: Props<'rally'>) {
       setDot(null);
       want = { x: 0, y: 0 };
       flush();
+      // Letting go fires the item you're holding.
+      if (hasItem.current) {
+        hasItem.current = false;
+        sendRef.current({ t: 'act' });
+      }
     };
     const fromKeys = () => {
       want = { x: (keys.r ? 100 : 0) - (keys.l ? 100 : 0), y: (keys.d ? 100 : 0) - (keys.u ? 100 : 0) };
@@ -87,6 +103,11 @@ export function RallyPad({ view, me, send }: Props<'rally'>) {
     };
     const key = (isDown: boolean) => (e: KeyboardEvent) => {
       const k = e.key;
+      if (k === ' ') {
+        e.preventDefault();
+        if (!isDown && hasItem.current) sendRef.current({ t: 'act' });
+        return;
+      }
       if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.l = isDown;
       else if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.r = isDown;
       else if (k === 'ArrowUp' || k === 'w' || k === 'W') keys.u = isDown;
@@ -161,6 +182,16 @@ export function RallyPad({ view, me, send }: Props<'rally'>) {
         <div class="rally-pad-label right">▶</div>
         <div class="rally-pad-gas" style={{ transform: `scaleY(${gas})` }} />
         <div class="rally-pad-brake" style={{ transform: `scaleY(${brake})` }} />
+        {view.item && (
+          <div class={`rally-pad-item ${dot ? 'armed' : ''}`} key={view.item}>
+            <ItemIcon item={view.item} size={74} />
+            <span>
+              <b>{RALLY_ITEMS[view.item].name}</b>
+              <small>{dot ? 'Let go to use it!' : RALLY_ITEMS[view.item].does}</small>
+            </span>
+          </div>
+        )}
+        {view.fx && <div class={`rally-pad-fx fx-${view.fx}`}>{FX_TEXT[view.fx]}</div>}
         {dot ? (
           <div class="rally-pad-dot" style={{ left: `${(dot.x + 1) * 50}%`, top: `${(dot.y + 1) * 50}%` }}>
             <Pierogi color={colorHex(me.color)} size={64} mood="wow" />

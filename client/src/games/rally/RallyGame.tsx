@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
+import { RALLY_ITEMS, colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { DT, LAPS, RallySim, racePoints } from './sim';
 import { generateTrack, type Track } from './track';
 import { RENDER_SCALE, RallyScene, splitLayout, type Slot } from './render3d';
+import { ItemIcon } from './items';
+import { SHAPES, type Shape } from './track';
+import { shuffle } from '../quiz/logic';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 
@@ -46,6 +49,10 @@ export class RallyGame implements Game {
   private lastHud = 0;
   private timer: number | undefined;
   private readonly layout: { slots: Slot[]; free: Slot | null };
+  /** A different track shape for each race of the cup. */
+  private shapes: Shape[];
+  /** Short labels shown in a player's view when something happens to them ("SPLAT!"). */
+  private flash: { text: string; until: number }[];
 
   constructor(
     private host: GameHost,
@@ -55,9 +62,18 @@ export class RallyGame implements Game {
     this.lastPoints = ids.map(() => 0);
     this.lastBump = ids.map(() => 0);
     this.layout = splitLayout(ids.length);
+    this.shapes = shuffle(SHAPES);
+    this.flash = ids.map(() => ({ text: '', until: 0 }));
   }
 
   start() {
+    // For automated tests: /?debug exposes the running game.
+    const q = new URLSearchParams(location.search);
+    if (q.has('debug')) {
+      (window as unknown as { rally: RallyGame }).rally = this;
+      const forced = q.get('shape') as Shape | null;
+      if (forced && SHAPES.includes(forced)) this.shapes = [forced, ...this.shapes.filter((x) => x !== forced)];
+    }
     this.newRace();
     this.lastFrame = performance.now();
     this.raf = requestAnimationFrame(this.frame);
@@ -99,8 +115,8 @@ export class RallyGame implements Game {
 
   private newRace() {
     this.race++;
-    this.track = generateTrack((Math.random() * 2 ** 31) | 0);
-    this.sim = new RallySim(this.track, this.ids.length, LAPS);
+    this.track = generateTrack((Math.random() * 2 ** 31) | 0, this.shapes[(this.race - 1) % this.shapes.length]);
+    this.sim = new RallySim(this.track, this.ids.length, LAPS, this.host.options.items);
     this.sim.cars.forEach((c, i) => (c.parked = this.removed.has(i) || !this.host.player(this.ids[i])?.connected));
     this.firstFinish = null;
     this.scene?.setTrack(this.track);
@@ -164,7 +180,7 @@ export class RallyGame implements Game {
         this.tick(now);
       }
     }
-    this.scene?.render(this.sim.cars, this.layout.slots, elapsed);
+    this.scene?.render(this.sim, this.layout.slots, elapsed);
     this.drawMap();
     if (now - this.lastHud > HUD_MS) {
       this.lastHud = now;
@@ -186,6 +202,26 @@ export class RallyGame implements Game {
       } else sound.correct();
       this.host.buzz(this.ids[idx], [120, 60, 120, 60, 240]);
     }
+    for (const p of ev.pickups) {
+      sound.pickup();
+      this.host.buzz(this.ids[p.idx], [30, 30, 30]);
+      this.host.refresh(this.ids[p.idx]);
+    }
+    for (const u of ev.used) {
+      sound.whoosh();
+      this.say(u.idx, RALLY_ITEMS[u.item].name, 1400);
+      this.host.refresh(this.ids[u.idx]);
+    }
+    for (const h of ev.hits) {
+      const label = h.blocked ? 'BLOCKED!' : h.kind === 'butter' ? 'SPLAT!' : h.kind === 'pickle' ? 'PICKLED!' : 'ZAP!';
+      this.say(h.idx, label, 1500);
+      if (h.blocked) sound.tick();
+      else {
+        sound.crash();
+        this.host.buzz(this.ids[h.idx], [200, 60, 120]);
+      }
+      if (h.by !== h.idx && !h.blocked) this.say(h.by, 'Got one!', 1200);
+    }
     for (const idx of ev.bumps) {
       if (now - this.lastBump[idx] < 700) continue;
       this.lastBump[idx] = now;
@@ -195,6 +231,10 @@ export class RallyGame implements Game {
     const allDone = racing.length === 0 || racing.every((c) => c.finished);
     const graceOver = this.firstFinish !== null && now - this.firstFinish > FINISH_GRACE_MS;
     if ((allDone && this.firstFinish !== null) || graceOver || now - this.raceStart > RACE_LIMIT_MS) this.endRace();
+  }
+
+  private say(idx: number, text: string, ms: number) {
+    this.flash[idx] = { text, until: performance.now() + ms };
   }
 
   private drawMap() {
@@ -259,9 +299,14 @@ export class RallyGame implements Game {
   // ---- phones ---------------------------------------------------------------------
 
   onMessage(id: string, m: PhoneMsg) {
-    if (m.t !== 'stick') return;
     const i = this.ids.indexOf(id);
     const c = this.sim.cars[i];
+    if (m.t === 'act') {
+      // Lifting the thumb fires the item.
+      if (this.phase === 'race' && c && !this.removed.has(i)) this.sim.useItem(i);
+      return;
+    }
+    if (m.t !== 'stick') return;
     if (!c || c.finished) return;
     const x = Number(m.x);
     const y = Number(m.y);
@@ -303,6 +348,8 @@ export class RallyGame implements Game {
       laps: LAPS,
       pos: order.indexOf(i) + 1,
       of: order.length,
+      item: c && this.phase === 'race' ? c.item : null,
+      fx: c && this.phase === 'race' ? this.sim.effect(c) : null,
     };
   }
 
@@ -318,6 +365,7 @@ export class RallyGame implements Game {
     const order = this.sim.order().filter((k) => !this.removed.has(k));
     const players = this.ids.map((id) => this.host.player(id));
     const free = this.layout.free;
+    const small = this.ids.length > 2;
     return (
       <>
         {this.layout.slots.map((slot, i) => {
@@ -340,6 +388,17 @@ export class RallyGame implements Game {
                   <div class="rally-lap">
                     Lap {this.sim.lap(c)}/{LAPS}
                   </div>
+                  {c.item && !c.finished && (
+                    <div class="rally-item pop-in" key={c.item}>
+                      <ItemIcon item={c.item} size={small ? 58 : 76} />
+                      <small>Let go!</small>
+                    </div>
+                  )}
+                  {this.flash[i].until > now && (
+                    <div class="rally-flash pop-in" key={`${this.flash[i].text}${this.flash[i].until}`}>
+                      {this.flash[i].text}
+                    </div>
+                  )}
                   <div class="rally-speed">
                     {Math.round(Math.abs(c.speed) * 3.6)}
                     <small> km/h</small>
@@ -361,6 +420,7 @@ export class RallyGame implements Game {
             <div class="rally-free-title">
               Race {this.race} / {RACES}
             </div>
+            <div class="rally-free-track">{this.track.name}</div>
             <ol class="rally-board">
               {order.map((idx) => {
                 const p = players[idx];
@@ -376,7 +436,14 @@ export class RallyGame implements Game {
         )}
         {this.phase === 'countdown' && (
           <div class="rally-count" key={Math.ceil((this.countdownEnds - now) / 1000)}>
-            {this.countdownEnds - now > 3000 ? `Race ${this.race} of ${RACES}` : Math.max(1, Math.ceil((this.countdownEnds - now) / 1000))}
+            {this.countdownEnds - now > 3000 ? (
+              <span class="rally-count-title">
+                Race {this.race} of {RACES}
+                <small>{this.track.name}</small>
+              </span>
+            ) : (
+              Math.max(1, Math.ceil((this.countdownEnds - now) / 1000))
+            )}
           </div>
         )}
         {this.phase === 'race' && now - this.raceStart < 900 && <div class="rally-count go">GO!</div>}
@@ -395,7 +462,7 @@ export class RallyGame implements Game {
       <div class="rally-results">
         <div class="rally-results-card card-paper">
           <h2>
-            Race {this.race} of {RACES}
+            Race {this.race} of {RACES} · {this.track.name}
           </h2>
           <div class="rally-results-cols">
             <ol class="rally-results-list">

@@ -216,6 +216,7 @@ function Lobby() {
                 <div class="game-card-title">{g.title}</div>
                 <div class="game-card-tag">{g.tagline}</div>
                 {g.maxPlayers && <div class="game-card-flag">Up to {g.maxPlayers} players</div>}
+                {g.id === 'rally' && <div class="game-card-flag">{c.options.items ? 'Items on' : 'Items off'}</div>}
                 {g.id === 'trails' && c.options.powerups && <div class="game-card-flag">Power-ups on</div>}
                 {g.id === 'kitchen' && (
                   <div class="game-card-flag">
@@ -261,7 +262,7 @@ const HOW_TO: Record<GameId, string[]> = {
   ],
   rally: [
     'Hold your thumb on the pad on your phone: up is gas, down is brake, left and right steer.',
-    'The further you push, the harder you go. Let go to coast.',
+    'Drive through a ? box to grab an item, then lift your thumb for a moment to use it.',
     `${RACES} races of ${LAPS} laps on random tracks. 15 points for a win, 12 for second, and so on.`,
   ],
   toty: [
