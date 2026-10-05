@@ -179,7 +179,7 @@ describe('power-ups', () => {
   const NORMAL: TrailsTuning = { ...TUNING, ghostTime: 0 };
   const fresh = (n = 3, tuning = NORMAL) => {
     const sim = new TrailsSim(n, { rng: mulberry32(21), tuning });
-    sim.snakes.forEach((s, i) => place(sim, i, 150 + i * 200, 240, -Math.PI / 2));
+    sim.snakes.forEach((_, i) => place(sim, i, 150 + i * 200, 240, -Math.PI / 2));
     return sim;
   };
 
