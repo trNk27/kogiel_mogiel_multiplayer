@@ -7,8 +7,10 @@ import { formatNumber } from '../../../shared/format';
 import type { Me, Send } from './PhoneApp';
 import { KitchenPad } from './kitchen';
 import { Stars } from '../lib/stars';
+import { TimeBar } from './timebar';
+import { TyDraw, TyPick, TyResult, TySelfie, TyVote } from './toty';
 
-interface Props<V extends PhoneView['v']> {
+export interface Props<V extends PhoneView['v']> {
   view: Extract<PhoneView, { v: V }>;
   me: Me;
   send: Send;
@@ -35,6 +37,16 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <BpResult view={view} me={me} send={send} offset={offset} />;
     case 'kitchen':
       return <KitchenPad view={view} me={me} send={send} />;
+    case 'tySelfie':
+      return <TySelfie view={view} me={me} send={send} offset={offset} />;
+    case 'tyVote':
+      return <TyVote view={view} me={me} send={send} offset={offset} key={view.q} />;
+    case 'tyDraw':
+      return <TyDraw view={view} me={me} send={send} offset={offset} key={view.prompt} />;
+    case 'tyPick':
+      return <TyPick view={view} me={me} send={send} offset={offset} />;
+    case 'tyResult':
+      return <TyResult view={view} me={me} send={send} offset={offset} />;
     case 'results':
       return <Results view={view} me={me} send={send} offset={offset} />;
   }
@@ -334,27 +346,6 @@ function TrailsPad({ view, me, send }: Props<'trails'>) {
 // ---------------------------------------------------------------------------
 // Quiz
 // ---------------------------------------------------------------------------
-
-function TimeBar({ endsAt, offset }: { endsAt: number; offset: number }) {
-  const fill = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const deadline = endsAt + offset;
-    const total = Math.max(1, deadline - Date.now());
-    let raf = 0;
-    const loop = () => {
-      const left = Math.max(0, deadline - Date.now());
-      if (fill.current) fill.current.style.transform = `scaleX(${left / total})`;
-      if (left > 0) raf = requestAnimationFrame(loop);
-    };
-    loop();
-    return () => cancelAnimationFrame(raf);
-  }, [endsAt, offset]);
-  return (
-    <div class="timebar">
-      <div class="timebar-fill" ref={fill} />
-    </div>
-  );
-}
 
 function QuizPad({ view, send, offset }: Props<'quiz'>) {
   const [local, setLocal] = useState<number | null>(null);

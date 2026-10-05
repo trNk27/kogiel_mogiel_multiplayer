@@ -257,6 +257,11 @@ const HOW_TO: Record<GameId, string[]> = {
     'Press the big button to pick up, put down and use stations. Some jobs are a quick minigame on your phone.',
     'Serve the pierogi on the tickets before they run out. Three levels, up to 3 stars each!',
   ],
+  toty: [
+    'Take a selfie on your phone (or skip it and be a pierogi).',
+    '“Who’s most likely to…?” Vote for a player. You score if you agree with the room.',
+    'Twice a game, everyone doodles on the chosen player’s photo. Vote for the best one!',
+  ],
 };
 
 function Intro({ game }: { game: GameId }) {

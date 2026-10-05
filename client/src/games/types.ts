@@ -1,5 +1,5 @@
 import type { JSX } from 'preact';
-import type { GameId, LobbyOptions, PhoneMsg, PhoneView } from '../../../shared/protocol';
+import type { GameId, HostToPhone, LobbyOptions, PhoneMsg, PhoneView } from '../../../shared/protocol';
 import type { Player } from '../host/controller';
 
 /** What the host offers a running game. */
@@ -8,6 +8,8 @@ export interface GameHost {
   /** Push current views to one participant, or all of them. Unchanged views are not re-sent. */
   refresh(id?: string): void;
   buzz(id: string, pattern: number[]): void;
+  /** Send a message straight to some phones (for data that doesn't belong in a view, like photos). */
+  message(ids: string[], m: HostToPhone): void;
   /** Ask the TV to re-render. */
   changed(): void;
   /** End the game with final scores. Co-op games also pass the team result. */

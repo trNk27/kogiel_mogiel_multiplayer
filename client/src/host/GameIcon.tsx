@@ -38,6 +38,19 @@ export function GameIcon({ game, size = 80 }: { game: GameId; size?: number }) {
         <circle cx="66" cy="66" r="3.5" fill="#2f5fae" />
       </svg>
     );
+  if (game === 'toty')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <rect x="16" y="30" width="68" height="50" rx="10" fill="#fff4dc" stroke="#2a120a" stroke-width="3" />
+        <path d="M36 30 l5 -9 h18 l5 9 Z" fill="#fff4dc" stroke="#2a120a" stroke-width="3" stroke-linejoin="round" />
+        <circle cx="50" cy="55" r="17" fill="#4f9dff" stroke="#2a120a" stroke-width="3" />
+        <circle cx="50" cy="55" r="8" fill="#2a120a" />
+        <circle cx="54" cy="51" r="3" fill="#fff" />
+        <circle cx="74" cy="39" r="3.5" fill="#ff3d6e" />
+        <path d="M70 14 l3 6 l6 1 l-5 4 l1 6 l-5 -3 l-5 3 l1 -6 l-5 -4 l6 -1 Z" fill="#ffd23f" />
+      </svg>
+    );
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
       <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />

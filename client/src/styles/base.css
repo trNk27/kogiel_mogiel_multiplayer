@@ -368,3 +368,44 @@ h3 {
   box-shadow: 0 0 0 2px var(--ink);
   object-fit: contain;
 }
+
+/* ---- To Ty! (shared by TV and phone) --------------------------------------- */
+
+.ty-face {
+  position: relative;
+  flex: 0 0 auto;
+  border-radius: 28%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 6, 10, 0.5);
+  box-shadow:
+    0 0 0 5px var(--pc, var(--cream)),
+    0 10px 24px rgba(0, 0, 0, 0.35);
+}
+.ty-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ty-doodle {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+}
+.ty-stroke {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ty-draw 0.55s ease-out forwards;
+}
+.ty-dot {
+  opacity: 0;
+  animation: fade-in 0.2s forwards;
+}
+@keyframes ty-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

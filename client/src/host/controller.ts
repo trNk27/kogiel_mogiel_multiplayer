@@ -458,6 +458,10 @@ export class HostController implements GameHost {
     this.sendTo([id], { t: 'buzz', pattern });
   }
 
+  message(ids: string[], m: HostToPhone) {
+    if (ids.length) this.sendTo(ids, m);
+  }
+
   finish(scores: Record<string, number>, coop?: CoopResult) {
     const game = this.game?.id ?? this.selected;
     const entries = Object.entries(scores)

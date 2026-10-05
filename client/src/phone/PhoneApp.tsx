@@ -17,6 +17,7 @@ import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { forgetRoom, loadStored, saveStored, type Stored } from './storage';
 import { setWakeLock } from './wakelock';
 import { ViewRouter } from './views';
+import { putPhoto } from './photos';
 
 const params = new URLSearchParams(location.search);
 const AUTO = params.has('auto'); // used by the /dev page
@@ -116,6 +117,9 @@ export function PhoneApp() {
             } catch {
               /* not supported (iOS) */
             }
+            break;
+          case 'photo':
+            putPhoto(m.id, m.rev, m.data);
             break;
           case 'kicked':
             leave('You were removed', 'The VIP removed you from the room.');

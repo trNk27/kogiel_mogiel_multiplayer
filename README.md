@@ -14,6 +14,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
+| **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 
 ## How a party works
 
@@ -68,8 +69,10 @@ client/join.html            phone entry       → client/src/phone
 client/dev.html             /dev test bench   → client/src/dev
 client/src/games/*          quiz, trails, ballpark, kitchen (pure logic + TV views)
 client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigames
+client/src/phone/toty.tsx   To Ty! selfie camera, voting and doodle canvas
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
+data/toty.json              62 "who's most likely to…" questions (26 with a doodle prompt)
 test/*.test.ts              Vitest unit tests (scoring, Trails collisions, data checks)
 ```
 
@@ -191,10 +194,25 @@ only when it changes. The button and the minigame results are single messages. T
 simulation at 60 Hz and sends each phone its button label ("Take flour", "Serve!") whenever it
 changes.
 
+### To Ty!
+
+Selfies are taken in the phone browser (camera via `getUserMedia`, or a photo upload where the
+camera isn't available, e.g. on plain `http://` LAN addresses). The phone crops each one to a
+320 × 320 JPEG of at most ~56 KB and sends it over the WebSocket. The TV keeps the photos in memory
+only, so "Play again" can reuse them, and relays them to the phones once. Views carry just a photo
+version number, and a phone that reloads asks for the photos it's missing. Nothing is stored on
+Cloudflare: the Durable Object only passes the messages through. Doodles are sent as compact vector
+strokes (at most 2,500 points), which the TV draws as SVG.
+
+The relay allows phone messages up to 64 KB (other messages stay tiny) and host messages up to
+96 KB. Photos add a few dozen WebSocket messages per game, well within the free plan.
+
 ## Adding questions
 
 - `data/trivia.json`: `{ id, category, difficulty, question, options[4], answerIndex }`.
   Options are shuffled when shown.
+- `data/toty.json`: `{ id, question, draw? }`. `draw` is the doodle prompt for the player the room
+  picked, with `{name}` standing in for their name. Questions 3 and 6 of each game always have one.
 - `data/ballpark.json`: `{ id, question, answer, unit }`. Use `"unit": "year"` for years, so they
   display without thousands separators and with no decimal key.
 

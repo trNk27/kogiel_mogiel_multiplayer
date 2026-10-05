@@ -16,8 +16,9 @@ type Attachment = { role: 'host' } | { role: 'player'; id: string };
 
 const ALARM_EVERY_MS = 10 * 60_000;
 const PERSIST_ACTIVITY_EVERY_MS = 5 * 60_000;
-const MAX_PHONE_MESSAGE = 2048;
-const MAX_HOST_MESSAGE = 64 * 1024;
+/** Large enough for a To Ty! selfie (MAX_PHOTO_CHARS) or doodle; everything else is tiny. */
+const MAX_PHONE_MESSAGE = 64 * 1024;
+const MAX_HOST_MESSAGE = 96 * 1024;
 const OPEN = 1;
 
 /**

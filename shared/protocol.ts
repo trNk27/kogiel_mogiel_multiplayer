@@ -79,7 +79,7 @@ export const ANSWER_STYLES = [
 // Games
 // ---------------------------------------------------------------------------
 
-export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen';
+export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty';
 
 export interface GameInfo {
   id: GameId;
@@ -93,6 +93,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
   { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
   { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1 },
+  { id: 'toty', title: 'To Ty!', tagline: 'Selfies, “who’s most likely to…” and doodles.', minPlayers: 3 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
@@ -186,6 +187,28 @@ export interface KitchenMini {
 }
 
 // ---------------------------------------------------------------------------
+// To Ty! ("That's you!": selfies, votes about each other, doodles on photos)
+// ---------------------------------------------------------------------------
+
+/** Selfies are square JPEG data URLs. Phones shrink them until they fit. */
+export const PHOTO_SIZE = 320;
+export const MAX_PHOTO_CHARS = 56_000;
+/** Doodles live on a 1000 × 1000 canvas laid over the photo. */
+export const DOODLE_SPACE = 1000;
+export const DOODLE_COLORS = ['#2a120a', '#fff4dc', '#ff3d6e', '#ffd23f', '#2fd6a8', '#4f9dff', '#ff8a2a', '#b27bff'] as const;
+export const DOODLE_WIDTHS = [10, 24, 48] as const;
+/** Upper bound on points in one doodle, which keeps a doodle message well under the relay limit. */
+export const MAX_DOODLE_POINTS = 2500;
+/** One stroke: [colour index, width index, x0, y0, x1, y1, …] with coordinates in 0..DOODLE_SPACE. */
+export type Stroke = number[];
+
+export interface TyPlayer {
+  id: string;
+  name: string;
+  color: ColorId;
+}
+
+// ---------------------------------------------------------------------------
 // What a phone should show. The host sends a view only when it changes,
 // and re-sends the current one when a phone reconnects.
 // ---------------------------------------------------------------------------
@@ -236,6 +259,34 @@ export type PhoneView =
       level: number;
       levels: number;
     }
+  /** To Ty! Take a selfie. `rev` is the host's version of your photo (null = none yet). */
+  | { v: 'tySelfie'; id: string; endsAt: number; rev: number | null; done: boolean }
+  /** To Ty! Vote for a player. `ph` maps player id → photo version, so the phone can fetch missing photos. */
+  | {
+      v: 'tyVote';
+      q: number;
+      total: number;
+      question: string;
+      double: boolean;
+      endsAt: number;
+      players: TyPlayer[];
+      ph: Record<string, number>;
+      picked: string | null;
+    }
+  | { v: 'tyDraw'; prompt: string; subject: TyPlayer; ph: Record<string, number>; endsAt: number; done: boolean }
+  /** To Ty! Vote for the best doodle, by the letter shown on the TV. */
+  | { v: 'tyPick'; endsAt: number; letters: string[]; mine: number | null; picked: number | null }
+  | {
+      v: 'tyResult';
+      kind: 'vote' | 'doodle';
+      points: number;
+      total: number;
+      /** Vote rounds: the room's pick(s) and whether you matched them. */
+      winners?: string[];
+      matched?: boolean;
+      /** Votes you (or your doodle) received. */
+      votes: number;
+    }
   | {
       v: 'results';
       game: GameId;
@@ -264,6 +315,15 @@ export type PhoneMsg =
   | { t: 'act' }
   /** Pierogi Panic station minigame: progress (0..1), finished or abandoned. */
   | { t: 'mini'; id: number; ev: 'prog' | 'done' | 'cancel'; p?: number }
+  /** To Ty! selfie as a JPEG data URL, '' to skip and be a pierogi, or 'keep' for last game's photo. */
+  | { t: 'selfie'; data: string }
+  /** To Ty! Ask the host for photos this phone is missing. */
+  | { t: 'photos'; ids: string[] }
+  /** To Ty! Vote for a player. */
+  | { t: 'vote'; id: string }
+  /** To Ty! Vote for a doodle, by its position in the gallery. */
+  | { t: 'pick'; i: number }
+  | { t: 'doodle'; strokes: Stroke[] }
   // VIP-only actions (the host ignores them from anybody else)
   | { t: 'select'; game: GameId }
   | { t: 'option'; key: keyof LobbyOptions; value: boolean | number }
@@ -283,6 +343,8 @@ export type HostToPhone =
   /** `now` is the host's clock when sending, so phones can convert `endsAt` deadlines. */
   | { t: 'view'; view: PhoneView; me: { name: string; color: ColorId; vip: boolean }; now: number }
   | { t: 'buzz'; pattern: number[] }
+  /** To Ty! A player's selfie (`data` '' = no photo, show their pierogi). */
+  | { t: 'photo'; id: string; rev: number; data: string }
   | { t: 'kicked' };
 
 /** Extra messages the Durable Object itself sends to phones. */
