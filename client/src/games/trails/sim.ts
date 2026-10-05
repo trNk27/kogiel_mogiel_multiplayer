@@ -29,8 +29,8 @@ export const TUNING: TrailsTuning = {
   speed: 88,
   turnRate: 3.4,
   radius: 2.5,
-  gapMin: 1.6,
-  gapMax: 3.4,
+  gapMin: 0.9,
+  gapMax: 1.9,
   gapLength: 15,
   ghostTime: 0.55,
 };
@@ -91,7 +91,7 @@ export const POWER_TUNING = {
   holesMax: 0.75,
 };
 const POWER_RADIUS = 9;
-const MAX_POWERUPS = 4;
+const MAX_POWERUPS = 6;
 
 export interface PowerUp {
   id: number;
@@ -229,7 +229,7 @@ export class TrailsSim {
     this.powerupsOn = !!opts.powerups;
     this.grid = new Grid(this.w, this.h);
     this.spawn(players);
-    this.nextPowerTick = this.randTicks(3, 6);
+    this.nextPowerTick = this.randTicks(1.5, 3);
   }
 
   private randTicks(minS: number, maxS: number) {
@@ -425,7 +425,7 @@ export class TrailsSim {
 
   private stepPowerups(ev: StepEvents) {
     if (this.tick >= this.nextPowerTick) {
-      this.nextPowerTick = this.tick + this.randTicks(4, 8);
+      this.nextPowerTick = this.tick + this.randTicks(2, 4);
       if (this.powerups.length < MAX_POWERUPS) {
         for (let attempt = 0; attempt < 20; attempt++) {
           const x = 40 + this.rng() * (this.w - 80);

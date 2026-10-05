@@ -152,12 +152,12 @@ Trails' feel is set in `TUNING` in [`client/src/games/trails/sim.ts`](client/src
 | `speed` | 88 units/s | the arena is 800 × 480 units, so crossing it takes about 9 s |
 | `turnRate` | 3.4 rad/s | a full circle takes about 1.9 s (turn radius ≈ 26 units) |
 | `radius` | 2.5 units | half the line width |
-| `gapMin`/`gapMax` | 1.6–3.4 s | time between gaps |
+| `gapMin`/`gapMax` | 0.9–1.9 s | time between gaps |
 | `gapLength` | 15 units | wide enough for one line to slip through |
 | `ghostTime` | 0.55 s | invulnerable, trail-less start after "GO" |
 
 Trails power-ups live in `POWER_KINDS` / `POWER_SECONDS` / `POWER_TUNING` in the same file. Up to
-4 are on the arena at once, and a new one appears every 4–8 s:
+6 are on the arena at once, and a new one appears every 2–4 s:
 
 | Pickup | Ring | Effect | Time |
 | --- | --- | --- | --- |
