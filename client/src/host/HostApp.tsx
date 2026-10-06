@@ -268,8 +268,8 @@ const HOW_TO: Record<GameId, string[]> = {
     'Serve the pierogi on the tickets before they run out. Three levels, up to 3 stars each!',
   ],
   rally: [
-    'Hold your thumb on the pad on your phone: up is gas, down is brake, left and right steer.',
-    'Drive through a ? box to grab an item, then lift your thumb for a moment to use it.',
+    'GAS and BRAKE are at the top of your phone; swipe the wheel below left and right to steer.',
+    'Hold BRAKE while turning to drift, and let go when the sparks show for a turbo. Tap the item button to use an item.',
     `${RACES} races of ${LAPS} laps on random tracks with bridges and tunnels. 15 points for a win, 12 for second, and so on.`,
   ],
   toty: [

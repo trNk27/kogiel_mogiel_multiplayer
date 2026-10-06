@@ -21,7 +21,7 @@ export const RTUNING = {
 };
 
 /**
- * Drifting: hold the drift button while turning. The car slides with its nose into the corner,
+ * Drifting: hold the brake while turning at speed. The car slides with its nose into the corner,
  * turns much tighter than grip allows and scrubs a little speed. Hold it long enough and letting
  * go gives a mini-turbo (blue sparks) or a super turbo (orange sparks).
  */
@@ -100,8 +100,8 @@ export interface Car {
   z: number;
   heading: number;
   speed: number;
-  /** Joystick: x steers (-100 left … 100 right), y is screen-down (-100 = full gas, 100 = brake); drift button held. */
-  input: { x: number; y: number; drift?: boolean };
+  /** Joystick: x steers (-100 left … 100 right), y is screen-down (-100 = full gas, 100 = brake). Brake while turning at speed drifts. */
+  input: { x: number; y: number };
   /** Total distance driven along the track since the start line (negative on the grid). */
   progress: number;
   along: number;
@@ -564,6 +564,28 @@ export class RallySim {
       } else c.spinAngle = 0;
       if (c.boost > 0 || c.rocket > 0) gas = 1;
 
+      // Drifting: the brake button doubles as drift. Hold it while turning at speed and the car
+      // slides instead of slowing down; let go to end the drift (and maybe get a turbo).
+      const brakeHeld = input.y >= 50;
+      const D = DRIFT;
+      const canDrift = !parked && c.spin === 0 && c.rocket === 0 && !c.finished && c.speed > D.minSpeed * (c.drift ? 0.6 : 1);
+      if (!c.drift && brakeHeld && canDrift && Math.abs(steer) > 0.25) {
+        c.drift = Math.sign(steer);
+        c.driftCharge = 0;
+      } else if (c.drift && (!brakeHeld || !canDrift)) {
+        const level = driftLevel(c);
+        if (level > 0 && canDrift) {
+          c.boost = Math.max(c.boost, level === 2 ? D.superBoost : D.miniBoost);
+          c.speed = Math.max(c.speed, level === 2 ? 46 : 42);
+          ev.turbos.push({ idx: c.idx, level });
+        }
+        c.drift = 0;
+        c.driftCharge = 0;
+      }
+
+      // Drifting keeps the power on, whatever the pedals say.
+      if (c.drift) gas = 1;
+
       // Speed.
       let top = c.onRoad || c.rocket > 0 ? T.maxSpeed : T.grassSpeed;
       if (c.rocket > 0) top = I.rocketSpeed;
@@ -576,23 +598,6 @@ export class RallySim {
       if (gas === 0 && c.spin === 0 && Math.abs(c.speed) < 0.4) c.speed = 0;
       if (c.speed > top) c.speed -= Math.min(c.speed - top, (c.speed - top) * 2.5 * DT + 8 * DT);
       if (c.speed < -T.reverseSpeed) c.speed = -T.reverseSpeed;
-
-      // Drifting: starts when you hold the button while turning at speed, ends when you let go.
-      const D = DRIFT;
-      const canDrift = !parked && c.spin === 0 && c.rocket === 0 && !c.finished && c.speed > D.minSpeed * (c.drift ? 0.6 : 1);
-      if (!c.drift && input.drift && canDrift && Math.abs(steer) > 0.25) {
-        c.drift = Math.sign(steer);
-        c.driftCharge = 0;
-      } else if (c.drift && (!input.drift || !canDrift)) {
-        const level = driftLevel(c);
-        if (level > 0 && canDrift) {
-          c.boost = Math.max(c.boost, level === 2 ? D.superBoost : D.miniBoost);
-          c.speed = Math.max(c.speed, level === 2 ? 46 : 42);
-          ev.turbos.push({ idx: c.idx, level });
-        }
-        c.drift = 0;
-        c.driftCharge = 0;
-      }
 
       // Steering: needs some speed, and gets calmer near top speed.
       const v = Math.abs(c.speed);

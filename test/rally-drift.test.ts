@@ -79,7 +79,7 @@ function circle(drift: boolean, seconds = 1.5) {
   const start = c.heading;
   const spot = pointAt(sim.track, 100, 0);
   for (let k = 0; k < seconds / DT; k++) {
-    c.input = { x: 100, y: -100, drift };
+    c.input = { x: 100, y: drift ? 100 : -100 };
     // Stay in the middle of the road, so the barriers never get in the way.
     c.x = spot.x;
     c.z = spot.z;
@@ -95,13 +95,15 @@ describe('drifting', () => {
     expect(slide.turned).toBeGreaterThan(grip.turned * 1.6);
     expect(slide.c.drift).toBe(1);
     expect(slide.c.slip).toBeGreaterThan(DRIFT.slip * 0.8);
+    // The brake doesn't slow you down while it's drifting.
+    expect(slide.c.speed).toBeGreaterThan(25);
   });
 
   it('builds sparks and gives a turbo when you let go', () => {
     const { c, sim } = circle(true, DRIFT.super / 1.2 + 0.2);
     expect(driftLevel(c)).toBe(2);
     expect(driftCode(c)).toBe(3);
-    c.input = { x: 0, y: -100, drift: false };
+    c.input = { x: 0, y: -100 };
     const ev = sim.step();
     expect(ev.turbos).toEqual([{ idx: 0, level: 2 }]);
     expect(c.boost).toBeGreaterThan(1);
@@ -111,18 +113,20 @@ describe('drifting', () => {
   it('gives nothing for a short drift, and needs speed and steering to start', () => {
     const short = circle(true, 0.3);
     expect(driftLevel(short.c)).toBe(0);
-    short.c.input = { x: 0, y: -100, drift: false };
+    short.c.input = { x: 0, y: -100 };
     expect(short.sim.step().turbos).toEqual([]);
     expect(short.c.boost).toBe(0);
 
     const sim = new RallySim(generateTrack(21, 'speedway'), 1, LAPS, false);
     const c = sim.cars[0];
+    // Braking in a straight line just brakes.
     place(sim, c, 100, 30);
-    c.input = { x: 0, y: -100, drift: true };
-    sim.step();
+    c.input = { x: 0, y: 100 };
+    for (let k = 0; k < 30; k++) sim.step();
     expect(c.drift).toBe(0);
+    expect(c.speed).toBeLessThan(15);
     place(sim, c, 100, 5);
-    c.input = { x: 100, y: -100, drift: true };
+    c.input = { x: 100, y: 100 };
     sim.step();
     expect(c.drift).toBe(0);
   });

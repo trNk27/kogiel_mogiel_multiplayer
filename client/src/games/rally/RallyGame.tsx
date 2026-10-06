@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { RALLY_FX_BITS, RALLY_ITEMS, colorHex, type HostToPhone, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
-import { DT, HAZARDS, LAPS, RallySim, driftLevel, racePoints } from './sim';
+import { DT, HAZARDS, LAPS, RallySim, driftCode, driftLevel, racePoints } from './sim';
 import { generateTrack, type Track } from './track';
 import { RENDER_SCALE, RallyScene, splitLayout, type Slot } from './render3d';
 import { ItemIcon, hitLabel } from './items';
@@ -355,16 +355,12 @@ export class RallyGame implements Game {
       if (this.phase === 'race' && c && !this.removed.has(i)) this.sim.useItem(i);
       return;
     }
-    if (m.t === 'drift') {
-      if (c) c.input = { ...c.input, drift: !!m.on };
-      return;
-    }
     if (m.t !== 'stick') return;
     if (!c || c.finished) return;
     const x = Number(m.x);
     const y = Number(m.y);
     if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-    c.input = { x: Math.max(-100, Math.min(100, x)), y: Math.max(-100, Math.min(100, y)), drift: c.input.drift };
+    c.input = { x: Math.max(-100, Math.min(100, x)), y: Math.max(-100, Math.min(100, y)) };
   }
 
   onConnection(id: string, connected: boolean) {
@@ -403,6 +399,7 @@ export class RallyGame implements Game {
       of: order.length,
       item: c && this.phase === 'race' ? c.item : null,
       fx: c && this.phase === 'race' ? this.sim.effect(c) : null,
+      ...(!this.net && c && this.phase === 'race' && c.drift ? { drift: driftCode(c) } : {}),
       ...(this.net ? { net: this.netView(i) } : {}),
     };
   }

@@ -362,6 +362,8 @@ export type PhoneView =
       of: number;
       item: RallyItem | null;
       fx: RallyEffect | null;
+      /** With a TV: your drift (0 none, 1 drifting, 2 blue sparks, 3 orange sparks), so the brake button can glow. */
+      drift?: number;
       /** Only in rooms without a TV: the phone shows the race itself. */
       net?: RallyNet;
     }
@@ -417,14 +419,12 @@ export type PhoneMsg =
   | { t: 'answer'; i: number }
   | { t: 'guess'; value: number }
   | { t: 'bet'; slot: number }
-  /** Joystick, each axis -100..100 (Pierogi Panic: walk; Maluch Rally: x steers, -y is gas). Sent when it changes (throttled). */
+  /** Joystick, each axis -100..100 (Pierogi Panic: walk; Maluch Rally: x steers, -y is gas, +y brakes – or drifts while turning). Sent when it changes (throttled). */
   | { t: 'stick'; x: number; y: number }
   /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
   | { t: 'act' }
   /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number; `d` is the drift (0 none, 1 drifting, 2 blue sparks, 3 orange sparks). */
   | { t: 'car'; r: number; x: number; z: number; a: number; v: number; d?: number }
-  /** Maluch Rally with a TV: the drift button (sent when it's pressed or let go). */
-  | { t: 'drift'; on: boolean }
   /** Pierogi Panic station minigame: progress (0..1), finished or abandoned. */
   | { t: 'mini'; id: number; ev: 'prog' | 'done' | 'cancel'; p?: number }
   /** To Ty! selfie as a JPEG data URL, '' to skip and be a pierogi, or 'keep' for last game's photo. */

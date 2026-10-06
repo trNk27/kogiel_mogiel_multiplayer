@@ -29,8 +29,8 @@ const MAX_SIDE = 720;
 export interface DriveInput {
   /** -1 (full left) … 1 (full right). */
   steer: number;
+  /** Brakes – or, while turning at speed, drifts. */
   brake: boolean;
-  drift: boolean;
 }
 
 /** Numbers the HUD shows, updated ~10 times a second. */
@@ -50,7 +50,7 @@ export class RallyClient {
   readonly track: Track;
   readonly sim: RallySim;
   readonly idx: number;
-  input: DriveInput = { steer: 0, brake: false, drift: false };
+  input: DriveInput = { steer: 0, brake: false };
   private turbos = 0;
   private turboLevel = 0;
   /** Automated tests (/join?debug): drive along the middle of the road. */
@@ -167,7 +167,7 @@ export class RallyClient {
         ? { x: 0, y: 0 }
         : this.autodrive
           ? this.sim.autopilot(me, 40)
-          : { x: Math.round(this.input.steer * 100), y: this.input.brake ? 100 : -100, drift: this.input.drift };
+          : { x: Math.round(this.input.steer * 100), y: this.input.brake ? 100 : -100 };
       if (!this.driving && !me.finished) me.speed = 0;
       for (const t of this.sim.step().turbos)
         if (t.idx === this.idx) {

@@ -12,14 +12,13 @@ import { Sound } from '../lib/sound';
 import { rallyBus } from './rallyBus';
 import type { Props } from './views';
 import { VipMenu } from './vipMenu';
+import { DragPad, PedalButton, SteeringWheel, vibrate } from './steer';
 import { fullscreenSupported, standalone, toggleFullscreen, useFullscreen } from './fullscreen';
 import { SHAPE_NAMES, type Shape } from '../games/rally/track';
 import { isIOS, screenAngle, tiltSteer } from './tilt';
 
 type Mode = 'touch' | 'tilt';
 const MODE_KEY = 'cp.steer';
-/** Drag this far (fraction of the steering pad's width) for full lock. */
-const DRAG_FULL = 0.24;
 const MAP_PX = 256;
 
 const sfx = new Sound();
@@ -30,14 +29,6 @@ function ordinal(n: number) {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
-
-function vibrate(p: number | number[]) {
-  try {
-    navigator.vibrate?.(p);
-  } catch {
-    /* not supported (iOS) */
-  }
 }
 
 function loadMode(): Mode {
@@ -53,9 +44,8 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
   const canvas = useRef<HTMLCanvasElement>(null);
   const mapRef = useRef<HTMLCanvasElement>(null);
   const client = useRef<RallyClient | null>(null);
-  const input = useRef<DriveInput>({ steer: 0, brake: false, drift: false });
+  const input = useRef<DriveInput>({ steer: 0, brake: false });
   const [hud, setHud] = useState<DriveHud>({ speed: 0, ink: 0, lap: 1, finished: false, drift: 0, turbos: 0, turboLevel: 0 });
-  const [drifting, setDrifting] = useState(false);
   const [mode, setMode] = useState<Mode>(loadMode);
   const [tiltProblem, setTiltProblem] = useState<string | null>(null);
   const [steerShown, setSteerShown] = useState(0);
@@ -190,11 +180,6 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
     input.current.steer = v;
     setSteerShown(Math.round(v * 20) / 20);
   };
-  const setDrift = (on: boolean) => {
-    if (on && !input.current.drift) vibrate(10);
-    input.current.drift = on;
-    setDrifting(on);
-  };
   const setBrake = (on: boolean) => {
     if (on && !input.current.brake) vibrate(8);
     input.current.brake = on;
@@ -267,8 +252,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
       const k = e.key;
       if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.l = down;
       else if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.r = down;
-      else if (k === 'ArrowDown' || k === 's' || k === 'S') setBrake(down);
-      else if (k === 'Shift' || k === 'x' || k === 'X') setDrift(down);
+      else if (k === 'ArrowDown' || k === 's' || k === 'S' || k === 'Shift') setBrake(down);
       else if (k === ' ') {
         if (down && !e.repeat) useItem();
       } else return;
@@ -289,7 +273,6 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
   useEffect(() => {
     const reset = () => {
       setBrake(false);
-      setDrift(false);
       if (mode === 'touch') setSteer(0);
     };
     window.addEventListener('blur', reset);
@@ -359,7 +342,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
         {mode === 'touch' ? (
           <DragPad steer={steerShown} onSteer={setSteer} />
         ) : (
-          <PedalButton class={`drive-drift big lvl-${hud.drift}`} label="DRIFT" down={drifting} onChange={setDrift} />
+          <PedalButton class={`drive-brake big lvl-${hud.drift}`} label="BRAKE · DRIFT" down={braking} onChange={setBrake} />
         )}
         <div class="drive-right">
           <button
@@ -372,8 +355,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
           >
             {view.item ? <ItemIcon item={view.item} size={58} /> : <span class="drive-item-empty">?</span>}
           </button>
-          <PedalButton class="drive-brake" label="BRAKE" down={braking} onChange={setBrake} />
-          {mode === 'touch' && <PedalButton class={`drive-drift lvl-${hud.drift}`} label="DRIFT" down={drifting} onChange={setDrift} />}
+          {mode === 'touch' && <PedalButton class={`drive-brake lvl-${hud.drift}`} label="BRAKE · DRIFT" down={braking} onChange={setBrake} />}
         </div>
       </div>
       {mode === 'tilt' && (
@@ -405,7 +387,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
           </div>
           <div class="muted small center">
             {mode === 'tilt' ? 'Hold your phone like a steering wheel and turn it. ' : 'Drag your thumb left and right on the pad. '}
-            The car speeds up by itself. Hold DRIFT while turning to slide round tight corners – let go when the sparks show for a turbo.
+            The car speeds up by itself. BRAKE slows you down – hold it while turning to drift round tight corners, and let go when the sparks show for a turbo.
           </div>
           {tiltProblem && <div class="form-error">{tiltProblem}</div>}
           {canFullscreen && !fullscreen && (
@@ -489,99 +471,12 @@ function formatTime(seconds: number) {
   return `${m}:${s.toFixed(2).padStart(5, '0')}`;
 }
 
-/** Steering by dragging: put a thumb down anywhere on the pad and slide it sideways. */
-function DragPad({ steer, onSteer }: { steer: number; onSteer: (v: number) => void }) {
-  const el = useRef<HTMLDivElement>(null);
-  const [origin, setOrigin] = useState<{ x: number; y: number } | null>(null);
-  const onSteerRef = useRef(onSteer);
-  onSteerRef.current = onSteer;
-  useEffect(() => {
-    const pad = el.current!;
-    let pid: number | null = null;
-    let x0 = 0;
-    const down = (e: PointerEvent) => {
-      e.preventDefault();
-      if (pid !== null) return;
-      pid = e.pointerId;
-      pad.setPointerCapture?.(pid);
-      x0 = e.clientX;
-      const r = pad.getBoundingClientRect();
-      setOrigin({ x: e.clientX - r.left, y: e.clientY - r.top });
-      vibrate(6);
-    };
-    const move = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      e.preventDefault();
-      const full = pad.getBoundingClientRect().width * DRAG_FULL;
-      onSteerRef.current(Math.max(-1, Math.min(1, (e.clientX - x0) / full)));
-    };
-    const up = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      pid = null;
-      setOrigin(null);
-      onSteerRef.current(0);
-    };
-    pad.addEventListener('pointerdown', down);
-    pad.addEventListener('pointermove', move);
-    pad.addEventListener('pointerup', up);
-    pad.addEventListener('pointercancel', up);
-    return () => {
-      pad.removeEventListener('pointerdown', down);
-      pad.removeEventListener('pointermove', move);
-      pad.removeEventListener('pointerup', up);
-      pad.removeEventListener('pointercancel', up);
-    };
-  }, []);
-  return (
-    <div class="drive-pad" ref={el}>
-      {origin ? (
-        <div class="drive-pad-wheel" style={{ left: origin.x, top: origin.y, transform: `translate(-50%, -50%) rotate(${steer * 90}deg)` }}>
-          <SteeringWheel />
-        </div>
-      ) : (
-        <span class="drive-pad-hint">◀ drag to steer ▶</span>
-      )}
-    </div>
-  );
-}
-
-function PedalButton(props: { class: string; label: string; down: boolean; onChange: (down: boolean) => void }) {
-  const cb = useRef(props.onChange);
-  cb.current = props.onChange;
-  return (
-    <button
-      class={`${props.class} ${props.down ? 'down' : ''}`}
-      onPointerDown={(e) => {
-        e.preventDefault();
-        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-        cb.current(true);
-      }}
-      onPointerUp={() => cb.current(false)}
-      onPointerCancel={() => cb.current(false)}
-    >
-      {props.label}
-    </button>
-  );
-}
-
 function FullscreenIcon({ exit }: { exit: boolean }) {
   // Four corners pointing out (go full screen) or in (leave it).
   const d = exit ? 'M9 3v6H3 M15 3v6h6 M9 21v-6H3 M15 21v-6h6' : 'M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6';
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path d={d} fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-  );
-}
-
-function SteeringWheel() {
-  return (
-    <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
-      <circle cx="50" cy="50" r="42" fill="none" stroke="#2a120a" stroke-width="14" />
-      <circle cx="50" cy="50" r="42" fill="none" stroke="var(--me)" stroke-width="8" />
-      <path d="M8 50 H36 M64 50 H92 M50 64 V92" stroke="#2a120a" stroke-width="10" stroke-linecap="round" />
-      <circle cx="50" cy="50" r="13" fill="#2a120a" />
-      <circle cx="50" cy="8" r="5" fill="#ffd23f" />
     </svg>
   );
 }

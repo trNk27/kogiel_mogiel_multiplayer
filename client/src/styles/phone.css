@@ -1355,107 +1355,6 @@ body.phone-body input {
   font-size: 18px;
   color: var(--muted);
 }
-.rally-pad {
-  position: relative;
-  flex: 1;
-  min-height: 260px;
-  border-radius: 28px;
-  overflow: hidden;
-  background: rgba(20, 6, 10, 0.55);
-  box-shadow: inset 0 0 0 3px var(--line);
-  touch-action: none;
-}
-.rally-pad-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 244, 220, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 244, 220, 0.06) 1px, transparent 1px);
-  background-size: 12.5% 12.5%;
-}
-.rally-pad-axis {
-  position: absolute;
-  background: rgba(255, 244, 220, 0.25);
-}
-.rally-pad-axis.h {
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 2px;
-}
-.rally-pad-axis.v {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 2px;
-}
-.rally-pad-gas,
-.rally-pad-brake {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 50%;
-  pointer-events: none;
-}
-.rally-pad-gas {
-  top: 0;
-  transform-origin: bottom;
-  background: linear-gradient(0deg, rgba(47, 214, 168, 0.05), rgba(47, 214, 168, 0.35));
-}
-.rally-pad-brake {
-  top: 50%;
-  transform-origin: top;
-  background: linear-gradient(180deg, rgba(232, 51, 90, 0.05), rgba(232, 51, 90, 0.4));
-}
-.rally-pad-label {
-  position: absolute;
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--muted);
-  font-size: 18px;
-  pointer-events: none;
-}
-.rally-pad-label.up {
-  top: 12px;
-  left: 50%;
-  translate: -50% 0;
-  color: var(--dill);
-}
-.rally-pad-label.down {
-  bottom: 12px;
-  left: 50%;
-  translate: -50% 0;
-  color: #ff8aa4;
-}
-.rally-pad-label.left {
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 26px;
-}
-.rally-pad-label.right {
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 26px;
-}
-.rally-pad-hint {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, calc(-50% - 30px));
-  width: 80%;
-  text-align: center;
-  font-size: 17px;
-  color: var(--muted);
-  pointer-events: none;
-}
-.rally-pad-dot {
-  position: absolute;
-  translate: -50% -50%;
-  pointer-events: none;
-  filter: drop-shadow(0 0 10px var(--me));
-}
 .rally-pad-overlay {
   position: absolute;
   inset: 0;
@@ -1471,49 +1370,6 @@ body.phone-body input {
   padding: 20px;
   pointer-events: none;
   animation: fade-in 0.25s both;
-}
-.rally-pad-item {
-  position: absolute;
-  left: 50%;
-  top: 46px;
-  translate: -50% 0;
-  width: 86%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 14px 6px 6px;
-  border-radius: 20px;
-  background: rgba(255, 244, 220, 0.12);
-  box-shadow: inset 0 0 0 2px rgba(255, 210, 63, 0.6);
-  pointer-events: none;
-  animation: pop-in 0.35s both;
-}
-.rally-pad-item span {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-}
-.rally-pad-item b {
-  font-family: var(--font-display);
-  font-size: 19px;
-  color: var(--yolk);
-}
-.rally-pad-item small {
-  font-size: 14px;
-  color: var(--muted);
-}
-.rally-pad-item.armed {
-  background: rgba(255, 210, 63, 0.25);
-  animation: rally-armed 0.6s ease-in-out infinite alternate;
-}
-.rally-pad-item.armed small {
-  color: var(--cream);
-  font-weight: 700;
-}
-@keyframes rally-armed {
-  to {
-    box-shadow: inset 0 0 0 3px var(--yolk), 0 0 24px rgba(255, 210, 63, 0.5);
-  }
 }
 .rally-pad-fx {
   position: absolute;
@@ -1818,11 +1674,12 @@ body.phone-body input {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding-bottom: 6px;
   font-family: var(--font-display);
   color: rgba(255, 244, 220, 0.75);
-  font-size: 17px;
+  font-size: 14px;
   pointer-events: none;
 }
 .drive-pad-wheel {
@@ -1830,6 +1687,11 @@ body.phone-body input {
   width: 96px;
   height: 96px;
   pointer-events: none;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+.drive-pad-wheel.held {
+  opacity: 1;
 }
 .drive-wheel {
   position: absolute;
@@ -2065,46 +1927,22 @@ body.phone-body input {
 
 /* ---- Drifting ------------------------------------------------------------------ */
 
-/* Dragging to steer: item and brake side by side, a wide DRIFT button under them for the right thumb. */
+/* Swiping to steer: the item button and, under it, BRAKE · DRIFT for the right thumb. */
 .mode-touch .drive-right {
-  width: 168px;
+  width: 150px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 62px;
+  grid-template-rows: 1fr 68px;
 }
 .mode-touch .drive-right .drive-brake {
   height: auto;
 }
-.mode-touch .drive-right .drive-drift {
-  grid-column: 1 / span 2;
-}
-.drive-drift {
-  border: 0;
-  border-radius: 22px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 0.06em;
-  touch-action: none;
-  color: var(--cream);
-  background: #3d5a99;
-  box-shadow: inset 0 -5px 0 #26386a;
-}
-.drive-drift.big {
-  flex: 0 0 128px;
-  font-size: 22px;
-}
-.drive-drift.down {
-  transform: translateY(3px);
-  box-shadow: inset 0 -2px 0 #26386a;
-}
-.drive-drift.lvl-2 {
+.drive-brake.lvl-2 {
   background: var(--blueberry);
   box-shadow:
     inset 0 -5px 0 #26386a,
     0 0 18px rgba(79, 157, 255, 0.8);
 }
-.drive-drift.lvl-3 {
+.drive-brake.lvl-3 {
   background: #ff8a2a;
   box-shadow:
     inset 0 -5px 0 #b65a10,
@@ -2136,28 +1974,81 @@ body.phone-body input {
   }
 }
 
-/* Maluch Rally with a TV: drift with the other thumb. */
-.rally-drift {
-  flex: 0 0 64px;
+/* Maluch Rally with a TV: pedals on top, the item under them, a wheel to swipe below. */
+.rally-pedals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex: 0 0 120px;
+}
+.rally-pedal {
   border: 0;
-  border-radius: 22px;
+  border-radius: 24px;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 22px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--cream);
-  background: #3d5a99;
-  box-shadow: inset 0 -5px 0 #26386a;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.rally-drift small {
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0;
-  opacity: 0.8;
+.rally-pedal.gas {
+  background: #23a07c;
+  box-shadow: inset 0 -6px 0 #136b52;
 }
-.rally-drift.down {
-  transform: translateY(3px);
+.rally-pedal.brake {
+  background: var(--beet);
+  box-shadow: inset 0 -6px 0 var(--beet-deep);
+  font-size: 18px;
+}
+.rally-pedal.down {
+  transform: translateY(4px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+.rally-pedal.brake.lvl-2 {
   background: var(--blueberry);
-  box-shadow: inset 0 -2px 0 #26386a;
+  box-shadow: 0 0 20px rgba(79, 157, 255, 0.85);
+}
+.rally-pedal.brake.lvl-3 {
+  background: #ff8a2a;
+  box-shadow: 0 0 24px rgba(255, 138, 42, 0.9);
+}
+.rally-item-btn {
+  flex: 0 0 76px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 20px;
+  text-align: left;
+  background: rgba(20, 6, 10, 0.45);
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+.rally-item-btn.has {
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 0 0 4px var(--yolk);
+  animation: pop-in 0.4s both;
+}
+.rally-item-btn span {
+  display: flex;
+  flex-direction: column;
+}
+.rally-item-btn b {
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+.rally-item-btn small {
+  font-size: 13px;
+  opacity: 0.75;
+}
+.rally-wheel.drive-pad {
+  flex: 1;
+  min-height: 180px;
+}
+.rally-wheel .drive-pad-wheel {
+  width: 150px;
+  height: 150px;
 }

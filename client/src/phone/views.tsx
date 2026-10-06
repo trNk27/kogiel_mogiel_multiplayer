@@ -105,7 +105,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         )}
         {view.selected === 'rally' && <TrackPicker value={view.options.track} onChange={(v) => send({ t: 'option', key: 'track', value: v })} />}
         {view.selected === 'rally' && (
-          <Toggle label="Items" hint={noTv ? '? boxes on the track – tap the item button to use one' : '? boxes on the track – lift your thumb to use one'} on={view.options.items} onChange={(v) => send({ t: 'option', key: 'items', value: v })} />
+          <Toggle label="Items" hint="? boxes on the track – tap the item button to use one" on={view.options.items} onChange={(v) => send({ t: 'option', key: 'items', value: v })} />
         )}
         {view.selected === 'kitchen' && (
           <>
