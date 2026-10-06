@@ -8,6 +8,8 @@ export interface BallparkQuestion {
 }
 
 export const BP_QUESTIONS_PER_GAME = 7;
+/** Tournament version. */
+export const BP_QUESTIONS_SHORT = 3;
 export const BP_GUESS_MS = 40_000;
 export const BP_BET_MS = 25_000;
 /** Points for having the winning guess. */

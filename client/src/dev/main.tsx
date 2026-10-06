@@ -35,7 +35,7 @@ function Dev() {
           Phones{' '}
           <input type="number" min={1} max={8} value={n} onInput={(e) => setN(Math.min(8, Math.max(1, Number((e.target as HTMLInputElement).value) || 1)))} />
         </label>
-        <span class="muted">Click a phone, then use ← → / A D to steer (↓ brakes and space fires items in a no-TV rally).</span>
+        <span class="muted">Click a phone, then use ← → / A D to steer or pedal, space to stab a pierogi or count one (↓ brakes and space fires items in a no-TV rally).</span>
       </div>
       {!NOTV && <div class="dev-tv">{!params.get('code') && <iframe src="/?autohost=1&new=1" title="TV" />}</div>}
       <div class={`dev-phones ${NOTV ? 'notv' : ''}`}>

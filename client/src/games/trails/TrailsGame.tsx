@@ -45,7 +45,7 @@ export class TrailsGame implements Game {
   ) {
     this.scores = ids.map(() => 0);
     this.turn = ids.map(() => 0);
-    this.target = trailsTarget(ids.length);
+    this.target = trailsTarget(ids.length, host.short);
     this.trailLayer = document.createElement('canvas');
     this.trailLayer.width = CANVAS_W;
     this.trailLayer.height = CANVAS_H;

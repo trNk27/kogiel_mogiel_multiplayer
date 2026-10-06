@@ -16,6 +16,11 @@ are named after the brand: a glass of kogiel mogiel.
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
 | **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is the controller: GAS and BRAKE at the top, and a steering wheel below that you swipe left and right. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup, a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. Hold **BRAKE while turning** to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **tap the item button** to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
+| **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
+| **Fork Fight** | A quick-draw duel. A plate on your phone: when a pierogi lands on it, tap to stab it. Socks, slippers and rubber ducks land too; stab one (or stab an empty plate) and you lose a point. The fastest three forks get 3/2/1. Eight rounds, with more fakes as you go. | 1–8 |
+| **Pierogi Parade** | Pierogi of five colours march across the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
+
+The VIP can also start a **Tournament**: five random games in a row (see below).
 
 ## How a party works
 
@@ -25,6 +30,31 @@ are named after the brand: a glass of kogiel mogiel.
    ends a game early (⋯ menu) and can remove players, all from their phone.
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
    places; in the co-op Pierogi Panic everyone gets 1 point per star, averaged over the levels played). The VIP chooses **Play again** or another game.
+
+### Tournament
+
+Pick **Tournament** at the top of the game list. The TV draws five different games at random from
+the competitive ones that suit the room (never Pierogi Panic, which is co-op; Maluch Rally only with
+up to 4 players; To Ty! only with 3 or more) and shows the line-up. Each game is played in its
+**short version**:
+
+| Game | Full game | In a tournament |
+| --- | --- | --- |
+| Trails | first to 10 × (players − 1) | first to 5 × (players − 1) |
+| Quiz | 10 questions | 5 questions |
+| Ballpark | 7 questions | 3 questions |
+| Maluch Rally | 3 races | 1 race |
+| To Ty! | 7 questions, 2 doodle rounds, 75 s for selfies | 4 questions, 1 doodle round, 45 s for selfies |
+| Tour de Pierogi | 3 heats | 1 heat |
+| Fork Fight | 8 rounds | 4 rounds (starting with more fakes) |
+| Pierogi Parade | 3 rounds | 1 medium round |
+
+After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
+points** for 1st to 6th place (ties share a place). The VIP presses **Next game** on their phone to
+go on, or ends the tournament. After the fifth game the TV crowns the champion, and the tournament
+counts as one game in the party standings (3/2/1). If the room changes mid-tournament so that the
+next game can't start (say a fifth player joins before Maluch Rally), another game takes its place.
+Tournaments need a TV.
 
 ### No TV? Play on phones only
 
@@ -96,6 +126,9 @@ client/src/phone/rally.tsx  Maluch Rally thumb pad (with a TV)
 client/src/phone/rallyDrive.tsx  Maluch Rally on the phone (no TV): 3D view, tilt/drag steering, minimap
 client/src/phone/notvHost.ts     a phone hosting a party without a TV
 client/src/phone/toty.tsx   To Ty! selfie camera, voting and doodle canvas
+client/src/games/pedal|fork|parade/*  Tour de Pierogi, Fork Fight, Pierogi Parade (pure logic + TV views)
+client/src/phone/minigames.tsx   their phone controllers (pedals, the plate, the tap counter)
+client/src/host/tournament.ts    picking the tournament's games and its points table
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
 data/toty.json              62 "who's most likely to…" questions (26 with a doodle prompt)
@@ -114,7 +147,8 @@ npm run dev          # builds the frontend (in watch mode) and runs `wrangler de
 - TV: <http://localhost:8787/>
 - Phone: <http://localhost:8787/join>
 - **Test bench:** <http://localhost:8787/dev?n=4> opens the host and 4 simulated phones in iframes.
-  The phones join automatically. Click a phone and use ← → (or A / D) to steer in Trails.
+  The phones join automatically. Click a phone and use ← → (or A / D) to steer in Trails or pedal in
+  Tour de Pierogi, and Space to stab in Fork Fight or count in Pierogi Parade (↓ / Backspace takes one off).
 - **No-TV test bench:** <http://localhost:8787/dev?notv&n=3>: the first phone starts a party
   without a TV and the others join it. In a race, ← → steer, ↓ brakes and Space fires the item.
   `/join?debug` exposes a phone's race as `window.rally` (`rally.autodrive = true` drives for you).
@@ -203,7 +237,10 @@ Speed effects multiply; thin/fat and big gaps/no gaps cancel each other. The TV 
 pickup ("Kasia makes everyone else fat!"). `/?debug` on the TV exposes the running game as
 `window.trails`, for testing.
 
-Quiz and Ballpark timings are constants at the top of their `logic.ts` / game files.
+Quiz and Ballpark timings are constants at the top of their `logic.ts` / game files, and so are the
+lengths of the tournament's short versions (`QUIZ_ROUND_LENGTH_SHORT`, `BP_QUESTIONS_SHORT`, `RACES_SHORT`,
+`TY_SHORT`, …). The tournament's size and points table are `TOURNAMENT_GAMES` and `TOURNAMENT_POINTS` in
+`shared/protocol.ts`.
 
 ### Pierogi Panic
 
@@ -345,6 +382,28 @@ strokes (at most 2,500 points), which the TV draws as SVG.
 
 The relay allows phone messages up to 64 KB (other messages stay tiny) and host messages up to
 96 KB. Photos add a few dozen WebSocket messages per game, well within the free plan.
+
+### Tour de Pierogi, Fork Fight and Pierogi Parade
+
+- **Tour de Pierogi** (`games/pedal/logic.ts`): the phone counts alternating taps itself and sends
+  the running total (`pedal {h, n}`) at most every 90 ms. The TV trusts it only up to
+  `PEDAL_MAX_RATE` (16 strokes a second since the start, plus a little slack), so an auto-clicker
+  can't win. A heat ends 8 s after the first rider finishes, as soon as everyone still connected is
+  in, or after 45 s.
+- **Fork Fight** (`games/fork/logic.ts`): a round is a list of things that land on the plate and
+  when. The phone gets the list ahead of time and shows it on its own clock, then measures your
+  reaction from the frame the pierogi is drawn in. Only the result goes to the TV
+  (`fork {r, ms}`, or −1 for a stab at an empty plate and −2 for a fake), so Wi-Fi lag doesn't
+  decide who's fastest. For the same reason the TV doesn't show the plate during a round ("Eyes on
+  your phone!") and reveals what landed afterwards. The pierogi stays 1.5 s; fakes 0.9 s.
+- **Pierogi Parade** (`games/parade/logic.ts`): each round is generated up front: the target
+  colour, how many of it march (the answer) and the decoys, each with a lane, start time, speed and
+  hop. Pierogi in one lane never catch up with each other, and with traffic both ways odd lanes walk
+  right to left. The TV animates them with CSS only. Phones keep the count and send it as it changes
+  (`count {r, n}`, at most every 150 ms); counting closes 2.5 s after the last pierogi has left.
+
+`/?debug` on the TV exposes the room as `window.host`; `host.finish({...})` ends the current game
+with made-up scores, which is handy for walking through a tournament.
 
 ## Adding questions
 

@@ -1,7 +1,8 @@
-import type { GameId } from '../../../shared/protocol';
+import type { Selection } from '../../../shared/protocol';
+import { PIEROGI_PATH } from '../lib/art';
 
-/** Illustrated icons for the games. */
-export function GameIcon({ game, size = 80 }: { game: GameId; size?: number }) {
+/** Illustrated icons for the games (and the tournament). */
+export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }) {
   if (game === 'trails')
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
@@ -66,6 +67,69 @@ export function GameIcon({ game, size = 80 }: { game: GameId; size?: number }) {
         <circle cx="54" cy="51" r="3" fill="#fff" />
         <circle cx="74" cy="39" r="3.5" fill="#ff3d6e" />
         <path d="M70 14 l3 6 l6 1 l-5 4 l1 6 l-5 -3 l-5 3 l1 -6 l-5 -4 l6 -1 Z" fill="#ffd23f" />
+      </svg>
+    );
+  if (game === 'pedal')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <path d="M8 84 H92" stroke="rgba(255,244,220,.3)" stroke-width="3" stroke-dasharray="6 6" />
+        <circle cx="26" cy="68" r="15" fill="none" stroke="#fff4dc" stroke-width="5" />
+        <circle cx="74" cy="68" r="15" fill="none" stroke="#fff4dc" stroke-width="5" />
+        <path d="M26 68 L46 68 L64 48 L40 48 Z M46 68 L36 40 M64 48 L74 68 M64 48 L61 38 H70" fill="none" stroke="#ff3d6e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" />
+        <g transform="translate(24 8) scale(.36)">
+          <path d={PIEROGI_PATH} fill="#ffd23f" stroke="#2a120a" stroke-width="5" />
+        </g>
+        <path d="M80 22 h10 M78 30 h12 M82 38 h8" stroke="#2fd6a8" stroke-width="4" stroke-linecap="round" />
+      </svg>
+    );
+  if (game === 'fork')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <ellipse cx="46" cy="66" rx="36" ry="20" fill="#fff4dc" />
+        <ellipse cx="46" cy="64" rx="25" ry="12" fill="#f6e3bd" />
+        <g transform="translate(26 44) scale(.34)">
+          <path d={PIEROGI_PATH} fill="#f3cf6b" stroke="#2a120a" stroke-width="6" />
+        </g>
+        <g transform="rotate(35 70 40)">
+          <rect x="67" y="30" width="6" height="44" rx="3" fill="#c9ccd3" stroke="#2a120a" stroke-width="2" />
+          <path d="M60 12 v16 q0 6 10 6 q10 0 10 -6 v-16 M66.7 12 v16 M73.3 12 v16" fill="none" stroke="#c9ccd3" stroke-width="3.5" stroke-linecap="round" />
+        </g>
+        <path d="M14 22 l8 6 M20 14 l5 9 M30 12 l1 9" stroke="#ffd23f" stroke-width="4" stroke-linecap="round" />
+      </svg>
+    );
+  if (game === 'parade')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <path d="M8 46 H92 M8 80 H92" stroke="rgba(255,244,220,.2)" stroke-width="3" />
+        {[
+          ['#4f9dff', 6, 18],
+          ['#ff3d6e', 38, 22],
+          ['#4f9dff', 64, 16],
+          ['#a3e048', 18, 54],
+          ['#4f9dff', 50, 56],
+        ].map(([c, x, y]) => (
+          <g transform={`translate(${x} ${y}) scale(.25)`}>
+            <path d={PIEROGI_PATH} fill={c as string} stroke="#2a120a" stroke-width="7" />
+          </g>
+        ))}
+        <circle cx="84" cy="62" r="11" fill="#ffd23f" stroke="#2a120a" stroke-width="2.5" />
+        <text x="84" y="67.5" text-anchor="middle" font-size="15" font-weight="700" fill="#2a120a" font-family="Fredoka Variable, sans-serif">
+          3
+        </text>
+      </svg>
+    );
+  if (game === 'tournament')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <path d="M30 18 H70 V40 Q70 62 50 62 Q30 62 30 40 Z" fill="#ffc93c" stroke="#2a120a" stroke-width="3" stroke-linejoin="round" />
+        <path d="M30 24 H18 Q16 42 32 46 M70 24 H82 Q84 42 68 46" fill="none" stroke="#ffc93c" stroke-width="5" stroke-linecap="round" />
+        <path d="M44 62 H56 V72 H44 Z" fill="#f2a900" stroke="#2a120a" stroke-width="3" />
+        <rect x="32" y="72" width="36" height="12" rx="3" fill="#a51c3d" stroke="#2a120a" stroke-width="3" />
+        <path d="M50 26 l3.5 7 l7.5 1 l-5.5 5 l1.5 7.5 l-7 -3.5 l-7 3.5 l1.5 -7.5 l-5.5 -5 l7.5 -1 Z" fill="#fff4dc" />
       </svg>
     );
   return (

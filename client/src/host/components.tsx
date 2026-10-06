@@ -117,3 +117,28 @@ export function PlayerChip({ name, color, dim, mood, badge }: { name: string; co
     </div>
   );
 }
+
+/** Big "3, 2, 1, GO!" over the play area, until `endsAt` (Date.now clock). Uses the Trails countdown style. */
+export function BigCountdown({ endsAt, go = 'GO!' }: { endsAt: number; go?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let raf = 0;
+    let last = '';
+    const loop = () => {
+      const left = endsAt - Date.now();
+      const label = left > 0 ? String(Math.ceil(left / 1000)) : go;
+      if (label !== last && ref.current) {
+        last = label;
+        ref.current.textContent = label;
+        ref.current.classList.remove('beat');
+        void ref.current.offsetWidth;
+        ref.current.classList.add('beat');
+      }
+      if (left > -900) raf = requestAnimationFrame(loop);
+      else if (ref.current) ref.current.style.display = 'none';
+    };
+    loop();
+    return () => cancelAnimationFrame(raf);
+  }, [endsAt]);
+  return <div class="trails-count" ref={ref} />;
+}

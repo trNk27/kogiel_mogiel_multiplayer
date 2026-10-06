@@ -20,32 +20,41 @@ export const TY_DOODLE_POINTS = 100;
 /** Seven questions; a doodle round follows questions 3 and 6, and question 7 pays double. */
 export const TY_QUESTIONS = 7;
 export const TY_DOODLE_AFTER = [2, 5] as const;
+/** How a game is laid out: how many questions, and after which ones (0-based) a doodle round comes. */
+export interface TyLayout {
+  questions: number;
+  doodleAfter: readonly number[];
+  selfieMs: number;
+}
+export const TY_FULL: TyLayout = { questions: TY_QUESTIONS, doodleAfter: TY_DOODLE_AFTER, selfieMs: TY_SELFIE_MS };
+/** Tournament version: four questions with one doodle round after question 2, and less time for selfies. */
+export const TY_SHORT: TyLayout = { questions: 4, doodleAfter: [1], selfieMs: 45_000 };
 export const TY_LETTERS = 'ABCDEFGH';
 
 /**
  * Pick the questions for one game. The ones followed by a doodle round must have a
  * drawing prompt; the rest come from the whole pool. Mutates `used`.
  */
-export function pickPlan(pool: readonly TotyQuestion[], used: Set<string>, rng: Rng = Math.random): TotyQuestion[] {
+export function pickPlan(pool: readonly TotyQuestion[], used: Set<string>, rng: Rng = Math.random, layout: TyLayout = TY_FULL): TotyQuestion[] {
   const drawable = pickQuestions(
     pool.filter((q) => q.draw),
     used,
-    TY_DOODLE_AFTER.length,
+    layout.doodleAfter.length,
     rng,
   );
   const taken = new Set(drawable.map((q) => q.id));
   const rest = pickQuestions(
     pool.filter((q) => !taken.has(q.id)),
     used,
-    TY_QUESTIONS - drawable.length,
+    layout.questions - drawable.length,
     rng,
   );
   for (const id of taken) used.add(id);
   const plan: TotyQuestion[] = [];
   let d = 0;
   let r = 0;
-  for (let i = 0; i < TY_QUESTIONS; i++) {
-    plan.push((TY_DOODLE_AFTER as readonly number[]).includes(i) ? drawable[d++] : rest[r++]);
+  for (let i = 0; i < layout.questions; i++) {
+    plan.push(layout.doodleAfter.includes(i) ? drawable[d++] : rest[r++]);
   }
   return plan;
 }

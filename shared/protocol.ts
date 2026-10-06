@@ -79,7 +79,7 @@ export const ANSWER_STYLES = [
 // Games
 // ---------------------------------------------------------------------------
 
-export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty' | 'rally';
+export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty' | 'rally' | 'pedal' | 'fork' | 'parade';
 
 export interface GameInfo {
   id: GameId;
@@ -93,13 +93,15 @@ export interface GameInfo {
    * Without a TV there's no split screen, so the player limit is MAX_PLAYERS.
    */
   noTv?: string;
+  /** Co-op games (everybody wins or loses together) are left out of tournaments. */
+  coop?: boolean;
 }
 
 export const GAMES: readonly GameInfo[] = [
   { id: 'trails', title: 'Trails', tagline: 'Steer your noodle. Don’t touch anything.', minPlayers: 2 },
   { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
   { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
-  { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1 },
+  { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1, coop: true },
   {
     id: 'rally',
     title: 'Maluch Rally', tagline: 'Split-screen racing for up to 4. Your thumb is the wheel.',
@@ -108,6 +110,9 @@ export const GAMES: readonly GameInfo[] = [
     noTv: 'Low-poly racing on every phone. Tilt or drag to steer, up to 8 cars.',
   },
   { id: 'toty', title: 'To Ty!', tagline: 'Selfies, “who’s most likely to…” and doodles.', minPlayers: 3 },
+  { id: 'pedal', title: 'Tour de Pierogi', tagline: 'Pedal LEFT, RIGHT, LEFT… as fast as your thumbs go.', minPlayers: 1 },
+  { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi first. Don’t fall for the sock.', minPlayers: 1 },
+  { id: 'parade', title: 'Pierogi Parade', tagline: 'Count the right pierogi as the parade rolls by.', minPlayers: 1 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
@@ -117,6 +122,32 @@ export function gameInfo(id: GameId): GameInfo {
 /** Games you can pick in a room with (or without) a TV. */
 export function gamesFor(noTv: boolean): readonly GameInfo[] {
   return noTv ? GAMES.filter((g) => g.noTv) : GAMES;
+}
+
+/** What the VIP has picked in the lobby: one game, or a tournament of several. */
+export type Selection = GameId | 'tournament';
+
+/** A tournament plays this many games, picked at random from the competitive ones. */
+export const TOURNAMENT_GAMES = 5;
+export const TOURNAMENT_MIN_PLAYERS = 2;
+/** Tournament points for 1st, 2nd, 3rd… place in each game (ties share a place). */
+export const TOURNAMENT_POINTS = [10, 7, 5, 3, 2, 1, 0, 0] as const;
+
+export function tournamentPoints(place: number): number {
+  return TOURNAMENT_POINTS[place - 1] ?? 0;
+}
+
+/** Games a tournament can pick from with these players: competitive ones that can start. */
+export function tournamentPool(connected: number, inRoom: number): GameId[] {
+  return GAMES.filter((g) => !g.coop && playerCountProblem(g, connected, inRoom) === null).map((g) => g.id);
+}
+
+/** Why a tournament can't start, or null if it can. */
+export function tournamentProblem(connected: number, inRoom: number, noTv = false): string | null {
+  if (noTv) return 'A tournament needs a TV.';
+  if (connected < TOURNAMENT_MIN_PLAYERS) return `A tournament needs at least ${TOURNAMENT_MIN_PLAYERS} players.`;
+  if (tournamentPool(connected, inRoom).length < TOURNAMENT_GAMES) return `Not enough games for ${inRoom} players.`;
+  return null;
 }
 
 /** Why a game can't start with this many players in the room, or null if it can. */
@@ -223,6 +254,9 @@ export interface RallyNet {
   board?: { idx: number; time: number | null; pts: number; cup: number }[];
 }
 
+/** Fork Fight: what can land on the plate. Only the pierogi should be stabbed. */
+export type ForkItem = 'pierogi' | 'sock' | 'slipper' | 'duck';
+
 export interface PlayerSummary {
   id: string;
   name: string;
@@ -308,7 +342,7 @@ export type PhoneView =
   | {
       v: 'lobby';
       vip: boolean;
-      selected: GameId;
+      selected: Selection;
       options: LobbyOptions;
       /** Only filled for the VIP (used for kicking). */
       players: PlayerSummary[];
@@ -395,6 +429,45 @@ export type PhoneView =
       /** Votes you (or your doodle) received. */
       votes: number;
     }
+  /** Tour de Pierogi. `goAt` (host clock ms) is when pedalling starts; `place`/`pts` once you've finished or the heat is over. */
+  | {
+      v: 'pedal';
+      phase: 'countdown' | 'race' | 'done' | 'heatOver';
+      heat: number;
+      heats: number;
+      goal: number;
+      goAt: number;
+      place: number | null;
+      pts: number;
+      total: number;
+    }
+  /**
+   * Fork Fight. The plate opens at `startAt` (host clock ms); `steps` say what lands on it and when
+   * (ms after it opens). `stab` is your reaction in ms, or a foul code (-1 too early, -2 a fake).
+   */
+  | {
+      v: 'fork';
+      phase: 'play' | 'result';
+      round: number;
+      rounds: number;
+      startAt: number;
+      steps: { k: ForkItem; at: number; dur: number }[];
+      stab: number | null;
+      place: number | null;
+      pts: number;
+      total: number;
+    }
+  /** Pierogi Parade. Count the `color` pierogi until `endsAt` (host clock ms). */
+  | {
+      v: 'parade';
+      phase: 'ready' | 'count' | 'result';
+      round: number;
+      rounds: number;
+      color: string;
+      colorName: string;
+      endsAt: number;
+      res: { n: number | null; answer: number; pts: number; total: number } | null;
+    }
   | {
       v: 'results';
       game: GameId;
@@ -406,7 +479,11 @@ export type PhoneView =
       coop?: { stars: number; score: number };
       /** Rooms without a TV: the final scores and party standings that the TV would show. */
       board?: { name: string; color: ColorId; score: number; place: number; party: number }[];
-    };
+      /** In a tournament: this was game `game` of `games`; what you earned and where you stand. */
+      tour?: { game: number; games: number; next: GameId | null; gained: number; points: number; place: number };
+    }
+  /** The end of a tournament. */
+  | { v: 'tourResults'; place: number; points: number; players: number; vip: boolean };
 
 // ---------------------------------------------------------------------------
 // Phone -> host (relayed by the Durable Object)
@@ -436,11 +513,18 @@ export type PhoneMsg =
   /** To Ty! Vote for a doodle, by its position in the gallery. */
   | { t: 'pick'; i: number }
   | { t: 'doodle'; strokes: Stroke[] }
+  /** Tour de Pierogi: strokes pedalled so far in heat `h` (sent a few times a second while it changes). */
+  | { t: 'pedal'; h: number; n: number }
+  /** Fork Fight: your stab in round `r`: reaction in ms, or -1 (too early) / -2 (stabbed a fake). */
+  | { t: 'fork'; r: number; ms: number }
+  /** Pierogi Parade: your count in round `r` (sent while it changes). */
+  | { t: 'count'; r: number; n: number }
   // VIP-only actions (the host ignores them from anybody else)
-  | { t: 'select'; game: GameId }
+  | { t: 'select'; game: Selection }
   | { t: 'option'; key: keyof LobbyOptions; value: boolean | number | string }
   | { t: 'start' }
   | { t: 'kick'; id: string }
+  /** Play the same game again – or, in a tournament, go on to the next game. */
   | { t: 'again' }
   | { t: 'lobby' };
 

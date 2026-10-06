@@ -12,6 +12,8 @@ import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 
 export const RACES = 3;
+/** Tournament version: a single race. */
+export const RACES_SHORT = 1;
 const COUNTDOWN_MS = 4000;
 const RESULTS_MS = 9000;
 /** After the first car finishes, the others get this long. */
@@ -33,6 +35,7 @@ export function ordinal(n: number) {
 
 export class RallyGame implements Game {
   readonly id = 'rally' as const;
+  private readonly races: number;
   private race = 0;
   private phase: Phase = 'countdown';
   private track!: Track;
@@ -74,7 +77,8 @@ export class RallyGame implements Game {
     this.lastPoints = ids.map(() => 0);
     this.lastBump = ids.map(() => 0);
     this.layout = splitLayout(ids.length);
-    this.shapes = cupShapes(host.options.track, RACES, shuffle);
+    this.races = host.short ? RACES_SHORT : RACES;
+    this.shapes = cupShapes(host.options.track, this.races, shuffle);
     this.flash = ids.map(() => ({ text: '', until: 0 }));
     this.net = host.noTv;
   }
@@ -167,7 +171,7 @@ export class RallyGame implements Game {
     sound.fanfare();
     clearTimeout(this.timer);
     this.timer = window.setTimeout(() => {
-      if (this.race < RACES) this.newRace();
+      if (this.race < this.races) this.newRace();
       else this.finishCup();
     }, RESULTS_MS);
     this.update();
@@ -392,7 +396,7 @@ export class RallyGame implements Game {
       v: 'rally',
       phase: this.phase === 'countdown' ? 'countdown' : this.phase === 'results' ? 'standings' : c?.finished ? 'finished' : 'race',
       race: this.race,
-      races: RACES,
+      races: this.races,
       lap: c ? this.sim.lap(c) : 1,
       laps: LAPS,
       pos: order.indexOf(i) + 1,
@@ -493,7 +497,7 @@ export class RallyGame implements Game {
         {free && (
           <div class="rally-free" style={{ left: free.x, top: free.y, width: free.w, height: free.h }}>
             <div class="rally-free-title">
-              Race {this.race} / {RACES}
+              Race {this.race} / {this.races}
             </div>
             <div class="rally-free-track">{this.track.name}</div>
             <ol class="rally-board">
@@ -513,7 +517,7 @@ export class RallyGame implements Game {
           <div class="rally-count" key={Math.ceil((this.countdownEnds - now) / 1000)}>
             {this.countdownEnds - now > 3000 ? (
               <span class="rally-count-title">
-                Race {this.race} of {RACES}
+                Race {this.race} of {this.races}
                 <small>{this.track.name}</small>
               </span>
             ) : (
@@ -537,7 +541,7 @@ export class RallyGame implements Game {
       <div class="rally-results">
         <div class="rally-results-card card-paper">
           <h2>
-            Race {this.race} of {RACES} · {this.track.name}
+            Race {this.race} of {this.races} · {this.track.name}
           </h2>
           <div class="rally-results-cols">
             <ol class="rally-results-list">
@@ -571,7 +575,7 @@ export class RallyGame implements Game {
               </div>
             )}
           </div>
-          <div class="muted rally-next">{this.race < RACES ? 'Next track coming up…' : 'That was the last race!'}</div>
+          <div class="muted rally-next">{this.race < this.races ? 'Next track coming up…' : 'That was the last race!'}</div>
         </div>
       </div>
     );

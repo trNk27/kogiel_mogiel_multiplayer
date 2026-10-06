@@ -2,7 +2,7 @@ import trivia from '../../../../data/trivia.json';
 import { ANSWER_STYLES, colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { usedSet } from '../usedStore';
-import { QUIZ_ROUND_LENGTH, QUIZ_TIME_MS, pickQuestions, quizPoints, shuffleOptions, type TriviaQuestion } from './logic';
+import { QUIZ_ROUND_LENGTH, QUIZ_ROUND_LENGTH_SHORT, QUIZ_TIME_MS, pickQuestions, quizPoints, shuffleOptions, type TriviaQuestion } from './logic';
 import { Leaderboard, TimerRing } from '../../host/components';
 import { Pierogi } from '../../lib/art';
 import { Shape } from '../../lib/shapes';
@@ -36,7 +36,7 @@ export class QuizGame implements Game {
     private host: GameHost,
     public ids: string[],
   ) {
-    this.questions = pickQuestions(trivia as TriviaQuestion[], used, QUIZ_ROUND_LENGTH).map((q) => ({ q, ...shuffleOptions(q) }));
+    this.questions = pickQuestions(trivia as TriviaQuestion[], used, host.short ? QUIZ_ROUND_LENGTH_SHORT : QUIZ_ROUND_LENGTH).map((q) => ({ q, ...shuffleOptions(q) }));
     for (const id of ids) this.scores[id] = 0;
   }
 

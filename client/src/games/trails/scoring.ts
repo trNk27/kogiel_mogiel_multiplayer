@@ -1,7 +1,8 @@
 /** Trails scoring: every time someone dies, each player still alive gets +1. */
 
-export function trailsTarget(players: number): number {
-  return 10 * Math.max(1, players - 1);
+/** Points to win: 10 per opponent, or 5 per opponent in a tournament's short game. */
+export function trailsTarget(players: number, short = false): number {
+  return (short ? 5 : 10) * Math.max(1, players - 1);
 }
 
 /**

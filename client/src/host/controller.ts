@@ -9,6 +9,8 @@ import {
   gamesFor,
   RALLY_TRACKS,
   playerCountProblem,
+  tournamentPool,
+  tournamentProblem,
   isColorId,
   sanitizeName,
   type ColorId,
@@ -20,6 +22,7 @@ import {
   type PhoneMsg,
   type PhoneView,
   type PlayerSummary,
+  type Selection,
   type ServerToHost,
 } from '../../../shared/protocol';
 import type { CoopResult, Game, GameHost } from '../games/types';
@@ -27,6 +30,7 @@ import { createGame } from '../games/registry';
 import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { sound } from '../lib/sound';
 import { placesFor } from './standings';
+import { awardGame, newTournament, nextGame, tournamentPlaces, type Tournament } from './tournament';
 
 export interface Player {
   id: string;
@@ -53,19 +57,24 @@ export type Screen =
   | { s: 'lobby' }
   | { s: 'intro'; game: GameId }
   | { s: 'game' }
-  | { s: 'results'; game: GameId; standings: Standing[]; coop?: CoopResult };
+  | { s: 'results'; game: GameId; standings: Standing[]; coop?: CoopResult }
+  /** The games of a new tournament, before the first one starts. */
+  | { s: 'tourIntro' }
+  /** The end of a tournament: everyone ranked by tournament points. */
+  | { s: 'tourEnd'; standings: Standing[]; games: GameId[] };
 
 const SESSION_KEY = 'cp.host';
 /** A phone hosting a room without a TV keeps its session separately (the /dev page runs several phones in one tab). */
 export const noTvSessionKey = (dev: string | null) => `cp.notvhost${dev ? `.${dev}` : ''}`;
 const SESSION_MAX_AGE = 30 * 60_000;
 const INTRO_MS = 6000;
+const TOUR_INTRO_MS = 9000;
 
 interface SavedSession {
   code: string;
   hostKey: string;
   players: Pick<Player, 'id' | 'name' | 'color' | 'joinedAt' | 'party'>[];
-  selected: GameId;
+  selected: Selection;
   options: LobbyOptions;
   gamesPlayed: number;
   savedAt: number;
@@ -90,10 +99,12 @@ export class HostController implements GameHost {
   players = new Map<string, Player>();
   /** Connected phones that have not joined yet (they are looking at the colour picker). */
   private pending = new Set<string>();
-  selected: GameId = 'quiz';
+  selected: Selection = 'quiz';
   options: LobbyOptions = { ...DEFAULT_OPTIONS };
   screen: Screen = { s: 'landing' };
   game: Game | null = null;
+  /** The tournament being played, if any. */
+  tournament: Tournament | null = null;
   gamesPlayed = 0;
   status: SocketStatus = 'closed';
 
@@ -175,7 +186,7 @@ export class HostController implements GameHost {
     }
     this.code = saved.code;
     this.hostKey = saved.hostKey;
-    if (gamesFor(this.noTv).some((g) => g.id === saved.selected)) this.selected = saved.selected;
+    if (this.selectable(saved.selected)) this.selected = saved.selected;
     this.options = { ...DEFAULT_OPTIONS, ...saved.options };
     this.gamesPlayed = saved.gamesPlayed;
     sound.muted = this.noTv || !this.options.sound;
@@ -343,7 +354,7 @@ export class HostController implements GameHost {
     const isVip = this.vipId() === id;
     switch (m.t) {
       case 'select':
-        if (isVip && this.screen.s === 'lobby' && gamesFor(this.noTv).some((g) => g.id === m.game)) {
+        if (isVip && this.screen.s === 'lobby' && this.selectable(m.game)) {
           this.selected = m.game;
           sound.tick();
           this.afterLobbyChange();
@@ -368,11 +379,19 @@ export class HostController implements GameHost {
         this.afterLobbyChange();
         return;
       case 'start':
-        if (isVip && this.screen.s === 'lobby' && this.canStart()) this.startGame(this.selected);
+        if (isVip && this.screen.s === 'lobby' && this.canStart()) {
+          if (this.selected === 'tournament') this.startTournament();
+          else this.startGame(this.selected);
+        }
         return;
       case 'again':
-        if (isVip && this.screen.s === 'results') {
+        if (!isVip) return;
+        if (this.screen.s === 'results' && this.tournament) this.nextTourGame();
+        else if (this.screen.s === 'results') {
           if (this.canStart(this.screen.game)) this.startGame(this.screen.game);
+          else this.toLobby();
+        } else if (this.screen.s === 'tourEnd') {
+          if (this.canStart('tournament')) this.startTournament();
           else this.toLobby();
         }
         return;
@@ -448,12 +467,60 @@ export class HostController implements GameHost {
 
   // ---- games ------------------------------------------------------------------
 
-  canStart(game: GameId = this.selected) {
-    return this.startProblem(game) === null;
+  canStart(sel: Selection = this.selected) {
+    return this.startProblem(sel) === null;
   }
 
-  startProblem(game: GameId = this.selected) {
-    return playerCountProblem(gameInfo(game), this.connectedCount(), this.players.size, this.noTv);
+  startProblem(sel: Selection = this.selected) {
+    if (sel === 'tournament') return tournamentProblem(this.connectedCount(), this.players.size, this.noTv);
+    return playerCountProblem(gameInfo(sel), this.connectedCount(), this.players.size, this.noTv);
+  }
+
+  /** Can the VIP pick this in the lobby? Tournaments need a TV. */
+  private selectable(sel: Selection) {
+    return sel === 'tournament' ? !this.noTv : gamesFor(this.noTv).some((g) => g.id === sel);
+  }
+
+  /** Games in a tournament are the short versions. */
+  get short() {
+    return !!this.tournament;
+  }
+
+  private startTournament() {
+    this.endGame();
+    this.tournament = newTournament(tournamentPool(this.connectedCount(), this.players.size), [...this.players.keys()]);
+    this.screen = { s: 'tourIntro' };
+    sound.fanfare();
+    this.refresh();
+    this.changed();
+    this.introTimer = window.setTimeout(() => this.nextTourGame(), TOUR_INTRO_MS);
+  }
+
+  private nextTourGame() {
+    const t = this.tournament;
+    if (!t) return;
+    const game = nextGame(t, (g) => this.canStart(g), tournamentPool(this.connectedCount(), this.players.size));
+    if (game) this.startGame(game);
+    else this.endTournament();
+  }
+
+  private endTournament() {
+    const t = this.tournament;
+    if (!t) return;
+    this.endGame();
+    const standings: Standing[] = tournamentPlaces(t, [...this.players.keys()]).map((r) => {
+      const p = this.players.get(r.id)!;
+      return { id: r.id, name: p.name, color: p.color, score: r.points, place: r.place };
+    });
+    // The tournament counts as one game in the party standings.
+    if (standings.length > 1) for (const st of standings) this.players.get(st.id)!.party += st.place === 1 ? 3 : st.place === 2 ? 2 : st.place === 3 ? 1 : 0;
+    this.tournament = null;
+    this.gamesPlayed++;
+    this.screen = { s: 'tourEnd', standings, games: t.games };
+    sound.fanfare();
+    this.refresh();
+    this.persist();
+    this.changed();
   }
 
   private startGame(id: GameId) {
@@ -481,6 +548,7 @@ export class HostController implements GameHost {
 
   private toLobby() {
     this.endGame();
+    this.tournament = null;
     this.screen = { s: 'lobby' };
     this.refresh();
     this.persist();
@@ -509,7 +577,7 @@ export class HostController implements GameHost {
   }
 
   finish(scores: Record<string, number>, coop?: CoopResult) {
-    const game = this.game?.id ?? this.selected;
+    const game = this.game?.id ?? (this.selected === 'tournament' ? 'quiz' : this.selected);
     const entries = Object.entries(scores)
       .filter(([id]) => this.players.has(id))
       .map(([id, score]) => {
@@ -519,13 +587,18 @@ export class HostController implements GameHost {
     const places = placesFor(entries.map((e) => e.score));
     entries.forEach((e, i) => (e.place = places[i]));
     entries.sort((a, b) => a.place - b.place);
-    for (const e of entries) {
-      const p = this.players.get(e.id)!;
-      if (coop) p.party += coop.stars;
-      else if (entries.length > 1) p.party += e.place === 1 ? 3 : e.place === 2 ? 2 : e.place === 3 ? 1 : 0;
+    if (this.tournament) {
+      // In a tournament, games earn tournament points; the party points come at the end.
+      awardGame(this.tournament, Object.fromEntries(entries.map((e) => [e.id, e.score])));
+    } else {
+      for (const e of entries) {
+        const p = this.players.get(e.id)!;
+        if (coop) p.party += coop.stars;
+        else if (entries.length > 1) p.party += e.place === 1 ? 3 : e.place === 2 ? 2 : e.place === 3 ? 1 : 0;
+      }
+      this.gamesPlayed++;
     }
     this.endGame();
-    this.gamesPlayed++;
     this.screen = { s: 'results', game, standings: entries, ...(coop ? { coop } : {}) };
     sound.fanfare();
     this.refresh();
@@ -570,8 +643,17 @@ export class HostController implements GameHost {
           playerCount: this.players.size,
           vipName: this.players.get(this.vipId() ?? '')?.name ?? '',
         };
-      case 'intro':
-        return { v: 'wait', title: gameInfo(s.game).title, text: this.noTv ? 'Get ready – it starts right here on your phone!' : 'Get ready – look at the TV!', icon: s.game };
+      case 'intro': {
+        const t = this.tournament;
+        const ready = this.noTv ? 'Get ready – it starts right here on your phone!' : 'Get ready – look at the TV!';
+        return { v: 'wait', title: gameInfo(s.game).title, text: t ? `Game ${t.index + 1} of ${t.games.length}. ${ready}` : ready, icon: s.game };
+      }
+      case 'tourIntro':
+        return { v: 'wait', title: 'Tournament!', text: `${this.tournament?.games.length ?? 0} quick games in a row. Look at the TV!`, icon: 'tournament' };
+      case 'tourEnd': {
+        const st = s.standings.find((x) => x.id === id);
+        return { v: 'tourResults', place: st?.place ?? 0, points: st?.score ?? 0, players: s.standings.length, vip };
+      }
       case 'game':
         if (this.game?.ids.includes(id)) return this.game.viewFor(id);
         return { v: 'wait', title: 'Game in progress', text: 'Hang tight – you’ll be in the next one!', icon: 'sleep' };
@@ -585,6 +667,7 @@ export class HostController implements GameHost {
           players: s.standings.length,
           vip,
           ...(s.coop ? { coop: { stars: s.coop.stars, score: s.coop.score } } : {}),
+          ...(this.tournament ? { tour: this.tourView(id) } : {}),
           // Without a TV, every phone gets the scoreboard the TV would show.
           ...(this.noTv
             ? { board: s.standings.map((x) => ({ name: x.name, color: x.color, score: x.score, place: x.place, party: this.players.get(x.id)?.party ?? 0 })) }
@@ -594,6 +677,20 @@ export class HostController implements GameHost {
       default:
         return { v: 'wait', title: 'Hold on…' };
     }
+  }
+
+  /** A player's tournament situation after a game. */
+  private tourView(id: string) {
+    const t = this.tournament!;
+    const table = tournamentPlaces(t, [...this.players.keys()]);
+    return {
+      game: t.index + 1,
+      games: t.games.length,
+      next: t.games[t.index + 1] ?? null,
+      gained: t.gained[id] ?? 0,
+      points: t.points[id] ?? 0,
+      place: table.find((r) => r.id === id)?.place ?? 0,
+    };
   }
 
   private sendView(id: string, force = false) {

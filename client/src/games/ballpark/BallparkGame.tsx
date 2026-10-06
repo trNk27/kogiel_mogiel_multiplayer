@@ -7,6 +7,7 @@ import {
   BP_BET_MS,
   BP_GUESS_MS,
   BP_QUESTIONS_PER_GAME,
+  BP_QUESTIONS_SHORT,
   buildSlots,
   formatNumber,
   scoreBallpark,
@@ -47,7 +48,7 @@ export class BallparkGame implements Game {
     private host: GameHost,
     public ids: string[],
   ) {
-    this.questions = pickQuestions(questions as BallparkQuestion[], used, BP_QUESTIONS_PER_GAME);
+    this.questions = pickQuestions(questions as BallparkQuestion[], used, host.short ? BP_QUESTIONS_SHORT : BP_QUESTIONS_PER_GAME);
     for (const id of ids) this.scores[id] = 0;
   }
 

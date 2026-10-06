@@ -3,13 +3,12 @@ import { colorHex, type PhoneMsg, type PhoneView, type Stroke, type TyPlayer } f
 import type { Game, GameHost } from '../types';
 import { usedSet } from '../usedStore';
 import {
-  TY_DOODLE_AFTER,
   TY_DOODLE_POINTS,
   TY_DRAW_MS,
   TY_LETTERS,
   TY_PICK_MS,
-  TY_QUESTIONS,
-  TY_SELFIE_MS,
+  TY_FULL,
+  TY_SHORT,
   TY_VOTE_MS,
   isPhotoData,
   pickOne,
@@ -21,6 +20,7 @@ import {
   tallyPicks,
   type Tally,
   type TotyQuestion,
+  type TyLayout,
 } from './logic';
 import { Doodle, Face } from './art';
 import { Leaderboard, TimerRing } from '../../host/components';
@@ -55,6 +55,7 @@ interface DoodleRound {
 
 export class TotyGame implements Game {
   readonly id = 'toty' as const;
+  private readonly layout: TyLayout;
   private plan: TotyQuestion[];
   private index = -1;
   private phase: Phase = 'selfie';
@@ -73,7 +74,8 @@ export class TotyGame implements Game {
     private host: GameHost,
     public ids: string[],
   ) {
-    this.plan = pickPlan(questions as TotyQuestion[], used);
+    this.layout = host.short ? TY_SHORT : TY_FULL;
+    this.plan = pickPlan(questions as TotyQuestion[], used, Math.random, this.layout);
     for (const id of ids) this.scores[id] = 0;
   }
 
@@ -82,13 +84,13 @@ export class TotyGame implements Game {
   }
 
   private get isFinal() {
-    return this.index === TY_QUESTIONS - 1;
+    return this.index === this.layout.questions - 1;
   }
 
   start() {
     this.phase = 'selfie';
-    this.endsAt = Date.now() + TY_SELFIE_MS;
-    this.after(TY_SELFIE_MS, () => this.nextQuestion());
+    this.endsAt = Date.now() + this.layout.selfieMs;
+    this.after(this.layout.selfieMs, () => this.nextQuestion());
     sound.reveal();
     this.update();
   }
@@ -138,7 +140,7 @@ export class TotyGame implements Game {
 
   private nextQuestion() {
     this.index++;
-    if (this.index >= TY_QUESTIONS) {
+    if (this.index >= this.layout.questions) {
       this.host.finish(this.scores);
       return;
     }
@@ -165,7 +167,7 @@ export class TotyGame implements Game {
     for (const id of this.tally.winners) this.host.buzz(id, [200, 80, 200]);
     sound.reveal();
     window.setTimeout(() => (this.tally.winners.length ? sound.correct() : sound.wrong()), 1400);
-    const doodleNext = (TY_DOODLE_AFTER as readonly number[]).includes(this.index) && !!this.q.draw;
+    const doodleNext = this.layout.doodleAfter.includes(this.index) && !!this.q.draw;
     this.after(VOTE_REVEAL_MS, () => (doodleNext ? this.startDraw() : this.nextQuestion()));
     this.update();
   }
@@ -328,7 +330,7 @@ export class TotyGame implements Game {
         return {
           v: 'tyVote',
           q: this.index + 1,
-          total: TY_QUESTIONS,
+          total: this.layout.questions,
           question: this.q.question,
           double: this.isFinal,
           endsAt: this.endsAt,
@@ -379,7 +381,7 @@ export class TotyGame implements Game {
           <div class="quiz-top">
             <div class="pill pill-cat">Selfie time!</div>
             <div class="grow" />
-            {timer(TY_SELFIE_MS)}
+            {timer(this.layout.selfieMs)}
           </div>
           <h2 class="ty-title">Take a selfie on your phone – pull your best face!</h2>
           <div class="ty-selfies">
@@ -407,7 +409,7 @@ export class TotyGame implements Game {
       return (
         <div class="screen bp-scores" key={`s${this.index}`}>
           <h2 class="screen-title">
-            Scores after {this.index + 1} of {TY_QUESTIONS} questions
+            Scores after {this.index + 1} of {this.layout.questions} questions
           </h2>
           <Leaderboard rows={players.map((p) => ({ id: p.id, name: p.name, color: p.color, score: this.scores[p.id] ?? 0, delta: this.roundPoints[p.id] }))} />
         </div>
@@ -422,7 +424,7 @@ export class TotyGame implements Game {
         <div class="screen ty" key={`v${this.index}`}>
           <div class="quiz-top">
             <div class="pill">
-              Question {this.index + 1} / {TY_QUESTIONS}
+              Question {this.index + 1} / {this.layout.questions}
             </div>
             {this.isFinal && <div class="pill pill-cat">Double points!</div>}
             <div class="grow" />

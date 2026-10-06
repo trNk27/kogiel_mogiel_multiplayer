@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
-import { GAMES, MAX_PLAYERS, colorHex, difficultyName, gameInfo, rallyTrack, type GameId } from '../../../shared/protocol';
+import { GAMES, MAX_PLAYERS, TOURNAMENT_GAMES, TOURNAMENT_POINTS, colorHex, difficultyName, gameInfo, rallyTrack, type GameId, type Selection } from '../../../shared/protocol';
 import { FolkBorder, Logo, Pierogi, Rosette } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
@@ -7,11 +7,19 @@ import { HostController, type Standing } from './controller';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
-import { RACES } from '../games/rally/RallyGame';
+import { RACES, RACES_SHORT } from '../games/rally/RallyGame';
 import { LAPS } from '../games/rally/sim';
+import { QUIZ_ROUND_LENGTH, QUIZ_ROUND_LENGTH_SHORT } from '../games/quiz/logic';
+import { BP_QUESTIONS_PER_GAME, BP_QUESTIONS_SHORT } from '../games/ballpark/logic';
+import { PEDAL_GOAL, PEDAL_HEATS, PEDAL_HEATS_SHORT } from '../games/pedal/logic';
+import { FORK_ROUNDS, FORK_ROUNDS_SHORT } from '../games/fork/logic';
+import { PARADE_ROUNDS, PARADE_ROUNDS_SHORT } from '../games/parade/logic';
+import { TY_FULL, TY_SHORT } from '../games/toty/logic';
 
 const controller = new HostController();
 const params = new URLSearchParams(location.search);
+// For automated tests: /?debug exposes the room (e.g. `host.finish({...})` ends the current game).
+if (params.has('debug')) (window as unknown as { host: HostController }).host = controller;
 
 /** Scale the fixed 1920×1080 stage to fit any screen. */
 function useStageScale() {
@@ -59,11 +67,23 @@ export function HostApp() {
     case 'intro':
       body = <Intro game={s.game} />;
       break;
+    case 'tourIntro':
+      body = <TourIntro />;
+      break;
+    case 'tourEnd':
+      body = <TourEnd standings={s.standings} games={s.games} />;
+      break;
     case 'game':
       body = c.game?.render();
       break;
     case 'results':
-      body = s.coop ? <CoopResults game={s.game} standings={s.standings} coop={s.coop} /> : <Results game={s.game} standings={s.standings} />;
+      body = s.coop ? (
+        <CoopResults game={s.game} standings={s.standings} coop={s.coop} />
+      ) : c.tournament ? (
+        <TourResults game={s.game} standings={s.standings} />
+      ) : (
+        <Results game={s.game} standings={s.standings} />
+      );
       break;
   }
 
@@ -113,7 +133,7 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
   return (
     <div class="screen landing">
       <FolkBorder count={9} size={64} />
-      <Logo size={2.1} />
+      <Logo size={1.75} />
       <p class="landing-sub">Party games for the whole sofa. One screen, everyone’s phones, zero installs.</p>
       <div class="landing-actions">
         <button class="btn btn-big btn-yolk" autofocus disabled={busy} onClick={() => controller.create()}>
@@ -212,28 +232,14 @@ function Lobby() {
         </div>
 
         <div class="game-picker">
-          {GAMES.map((g) => (
-            <div class={`game-card ${g.id === c.selected ? 'selected' : ''}`} key={g.id}>
-              <GameIcon game={g.id} size={84} />
-              <div>
-                <div class="game-card-title">{g.title}</div>
-                <div class="game-card-tag">{g.tagline}</div>
-                {g.maxPlayers && <div class="game-card-flag">Up to {g.maxPlayers} players</div>}
-                {g.id === 'rally' && (
-                  <div class="game-card-flag">
-                    {rallyTrack(c.options.track).name} · {c.options.items ? 'items on' : 'items off'}
-                  </div>
-                )}
-                {g.id === 'trails' && c.options.powerups && <div class="game-card-flag">Power-ups on</div>}
-                {g.id === 'kitchen' && (
-                  <div class="game-card-flag">
-                    {difficultyName(c.options.difficulty)} · from level {c.options.level}
-                  </div>
-                )}
-              </div>
+          {(['tournament', ...GAMES.map((g) => g.id)] as Selection[]).map((id) => (
+            <div class={`game-card ${id === 'tournament' ? 'tour' : ''} ${id === c.selected ? 'selected' : ''}`} key={id}>
+              <GameIcon game={id} size={64} />
+              <div class="game-card-title">{id === 'tournament' ? 'Tournament' : gameInfo(id).title}</div>
             </div>
           ))}
         </div>
+        <SelectedGame sel={c.selected} />
         <div class="lobby-hint">
           {!vip
             ? 'Scan the code to join – the first player becomes the VIP.'
@@ -246,21 +252,101 @@ function Lobby() {
   );
 }
 
-const HOW_TO: Record<GameId, string[]> = {
+/** The selected game's tagline and settings, under the game picker. */
+function SelectedGame({ sel }: { sel: Selection }) {
+  const o = controller.options;
+  if (sel === 'tournament')
+    return (
+      <div class="game-detail">
+        <b>Tournament</b>
+        <span>{TOURNAMENT_GAMES} random games in a row, short versions, no co-op. Win games, collect points, take the crown.</span>
+      </div>
+    );
+  const g = gameInfo(sel);
+  const flags: string[] = [];
+  if (g.maxPlayers) flags.push(`Up to ${g.maxPlayers} players`);
+  if (g.coop) flags.push('Co-op');
+  if (sel === 'rally') flags.push(`${rallyTrack(o.track).name} · ${o.items ? 'items on' : 'items off'}`);
+  if (sel === 'trails' && o.powerups) flags.push('Power-ups on');
+  if (sel === 'kitchen') flags.push(`${difficultyName(o.difficulty)} · from level ${o.level}`);
+  return (
+    <div class="game-detail">
+      <b>{g.title}</b>
+      <span>{g.tagline}</span>
+      {flags.map((f) => (
+        <span class="game-card-flag">{f}</span>
+      ))}
+    </div>
+  );
+}
+
+/** How to play, for the intro screen. Tournaments play the short versions. */
+function howTo(game: GameId, short: boolean): string[] {
+  switch (game) {
+    case 'quiz':
+      return [
+        'Read the question on the TV.',
+        'Tap the matching colour on your phone – faster answers score more.',
+        `Up to 1000 points per question. ${short ? QUIZ_ROUND_LENGTH_SHORT : QUIZ_ROUND_LENGTH} questions.`,
+      ];
+    case 'ballpark':
+      return [
+        'Type your best guess for the number on your phone.',
+        'Then bet on the guess you think is closest without going over.',
+        `Win points for the best guess and for smart bets – edges pay more! ${short ? BP_QUESTIONS_SHORT : BP_QUESTIONS_PER_GAME} questions.`,
+      ];
+    case 'rally': {
+      const races = short ? RACES_SHORT : RACES;
+      return [
+        HOW_TO.rally[0],
+        HOW_TO.rally[1],
+        `${races === 1 ? 'One race' : `${races} races`} of ${LAPS} laps on ${races === 1 ? 'a random track' : 'random tracks'} with bridges and tunnels. 15 points for a win, 12 for second, and so on.`,
+      ];
+    }
+    case 'trails':
+      return short ? [...HOW_TO.trails.slice(0, 2), 'Each time someone crashes, everyone still alive gets a point. Short game: first to 5 per opponent!'] : HOW_TO.trails;
+    case 'toty': {
+      const l = short ? TY_SHORT : TY_FULL;
+      return [
+        HOW_TO.toty[0],
+        `${l.questions} “Who’s most likely to…?” questions. Vote for a player – you score if you agree with the room.`,
+        l.doodleAfter.length === 1 ? 'Once, everyone doodles on the chosen player’s photo. Vote for the best one!' : HOW_TO.toty[2],
+      ];
+    }
+    case 'pedal': {
+      const heats = short ? PEDAL_HEATS_SHORT : PEDAL_HEATS;
+      return [
+        'Your phone has two pedals. Tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can.',
+        `Only alternating taps count! ${PEDAL_GOAL} strokes to the finish line.`,
+        heats === 1 ? 'One heat – first across the line wins.' : `${heats} heats: 10 points for a win, 8 for second, and so on.`,
+      ];
+    }
+    case 'fork': {
+      const rounds = short ? FORK_ROUNDS_SHORT : FORK_ROUNDS;
+      return [
+        'Watch the plate on your phone. When a pierogi lands on it, tap to stab it – fast!',
+        'Socks, slippers and rubber ducks land too. Stab one (or stab too early) and you lose a point.',
+        `${rounds} rounds. The fastest fork gets 3 points, then 2, then 1.`,
+      ];
+    }
+    case 'parade': {
+      const rounds = short ? PARADE_ROUNDS_SHORT : PARADE_ROUNDS;
+      return [
+        'Pierogi of every colour march across the TV.',
+        'Tap your phone once for every pierogi of the colour you’re told to count – and ignore the rest.',
+        `${rounds === 1 ? 'One round' : `${rounds} rounds, each busier than the last`}. Exactly right: 10 points, 1 off: 6, 2 off: 3, 3 off: 1.`,
+      ];
+    }
+    default:
+      return HOW_TO[game];
+  }
+}
+
+const HOW_TO: Record<'trails' | 'kitchen' | 'rally' | 'toty', string[]> = {
   trails: [
     'Hold LEFT or RIGHT on your phone to steer your noodle.',
     'Hit a wall or any trail and you’re out. Slip through the little gaps!',
     'Each time someone crashes, everyone still alive gets a point.',
-  ],
-  quiz: [
-    'Read the question on the TV.',
-    'Tap the matching colour on your phone – faster answers score more.',
-    'Up to 1000 points per question. 10 questions.',
-  ],
-  ballpark: [
-    'Type your best guess for the number on your phone.',
-    'Then bet on the guess you think is closest without going over.',
-    'Win points for the best guess and for smart bets – edges pay more!',
   ],
   kitchen: [
     'Everyone cooks together! Walk your chef with the joystick on your phone.',
@@ -281,15 +367,22 @@ const HOW_TO: Record<GameId, string[]> = {
 
 function Intro({ game }: { game: GameId }) {
   const info = gameInfo(game);
+  const t = controller.tournament;
   return (
     <div class="screen intro">
+      {t && (
+        <div class="intro-tour">
+          🏆 Tournament · game {t.index + 1} of {t.games.length} · short version
+        </div>
+      )}
       <div class="intro-icon pop-in">
         <GameIcon game={game} size={220} />
       </div>
       <h1 class="intro-title">{info.title}</h1>
-      <p class="intro-tag">{info.tagline}</p>
-      <ol class="intro-steps">
-        {HOW_TO[game].map((step, i) => (
+      {/* Taglines name the full game's length; in a tournament the steps say how long it is. */}
+      {!t && <p class="intro-tag">{info.tagline}</p>}
+      <ol class={`intro-steps ${t ? 'short' : ''}`}>
+        {howTo(game, !!t).map((step, i) => (
           <li style={{ animationDelay: `${400 + i * 250}ms` }}>
             <span class="intro-num">{i + 1}</span>
             {step}
@@ -303,56 +396,186 @@ function Intro({ game }: { game: GameId }) {
   );
 }
 
-function Results({ game, standings }: { game: GameId; standings: Standing[] }) {
-  const c = controller;
+function Podium({ standings, unit = '' }: { standings: Standing[]; unit?: string }) {
   const podium = [standings[1], standings[0], standings[2]].filter((x): x is Standing => !!x);
-  const party = [...c.players.values()].sort((a, b) => b.party - a.party);
-  const vip = c.summaries().find((p) => p.vip);
+  return (
+    <div class="podium" style={{ gridTemplateColumns: `repeat(${Math.max(1, podium.length)}, minmax(0, 340px))` }}>
+      {podium.map((st) => (
+        <div class={`podium-col p${st.place}`} style={{ animationDelay: `${st.place === 1 ? 900 : st.place === 2 ? 400 : 0}ms` }}>
+          <Pierogi color={colorHex(st.color)} size={st.place === 1 ? 170 : 130} mood="wow" class="bob" />
+          <div class="podium-name">{st.name}</div>
+          <div class="podium-score">
+            {st.score.toLocaleString('en-US')}
+            {unit}
+          </div>
+          <div class="podium-block" style={{ background: colorHex(st.color) }}>
+            {st.place}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RestOfField({ standings, unit = '' }: { standings: Standing[]; unit?: string }) {
+  if (standings.length <= 3) return null;
+  return (
+    <div class="results-rest card-dark">
+      {standings.slice(3).map((st) => (
+        <div class="results-rest-row">
+          <span>{st.place}.</span>
+          <Pierogi color={colorHex(st.color)} size={40} />
+          <span class="grow">{st.name}</span>
+          <b>
+            {st.score.toLocaleString('en-US')}
+            {unit}
+          </b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PartyTable({ sub }: { sub: string }) {
+  const party = [...controller.players.values()].sort((a, b) => b.party - a.party);
+  return (
+    <div class="party-table card-paper">
+      <div class="party-title">Party standings</div>
+      <div class="party-sub">{sub}</div>
+      {party.map((p, i) => (
+        <div class="party-row">
+          <span class="party-rank">{i + 1}</span>
+          <Pierogi color={colorHex(p.color)} size={44} />
+          <span class="grow">{p.name}</span>
+          <b>{p.party}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Results({ game, standings }: { game: GameId; standings: Standing[] }) {
+  const vip = controller.summaries().find((p) => p.vip);
   return (
     <div class="screen results">
       <h1 class="results-title">{gameInfo(game).title} – final scores</h1>
       <div class="results-body">
-        <div class="podium" style={{ gridTemplateColumns: `repeat(${Math.max(1, podium.length)}, minmax(0, 340px))` }}>
-          {podium.map((st) => (
-            <div class={`podium-col p${st.place}`} style={{ animationDelay: `${st.place === 1 ? 900 : st.place === 2 ? 400 : 0}ms` }}>
-              <Pierogi color={colorHex(st.color)} size={st.place === 1 ? 170 : 130} mood="wow" class="bob" />
-              <div class="podium-name">{st.name}</div>
-              <div class="podium-score">{st.score.toLocaleString('en-US')}</div>
-              <div class="podium-block" style={{ background: colorHex(st.color) }}>
-                {st.place}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Podium standings={standings} />
         <Confetti />
         <div class="results-side">
-          {standings.length > 3 && (
-            <div class="results-rest card-dark">
-              {standings.slice(3).map((st) => (
-                <div class="results-rest-row">
-                  <span>{st.place}.</span>
-                  <Pierogi color={colorHex(st.color)} size={40} />
-                  <span class="grow">{st.name}</span>
-                  <b>{st.score.toLocaleString('en-US')}</b>
-                </div>
-              ))}
-            </div>
-          )}
-          <div class="party-table card-paper">
-            <div class="party-title">Party standings</div>
-            <div class="party-sub">3 points for a win, 2 for second, 1 for third</div>
-            {party.map((p, i) => (
-              <div class="party-row">
-                <span class="party-rank">{i + 1}</span>
-                <Pierogi color={colorHex(p.color)} size={44} />
-                <span class="grow">{p.name}</span>
-                <b>{p.party}</b>
-              </div>
-            ))}
-          </div>
+          <RestOfField standings={standings} />
+          <PartyTable sub="3 points for a win, 2 for second, 1 for third" />
         </div>
       </div>
       <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>
+    </div>
+  );
+}
+
+// ---- Tournament ---------------------------------------------------------------
+
+/** The tournament's games in a row: played ones ticked, the current one highlighted. */
+function Lineup({ games, current, done, compact }: { games: GameId[]; current: number; done: number; compact?: boolean }) {
+  return (
+    <div class={`tour-lineup ${compact ? 'compact' : ''}`}>
+      {games.map((g, i) => (
+        <div class={`tour-slot ${i < done ? 'done' : ''} ${i === current ? 'now' : ''}`} style={{ animationDelay: `${compact ? 0 : 300 + i * 450}ms` }}>
+          <span class="tour-slot-num">{i < done && i !== current ? '✓' : i + 1}</span>
+          <GameIcon game={g} size={compact ? 40 : i === current ? 96 : 76} />
+          <b>{gameInfo(g).title}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TourIntro() {
+  const t = controller.tournament;
+  if (!t) return null;
+  return (
+    <div class="screen intro tour-intro">
+      <div class="intro-icon pop-in">
+        <GameIcon game="tournament" size={180} />
+      </div>
+      <h1 class="intro-title">Tournament!</h1>
+      <p class="intro-tag">
+        {t.games.length} quick games. Points for every game: {TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} for 1st, 2nd, 3rd…
+      </p>
+      <Lineup games={t.games} current={-1} done={0} />
+      <div class="intro-bar">
+        <div class="intro-bar-fill" style={{ animationDuration: '9s' }} />
+      </div>
+    </div>
+  );
+}
+
+/** The tournament points table, with what each player just earned. */
+function TourTable({ title }: { title: string }) {
+  const t = controller.tournament;
+  if (!t) return null;
+  const rows = [...controller.players.values()].map((p) => ({ p, pts: t.points[p.id] ?? 0, gained: t.gained[p.id] ?? 0 })).sort((a, b) => b.pts - a.pts);
+  return (
+    <div class="party-table card-paper">
+      <div class="party-title">{title}</div>
+      <div class="party-sub">
+        {TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} points for 1st, 2nd, 3rd… in each game
+      </div>
+      {rows.map(({ p, pts, gained }) => (
+        <div class="party-row">
+          <span class="party-rank">{1 + rows.filter((o) => o.pts > pts).length}</span>
+          <Pierogi color={colorHex(p.color)} size={44} />
+          <span class="grow">{p.name}</span>
+          {gained > 0 && <span class="tour-gain">+{gained}</span>}
+          <b>{pts}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TourResults({ game, standings }: { game: GameId; standings: Standing[] }) {
+  const t = controller.tournament!;
+  const vip = controller.summaries().find((p) => p.vip);
+  const next = t.games[t.index + 1];
+  return (
+    <div class="screen results tour-results">
+      <h1 class="results-title">
+        {gameInfo(game).title} – game {t.index + 1} of {t.games.length}
+      </h1>
+      <Lineup games={t.games} current={t.index} done={t.index + 1} compact />
+      <div class="results-body">
+        <Podium standings={standings} />
+        <Confetti />
+        <div class="results-side">
+          <RestOfField standings={standings} />
+          <TourTable title="Tournament" />
+        </div>
+      </div>
+      <div class="lobby-hint">
+        {vip ? (next ? `${vip.name} (VIP): press “Next game” for ${gameInfo(next).title}.` : `${vip.name} (VIP): press “Crown the champion”!`) : ''}
+      </div>
+    </div>
+  );
+}
+
+function TourEnd({ standings, games }: { standings: Standing[]; games: GameId[] }) {
+  const vip = controller.summaries().find((p) => p.vip);
+  const champs = standings.filter((st) => st.place === 1);
+  return (
+    <div class="screen results tour-end">
+      <h1 class="results-title">
+        🏆 {champs.map((c) => c.name).join(' & ')} {champs.length > 1 ? 'share' : 'wins'} the tournament!
+      </h1>
+      <Lineup games={games} current={-1} done={games.length} compact />
+      <div class="results-body">
+        <Podium standings={standings} unit=" pts" />
+        <Confetti />
+        <div class="results-side">
+          <RestOfField standings={standings} unit=" pts" />
+          <PartyTable sub="The tournament counts as one game: 3 / 2 / 1 party points" />
+        </div>
+      </div>
+      <div class="lobby-hint">{vip ? `${vip.name} (VIP): another tournament, or pick a game on your phone.` : ''}</div>
     </div>
   );
 }

@@ -11,6 +11,8 @@ export const QUIZ_TIME_MS = 20_000;
 export const QUIZ_MAX_POINTS = 1000;
 export const QUIZ_MIN_POINTS = 500;
 export const QUIZ_ROUND_LENGTH = 10;
+/** Tournament version. */
+export const QUIZ_ROUND_LENGTH_SHORT = 5;
 
 /** Points for an answer given `elapsedMs` after the question opened. Wrong/no answer: 0. */
 export function quizPoints(correct: boolean, elapsedMs: number, limitMs = QUIZ_TIME_MS): number {
