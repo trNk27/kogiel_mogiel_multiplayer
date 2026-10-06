@@ -14,7 +14,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is the controller: GAS and BRAKE at the top, and a steering wheel below that you swipe left and right. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup, a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. Hold **BRAKE while turning** to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **tap the item button** to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup, a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 | **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 100 prompts. | 3–8 |
 
@@ -296,7 +296,7 @@ changes.
   lap). It has houses with gable roofs, a few PRL apartment blocks, a church with a spire, a SKLEP
   corner shop and street lamps. Everything is instanced and flat-shaded.
 - **Items** (`sim.ts`, `ITUNING`): three rows of four ? boxes per lap, which come back 3 s after
-  being taken. You hold one item at a time. Tapping the item button sends `act`, which fires
+  being taken. You hold one item at a time. Lifting your thumb off the pad (without a TV: tapping the item button) sends `act`, which fires
   it (Space does the same on the dev bench). Leaders are more likely to get defence items, and the
   back of the field gets catch-up items: no Rocket or Thunderstorm for the leader.
 
@@ -322,10 +322,10 @@ changes.
   takes at most 4 players: with more people in the room, the VIP can’t start it. It renders at 45 %
   of 1080p and is scaled up with nearest-neighbour filtering. Flat-shaded low-poly meshes, 4–32 px
   textures, blob shadows and fog give it the PS2 feel.
-- With a TV the phone is a controller: GAS and BRAKE · DRIFT at the top, the item button, and a
-  steering wheel below (swipe left/right; `steer.tsx`, shared with the no-TV view). It sends the
-  stick (x = steering in steps of 5, y = −100 gas / 100 brake) at most 20 times a second, only when
-  it changes.
+- With a TV the phone is a thumb pad: left/right steers, up is gas, down brakes (and drifts once
+  you pull past halfway while turning; the brake half glows with the sparks). It sends the stick
+  (−100…100 on both axes, in steps of 5) at most 20 times a second, only when it changes, and zero
+  when the thumb lifts, which also fires your item.
 - `/?debug&shape=figure8` on the TV forces the first track shape and exposes the running game as
   `window.rally`, for testing.
 - **Without a TV** (`client.ts`), each phone runs the car physics for its **own** car (so steering
