@@ -233,6 +233,10 @@ export class RallyScene {
     bandMat: new MeshLambertMaterial({ color: '#a5462e', flatShading: true }),
   };
   private water: CanvasTexture | null = null;
+  private sprayParts = {
+    puff: new IcosahedronGeometry(1, 0),
+    mat: new MeshLambertMaterial({ color: '#c2185b', emissive: '#6d0d2e', transparent: true, opacity: 0.55, depthWrite: false, flatShading: true }),
+  };
   private boxMeshes: Mesh[] = [];
   private slickMeshes: Group[] = [];
   private pickleMeshes: Mesh[] = [];
@@ -1013,7 +1017,21 @@ export class RallyScene {
         band.position.set(x, 1.2, 0);
         hay.add(band);
       }
-      g.add(butter, hay);
+      const spray = new Group();
+      spray.name = 'spray';
+      for (const [x, y, z, r] of [
+        [0, 1.6, 0, 2.6],
+        [1.9, 1.1, 0.8, 1.9],
+        [-1.8, 1.3, -0.6, 2.1],
+        [0.6, 3, -0.9, 1.7],
+        [-0.7, 2.6, 1.3, 1.6],
+      ]) {
+        const puff = new Mesh(this.sprayParts.puff, this.sprayParts.mat);
+        puff.position.set(x, y, z);
+        puff.scale.setScalar(r);
+        spray.add(puff);
+      }
+      g.add(butter, hay, spray);
       this.scene.add(g);
       this.slickMeshes.push(g);
     }
@@ -1025,6 +1043,9 @@ export class RallyScene {
       g.rotation.y = Math.PI / 2 - s.heading;
       g.getObjectByName('butter')!.visible = s.kind === 'butter';
       g.getObjectByName('hay')!.visible = s.kind === 'hay';
+      const spray = g.getObjectByName('spray')!;
+      spray.visible = s.kind === 'spray';
+      if (spray.visible) spray.rotation.y = now / 1400 + i;
     });
     while (this.bombMeshes.length < st.bombs.length) {
       const m = new Mesh(this.bombGeo, this.bombMat);

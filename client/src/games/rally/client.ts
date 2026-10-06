@@ -8,7 +8,7 @@
  * snapshots.
  */
 import { RALLY_CAR_STRIDE, RALLY_FX_BITS, colorHex, type HostToPhone, type PhoneMsg, type RallyNet } from '../../../../shared/protocol';
-import { DT, ITUNING, LAPS, RallySim, hitEffect, selfEffect, type Blast, type Bomb, type Pickle, type Slick } from './sim';
+import { DT, HAZARDS, ITUNING, LAPS, RallySim, hitEffect, selfEffect, type Blast, type Bomb, type Pickle, type Slick } from './sim';
 import { generateTrack, pointAt, project, type Shape, type Track } from './track';
 import { RallyScene, type RaceState } from './render3d';
 import { Minimap } from './minimap';
@@ -243,7 +243,7 @@ export class RallyClient {
     const since = (now - L.at) / 1000;
     const slicks: Slick[] = [];
     for (let k = 0; k + 4 < m.s.length; k += 5)
-      slicks.push({ x: m.s[k], z: m.s[k + 1], h: m.s[k + 2], heading: m.s[k + 3], kind: m.s[k + 4] ? 'hay' : 'butter', until: Infinity, owner: -1, safeUntil: 0 });
+      slicks.push({ x: m.s[k], z: m.s[k + 1], h: m.s[k + 2], heading: m.s[k + 3], kind: HAZARDS[m.s[k + 4]] ?? 'butter', until: Infinity, owner: -1, safeUntil: 0 });
     const pickles: Pickle[] = [];
     for (let k = 0; k + 1 < m.p.length; k += 2) {
       const d = m.p[k] + ITUNING.pickleSpeed * Math.min(0.3, since);

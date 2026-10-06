@@ -14,7 +14,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a different randomly generated track shape (forest ring, kidney, clover, figure eight with a bridge, town circuit, speedway), with a little Polish town along the way. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment to use them**: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost and Hay Bale. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or dragging, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a different randomly generated track shape (forest ring, kidney, clover, figure eight with a bridge, town circuit, speedway), with a little Polish town along the way. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment to use them**: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or dragging, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 
 ## How a party works
@@ -40,7 +40,9 @@ where every phone renders the race itself:
   countdown: **tilt** (hold the phone like a steering wheel and turn it; works in portrait and
   landscape) or **drag** (put a thumb anywhere on the steering pad and slide it sideways; a wheel
   under your thumb shows how far you're turning). BRAKE slows you down or reverses, and the item
-  button fires your item.
+  button fires your item. The speed sits on the right, out of the way of the road.
+- **Full screen**: the ⛶ button (top right, or in the countdown) hides the browser bars. iPhones
+  don't allow that for web pages, so there the countdown suggests Share → Add to Home Screen.
 - Keep the host phone's page open: if it locks or loses signal, the game pauses for everyone until
   it's back (it resumes the room after a reload, like the TV does).
 
@@ -288,6 +290,7 @@ changes.
   | Beet Splash | barszcz on the windscreen of everyone ahead: their view is blotted for 4 s |
   | Babcia’s Ghost | 4.5 s see-through and untouchable (no bumps, no hits), and you steal the item of the nearest car ahead |
   | Hay Bale | dropped behind you; whoever drives into it stops dead |
+  | Barszcz Sprayer | three red clouds of barszcz along the road behind you, for 12 s; driving through one covers your windscreen for 3.5 s (each cloud gets each car once) |
 - **Physics** (`sim.ts`, `RTUNING`): top speed 42 m/s (≈150 km/h), 20 on the grass verge.
   Steering needs some speed and calms down near top speed. Barriers 13 m from the centre line slow
   you down and let you slide along them. Cars bump each other. Progress is measured along the track,

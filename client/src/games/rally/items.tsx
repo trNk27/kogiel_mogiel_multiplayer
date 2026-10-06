@@ -76,6 +76,18 @@ export function ItemIcon({ item, size = 64 }: { item: RallyItem; size?: number }
         <ellipse cx="50" cy="68" rx="6" ry="8" fill={INK} />
       </>
     ),
+    spray: (
+      <>
+        <path d="M30 40 H62 V86 Q62 92 56 92 H36 Q30 92 30 86 Z" fill="#c2185b" stroke={INK} stroke-width="4" stroke-linejoin="round" />
+        <rect x="36" y="26" width="20" height="14" rx="3" fill="#fff4dc" stroke={INK} stroke-width="4" />
+        <path d="M56 30 H70 L74 24" fill="none" stroke={INK} stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M36 54 H56" stroke="#f06292" stroke-width="4" stroke-linecap="round" />
+        <circle cx="82" cy="18" r="5" fill="#c2185b" />
+        <circle cx="90" cy="30" r="4" fill="#c2185b" />
+        <circle cx="80" cy="34" r="3.5" fill="#c2185b" />
+        <circle cx="92" cy="12" r="3" fill="#c2185b" />
+      </>
+    ),
     hay: (
       <>
         <rect x="12" y="34" width="76" height="48" rx="10" fill="#e9c25a" stroke={INK} stroke-width="4" />
@@ -106,6 +118,8 @@ export function hitLabel(kind: RallyItem, blocked: boolean) {
       return 'BARSZCZ!';
     case 'hay':
       return 'BONK!';
+    case 'spray':
+      return 'SPRAYED!';
     default:
       return 'ZAP!';
   }

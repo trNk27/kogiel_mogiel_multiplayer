@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { RALLY_FX_BITS, RALLY_ITEMS, colorHex, type HostToPhone, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
-import { DT, LAPS, RallySim, racePoints } from './sim';
+import { DT, HAZARDS, LAPS, RallySim, racePoints } from './sim';
 import { generateTrack, type Track } from './track';
 import { RENDER_SCALE, RallyScene, splitLayout, type Slot } from './render3d';
 import { ItemIcon, hitLabel } from './items';
@@ -83,7 +83,8 @@ export class RallyGame implements Game {
     // For automated tests: /?debug exposes the running game.
     const q = new URLSearchParams(location.search);
     if (q.has('debug')) {
-      (window as unknown as { rally: RallyGame }).rally = this;
+      // Without a TV the host runs on a phone, whose own race view is window.rally.
+      (window as unknown as Record<string, RallyGame>)[this.net ? 'rallyHost' : 'rally'] = this;
       const forced = q.get('shape') as Shape | null;
       if (forced && SHAPES.includes(forced)) this.shapes = [forced, ...this.shapes.filter((x) => x !== forced)];
     }
@@ -302,7 +303,7 @@ export class RallyGame implements Game {
     const b: number[] = [];
     sim.boxes.forEach((box, i) => box.back > sim.time && b.push(i));
     const sl: number[] = [];
-    for (const x of sim.slicks) sl.push(round(x.x), round(x.z), round(x.h), round(x.heading, 100), x.kind === 'hay' ? 1 : 0);
+    for (const x of sim.slicks) sl.push(round(x.x), round(x.z), round(x.h), round(x.heading, 100), HAZARDS.indexOf(x.kind));
     const p: number[] = [];
     for (const x of sim.pickles) p.push(round(x.d), round(x.lateral));
     const k: number[] = [];

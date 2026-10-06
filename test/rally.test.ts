@@ -233,7 +233,7 @@ describe('items', () => {
     expect(last.boost).toBeGreaterThan(lead.boost);
     const rng = mulberry32(3);
     const seen = new Set(Array.from({ length: 400 }, () => rollItem(Math.random(), 4, rng)));
-    expect(seen.size).toBe(10);
+    expect(seen.size).toBe(11);
   });
 });
 

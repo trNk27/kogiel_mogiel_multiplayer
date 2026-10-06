@@ -39,6 +39,11 @@ export const ITUNING = {
   bombRadius: 8,
   bombSpin: 1.4,
   inkTime: 4,
+  /** Barszcz Sprayer: clouds along the road behind you, how big, how long they hang there, how long they blind you. */
+  sprayBack: [6, 13, 20],
+  sprayRadius: 6,
+  sprayLife: 12,
+  sprayInk: 3.5,
   ghostTime: 4.5,
   boxRespawn: 3,
   /** Box rows along the lap (fractions of its length) and their lateral offsets. */
@@ -102,11 +107,15 @@ export interface ItemBox {
   back: number;
 }
 
-export type HazardKind = 'butter' | 'hay';
+export type HazardKind = 'butter' | 'hay' | 'spray';
+/** Hazard kinds by their number in a no-TV snapshot. */
+export const HAZARDS: readonly HazardKind[] = ['butter', 'hay', 'spray'];
 
-/** Something dropped on the road: a butter slick or a hay bale. */
+/** Something left on the road: a butter slick, a hay bale or a cloud of barszcz. */
 export interface Slick {
   kind: HazardKind;
+  /** Spray clouds stay put and get each car once: the cars they already got. */
+  touched?: number[];
   x: number;
   z: number;
   h: number;
@@ -179,7 +188,7 @@ export function gridSlot(track: Track, k: number) {
  * Leaders mostly get defence; the back of the field gets the catch-up items.
  */
 export function itemWeights(f: number, cars: number): Record<RallyItem, number> {
-  if (cars <= 1) return { boost: 3, butter: 0, pickle: 0, lid: 0, storm: 0, rocket: 1, bomb: 0, beet: 0, ghost: 0.5, hay: 0 };
+  if (cars <= 1) return { boost: 3, butter: 0, pickle: 0, lid: 0, storm: 0, rocket: 1, bomb: 0, beet: 0, ghost: 0.5, hay: 0, spray: 0 };
   return {
     boost: 2 + 2 * f,
     butter: 2.4 - 1.6 * f,
@@ -191,6 +200,7 @@ export function itemWeights(f: number, cars: number): Record<RallyItem, number> 
     beet: f < 0.2 ? 0 : 1.8 * f,
     ghost: 0.5 + 1.2 * f,
     hay: 2 - 1.6 * f,
+    spray: 2 - 1.2 * f,
   };
 }
 
@@ -231,8 +241,8 @@ export function selfEffect(c: Car, item: RallyItem) {
 /** What being hit does to a car (shields, rockets and ghosts are dealt with by the caller). */
 export function hitEffect(c: Car, kind: RallyItem) {
   const I = ITUNING;
-  if (kind === 'beet') {
-    c.ink = I.inkTime;
+  if (kind === 'beet' || kind === 'spray') {
+    c.ink = Math.max(c.ink, kind === 'beet' ? I.inkTime : I.sprayInk);
     return;
   }
   if (kind === 'storm') {
@@ -426,6 +436,13 @@ export class RallySim {
         });
         break;
       }
+      case 'spray':
+        // A trail of barszcz mist along the road behind you.
+        for (const back of I.sprayBack) {
+          const p = pointAt(this.track, c.along - back, c.lateral * 0.6);
+          this.slicks.push({ kind: 'spray', touched: [idx], x: p.x, z: p.z, h: p.h, heading: p.heading, until: this.time + I.sprayLife, owner: idx, safeUntil: 0 });
+        }
+        break;
       case 'pickle': {
         // Aim at the nearest car ahead (by distance driven).
         const target = this.ahead(c)?.idx ?? null;
@@ -610,6 +627,17 @@ export class RallySim {
     // Butter slicks and hay bales.
     this.slicks = this.slicks.filter((s) => {
       if (s.until < this.time) return false;
+      if (s.kind === 'spray') {
+        // Barszcz clouds hang around and get everybody who drives through them, once.
+        for (const c of this.cars) {
+          if (c.parked || immune(c) || s.touched!.includes(c.idx) || !this.sameLevel(c, s)) continue;
+          if ((c.x - s.x) ** 2 + (c.z - s.z) ** 2 < I.sprayRadius ** 2) {
+            s.touched!.push(c.idx);
+            this.hit(c, s.owner, 'spray');
+          }
+        }
+        return true;
+      }
       for (const c of this.cars) {
         if (c.parked || immune(c) || (c.idx === s.owner && this.time < s.safeUntil) || !this.sameLevel(c, s)) continue;
         if ((c.x - s.x) ** 2 + (c.z - s.z) ** 2 < r2 * (s.kind === 'hay' ? 1.3 : 1)) {

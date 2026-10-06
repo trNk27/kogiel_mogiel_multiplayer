@@ -163,7 +163,7 @@ export const KITCHEN_LEVELS = [
 ] as const;
 
 /** Maluch Rally items. You pick one up from a ? box and fire it by lifting your thumb. */
-export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket' | 'bomb' | 'beet' | 'ghost' | 'hay';
+export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket' | 'bomb' | 'beet' | 'ghost' | 'hay' | 'spray';
 
 export const RALLY_ITEMS: Record<RallyItem, { name: string; does: string }> = {
   boost: { name: 'Kompot Boost', does: 'A burst of speed' },
@@ -176,6 +176,7 @@ export const RALLY_ITEMS: Record<RallyItem, { name: string; does: string }> = {
   beet: { name: 'Beet Splash', does: 'Barszcz on the windscreen of everyone ahead of you' },
   ghost: { name: 'Babcia’s Ghost', does: 'Go see-through and untouchable, and steal an item from someone ahead' },
   hay: { name: 'Hay Bale', does: 'Dropped behind you – anyone who drives into it stops dead' },
+  spray: { name: 'Barszcz Sprayer', does: 'Sprays a red cloud behind you – anyone who drives through it can’t see a thing' },
 };
 
 /** What's happening to a car right now (for the phone). */
@@ -433,7 +434,7 @@ export type HostToPhone =
   /**
    * No-TV Maluch Rally, ~15 times a second: where everything is. `r` is the race number.
    * c: per car [x, z, heading, speed, effect bits (RALLY_FX_BITS)]; b: indices of boxes that are gone;
-   * s: per slick/bale [x, z, h, heading, 0 = butter / 1 = hay]; p: per pickle [d, lateral];
+   * s: per slick/bale/cloud [x, z, h, heading, kind (index in HAZARDS: butter, hay, spray)]; p: per pickle [d, lateral];
    * k: per cabbage [d, lateral, speed, age]; x: per blast [x, z, h, age].
    */
   | { t: 'rs'; r: number; c: number[]; b: number[]; s: number[]; p: number[]; k: number[]; x: number[] }

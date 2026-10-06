@@ -176,6 +176,36 @@ describe('new items', () => {
     expect(sim.slicks).toHaveLength(0);
   });
 
+  it('sprays a barszcz cloud behind you that blinds everyone driving through, once each', () => {
+    const sim = new RallySim(track, 4, LAPS, false);
+    const [a, b, c, d] = sim.cars;
+    place(sim, a, 300, 0, 0);
+    place(sim, b, 287, 0, 0);
+    place(sim, c, 280, 1, 0);
+    place(sim, d, 500, 0, 0);
+    c.shield = 5;
+    a.item = 'spray';
+    sim.useItem(0);
+    expect(sim.slicks.filter((s) => s.kind === 'spray')).toHaveLength(3);
+    const hits = steps(sim, 2);
+    expect(hits.map((h) => [h.idx, h.kind, h.blocked])).toEqual([
+      [1, 'spray', false],
+      [2, 'spray', true],
+    ]);
+    expect(b.ink).toBeGreaterThan(3);
+    expect(b.spin).toBe(0);
+    expect(c.ink).toBe(0);
+    expect(a.ink).toBe(0);
+    expect(d.ink).toBe(0);
+    // The cloud stays, but doesn't get the same car twice.
+    b.ink = 0;
+    expect(steps(sim, 30)).toEqual([]);
+    expect(sim.slicks).toHaveLength(3);
+    // Until it blows away.
+    steps(sim, 12 / DT);
+    expect(sim.slicks).toHaveLength(0);
+  });
+
   it('hands the new items out by position', () => {
     const lead = itemWeights(0, 6);
     const last = itemWeights(1, 6);

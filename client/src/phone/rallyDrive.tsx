@@ -12,6 +12,7 @@ import { Sound } from '../lib/sound';
 import { rallyBus } from './rallyBus';
 import type { Props } from './views';
 import { VipMenu } from './vipMenu';
+import { fullscreenSupported, standalone, toggleFullscreen, useFullscreen } from './fullscreen';
 import { SHAPE_NAMES, type Shape } from '../games/rally/track';
 import { isIOS, screenAngle, tiltSteer } from './tilt';
 
@@ -66,6 +67,8 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
   const itemRef = useRef<RallyItem | null>(null);
   itemRef.current = view.item;
   const racing = view.phase === 'race' || view.phase === 'finished';
+  const fullscreen = useFullscreen();
+  const [canFullscreen] = useState(fullscreenSupported);
 
   const say = (text: string) => setFlash({ text, key: performance.now() });
 
@@ -117,7 +120,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
         if (m.hit) {
           say(hitLabel(m.hit, !!m.blocked));
           if (m.blocked) sfx.tick();
-          else if (m.hit === 'beet') sfx.plop();
+          else if (m.hit === 'beet' || m.hit === 'spray') sfx.plop();
           else sfx.crash();
         }
         if (m.lost) {
@@ -310,6 +313,11 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
           </small>
         </div>
         <span class="grow" />
+        {canFullscreen && (
+          <button class="drive-fs" onClick={toggleFullscreen} aria-label={fullscreen ? 'Leave full screen' : 'Full screen'}>
+            <FullscreenIcon exit={fullscreen} />
+          </button>
+        )}
         {me.vip && <VipMenu send={send} />}
         <canvas ref={mapRef} class="drive-map" width={MAP_PX} height={MAP_PX} />
       </div>
@@ -379,6 +387,14 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
             The car speeds up by itself – hold BRAKE to slow down or reverse.
           </div>
           {tiltProblem && <div class="form-error">{tiltProblem}</div>}
+          {canFullscreen && !fullscreen && (
+            <button class="chip" onClick={toggleFullscreen}>
+              ⛶ Full screen
+            </button>
+          )}
+          {!canFullscreen && isIOS() && !standalone() && (
+            <div class="muted small center">For full screen on an iPhone: Share → Add to Home Screen, then play from there.</div>
+          )}
         </div>
       )}
       {view.phase === 'race' && left > -1 && <div class="drive-count go">GO!</div>}
@@ -527,6 +543,16 @@ function PedalButton(props: { class: string; label: string; down: boolean; onCha
   );
 }
 
+function FullscreenIcon({ exit }: { exit: boolean }) {
+  // Four corners pointing out (go full screen) or in (leave it).
+  const d = exit ? 'M9 3v6H3 M15 3v6h6 M9 21v-6H3 M15 21v-6h6' : 'M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6';
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path d={d} fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  );
+}
+
 function SteeringWheel() {
   return (
     <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
@@ -539,26 +565,40 @@ function SteeringWheel() {
   );
 }
 
-/** Beet juice running down the windscreen. */
+/** Barszcz sprayed over the windscreen: big blobs that run, and a mist of droplets. */
 function BeetSplash({ opacity }: { opacity: number }) {
   return (
-    <svg class="drive-ink" viewBox="0 0 100 160" preserveAspectRatio="none" style={{ opacity }} aria-hidden="true">
-      {SPLATS.map(([x, y, r]) => (
-        <>
+    <svg class="drive-ink" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" style={{ opacity }} aria-hidden="true">
+      <rect width="100" height="100" fill="#a3123f" opacity="0.18" />
+      {BLOBS.map(([x, y, r, drip]) => (
+        <g>
           <circle cx={x} cy={y} r={r} fill="#a3123f" />
-          <rect x={x - r * 0.25} y={y} width={r * 0.5} height={r * 2.4} rx={r * 0.25} fill="#a3123f" />
-        </>
+          <circle cx={x - r * 0.3} cy={y - r * 0.3} r={r * 0.28} fill="#d63a6a" />
+          <rect x={x - r * 0.18} y={y} width={r * 0.36} height={drip} rx={r * 0.18} fill="#a3123f" />
+          <circle cx={x} cy={y + drip} r={r * 0.24} fill="#a3123f" />
+        </g>
+      ))}
+      {DROPS.map(([x, y, r]) => (
+        <circle cx={x} cy={y} r={r} fill="#a3123f" />
       ))}
     </svg>
   );
 }
 
-const SPLATS: [number, number, number][] = [
-  [22, 40, 16],
-  [70, 30, 20],
-  [48, 70, 22],
-  [12, 100, 12],
-  [84, 92, 15],
-  [40, 120, 10],
-  [64, 128, 13],
+/** Blobs: [x, y, radius, drip length]. */
+const BLOBS: [number, number, number, number][] = [
+  [24, 30, 11, 22],
+  [66, 22, 14, 18],
+  [47, 55, 15, 26],
+  [12, 68, 7, 14],
+  [84, 60, 10, 20],
+  [34, 82, 6, 9],
+  [72, 84, 8, 10],
 ];
+
+/** A spray of small droplets around the blobs (fixed, so they don't flicker). */
+const DROPS: [number, number, number][] = Array.from({ length: 70 }, (_, i) => {
+  const a = i * 2.39996;
+  const d = 8 + ((i * 37) % 48);
+  return [50 + Math.cos(a) * d, 48 + Math.sin(a) * d * 0.9, 0.6 + ((i * 13) % 10) / 6];
+});

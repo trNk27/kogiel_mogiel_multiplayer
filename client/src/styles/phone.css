@@ -1657,6 +1657,18 @@ body.phone-body input {
   gap: 8px;
   pointer-events: none;
 }
+.drive-fs {
+  pointer-events: auto;
+  border: 0;
+  border-radius: 999px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream);
+  background: rgba(20, 6, 10, 0.55);
+}
 .drive-top .vip-menu-btn {
   pointer-events: auto;
   background: rgba(20, 6, 10, 0.55);
@@ -1771,12 +1783,13 @@ body.phone-body input {
 .drive-fx.fx-ghost {
   color: #e8d0f0;
 }
+/* Off to the side, above the item button, so it never covers the road. */
 .drive-speed {
   position: absolute;
-  left: 50%;
-  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 150px);
-  transform: translateX(-50%);
-  font-size: 30px;
+  right: 14px;
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + 156px);
+  font-size: 28px;
+  text-align: right;
   pointer-events: none;
 }
 .drive-speed small {
@@ -2010,7 +2023,8 @@ body.phone-body input {
     height: 120px;
   }
   .drive-speed {
-    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 124px);
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 128px);
   }
   .drive-pad {
     flex: 0 0 42%;
