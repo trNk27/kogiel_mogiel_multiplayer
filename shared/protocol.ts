@@ -79,7 +79,7 @@ export const ANSWER_STYLES = [
 // Games
 // ---------------------------------------------------------------------------
 
-export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty' | 'rally';
+export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty' | 'bazgroly' | 'rally';
 
 export interface GameInfo {
   id: GameId;
@@ -108,6 +108,7 @@ export const GAMES: readonly GameInfo[] = [
     noTv: 'Low-poly racing on every phone. Tilt or drag to steer, up to 8 cars.',
   },
   { id: 'toty', title: 'To Ty!', tagline: 'Selfies, “who’s most likely to…” and doodles.', minPlayers: 3 },
+  { id: 'bazgroly', title: 'Bazgroły', tagline: 'Draw a weird secret prompt. Fool everyone with fake titles.', minPlayers: 3 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
@@ -300,6 +301,13 @@ export interface TyPlayer {
 }
 
 // ---------------------------------------------------------------------------
+// Bazgroły ("scribbles": draw a secret prompt, everyone else makes up fake titles)
+// ---------------------------------------------------------------------------
+
+/** Longest fake title a player can type. */
+export const MAX_TITLE_LENGTH = 40;
+
+// ---------------------------------------------------------------------------
 // What a phone should show. The host sends a view only when it changes,
 // and re-sends the current one when a phone reconnects.
 // ---------------------------------------------------------------------------
@@ -395,6 +403,31 @@ export type PhoneView =
       /** Votes you (or your doodle) received. */
       votes: number;
     }
+  /** Bazgroły: draw your secret prompt on a blank page. */
+  | { v: 'bzDraw'; prompt: string; round: number; rounds: number; endsAt: number; done: boolean }
+  /**
+   * Bazgroły: make up a title for the drawing on the TV (`yours`: it's your drawing, so just watch).
+   * `lie` is what you handed in; `error` says why the last one was turned down.
+   */
+  | { v: 'bzLie'; n: number; of: number; artist: string; yours: boolean; endsAt: number; lie: string | null; error?: string }
+  /** Bazgroły: pick the real title. `own` are the options you wrote, which you can't pick. */
+  | { v: 'bzGuess'; artist: string; yours: boolean; options: string[]; own: number[]; endsAt: number; picked: number | null }
+  /**
+   * Bazgroły: how the last drawing went for you. As the artist, `found` people guessed it.
+   * As a guesser, `correct` says if you found the truth, and `fooledBy` names whose lie you fell
+   * for ('' for one of the game's own decoys). `fooled` is how many fell for your lie.
+   */
+  | {
+      v: 'bzResult';
+      truth: string;
+      yours: boolean;
+      points: number;
+      total: number;
+      found: number;
+      correct: boolean | null;
+      fooledBy: string | null;
+      fooled: number;
+    }
   | {
       v: 'results';
       game: GameId;
@@ -433,9 +466,12 @@ export type PhoneMsg =
   | { t: 'photos'; ids: string[] }
   /** To Ty! Vote for a player. */
   | { t: 'vote'; id: string }
-  /** To Ty! Vote for a doodle, by its position in the gallery. */
+  /** To Ty! Vote for a doodle, by its position in the gallery. Bazgroły: pick a title, by its position. */
   | { t: 'pick'; i: number }
+  /** To Ty! doodle on a photo; Bazgroły drawing of your prompt. */
   | { t: 'doodle'; strokes: Stroke[] }
+  /** Bazgroły: a fake title for the drawing on the TV, or `auto` to have the game make one up. */
+  | { t: 'lie'; text: string; auto?: boolean }
   // VIP-only actions (the host ignores them from anybody else)
   | { t: 'select'; game: GameId }
   | { t: 'option'; key: keyof LobbyOptions; value: boolean | number | string }

@@ -11,6 +11,7 @@ import { Stars } from '../lib/stars';
 import { TimeBar } from './timebar';
 import { RallyPad } from './rally';
 import { TyDraw, TyPick, TyResult, TySelfie, TyVote } from './toty';
+import { BzDraw, BzGuess, BzLie, BzResult } from './bazgroly';
 
 export interface Props<V extends PhoneView['v']> {
   view: Extract<PhoneView, { v: V }>;
@@ -51,6 +52,14 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <TyPick view={view} me={me} send={send} offset={offset} />;
     case 'tyResult':
       return <TyResult view={view} me={me} send={send} offset={offset} />;
+    case 'bzDraw':
+      return <BzDraw view={view} me={me} send={send} offset={offset} key={view.endsAt} />;
+    case 'bzLie':
+      return <BzLie view={view} me={me} send={send} offset={offset} key={view.endsAt} />;
+    case 'bzGuess':
+      return <BzGuess view={view} me={me} send={send} offset={offset} key={view.endsAt} />;
+    case 'bzResult':
+      return <BzResult view={view} me={me} send={send} offset={offset} />;
     case 'results':
       return <Results view={view} me={me} send={send} offset={offset} />;
   }

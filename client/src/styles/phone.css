@@ -1331,6 +1331,71 @@ body.phone-body input {
   font-size: 38px;
 }
 
+/* ---- Bazgroły ---------------------------------------------------------------- */
+
+.bz-lie {
+  gap: 12px;
+}
+.bz-lie > p {
+  margin: 4px 0;
+  text-align: center;
+}
+.bz-input {
+  font-size: 22px;
+}
+.bz-lie-big {
+  max-width: 100%;
+  padding: 18px 24px;
+  border-radius: 22px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 26px;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.bz-guess {
+  gap: 10px;
+}
+.bz-choices {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 4px;
+  overflow-y: auto;
+}
+.bz-choice {
+  appearance: none;
+  border: 0;
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.2;
+  text-align: left;
+  box-shadow: inset 0 -5px 0 var(--cream-2);
+  overflow-wrap: anywhere;
+}
+.bz-choice:active {
+  transform: scale(0.97);
+}
+.bz-choice.mine {
+  background: rgba(255, 244, 220, 0.1);
+  color: var(--muted);
+  box-shadow: none;
+}
+.bz-choice small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 /* ---- Maluch Rally ------------------------------------------------------------ */
 
 .rally-pad-view {

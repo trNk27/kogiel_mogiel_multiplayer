@@ -6,6 +6,7 @@ import { BallparkGame } from './ballpark/BallparkGame';
 import { KitchenGame } from './kitchen/KitchenGame';
 import { TotyGame } from './toty/TotyGame';
 import { RallyGame } from './rally/RallyGame';
+import { BazgrolyGame } from './bazgroly/BazgrolyGame';
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
   switch (id) {
@@ -21,5 +22,7 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new RallyGame(host, ids);
     case 'toty':
       return new TotyGame(host, ids);
+    case 'bazgroly':
+      return new BazgrolyGame(host, ids);
   }
 }

@@ -16,6 +16,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
 | **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is the controller: GAS and BRAKE at the top, and a steering wheel below that you swipe left and right. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup, a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. Hold **BRAKE while turning** to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **tap the item button** to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
+| **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 100 prompts. | 3–8 |
 
 ## How a party works
 
@@ -95,10 +96,14 @@ client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js
 client/src/phone/rally.tsx  Maluch Rally thumb pad (with a TV)
 client/src/phone/rallyDrive.tsx  Maluch Rally on the phone (no TV): 3D view, tilt/drag steering, minimap
 client/src/phone/notvHost.ts     a phone hosting a party without a TV
-client/src/phone/toty.tsx   To Ty! selfie camera, voting and doodle canvas
+client/src/phone/toty.tsx   To Ty! selfie camera and voting
+client/src/phone/doodlePad.tsx  the drawing canvas (To Ty! and Bazgroły)
+client/src/games/bazgroly/* Bazgroły: prompts, lies, scoring (logic.ts) and the TV views
+client/src/phone/bazgroly.tsx  Bazgroły drawing, fake titles and guessing on the phone
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
 data/toty.json              62 "who's most likely to…" questions (26 with a doodle prompt)
+data/bazgroly.json          100 Bazgroły drawing prompts
 test/*.test.ts              Vitest unit tests (scoring, Trails collisions, data checks)
 ```
 
@@ -346,12 +351,35 @@ strokes (at most 2,500 points), which the TV draws as SVG.
 The relay allows phone messages up to 64 KB (other messages stay tiny) and host messages up to
 96 KB. Photos add a few dozen WebSocket messages per game, well within the free plan.
 
+### Bazgroły
+
+A round goes like this (timings at the top of
+[`client/src/games/bazgroly/logic.ts`](client/src/games/bazgroly/logic.ts)):
+
+1. **Draw** (80 s): every player gets a different prompt from `data/bazgroly.json` and draws it
+   on a blank page with the same canvas as To Ty!. Drawings are vector strokes, like doodles.
+2. For each drawing, in random order:
+   - **Lie** (45 s): the TV replays the drawing stroke by stroke, and everyone but the artist types
+     a fake title (up to 40 characters). A title that matches the real one is turned down
+     (“That’s the real title!”). Titles are compared without case, accents, punctuation or
+     “a/an/the”, so “The haunted toaster!” matches “A haunted toaster”. **Lie for me** picks another
+     prompt from the pool. Identical lies are merged into one option, and every author scores.
+   - **Guess** (20 s): the real title and the lies, shuffled. You can’t pick your own lie. If
+     there are fewer than three options, prompts from the pool are added as decoys.
+   - **Reveal**: the lies that fooled somebody, least popular first, with who wrote them and who
+     fell for them, and then the truth. Phones only show their result once the truth is out.
+3. Scores: 1000 for finding the truth, 1000 to the artist per player who found it, and 500 per
+   player fooled by your lie. With up to 4 players there are two rounds and the second pays
+   double; with 5 or more there's one round (everyone's drawing gets shown once).
+
 ## Adding questions
 
 - `data/trivia.json`: `{ id, category, difficulty, question, options[4], answerIndex }`.
   Options are shuffled when shown.
 - `data/toty.json`: `{ id, question, draw? }`. `draw` is the doodle prompt for the player the room
   picked, with `{name}` standing in for their name. Questions 3 and 6 of each game always have one.
+- `data/bazgroly.json`: `{ id, prompt }`. Prompts can be things, scenes or feelings (“Brain freeze”),
+  up to 40 characters, without a full stop. They double as decoys and as “Lie for me” titles.
 - `data/ballpark.json`: `{ id, question, answer, unit }`. Use `"unit": "year"` for years, so they
   display without thousands separators and with no decimal key.
 

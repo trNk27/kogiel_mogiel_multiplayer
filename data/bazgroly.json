@@ -1,0 +1,402 @@
+[
+  {
+    "id": "bz001",
+    "prompt": "A pigeon running for mayor"
+  },
+  {
+    "id": "bz002",
+    "prompt": "Babcia’s secret dance move"
+  },
+  {
+    "id": "bz003",
+    "prompt": "A shark that’s afraid of water"
+  },
+  {
+    "id": "bz004",
+    "prompt": "The last pierogi on Earth"
+  },
+  {
+    "id": "bz005",
+    "prompt": "A snowman at the beach"
+  },
+  {
+    "id": "bz006",
+    "prompt": "A vampire at the dentist"
+  },
+  {
+    "id": "bz007",
+    "prompt": "A cat filing its taxes"
+  },
+  {
+    "id": "bz008",
+    "prompt": "A haunted toaster"
+  },
+  {
+    "id": "bz009",
+    "prompt": "Bigfoot taking a selfie"
+  },
+  {
+    "id": "bz010",
+    "prompt": "A dragon with the hiccups"
+  },
+  {
+    "id": "bz011",
+    "prompt": "A cactus that wants a hug"
+  },
+  {
+    "id": "bz012",
+    "prompt": "The moon on a diet"
+  },
+  {
+    "id": "bz013",
+    "prompt": "A potato with a big dream"
+  },
+  {
+    "id": "bz014",
+    "prompt": "A ninja who is bad at hiding"
+  },
+  {
+    "id": "bz015",
+    "prompt": "A giraffe stuck in a lift"
+  },
+  {
+    "id": "bz016",
+    "prompt": "A pirate allergic to parrots"
+  },
+  {
+    "id": "bz017",
+    "prompt": "A robot in love with a microwave"
+  },
+  {
+    "id": "bz018",
+    "prompt": "A sad clown at a car wash"
+  },
+  {
+    "id": "bz019",
+    "prompt": "A sheep counting humans"
+  },
+  {
+    "id": "bz020",
+    "prompt": "A worm wearing a tuxedo"
+  },
+  {
+    "id": "bz021",
+    "prompt": "A horse ordering a pizza"
+  },
+  {
+    "id": "bz022",
+    "prompt": "A ghost who is scared of people"
+  },
+  {
+    "id": "bz023",
+    "prompt": "An alien’s first barbecue"
+  },
+  {
+    "id": "bz024",
+    "prompt": "A banana on holiday"
+  },
+  {
+    "id": "bz025",
+    "prompt": "A dinosaur learning to knit"
+  },
+  {
+    "id": "bz026",
+    "prompt": "A broccoli bodybuilder"
+  },
+  {
+    "id": "bz027",
+    "prompt": "Grandpa’s wifi password"
+  },
+  {
+    "id": "bz028",
+    "prompt": "An octopus doing the dishes"
+  },
+  {
+    "id": "bz029",
+    "prompt": "A wizard stuck in traffic"
+  },
+  {
+    "id": "bz030",
+    "prompt": "A penguin in the desert"
+  },
+  {
+    "id": "bz031",
+    "prompt": "The world’s smallest superhero"
+  },
+  {
+    "id": "bz032",
+    "prompt": "A goldfish with a secret"
+  },
+  {
+    "id": "bz033",
+    "prompt": "A mermaid at a job interview"
+  },
+  {
+    "id": "bz034",
+    "prompt": "A very angry cloud"
+  },
+  {
+    "id": "bz035",
+    "prompt": "A sock that lost its partner"
+  },
+  {
+    "id": "bz036",
+    "prompt": "A hamster driving a tank"
+  },
+  {
+    "id": "bz037",
+    "prompt": "A tree that hates autumn"
+  },
+  {
+    "id": "bz038",
+    "prompt": "A cow on a trampoline"
+  },
+  {
+    "id": "bz039",
+    "prompt": "A spoon with stage fright"
+  },
+  {
+    "id": "bz040",
+    "prompt": "The tooth fairy on strike"
+  },
+  {
+    "id": "bz041",
+    "prompt": "A burrito in witness protection"
+  },
+  {
+    "id": "bz042",
+    "prompt": "A fridge with feelings"
+  },
+  {
+    "id": "bz043",
+    "prompt": "The Easter bunny’s day off"
+  },
+  {
+    "id": "bz044",
+    "prompt": "A lobster in a hot tub"
+  },
+  {
+    "id": "bz045",
+    "prompt": "A sloth winning a race"
+  },
+  {
+    "id": "bz046",
+    "prompt": "Monday morning"
+  },
+  {
+    "id": "bz047",
+    "prompt": "An influencer in the Stone Age"
+  },
+  {
+    "id": "bz048",
+    "prompt": "A frog who refuses to be a prince"
+  },
+  {
+    "id": "bz049",
+    "prompt": "A dog who thinks it’s a cat"
+  },
+  {
+    "id": "bz050",
+    "prompt": "A beetroot in a bubble bath"
+  },
+  {
+    "id": "bz051",
+    "prompt": "Babcia on a motorbike"
+  },
+  {
+    "id": "bz052",
+    "prompt": "A volcano with a cold"
+  },
+  {
+    "id": "bz053",
+    "prompt": "A chicken that finally crossed the road"
+  },
+  {
+    "id": "bz054",
+    "prompt": "Nessie at the gym"
+  },
+  {
+    "id": "bz055",
+    "prompt": "A snail with a speeding ticket"
+  },
+  {
+    "id": "bz056",
+    "prompt": "A unicorn with a mortgage"
+  },
+  {
+    "id": "bz057",
+    "prompt": "Brain freeze"
+  },
+  {
+    "id": "bz058",
+    "prompt": "A skeleton drinking milk"
+  },
+  {
+    "id": "bz059",
+    "prompt": "A cheese plotting revenge"
+  },
+  {
+    "id": "bz060",
+    "prompt": "A mosquito’s wedding"
+  },
+  {
+    "id": "bz061",
+    "prompt": "Forgetting why you walked in"
+  },
+  {
+    "id": "bz062",
+    "prompt": "A pineapple in sunglasses"
+  },
+  {
+    "id": "bz063",
+    "prompt": "A cyclops at the optician"
+  },
+  {
+    "id": "bz064",
+    "prompt": "A carrot escaping the soup"
+  },
+  {
+    "id": "bz065",
+    "prompt": "A bee who is allergic to flowers"
+  },
+  {
+    "id": "bz066",
+    "prompt": "A mummy coming undone"
+  },
+  {
+    "id": "bz067",
+    "prompt": "A sumo wrestler on a tightrope"
+  },
+  {
+    "id": "bz068",
+    "prompt": "Stepping on a Lego"
+  },
+  {
+    "id": "bz069",
+    "prompt": "A llama at a fancy restaurant"
+  },
+  {
+    "id": "bz070",
+    "prompt": "A hot dog that is actually cold"
+  },
+  {
+    "id": "bz071",
+    "prompt": "A rubber duck captain"
+  },
+  {
+    "id": "bz072",
+    "prompt": "A kangaroo with an empty pouch"
+  },
+  {
+    "id": "bz073",
+    "prompt": "A pickle in a jar of jam"
+  },
+  {
+    "id": "bz074",
+    "prompt": "A traffic cone on holiday"
+  },
+  {
+    "id": "bz075",
+    "prompt": "The sun wearing sunscreen"
+  },
+  {
+    "id": "bz076",
+    "prompt": "A zombie on a first date"
+  },
+  {
+    "id": "bz077",
+    "prompt": "A grumpy rainbow"
+  },
+  {
+    "id": "bz078",
+    "prompt": "A pigeon stealing a croissant"
+  },
+  {
+    "id": "bz079",
+    "prompt": "A crab doing yoga"
+  },
+  {
+    "id": "bz080",
+    "prompt": "Santa’s summer job"
+  },
+  {
+    "id": "bz081",
+    "prompt": "An egg afraid of breakfast"
+  },
+  {
+    "id": "bz082",
+    "prompt": "When the wifi goes down"
+  },
+  {
+    "id": "bz083",
+    "prompt": "A knight scared of the dark"
+  },
+  {
+    "id": "bz084",
+    "prompt": "A tornado at a tea party"
+  },
+  {
+    "id": "bz085",
+    "prompt": "A bat hanging the wrong way up"
+  },
+  {
+    "id": "bz086",
+    "prompt": "A dentist for sharks"
+  },
+  {
+    "id": "bz087",
+    "prompt": "A cloud raining spaghetti"
+  },
+  {
+    "id": "bz088",
+    "prompt": "A pizza delivering a person"
+  },
+  {
+    "id": "bz089",
+    "prompt": "A tortoise with a jetpack"
+  },
+  {
+    "id": "bz090",
+    "prompt": "An elephant hiding behind a lamp"
+  },
+  {
+    "id": "bz091",
+    "prompt": "A mouse lifting weights"
+  },
+  {
+    "id": "bz092",
+    "prompt": "A flamingo standing on two legs"
+  },
+  {
+    "id": "bz093",
+    "prompt": "A kebab with a briefcase"
+  },
+  {
+    "id": "bz094",
+    "prompt": "A raccoon at a royal wedding"
+  },
+  {
+    "id": "bz095",
+    "prompt": "A plant watering its human"
+  },
+  {
+    "id": "bz096",
+    "prompt": "A teapot having a meltdown"
+  },
+  {
+    "id": "bz097",
+    "prompt": "A sausage dog in a hot dog bun"
+  },
+  {
+    "id": "bz098",
+    "prompt": "A ghost doing laundry"
+  },
+  {
+    "id": "bz099",
+    "prompt": "A duck in a business meeting"
+  },
+  {
+    "id": "bz100",
+    "prompt": "Kogiel mogiel escaping the glass"
+  }
+]

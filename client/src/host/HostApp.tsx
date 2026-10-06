@@ -277,6 +277,11 @@ const HOW_TO: Record<GameId, string[]> = {
     '“Who’s most likely to…?” Vote for a player. You score if you agree with the room.',
     'Twice a game, everyone doodles on the chosen player’s photo. Vote for the best one!',
   ],
+  bazgroly: [
+    'Everyone gets a weird secret prompt on their phone. Draw it!',
+    'Each drawing appears on the TV. Make up a fake title – one that sounds real.',
+    'Find the real title among the lies: 1000 for you and the artist. Each player you fool earns you 500.',
+  ],
 };
 
 function Intro({ game }: { game: GameId }) {
