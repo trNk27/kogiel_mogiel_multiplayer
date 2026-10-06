@@ -20,6 +20,44 @@ export const RTUNING = {
   carRadius: 1.7,
 };
 
+/**
+ * Drifting: hold the drift button while turning. The car slides with its nose into the corner,
+ * turns much tighter than grip allows and scrubs a little speed. Hold it long enough and letting
+ * go gives a mini-turbo (blue sparks) or a super turbo (orange sparks).
+ */
+export const DRIFT = {
+  minSpeed: 14,
+  /** How far the nose points into the corner (radians). */
+  slip: 0.42,
+  /** Turn rate while drifting, as a multiple of normal full lock: steering out of / into the drift. */
+  turnOut: 0.35,
+  turnIn: 1.3,
+  /** Speed lost per second while drifting, as a fraction. */
+  scrub: 0.16,
+  /** Seconds of drifting (more when steering into it) for each spark level. */
+  mini: 0.8,
+  super: 1.9,
+  miniBoost: 0.6,
+  superBoost: 1.15,
+};
+
+/** How a car's drift is reported over the network: 0 not drifting, 1 drifting, 2 blue sparks, 3 orange sparks. */
+export function driftCode(c: Car) {
+  return c.drift ? 1 + driftLevel(c) : 0;
+}
+
+/** Show a remote car drifting the way it was reported (only the look matters). */
+export function setDriftLook(c: Car, code: number) {
+  c.drift = code > 0 ? 1 : 0;
+  c.driftCharge = code >= 3 ? DRIFT.super : code === 2 ? DRIFT.mini : 0;
+}
+
+/** Spark level of a drift: 0 none yet, 1 blue (mini-turbo), 2 orange (super turbo). */
+export function driftLevel(c: Car) {
+  if (!c.drift) return 0;
+  return c.driftCharge >= DRIFT.super ? 2 : c.driftCharge >= DRIFT.mini ? 1 : 0;
+}
+
 /** Item timings and strengths. */
 export const ITUNING = {
   boostTime: 2.2,
@@ -62,8 +100,8 @@ export interface Car {
   z: number;
   heading: number;
   speed: number;
-  /** Joystick: x steers (-100 left … 100 right), y is screen-down (-100 = full gas, 100 = brake). */
-  input: { x: number; y: number };
+  /** Joystick: x steers (-100 left … 100 right), y is screen-down (-100 = full gas, 100 = brake); drift button held. */
+  input: { x: number; y: number; drift?: boolean };
   /** Total distance driven along the track since the start line (negative on the grid). */
   progress: number;
   along: number;
@@ -97,6 +135,12 @@ export interface Car {
   ghost: number;
   /** Extra yaw while spinning out (just for show). */
   spinAngle: number;
+  /** Drifting: -1 to the left, 1 to the right, 0 not drifting. */
+  drift: number;
+  /** Seconds of drift built up (see DRIFT.mini / DRIFT.super). */
+  driftCharge: number;
+  /** Angle between where the car points and where it's going (drifting). */
+  slip: number;
 }
 
 export interface ItemBox {
@@ -174,6 +218,8 @@ export interface StepEvents {
   hits: Hit[];
   /** A ghost took someone's item. */
   steals: { idx: number; from: number; item: RallyItem }[];
+  /** Somebody let go of a drift with sparks: 1 mini-turbo, 2 super turbo. */
+  turbos: { idx: number; level: number }[];
 }
 
 /** Grid slot `k`: two columns, rows going back from the start line. */
@@ -324,6 +370,9 @@ export class RallySim {
         ink: 0,
         ghost: 0,
         spinAngle: 0,
+        drift: 0,
+        driftCharge: 0,
+        slip: 0,
       };
     });
     if (items) {
@@ -401,8 +450,8 @@ export class RallySim {
     return best;
   }
 
-  /** A remote car reported where it is. */
-  report(idx: number, x: number, z: number, heading: number, speed: number) {
+  /** A remote car reported where it is, and how it's drifting (0 not, 1 drifting, 2 blue sparks, 3 orange sparks). */
+  report(idx: number, x: number, z: number, heading: number, speed: number, drift = 0) {
     const c = this.cars[idx];
     if (!c) return;
     c.x = x;
@@ -410,6 +459,7 @@ export class RallySim {
     c.heading = heading;
     c.speed = speed;
     c.seen = this.time;
+    setDriftLook(c, drift);
   }
 
   /** Fire the item a car is holding. Returns false if it had none. */
@@ -477,7 +527,7 @@ export class RallySim {
   step(): StepEvents {
     const T = RTUNING;
     const I = ITUNING;
-    const ev: StepEvents = { laps: [], finished: [], bumps: [], pickups: [], used: this.pending, hits: this.pendingHits, steals: this.pendingSteals };
+    const ev: StepEvents = { laps: [], finished: [], bumps: [], pickups: [], used: this.pending, hits: this.pendingHits, steals: this.pendingSteals, turbos: [] };
     this.pending = [];
     this.pendingHits = [];
     this.pendingSteals = [];
@@ -501,7 +551,7 @@ export class RallySim {
         continue;
       }
       // The player's own input stays in c.input; finished cars and rockets drive themselves.
-      const input = c.finished ? this.autopilot(c, 18) : c.rocket > 0 ? this.autopilot(c, I.rocketSpeed) : c.input;
+      const input: Car['input'] = c.finished ? this.autopilot(c, 18) : c.rocket > 0 ? this.autopilot(c, I.rocketSpeed) : c.input;
       const parked = c.parked && !c.finished;
       let steer = parked ? 0 : Math.max(-1, Math.min(1, input.x / 100));
       let gas = parked ? 0 : Math.max(-1, Math.min(1, -input.y / 100));
@@ -527,13 +577,42 @@ export class RallySim {
       if (c.speed > top) c.speed -= Math.min(c.speed - top, (c.speed - top) * 2.5 * DT + 8 * DT);
       if (c.speed < -T.reverseSpeed) c.speed = -T.reverseSpeed;
 
+      // Drifting: starts when you hold the button while turning at speed, ends when you let go.
+      const D = DRIFT;
+      const canDrift = !parked && c.spin === 0 && c.rocket === 0 && !c.finished && c.speed > D.minSpeed * (c.drift ? 0.6 : 1);
+      if (!c.drift && input.drift && canDrift && Math.abs(steer) > 0.25) {
+        c.drift = Math.sign(steer);
+        c.driftCharge = 0;
+      } else if (c.drift && (!input.drift || !canDrift)) {
+        const level = driftLevel(c);
+        if (level > 0 && canDrift) {
+          c.boost = Math.max(c.boost, level === 2 ? D.superBoost : D.miniBoost);
+          c.speed = Math.max(c.speed, level === 2 ? 46 : 42);
+          ev.turbos.push({ idx: c.idx, level });
+        }
+        c.drift = 0;
+        c.driftCharge = 0;
+      }
+
       // Steering: needs some speed, and gets calmer near top speed.
       const v = Math.abs(c.speed);
-      const k = Math.min(1, v / 6) * (1 - (1 - T.steerAtTop) * Math.min(1, v / T.maxSpeed));
-      c.heading += steer * T.steer * k * Math.sign(c.speed) * DT;
+      if (c.drift) {
+        // Always turning into the drift; the stick only says how hard.
+        const into = steer * c.drift;
+        const turn = D.turnOut + ((D.turnIn - D.turnOut) * (into + 1)) / 2;
+        c.heading += c.drift * turn * T.steer * DT;
+        c.driftCharge += DT * (0.6 + 0.6 * Math.max(0, into));
+        c.speed *= 1 - D.scrub * DT;
+      } else {
+        const k = Math.min(1, v / 6) * (1 - (1 - T.steerAtTop) * Math.min(1, v / T.maxSpeed));
+        c.heading += steer * T.steer * k * Math.sign(c.speed) * DT;
+      }
+      // The car goes where it pointed a moment ago: the slip angle is the drift.
+      c.slip += ((c.drift ? c.drift * D.slip : 0) - c.slip) * Math.min(1, DT * (c.drift ? 5 : 8));
+      const travel = c.heading - c.slip;
 
-      c.x += Math.cos(c.heading) * c.speed * DT;
-      c.z += Math.sin(c.heading) * c.speed * DT;
+      c.x += Math.cos(travel) * c.speed * DT;
+      c.z += Math.sin(travel) * c.speed * DT;
     }
 
     // Cars bump into each other (not across the bridge).

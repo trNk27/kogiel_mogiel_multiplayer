@@ -7,6 +7,7 @@ import {
   RECONNECT_GRACE_MS,
   gameInfo,
   gamesFor,
+  RALLY_TRACKS,
   playerCountProblem,
   isColorId,
   sanitizeName,
@@ -351,6 +352,11 @@ export class HostController implements GameHost {
       case 'option':
         if (!isVip) return;
         if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items') this.options = { ...this.options, [m.key]: !!m.value };
+        else if (m.key === 'track') {
+          if (!RALLY_TRACKS.some((t) => t.id === m.value)) return;
+          this.options = { ...this.options, track: String(m.value) };
+          sound.tick();
+        }
         else if (m.key === 'difficulty' || m.key === 'level') {
           const max = m.key === 'difficulty' ? DIFFICULTIES.length : KITCHEN_LEVELS.length;
           const v = Math.round(Number(m.value));

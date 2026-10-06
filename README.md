@@ -14,7 +14,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps, each on a different randomly generated track shape (forest ring, kidney, clover, figure eight with a bridge, town circuit, speedway), with a little Polish town along the way. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment to use them**: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or dragging, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup, a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. Hold **DRIFT** while turning to slide round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment to use them**: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or dragging, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 
 ## How a party works
@@ -36,7 +36,8 @@ where every phone renders the race itself:
 
 - **Your phone is the screen.** A full-screen 3D chase view of your own car, with your position,
   lap, speed and a **minimap** (with the river, bridges and tunnel) in the corner.
-- **Steering made for a phone you're looking at.** The car speeds up by itself. Choose during the
+- **Steering made for a phone you're looking at.** The car speeds up by itself, and DRIFT sits
+  under your right thumb (or your left thumb when tilting). Choose during the
   countdown: **tilt** (hold the phone like a steering wheel and turn it; works in portrait and
   landscape) or **drag** (put a thumb anywhere on the steering pad and slide it sideways; a wheel
   under your thumb shows how far you're turning). BRAKE slows you down or reverses, and the item
@@ -261,6 +262,20 @@ changes.
   A candidate is rejected if a corner is tighter than an 18 m radius, or if two parts of the track
   come within 36 m of each other (except at the figure eight's single crossing, which must be at
   50° or more). Every race in a cup uses a different shape.
+- **Hard tracks**: Tatra Pass (switchbacks: rows of road up a mountain joined by hairpins), Vistula
+  Snake (an oval whose straights are S-bend after S-bend) and Babcia’s Crown (five or six deep
+  lobes). They're built the same way but allow corners down to a 12 m radius (normal tracks: 18 m)
+  and parts of the road down to 28 m apart, so the barriers sit 10 m from the centre line instead
+  of 13. A pass that smooths out any kink tighter than that keeps them valid. In the lobby:
+  `cup` (three different normal shapes), `hard` (the three hard shapes) or one shape for all three
+  races (`RALLY_TRACKS` in `shared/protocol.ts`).
+- **Drifting** (`sim.ts`, `DRIFT`): hold the button while steering at more than 14 m/s. The car
+  turns 0.35–1.3× harder than full lock (steering into or out of the drift), points its nose
+  0.42 rad into the corner while it travels along its old line, and loses 16 % speed per second.
+  0.8 s of drifting (sooner when steering into it) gives blue sparks and a 0.6 s mini-turbo when you
+  let go; 1.9 s gives orange sparks and a 1.15 s super turbo. Spinning out loses the drift. With a
+  TV the phone sends `drift` when the button changes; without one, the drift state rides along in
+  the car report so other phones see your sparks.
 - **Tunnels and bridges**: most tracks also get a **river**, a straight line across the map that
   the road crosses two (sometimes four) times at 55° or more, well away from the start. Each
   crossing gets a humpback deck with red bow-string arches, and the terrain is carved into a

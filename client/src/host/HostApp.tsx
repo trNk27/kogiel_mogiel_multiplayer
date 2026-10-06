@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
-import { GAMES, MAX_PLAYERS, colorHex, difficultyName, gameInfo, type GameId } from '../../../shared/protocol';
+import { GAMES, MAX_PLAYERS, colorHex, difficultyName, gameInfo, rallyTrack, type GameId } from '../../../shared/protocol';
 import { FolkBorder, Logo, Pierogi, Rosette } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
@@ -219,7 +219,11 @@ function Lobby() {
                 <div class="game-card-title">{g.title}</div>
                 <div class="game-card-tag">{g.tagline}</div>
                 {g.maxPlayers && <div class="game-card-flag">Up to {g.maxPlayers} players</div>}
-                {g.id === 'rally' && <div class="game-card-flag">{c.options.items ? 'Items on' : 'Items off'}</div>}
+                {g.id === 'rally' && (
+                  <div class="game-card-flag">
+                    {rallyTrack(c.options.track).name} · {c.options.items ? 'items on' : 'items off'}
+                  </div>
+                )}
                 {g.id === 'trails' && c.options.powerups && <div class="game-card-flag">Power-ups on</div>}
                 {g.id === 'kitchen' && (
                   <div class="game-card-flag">

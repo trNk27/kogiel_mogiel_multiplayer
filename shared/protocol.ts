@@ -139,9 +139,33 @@ export interface LobbyOptions {
   level: number;
   /** Maluch Rally: item boxes on the track. */
   items: boolean;
+  /** Maluch Rally: which tracks the cup is raced on (an id from RALLY_TRACKS). */
+  track: string;
 }
 
-export const DEFAULT_OPTIONS: LobbyOptions = { powerups: false, sound: true, difficulty: 3, level: 1, items: true };
+export const DEFAULT_OPTIONS: LobbyOptions = { powerups: false, sound: true, difficulty: 3, level: 1, items: true, track: 'cup' };
+
+/**
+ * Maluch Rally track choices: a cup of three different tracks, a cup of three hard ones,
+ * or all three races on one kind of track (a new random layout each time).
+ */
+export const RALLY_TRACKS: readonly { id: string; name: string; hint: string; hard?: boolean; cup?: boolean }[] = [
+  { id: 'cup', name: 'Mixed cup', hint: 'Three different tracks', cup: true },
+  { id: 'hard', name: 'Hard cup', hint: 'Hairpins, S-bends and narrow barriers – drift!', cup: true, hard: true },
+  { id: 'ring', name: 'Forest Ring', hint: 'Sweeping bends through the woods' },
+  { id: 'kidney', name: 'Kidney Bend', hint: 'One long hook' },
+  { id: 'clover', name: 'Clover Hills', hint: 'Three or four lobes' },
+  { id: 'figure8', name: 'Figure Eight', hint: 'Over and under the bridge' },
+  { id: 'town', name: 'Town Circuit', hint: 'Right-angle corners between the houses' },
+  { id: 'speedway', name: 'Speedway', hint: 'Fast oval with a chicane' },
+  { id: 'pass', name: 'Tatra Pass', hint: 'Switchbacks up a mountain', hard: true },
+  { id: 'snake', name: 'Vistula Snake', hint: 'S-bend after S-bend', hard: true },
+  { id: 'crown', name: 'Babcia’s Crown', hint: 'Six lobes, tight at every tip', hard: true },
+];
+
+export function rallyTrack(id: string) {
+  return RALLY_TRACKS.find((t) => t.id === id) ?? RALLY_TRACKS[0];
+}
 
 export const DIFFICULTIES = [
   { name: 'Relaxed', pace: 1.6, ttl: 1.3 },
@@ -397,8 +421,10 @@ export type PhoneMsg =
   | { t: 'stick'; x: number; y: number }
   /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
   | { t: 'act' }
-  /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number. */
-  | { t: 'car'; r: number; x: number; z: number; a: number; v: number }
+  /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number; `d` is the drift (0 none, 1 drifting, 2 blue sparks, 3 orange sparks). */
+  | { t: 'car'; r: number; x: number; z: number; a: number; v: number; d?: number }
+  /** Maluch Rally with a TV: the drift button (sent when it's pressed or let go). */
+  | { t: 'drift'; on: boolean }
   /** Pierogi Panic station minigame: progress (0..1), finished or abandoned. */
   | { t: 'mini'; id: number; ev: 'prog' | 'done' | 'cancel'; p?: number }
   /** To Ty! selfie as a JPEG data URL, '' to skip and be a pierogi, or 'keep' for last game's photo. */
@@ -412,7 +438,7 @@ export type PhoneMsg =
   | { t: 'doodle'; strokes: Stroke[] }
   // VIP-only actions (the host ignores them from anybody else)
   | { t: 'select'; game: GameId }
-  | { t: 'option'; key: keyof LobbyOptions; value: boolean | number }
+  | { t: 'option'; key: keyof LobbyOptions; value: boolean | number | string }
   | { t: 'start' }
   | { t: 'kick'; id: string }
   | { t: 'again' }
@@ -443,7 +469,7 @@ export type HostToPhone =
   | { t: 'kicked' };
 
 /** Effect bits in a no-TV rally snapshot. */
-export const RALLY_FX_BITS = { spin: 1, rocket: 2, boost: 4, shield: 8, slow: 16, ghost: 32, parked: 64 } as const;
+export const RALLY_FX_BITS = { spin: 1, rocket: 2, boost: 4, shield: 8, slow: 16, ghost: 32, parked: 64, drift: 128, sparks: 256, superSparks: 512 } as const;
 /** Numbers per car in the snapshot's `c` array. */
 export const RALLY_CAR_STRIDE = 5;
 

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { RALLY_FX_BITS, RALLY_ITEMS, colorHex, type HostToPhone, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
-import { DT, HAZARDS, LAPS, RallySim, racePoints } from './sim';
+import { DT, HAZARDS, LAPS, RallySim, driftLevel, racePoints } from './sim';
 import { generateTrack, type Track } from './track';
 import { RENDER_SCALE, RallyScene, splitLayout, type Slot } from './render3d';
 import { ItemIcon, hitLabel } from './items';
 import { Minimap } from './minimap';
-import { SHAPES, type Shape } from './track';
+import { ALL_SHAPES, cupShapes, type Shape } from './track';
 import { shuffle } from '../quiz/logic';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
@@ -74,7 +74,7 @@ export class RallyGame implements Game {
     this.lastPoints = ids.map(() => 0);
     this.lastBump = ids.map(() => 0);
     this.layout = splitLayout(ids.length);
-    this.shapes = shuffle(SHAPES);
+    this.shapes = cupShapes(host.options.track, RACES, shuffle);
     this.flash = ids.map(() => ({ text: '', until: 0 }));
     this.net = host.noTv;
   }
@@ -86,7 +86,7 @@ export class RallyGame implements Game {
       // Without a TV the host runs on a phone, whose own race view is window.rally.
       (window as unknown as Record<string, RallyGame>)[this.net ? 'rallyHost' : 'rally'] = this;
       const forced = q.get('shape') as Shape | null;
-      if (forced && SHAPES.includes(forced)) this.shapes = [forced, ...this.shapes.filter((x) => x !== forced)];
+      if (forced && ALL_SHAPES.includes(forced)) this.shapes = [forced, ...this.shapes.filter((x) => x !== forced)];
     }
     this.newRace();
     this.lastFrame = performance.now();
@@ -253,6 +253,10 @@ export class RallyGame implements Game {
         this.tell(h.by, { got: this.name(h.idx) });
       }
     }
+    for (const t of ev.turbos) {
+      this.say(t.idx, t.level === 2 ? 'Super turbo!' : 'Mini-turbo!', 1000);
+      this.host.buzz(this.ids[t.idx], [25]);
+    }
     for (const st of ev.steals) {
       this.say(st.idx, 'Stolen!', 1400);
       this.say(st.from, 'ROBBED!', 1400);
@@ -297,7 +301,9 @@ export class RallyGame implements Game {
         (car.shield > 0 ? B.shield : 0) |
         (car.slow > 0 ? B.slow : 0) |
         (car.ghost > 0 ? B.ghost : 0) |
-        (car.parked || this.removed.has(car.idx) ? B.parked : 0);
+        (car.parked || this.removed.has(car.idx) ? B.parked : 0) |
+        (car.drift ? B.drift : 0) |
+        (driftLevel(car) === 1 ? B.sparks : driftLevel(car) === 2 ? B.superSparks : 0);
       c.push(round(car.x), round(car.z), round(car.heading, 1000), round(car.speed, 10), bits);
     }
     const b: number[] = [];
@@ -340,7 +346,8 @@ export class RallyGame implements Game {
       if (!this.net || !c || m.r !== this.race || this.phase !== 'race' || this.removed.has(i)) return;
       const v = [m.x, m.z, m.a, m.v].map(Number);
       if (!v.every((x) => Number.isFinite(x) && Math.abs(x) < 1e4)) return;
-      this.sim.report(i, v[0], v[1], v[2], Math.max(-20, Math.min(80, v[3])));
+      const d = Math.round(Number(m.d) || 0);
+      this.sim.report(i, v[0], v[1], v[2], Math.max(-20, Math.min(80, v[3])), d >= 0 && d <= 3 ? d : 0);
       return;
     }
     if (m.t === 'act') {
@@ -348,12 +355,16 @@ export class RallyGame implements Game {
       if (this.phase === 'race' && c && !this.removed.has(i)) this.sim.useItem(i);
       return;
     }
+    if (m.t === 'drift') {
+      if (c) c.input = { ...c.input, drift: !!m.on };
+      return;
+    }
     if (m.t !== 'stick') return;
     if (!c || c.finished) return;
     const x = Number(m.x);
     const y = Number(m.y);
     if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-    c.input = { x: Math.max(-100, Math.min(100, x)), y: Math.max(-100, Math.min(100, y)) };
+    c.input = { x: Math.max(-100, Math.min(100, x)), y: Math.max(-100, Math.min(100, y)), drift: c.input.drift };
   }
 
   onConnection(id: string, connected: boolean) {

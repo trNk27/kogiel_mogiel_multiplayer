@@ -32,6 +32,37 @@ function ordinal(n: number) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
+/** Hold with your other thumb while turning to drift; let go when the sparks show for a turbo. */
+function DriftButton({ send }: { send: Props<'rally'>['send'] }) {
+  const [down, setDown] = useState(false);
+  const set = (on: boolean) => {
+    if (on === down) return;
+    setDown(on);
+    if (on) {
+      try {
+        navigator.vibrate?.(10);
+      } catch {
+        /* not supported */
+      }
+    }
+    send({ t: 'drift', on });
+  };
+  return (
+    <button
+      class={`rally-drift ${down ? 'down' : ''}`}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+        set(true);
+      }}
+      onPointerUp={() => set(false)}
+      onPointerCancel={() => set(false)}
+    >
+      DRIFT <small>hold while turning</small>
+    </button>
+  );
+}
+
 export function RallyPad(props: Props<'rally'>) {
   const { view } = props;
   // Without a TV, the phone shows the race itself.
@@ -116,6 +147,10 @@ function TvPad({ view, me, send }: Props<'rally'>) {
       if (k === ' ') {
         e.preventDefault();
         if (!isDown && hasItem.current) sendRef.current({ t: 'act' });
+        return;
+      }
+      if (k === 'Shift' || k === 'x' || k === 'X') {
+        if (!e.repeat) sendRef.current({ t: 'drift', on: isDown });
         return;
       }
       if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.l = isDown;
@@ -210,6 +245,7 @@ function TvPad({ view, me, send }: Props<'rally'>) {
           <div class="rally-pad-hint">Hold your thumb here to drive</div>
         )}
       </div>
+      <DriftButton send={send} />
       {overlay && (
         <div class="rally-pad-overlay">
           <Pierogi color={colorHex(me.color)} size={110} mood={view.phase === 'finished' ? 'wow' : 'happy'} class="bob" />

@@ -8,7 +8,7 @@
  * snapshots.
  */
 import { RALLY_CAR_STRIDE, RALLY_FX_BITS, colorHex, type HostToPhone, type PhoneMsg, type RallyNet } from '../../../../shared/protocol';
-import { DT, HAZARDS, ITUNING, LAPS, RallySim, hitEffect, selfEffect, type Blast, type Bomb, type Pickle, type Slick } from './sim';
+import { DT, HAZARDS, ITUNING, LAPS, RallySim, driftCode, setDriftLook, hitEffect, selfEffect, type Blast, type Bomb, type Pickle, type Slick } from './sim';
 import { generateTrack, pointAt, project, type Shape, type Track } from './track';
 import { RallyScene, type RaceState } from './render3d';
 import { Minimap } from './minimap';
@@ -30,6 +30,7 @@ export interface DriveInput {
   /** -1 (full left) … 1 (full right). */
   steer: number;
   brake: boolean;
+  drift: boolean;
 }
 
 /** Numbers the HUD shows, updated ~10 times a second. */
@@ -38,13 +39,20 @@ export interface DriveHud {
   ink: number;
   lap: number;
   finished: boolean;
+  /** 0 not drifting, 1 drifting, 2 blue sparks, 3 orange sparks. */
+  drift: number;
+  /** Counts mini-turbos (and their level), so the HUD can flash one. */
+  turbos: number;
+  turboLevel: number;
 }
 
 export class RallyClient {
   readonly track: Track;
   readonly sim: RallySim;
   readonly idx: number;
-  input: DriveInput = { steer: 0, brake: false };
+  input: DriveInput = { steer: 0, brake: false, drift: false };
+  private turbos = 0;
+  private turboLevel = 0;
   /** Automated tests (/join?debug): drive along the middle of the road. */
   autodrive = false;
   private scene: RallyScene;
@@ -159,9 +167,13 @@ export class RallyClient {
         ? { x: 0, y: 0 }
         : this.autodrive
           ? this.sim.autopilot(me, 40)
-          : { x: Math.round(this.input.steer * 100), y: this.input.brake ? 100 : -100 };
+          : { x: Math.round(this.input.steer * 100), y: this.input.brake ? 100 : -100, drift: this.input.drift };
       if (!this.driving && !me.finished) me.speed = 0;
-      this.sim.step();
+      for (const t of this.sim.step().turbos)
+        if (t.idx === this.idx) {
+          this.turbos++;
+          this.turboLevel = t.level;
+        }
     }
     this.placeItems(now);
     this.state.time = this.sim.time;
@@ -171,11 +183,11 @@ export class RallyClient {
     if (this.driving && now - this.lastReport >= REPORT_MS) {
       this.lastReport = now;
       const r = (v: number, k = 100) => Math.round(v * k) / k;
-      this.send({ t: 'car', r: this.race, x: r(me.x), z: r(me.z), a: r(me.heading, 1000), v: r(me.speed, 10) });
+      this.send({ t: 'car', r: this.race, x: r(me.x), z: r(me.z), a: r(me.heading, 1000), v: r(me.speed, 10), d: driftCode(me) });
     }
     if (now - this.lastHud > 100) {
       this.lastHud = now;
-      this.onHud({ speed: Math.abs(me.speed), ink: me.ink, lap: this.sim.lap(me), finished: me.finished });
+      this.onHud({ speed: Math.abs(me.speed), ink: me.ink, lap: this.sim.lap(me), finished: me.finished, drift: driftCode(me), turbos: this.turbos, turboLevel: this.turboLevel });
     }
   };
 
@@ -232,6 +244,7 @@ export class RallyClient {
       c.ghost = bits & B.ghost ? 1 : 0;
       this.remoteSpin[c.idx] = c.spin ? this.remoteSpin[c.idx] + 0.25 : 0;
       c.spinAngle = this.remoteSpin[c.idx];
+      setDriftLook(c, bits & B.superSparks ? 3 : bits & B.sparks ? 2 : bits & B.drift ? 1 : 0);
     }
   }
 

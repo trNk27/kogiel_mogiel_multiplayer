@@ -53,8 +53,9 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
   const canvas = useRef<HTMLCanvasElement>(null);
   const mapRef = useRef<HTMLCanvasElement>(null);
   const client = useRef<RallyClient | null>(null);
-  const input = useRef<DriveInput>({ steer: 0, brake: false });
-  const [hud, setHud] = useState<DriveHud>({ speed: 0, ink: 0, lap: 1, finished: false });
+  const input = useRef<DriveInput>({ steer: 0, brake: false, drift: false });
+  const [hud, setHud] = useState<DriveHud>({ speed: 0, ink: 0, lap: 1, finished: false, drift: 0, turbos: 0, turboLevel: 0 });
+  const [drifting, setDrifting] = useState(false);
   const [mode, setMode] = useState<Mode>(loadMode);
   const [tiltProblem, setTiltProblem] = useState<string | null>(null);
   const [steerShown, setSteerShown] = useState(0);
@@ -141,6 +142,16 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
     if (view.item && view.item !== lastItem.current) sfx.pickup();
     lastItem.current = view.item;
   }, [view.item]);
+  // Letting go of a drift with sparks.
+  const lastTurbos = useRef(0);
+  useEffect(() => {
+    if (hud.turbos > lastTurbos.current) {
+      say(hud.turboLevel === 2 ? 'Super turbo!' : 'Mini-turbo!');
+      sfx.whoosh();
+      vibrate(20);
+    }
+    lastTurbos.current = hud.turbos;
+  }, [hud.turbos]);
   const lastLap = useRef(view.lap);
   useEffect(() => {
     if (view.lap > lastLap.current) {
@@ -178,6 +189,11 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
   const setSteer = (v: number) => {
     input.current.steer = v;
     setSteerShown(Math.round(v * 20) / 20);
+  };
+  const setDrift = (on: boolean) => {
+    if (on && !input.current.drift) vibrate(10);
+    input.current.drift = on;
+    setDrifting(on);
   };
   const setBrake = (on: boolean) => {
     if (on && !input.current.brake) vibrate(8);
@@ -252,6 +268,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
       if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.l = down;
       else if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.r = down;
       else if (k === 'ArrowDown' || k === 's' || k === 'S') setBrake(down);
+      else if (k === 'Shift' || k === 'x' || k === 'X') setDrift(down);
       else if (k === ' ') {
         if (down && !e.repeat) useItem();
       } else return;
@@ -272,6 +289,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
   useEffect(() => {
     const reset = () => {
       setBrake(false);
+      setDrift(false);
       if (mode === 'touch') setSteer(0);
     };
     window.addEventListener('blur', reset);
@@ -335,11 +353,13 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
         <small> km/h</small>
       </div>
 
+      {hud.drift > 0 && <div class={`drive-sparks lvl-${hud.drift}`}>{hud.drift === 3 ? 'SUPER TURBO READY' : hud.drift === 2 ? 'TURBO READY' : 'DRIFT…'}</div>}
+
       <div class={`drive-controls mode-${mode}`}>
         {mode === 'touch' ? (
           <DragPad steer={steerShown} onSteer={setSteer} />
         ) : (
-          <PedalButton class="drive-brake big" label="BRAKE" down={braking} onChange={setBrake} />
+          <PedalButton class={`drive-drift big lvl-${hud.drift}`} label="DRIFT" down={drifting} onChange={setDrift} />
         )}
         <div class="drive-right">
           <button
@@ -352,7 +372,8 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
           >
             {view.item ? <ItemIcon item={view.item} size={58} /> : <span class="drive-item-empty">?</span>}
           </button>
-          {mode === 'touch' && <PedalButton class="drive-brake" label="BRAKE" down={braking} onChange={setBrake} />}
+          <PedalButton class="drive-brake" label="BRAKE" down={braking} onChange={setBrake} />
+          {mode === 'touch' && <PedalButton class={`drive-drift lvl-${hud.drift}`} label="DRIFT" down={drifting} onChange={setDrift} />}
         </div>
       </div>
       {mode === 'tilt' && (
@@ -384,7 +405,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
           </div>
           <div class="muted small center">
             {mode === 'tilt' ? 'Hold your phone like a steering wheel and turn it. ' : 'Drag your thumb left and right on the pad. '}
-            The car speeds up by itself – hold BRAKE to slow down or reverse.
+            The car speeds up by itself. Hold DRIFT while turning to slide round tight corners – let go when the sparks show for a turbo.
           </div>
           {tiltProblem && <div class="form-error">{tiltProblem}</div>}
           {canFullscreen && !fullscreen && (

@@ -7,6 +7,7 @@ import {
   AmbientLight,
   CapsuleGeometry,
   IcosahedronGeometry,
+  OctahedronGeometry,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -40,7 +41,7 @@ import {
 } from 'three';
 import { mulberry32 } from '../rng';
 import { BRIDGE_WALL, ROAD_HALF, TUNNEL_HEIGHT, TUNNEL_WALL, WALL, inRange, riverCoords, waterLevel, type Track } from './track';
-import { ITUNING, type Blast, type Bomb, type Car, type ItemBox, type Pickle, type Slick } from './sim';
+import { ITUNING, driftLevel, type Blast, type Bomb, type Car, type ItemBox, type Pickle, type Slick } from './sim';
 import { buildTown, type Obstacle } from './town3d';
 
 /** What the renderer needs from the simulation each frame. */
@@ -67,6 +68,8 @@ interface CarFx {
   shield: Mesh;
   flame: Mesh;
   cloud: Group;
+  /** Drift sparks from the back wheels. */
+  sparks: Mesh[];
 }
 
 /** Internal resolution as a fraction of the 1920×1080 stage. */
@@ -233,6 +236,7 @@ export class RallyScene {
     bandMat: new MeshLambertMaterial({ color: '#a5462e', flatShading: true }),
   };
   private water: CanvasTexture | null = null;
+  private sparkGeo = new OctahedronGeometry(0.35, 0);
   private sprayParts = {
     puff: new IcosahedronGeometry(1, 0),
     mat: new MeshLambertMaterial({ color: '#c2185b', emissive: '#6d0d2e', transparent: true, opacity: 0.55, depthWrite: false, flatShading: true }),
@@ -327,8 +331,13 @@ export class RallyScene {
       bolt.name = 'bolt';
       cloud.add(bolt);
       cloud.position.y = 5.5;
-      root.add(shield, flame, cloud);
-      this.cars.push({ root, body: car, wheels, tag, spin: 0, fx: { shield, flame, cloud }, mats, ghost: false });
+      const sparks = [-0.9, 0.9].map((x) => {
+        const m = new Mesh(this.sparkGeo, new MeshBasicMaterial({ color: '#4f9dff' }));
+        m.position.set(x, 0.3, -1.4);
+        return m;
+      });
+      root.add(shield, flame, cloud, ...sparks);
+      this.cars.push({ root, body: car, wheels, tag, spin: 0, fx: { shield, flame, cloud, sparks }, mats, ghost: false });
       this.dark.push(0);
       const cam = new PerspectiveCamera(68, 16 / 9, 0.3, 900);
       cam.layers.enableAll();
@@ -1121,6 +1130,15 @@ export class RallyScene {
       car.root.rotation.set(0, yaw, 0);
       car.body.rotation.set(-Math.atan(slope * along), c.spinAngle, 0);
       car.fx.shield.visible = c.shield > 0 && (c.shield > 2 || Math.floor(now / 120) % 2 === 0);
+      // Drift sparks: blue, then orange once a super turbo is ready.
+      const level = driftLevel(c);
+      for (const [k, sp] of car.fx.sparks.entries()) {
+        sp.visible = level > 0 && Math.random() < 0.8;
+        if (!sp.visible) continue;
+        (sp.material as MeshBasicMaterial).color.set(level === 2 ? (k ? '#ff8a2a' : '#ffd23f') : k ? '#4f9dff' : '#9cc8ff');
+        sp.scale.setScalar(0.7 + Math.random() * (level === 2 ? 1.1 : 0.7));
+        sp.rotation.set(Math.random() * 3, Math.random() * 3, 0);
+      }
       car.fx.flame.visible = c.boost > 0 || c.rocket > 0;
       if (car.fx.flame.visible) {
         const big = c.rocket > 0 ? 2.2 : 1;
@@ -1151,8 +1169,9 @@ export class RallyScene {
       // Darker inside the tunnel (the lamps stay bright).
       this.dark[i] += (tunnelDepth(t, c.hint) - this.dark[i]) * Math.min(1, dt * 4);
       for (const l of this.lights) l.light.intensity = l.base * (1 - 0.72 * this.dark[i]);
-      const fx = Math.cos(c.heading);
-      const fz = Math.sin(c.heading);
+      // Follow where the car is going, not where its nose points (they differ in a drift).
+      const fx = Math.cos(c.heading - c.slip * 0.75);
+      const fz = Math.sin(c.heading - c.slip * 0.75);
       const back = c.speed < -1 ? -1 : 1;
       const want = new Vector3(c.x - fx * 8 * back, c.h + 3.4, c.z - fz * 8 * back);
       this.camPos[i].lerp(want, follow);

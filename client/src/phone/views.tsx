@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { ANSWER_STYLES, DIFFICULTIES, GAMES, KITCHEN_LEVELS, MAX_PLAYERS, gamesFor, colorHex, difficultyName, gameInfo, playerCountProblem, type GameId, type PhoneView } from '../../../shared/protocol';
+import { ANSWER_STYLES, DIFFICULTIES, GAMES, KITCHEN_LEVELS, MAX_PLAYERS, RALLY_TRACKS, gamesFor, rallyTrack, colorHex, difficultyName, gameInfo, playerCountProblem, type GameId, type PhoneView } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { Shape } from '../lib/shapes';
@@ -103,6 +103,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         {view.selected === 'trails' && (
           <Toggle label="Power-ups" hint="Speed, line size, gaps, jumps, through walls and more" on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
+        {view.selected === 'rally' && <TrackPicker value={view.options.track} onChange={(v) => send({ t: 'option', key: 'track', value: v })} />}
         {view.selected === 'rally' && (
           <Toggle label="Items" hint={noTv ? '? boxes on the track – tap the item button to use one' : '? boxes on the track – lift your thumb to use one'} on={view.options.items} onChange={(v) => send({ t: 'option', key: 'items', value: v })} />
         )}
@@ -175,6 +176,27 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
           {me.hosting ? 'Keep this page open – your phone is hosting the party.' : noTv ? 'You run the show from here.' : 'Tip: the TV needs no remote – you run the show from here.'}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Maluch Rally: a cup of mixed or hard tracks, or every race on one kind of track. */
+function TrackPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const chosen = rallyTrack(value);
+  return (
+    <div class="segmented-wrap">
+      <div class="toggle-text">
+        <b>Tracks: {chosen.name}</b>
+        <small>{chosen.cup ? chosen.hint : `All three races on a ${chosen.name} – ${chosen.hint.toLowerCase()}`}</small>
+      </div>
+      <div class="track-grid">
+        {RALLY_TRACKS.map((t) => (
+          <button class={`track-chip ${t.cup ? 'cup' : ''} ${t.hard ? 'hard' : ''} ${t.id === chosen.id ? 'on' : ''}`} onClick={() => onChange(t.id)}>
+            {t.hard && <span aria-label="hard">🌶</span>}
+            {t.name}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

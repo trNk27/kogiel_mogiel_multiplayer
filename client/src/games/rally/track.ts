@@ -1,4 +1,5 @@
 import { mulberry32, type Rng } from '../rng';
+import { rallyTrack } from '../../../../shared/protocol';
 
 /** Half the width of the tarmac. */
 export const ROAD_HALF = 7;
@@ -7,9 +8,13 @@ export const WALL = 13;
 /** The centre line is resampled to points this far apart. */
 export const SPACING = 2;
 /** Tracks closer than this to themselves would let cars jump between two parts. */
-const MIN_GAP = 2 * WALL + 10;
+const MIN_GAP_EASY = 2 * WALL + 10;
 /** Tightest allowed corner radius: the inner barrier must not fold over itself. */
-const MIN_RADIUS = WALL + 5;
+const MIN_RADIUS_EASY = WALL + 5;
+/** Hard tracks: a narrow verge, so corners can be much tighter (hairpins you have to brake or drift through). */
+export const HARD_WALL = ROAD_HALF + 3;
+const HARD_GAP = 2 * HARD_WALL + 8;
+const HARD_RADIUS = HARD_WALL + 2;
 const MAX_HILL = 6;
 /** How high a figure-eight's bridge lifts one road over the other. */
 export const BRIDGE_HEIGHT = 8;
@@ -17,21 +22,28 @@ export const BRIDGE_HEIGHT = 8;
 const CROSS_ZONE = 45;
 
 export const SHAPES = ['ring', 'kidney', 'clover', 'figure8', 'town', 'speedway'] as const;
-export type Shape = (typeof SHAPES)[number];
+/** Hard tracks: hairpins, S-bends and deep lobes, between narrow barriers. */
+export const HARD_SHAPES = ['pass', 'snake', 'crown'] as const;
+export const ALL_SHAPES = [...SHAPES, ...HARD_SHAPES] as const;
+export type Shape = (typeof ALL_SHAPES)[number];
 
-export const SHAPE_NAMES: Record<Shape, string> = {
-  ring: 'Forest Ring',
-  kidney: 'Kidney Bend',
-  clover: 'Clover Hills',
-  figure8: 'Figure Eight',
-  town: 'Town Circuit',
-  speedway: 'Speedway',
-};
+export const SHAPE_NAMES = Object.fromEntries(ALL_SHAPES.map((s) => [s, rallyTrack(s).name])) as Record<Shape, string>;
+
+/** The shapes for each race of a cup, from the lobby's track choice. */
+export function cupShapes(choice: string, races: number, shuffle: <T>(xs: readonly T[]) => T[]): Shape[] {
+  if (choice === 'hard') return shuffle(HARD_SHAPES);
+  if ((ALL_SHAPES as readonly string[]).includes(choice)) return Array.from({ length: races }, () => choice as Shape);
+  return shuffle(SHAPES);
+}
+
+export const isHard = (shape: Shape) => (HARD_SHAPES as readonly Shape[]).includes(shape);
 
 export interface Track {
   seed: number;
   shape: Shape;
   name: string;
+  /** A hard track: tighter corners and barriers closer to the road. */
+  hard: boolean;
   n: number;
   /** Centre line samples, evenly spaced by SPACING (the last one connects back to the first). */
   xs: Float64Array;
@@ -311,6 +323,85 @@ function speedwayPoints(rng: Rng): Pts {
   return { x, z };
 }
 
+/**
+ * Tatra Pass: switchbacks. Rows of road stacked up a mountainside, joined by hairpins,
+ * and one long road back down around the side.
+ */
+function passPoints(rng: Rng): Pts {
+  const rows = 4;
+  const gap = 38 + rng() * 8;
+  const x: number[] = [];
+  const z: number[] = [];
+  // Where each hairpin sits (alternately on the right and the left).
+  const ends = Array.from({ length: rows + 1 }, (_, r) => (r % 2 === 0 ? 0 : 250 + rng() * 60) + (rng() - 0.5) * 30);
+  ends[0] = 0;
+  const wave = 4 + rng() * 6;
+  for (let r = 0; r < rows; r++) {
+    const from = r === 0 ? 0 : ends[r];
+    const to = ends[r + 1] + (r % 2 === 0 ? 0 : 0);
+    const zr = r * gap;
+    const steps = Math.max(2, Math.round(Math.abs(to - from) / 45));
+    // Each row starts where the hairpin before it ended.
+    for (let k = r === 0 ? 0 : 1; k < steps; k++) {
+      const t = k / steps;
+      const px = from + (to - from) * t;
+      x.push(px);
+      z.push(zr + (k > 0 ? wave * Math.sin(px * 0.035 + r) : 0));
+    }
+    if (r < rows - 1) {
+      // A hairpin: half a circle up to the next row.
+      const dir = to > from ? 1 : -1;
+      for (const a of [-0.5, -0.3, -0.1, 0.1, 0.3, 0.5]) {
+        x.push(to + dir * (gap / 2) * Math.cos(a * Math.PI));
+        z.push(zr + gap / 2 + (gap / 2) * Math.sin(a * Math.PI));
+      }
+    }
+  }
+  // The last row heads left; carry on past the start and come back down around the side.
+  const top = (rows - 1) * gap;
+  const side = -60 - rng() * 30;
+  x.push(side * 0.5, side, side, side);
+  z.push(top, top - gap * 0.2, top / 2, gap * 0.3);
+  x.push(side * 0.55);
+  z.push(-gap * 0.35);
+  return { x, z };
+}
+
+/** Vistula Snake: a long oval whose straights wriggle in tight S-bends. */
+function snakePoints(rng: Rng): Pts {
+  const A = 230 + rng() * 40;
+  const B = 95 + rng() * 20;
+  const amp = 16 + rng() * 8;
+  const wave = 110 + rng() * 25;
+  const phase = rng() * Math.PI * 2;
+  const x: number[] = [];
+  const z: number[] = [];
+  for (const side of [1, -1]) {
+    // A straight that wiggles…
+    for (let px = -A; px <= A; px += 18) {
+      const xx = side * px;
+      const fade = Math.min(1, (A - Math.abs(px)) / 40);
+      x.push(xx);
+      z.push(side * B + fade * amp * Math.sin((px / wave) * Math.PI * 2 + phase + side));
+    }
+    // …and a tight end.
+    for (let k = 1; k < 6; k++) {
+      const a = (k / 6) * Math.PI;
+      x.push(side * (A + B * 0.75 * Math.sin(a)));
+      z.push(side * B * Math.cos(a));
+    }
+  }
+  return { x, z };
+}
+
+/** Babcia's Crown: five or six deep lobes, so the road keeps folding back on itself. */
+function crownPoints(rng: Rng): Pts {
+  const lobes = 5 + (rng() < 0.4 ? 1 : 0);
+  const R = 270 + rng() * 40;
+  const spin = rng() * Math.PI * 2;
+  return polar(lobes * 8, (a) => R * (0.7 + 0.3 * Math.cos(lobes * a + spin)), rng, 0.04, 0.9 + rng() * 0.1);
+}
+
 const GENERATORS: Record<Shape, (rng: Rng) => Pts> = {
   ring: ringPoints,
   kidney: kidneyPoints,
@@ -318,6 +409,9 @@ const GENERATORS: Record<Shape, (rng: Rng) => Pts> = {
   figure8: figure8Points,
   town: townPoints,
   speedway: speedwayPoints,
+  pass: passPoints,
+  snake: snakePoints,
+  crown: crownPoints,
 };
 
 // ---------------------------------------------------------------------------
@@ -356,27 +450,18 @@ export function crossings(x: ArrayLike<number>, z: ArrayLike<number>): { i: numb
  * Is a sampled centre line a valid track: no tight corners, and never close to itself
  * except, when `allowCrossing`, at one clean crossing (which becomes a bridge)?
  */
-export function validTrack(x: ArrayLike<number>, z: ArrayLike<number>, allowCrossing = false): boolean {
-  return trackProblem(x, z, allowCrossing) === null;
+export function validTrack(x: ArrayLike<number>, z: ArrayLike<number>, allowCrossing = false, hard = false): boolean {
+  return trackProblem(x, z, allowCrossing, hard) === null;
 }
 
-/** Why a centre line isn't a valid track, or null if it is. */
-export function trackProblem(x: ArrayLike<number>, z: ArrayLike<number>, allowCrossing = false): string | null {
+/** Why a centre line isn't a valid track, or null if it is. Hard tracks may have tighter corners and parts closer together. */
+export function trackProblem(x: ArrayLike<number>, z: ArrayLike<number>, allowCrossing = false, hard = false): string | null {
+  const MIN_RADIUS = hard ? HARD_RADIUS : MIN_RADIUS_EASY;
+  const MIN_GAP = hard ? HARD_GAP : MIN_GAP_EASY;
   const n = x.length;
   // Corner radius from the turn over a 12 m window (single samples are too noisy).
-  const W = 3;
-  for (let i = 0; i < n; i++) {
-    const a = (i - W + n) % n;
-    const a2 = (a + 1) % n;
-    const c = (i + W) % n;
-    const c2 = (c - 1 + n) % n;
-    const h1 = Math.atan2(z[a2] - z[a], x[a2] - x[a]);
-    const h2 = Math.atan2(z[c] - z[c2], x[c] - x[c2]);
-    let turn = Math.abs(h2 - h1);
-    if (turn > Math.PI) turn = 2 * Math.PI - turn;
-    const r = ((2 * W - 1) * SPACING) / turn;
-    if (turn > 1e-6 && r < MIN_RADIUS) return `corner radius ${r.toFixed(1)} at ${i}`;
-  }
+  const r = radii(x, z);
+  for (let i = 0; i < n; i++) if (r[i] < MIN_RADIUS) return `corner radius ${r[i].toFixed(1)} at ${i}`;
   const cross = crossings(x, z);
   if (cross.length > (allowCrossing ? 1 : 0)) return `${cross.length} crossings`;
   const cr = cross[0];
@@ -412,7 +497,52 @@ export function candidate(shape: Shape, rng: Rng): Pts {
   const want = TARGET_MIN + rng() * (TARGET_MAX - TARGET_MIN);
   const k = want / len;
   if (Math.abs(k - 1) > 0.05) s = spline(p.x.map((v) => v * k), p.z.map((v) => v * k), 24);
-  return resample(s.x, s.z, SPACING);
+  const out = resample(s.x, s.z, SPACING);
+  return isHard(shape) ? relax(out, HARD_RADIUS + 1.5) : out;
+}
+
+/** Corner radius at each sample, from the turn over a 12 m window (as trackProblem measures it). */
+function radii(x: ArrayLike<number>, z: ArrayLike<number>): Float64Array {
+  const n = x.length;
+  const W = 3;
+  const r = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const a = (i - W + n) % n;
+    const a2 = (a + 1) % n;
+    const c = (i + W) % n;
+    const c2 = (c - 1 + n) % n;
+    let turn = Math.abs(Math.atan2(z[c] - z[c2], x[c] - x[c2]) - Math.atan2(z[a2] - z[a], x[a2] - x[a]));
+    if (turn > Math.PI) turn = 2 * Math.PI - turn;
+    r[i] = turn > 1e-6 ? ((2 * W - 1) * SPACING) / turn : Infinity;
+  }
+  return r;
+}
+
+/** Round off kinks tighter than `minR` by smoothing just around them, then resample. */
+function relax(p: Pts, minR: number): Pts {
+  let x = p.x.slice();
+  let z = p.z.slice();
+  for (let pass = 0; pass < 60; pass++) {
+    const r = radii(x, z);
+    const n = x.length;
+    const bad: number[] = [];
+    for (let i = 0; i < n; i++) if (r[i] < minR) bad.push(i);
+    if (!bad.length) break;
+    const nx = x.slice();
+    const nz = z.slice();
+    for (const i of bad)
+      for (let k = -4; k <= 4; k++) {
+        const j = (i + k + n) % n;
+        const a = (j - 2 + n) % n;
+        const b = (j + 2) % n;
+        nx[j] = x[j] * 0.5 + (x[a] + x[b]) * 0.25;
+        nz[j] = z[j] * 0.5 + (z[a] + z[b]) * 0.25;
+      }
+    x = nx;
+    z = nz;
+    if (pass % 6 === 5) ({ x, z } = resample(x, z, SPACING));
+  }
+  return resample(x, z, SPACING);
 }
 
 /** Pick a shape for a seed. */
@@ -424,12 +554,14 @@ export function shapeFor(seed: number): Shape {
 export function generateTrack(seed: number, shape: Shape = shapeFor(seed)): Track {
   const rng = mulberry32(seed);
   const cross = shape === 'figure8';
+  let hard = isHard(shape);
   let pts = candidate(shape, rng);
   let tries = 0;
-  for (; tries < 300 && !validTrack(pts.x, pts.z, cross); tries++) pts = candidate(shape, rng);
+  for (; tries < 300 && !validTrack(pts.x, pts.z, cross, hard); tries++) pts = candidate(shape, rng);
   if (tries >= 300) {
     // Extremely unlikely; a ring always works eventually.
     shape = 'ring';
+    hard = false;
     while (!validTrack(pts.x, pts.z)) pts = candidate('ring', rng);
   }
   const n = pts.x.length;
@@ -475,7 +607,8 @@ export function generateTrack(seed: number, shape: Shape = shapeFor(seed)): Trac
 
   // Gentle hills: a couple of sine waves around the lap, flat at the start line.
   const hs = new Float64Array(n);
-  const flatTown = shape === 'town' ? 0.35 : 1;
+  // Towns are flat; the mountain pass is not.
+  const flatTown = shape === 'town' ? 0.35 : shape === 'pass' ? 1.6 : 1;
   const waves = [
     { k: 2, a: (1 + rng() * 2) * flatTown, p: rng() * Math.PI * 2 },
     { k: 3, a: (1 + rng() * 2.5) * flatTown, p: rng() * Math.PI * 2 },
@@ -483,7 +616,8 @@ export function generateTrack(seed: number, shape: Shape = shapeFor(seed)): Trac
   ];
   const at = (t: number) => waves.reduce((h, w) => h + w.a * Math.sin(Math.PI * 2 * w.k * t + w.p), 0);
   const h0 = at(0);
-  for (let i = 0; i < n; i++) hs[i] = Math.max(-MAX_HILL, Math.min(MAX_HILL, at(dist[i] / length) - h0));
+  const maxHill = shape === 'pass' ? MAX_HILL * 1.8 : MAX_HILL;
+  for (let i = 0; i < n; i++) hs[i] = Math.max(-maxHill, Math.min(maxHill, at(dist[i] / length) - h0));
 
   // Figure eight: the road after the start goes over, the other one under.
   const bridge = new Uint8Array(n);
@@ -623,20 +757,21 @@ export function generateTrack(seed: number, shape: Shape = shapeFor(seed)): Trac
   }
 
   // Barriers close in through the tunnel and over river bridges.
-  const wall = new Float64Array(n).fill(WALL);
+  const base = hard ? HARD_WALL : WALL;
+  const wall = new Float64Array(n).fill(base);
   const squeeze = (from: number, len: number, to: number) => {
     for (let k = -TAPER; k < len + TAPER; k++) {
       const i = (from + k + n) % n;
       const out = k < 0 ? -k : k >= len ? k - len + 1 : 0;
       const u = Math.min(1, out / TAPER);
-      const w = to + (WALL - to) * u * u * (3 - 2 * u);
+      const w = to + (base - to) * u * u * (3 - 2 * u);
       wall[i] = Math.min(wall[i], w);
     }
   };
   if (tunnel) squeeze(tunnel.from, tunnel.len, TUNNEL_WALL);
   if (river) for (const b of river.bridges) squeeze(b.from, b.len, BRIDGE_WALL);
 
-  return { seed, shape, name: SHAPE_NAMES[shape], n, xs, zs, hs, tx, tz, dist, length, bridge, crossing, town, wall, tunnel, river };
+  return { seed, shape, name: SHAPE_NAMES[shape], hard, n, xs, zs, hs, tx, tz, dist, length, bridge, crossing, town, wall, tunnel, river };
 }
 
 export interface Projection {
