@@ -11,11 +11,15 @@ export function Face({ color, photo, size, mood, class: cls }: { color: ColorId;
   );
 }
 
+/** The blank page Bazgroły drawings are made on. */
+export const PAPER = '#fff4dc';
+
 /**
- * A doodle over a photo, as SVG so it stays sharp on the TV. With `animate`, the strokes
- * are drawn one after another (spread over about `seconds`).
+ * A doodle over a photo (or over the player's pierogi, or on a blank page without a `color`),
+ * as SVG so it stays sharp on the TV. With `animate`, the strokes are drawn one after another
+ * (spread over about `seconds`).
  */
-export function Doodle({ strokes, photo, color, animate, seconds = 4, class: cls }: { strokes: Stroke[]; photo?: string | null; color: ColorId; animate?: boolean; seconds?: number; class?: string }) {
+export function Doodle({ strokes, photo, color, animate, seconds = 4, class: cls }: { strokes: Stroke[]; photo?: string | null; color?: ColorId; animate?: boolean; seconds?: number; class?: string }) {
   const step = strokes.length ? Math.min(0.18, seconds / strokes.length) : 0;
   return (
     <svg class={`ty-doodle ${cls ?? ''}`} viewBox={`0 0 ${DOODLE_SPACE} ${DOODLE_SPACE}`} aria-hidden="true">
@@ -43,8 +47,9 @@ export function Doodle({ strokes, photo, color, animate, seconds = 4, class: cls
   );
 }
 
-function DoodleBackground({ photo, color }: { photo?: string | null; color: ColorId }) {
+function DoodleBackground({ photo, color }: { photo?: string | null; color?: ColorId }) {
   if (photo) return <image href={photo} x="0" y="0" width={DOODLE_SPACE} height={DOODLE_SPACE} preserveAspectRatio="xMidYMid slice" />;
+  if (!color) return <rect width={DOODLE_SPACE} height={DOODLE_SPACE} fill={PAPER} />;
   // No selfie: a big pierogi in the player's colour to draw on.
   return (
     <g>

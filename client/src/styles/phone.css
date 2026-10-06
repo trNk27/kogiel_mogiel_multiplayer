@@ -1331,6 +1331,71 @@ body.phone-body input {
   font-size: 38px;
 }
 
+/* ---- Bazgroły ---------------------------------------------------------------- */
+
+.bz-lie {
+  gap: 12px;
+}
+.bz-lie > p {
+  margin: 4px 0;
+  text-align: center;
+}
+.bz-input {
+  font-size: 22px;
+}
+.bz-lie-big {
+  max-width: 100%;
+  padding: 18px 24px;
+  border-radius: 22px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 26px;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.bz-guess {
+  gap: 10px;
+}
+.bz-choices {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 4px;
+  overflow-y: auto;
+}
+.bz-choice {
+  appearance: none;
+  border: 0;
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.2;
+  text-align: left;
+  box-shadow: inset 0 -5px 0 var(--cream-2);
+  overflow-wrap: anywhere;
+}
+.bz-choice:active {
+  transform: scale(0.97);
+}
+.bz-choice.mine {
+  background: rgba(255, 244, 220, 0.1);
+  color: var(--muted);
+  box-shadow: none;
+}
+.bz-choice small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 /* ---- Maluch Rally ------------------------------------------------------------ */
 
 .rally-pad-view {
@@ -1974,83 +2039,163 @@ body.phone-body input {
   }
 }
 
-/* Maluch Rally with a TV: pedals on top, the item under them, a wheel to swipe below. */
-.rally-pedals {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  flex: 0 0 120px;
-}
-.rally-pedal {
-  border: 0;
-  border-radius: 24px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 22px;
-  letter-spacing: 0.04em;
-  color: var(--cream);
+/* Maluch Rally with a TV: the thumb pad. */
+.rally-pad {
+  position: relative;
+  flex: 1;
+  min-height: 260px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: rgba(20, 6, 10, 0.55);
+  box-shadow: inset 0 0 0 3px var(--line);
   touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
 }
-.rally-pedal.gas {
-  background: #23a07c;
-  box-shadow: inset 0 -6px 0 #136b52;
+.rally-pad-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 244, 220, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 244, 220, 0.06) 1px, transparent 1px);
+  background-size: 12.5% 12.5%;
 }
-.rally-pedal.brake {
-  background: var(--beet);
-  box-shadow: inset 0 -6px 0 var(--beet-deep);
+.rally-pad-axis {
+  position: absolute;
+  background: rgba(255, 244, 220, 0.25);
+}
+.rally-pad-axis.h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+}
+.rally-pad-axis.v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+}
+.rally-pad-gas,
+.rally-pad-brake {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  pointer-events: none;
+}
+.rally-pad-gas {
+  top: 0;
+  transform-origin: bottom;
+  background: linear-gradient(0deg, rgba(47, 214, 168, 0.05), rgba(47, 214, 168, 0.35));
+}
+.rally-pad-brake {
+  top: 50%;
+  transform-origin: top;
+  background: linear-gradient(180deg, rgba(232, 51, 90, 0.05), rgba(232, 51, 90, 0.4));
+}
+.rally-pad-label {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--muted);
   font-size: 18px;
+  pointer-events: none;
 }
-.rally-pedal.down {
-  transform: translateY(4px);
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+.rally-pad-label.up {
+  top: 12px;
+  left: 50%;
+  translate: -50% 0;
+  color: var(--dill);
 }
-.rally-pedal.brake.lvl-2 {
-  background: var(--blueberry);
-  box-shadow: 0 0 20px rgba(79, 157, 255, 0.85);
+.rally-pad-label.down {
+  bottom: 12px;
+  left: 50%;
+  translate: -50% 0;
+  color: #ff8aa4;
 }
-.rally-pedal.brake.lvl-3 {
-  background: #ff8a2a;
-  box-shadow: 0 0 24px rgba(255, 138, 42, 0.9);
+.rally-pad-label.left {
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 26px;
 }
-.rally-item-btn {
-  flex: 0 0 76px;
+.rally-pad-label.right {
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 26px;
+}
+.rally-pad-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, calc(-50% - 30px));
+  width: 80%;
+  text-align: center;
+  font-size: 17px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.rally-pad-dot {
+  position: absolute;
+  translate: -50% -50%;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px var(--me));
+}
+.rally-pad-item {
+  position: absolute;
+  left: 50%;
+  top: 46px;
+  translate: -50% 0;
+  width: 86%;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 14px;
-  border: 0;
+  padding: 6px 14px 6px 6px;
   border-radius: 20px;
-  text-align: left;
-  background: rgba(20, 6, 10, 0.45);
-  box-shadow: inset 0 0 0 2px var(--line);
+  background: rgba(255, 244, 220, 0.12);
+  box-shadow: inset 0 0 0 2px rgba(255, 210, 63, 0.6);
+  pointer-events: none;
+  animation: pop-in 0.35s both;
 }
-.rally-item-btn.has {
-  background: var(--cream);
-  color: var(--ink);
-  box-shadow: 0 0 0 4px var(--yolk);
-  animation: pop-in 0.4s both;
-}
-.rally-item-btn span {
+.rally-pad-item span {
   display: flex;
   flex-direction: column;
+  line-height: 1.15;
 }
-.rally-item-btn b {
+.rally-pad-item b {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 19px;
+  color: var(--yolk);
 }
-.rally-item-btn small {
-  font-size: 13px;
-  opacity: 0.75;
+.rally-pad-item small {
+  font-size: 14px;
+  color: var(--muted);
 }
-.rally-wheel.drive-pad {
-  flex: 1;
-  min-height: 180px;
+.rally-pad-item.armed {
+  background: rgba(255, 210, 63, 0.25);
+  animation: rally-armed 0.6s ease-in-out infinite alternate;
 }
-.rally-wheel .drive-pad-wheel {
-  width: 150px;
-  height: 150px;
+.rally-pad-item.armed small {
+  color: var(--cream);
+  font-weight: 700;
+}
+@keyframes rally-armed {
+  to {
+    box-shadow: inset 0 0 0 3px var(--yolk), 0 0 24px rgba(255, 210, 63, 0.5);
+  }
+}
+/* The brake half glows once a drift has built up sparks. */
+.rally-pad-brake.lvl-2 {
+  background: linear-gradient(180deg, rgba(79, 157, 255, 0.1), rgba(79, 157, 255, 0.7));
+}
+.rally-pad-brake.lvl-3 {
+  background: linear-gradient(180deg, rgba(255, 138, 42, 0.1), rgba(255, 138, 42, 0.75));
+}
+.rally-pad-label.down.lvl-2 {
+  color: #9cc8ff;
+}
+.rally-pad-label.down.lvl-3 {
+  color: var(--yolk);
 }
 
 /* ---- Tournament ----------------------------------------------------------------- */

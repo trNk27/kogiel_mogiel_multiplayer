@@ -29,6 +29,7 @@ import { Stars } from '../lib/stars';
 import { TimeBar } from './timebar';
 import { RallyPad } from './rally';
 import { TyDraw, TyPick, TyResult, TySelfie, TyVote } from './toty';
+import { BzDraw, BzGuess, BzLie, BzResult } from './bazgroly';
 import { ForkPad, ParadePad, PedalPad } from './minigames';
 
 export interface Props<V extends PhoneView['v']> {
@@ -70,6 +71,14 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <TyPick view={view} me={me} send={send} offset={offset} />;
     case 'tyResult':
       return <TyResult view={view} me={me} send={send} offset={offset} />;
+    case 'bzDraw':
+      return <BzDraw view={view} me={me} send={send} offset={offset} key={view.endsAt} />;
+    case 'bzLie':
+      return <BzLie view={view} me={me} send={send} offset={offset} key={view.endsAt} />;
+    case 'bzGuess':
+      return <BzGuess view={view} me={me} send={send} offset={offset} key={view.endsAt} />;
+    case 'bzResult':
+      return <BzResult view={view} me={me} send={send} offset={offset} />;
     case 'pedal':
       return <PedalPad view={view} me={me} send={send} offset={offset} key={view.heat} />;
     case 'fork':
@@ -139,12 +148,17 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
       </div>
       {noTv && <div class="muted small">Quiz, Trails and the rest need a shared screen – start a party from a TV or laptop to play them.</div>}
       <div class="toggles">
-"        {(view.selected === 'trails' || tour) && (
+        {(view.selected === 'trails' || tour) && (
           <Toggle label={tour ? 'Trails power-ups' : 'Power-ups'} hint="Speed, line size, gaps, jumps, through walls and more" on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
         {view.selected === 'rally' && <TrackPicker value={view.options.track} onChange={(v) => send({ t: 'option', key: 'track', value: v })} />}
-"        {(view.selected === 'rally' || tour) && (
-          <Toggle label={tour ? 'Maluch Rally items' : 'Items'} hint="? boxes on the track – tap the item button to use one" on={view.options.items} onChange={(v) => send({ t: 'option', key: 'items', value: v })} />
+        {(view.selected === 'rally' || tour) && (
+          <Toggle
+            label={tour ? 'Maluch Rally items' : 'Items'}
+            hint={noTv ? '? boxes on the track – tap the item button to use one' : '? boxes on the track – lift your thumb to use one'}
+            on={view.options.items}
+            onChange={(v) => send({ t: 'option', key: 'items', value: v })}
+          />
         )}
         {view.selected === 'kitchen' && (
           <>

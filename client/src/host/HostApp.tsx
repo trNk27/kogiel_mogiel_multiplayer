@@ -152,7 +152,7 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
       <div class="landing-games">
         {GAMES.map((g) => (
           <div class="landing-game">
-            <GameIcon game={g.id} size={70} />
+            <GameIcon game={g.id} size={60} />
             <b>{g.title}</b>
             <span>{g.tagline}</span>
           </div>
@@ -342,7 +342,7 @@ function howTo(game: GameId, short: boolean): string[] {
   }
 }
 
-const HOW_TO: Record<'trails' | 'kitchen' | 'rally' | 'toty', string[]> = {
+const HOW_TO: Record<'trails' | 'kitchen' | 'rally' | 'toty' | 'bazgroly', string[]> = {
   trails: [
     'Hold LEFT or RIGHT on your phone to steer your noodle.',
     'Hit a wall or any trail and you’re out. Slip through the little gaps!',
@@ -354,14 +354,19 @@ const HOW_TO: Record<'trails' | 'kitchen' | 'rally' | 'toty', string[]> = {
     'Serve the pierogi on the tickets before they run out. Three levels, up to 3 stars each!',
   ],
   rally: [
-    'GAS and BRAKE are at the top of your phone; swipe the wheel below left and right to steer.',
-    'Hold BRAKE while turning to drift, and let go when the sparks show for a turbo. Tap the item button to use an item.',
+    'Hold your thumb on the pad on your phone: left and right steer, up is gas, down is brake.',
+    'Pull down while turning to drift – let go when the sparks show for a turbo. Lift your thumb for a moment to use an item.',
     `${RACES} races of ${LAPS} laps on random tracks with bridges and tunnels. 15 points for a win, 12 for second, and so on.`,
   ],
   toty: [
     'Take a selfie on your phone (or skip it and be a pierogi).',
     '“Who’s most likely to…?” Vote for a player. You score if you agree with the room.',
     'Twice a game, everyone doodles on the chosen player’s photo. Vote for the best one!',
+  ],
+  bazgroly: [
+    'Everyone gets a weird secret prompt on their phone. Draw it!',
+    'Each drawing appears on the TV. Make up a fake title – one that sounds real.',
+    'Find the real title among the lies: 1000 for you and the artist. Each player you fool earns you 500.',
   ],
 };
 

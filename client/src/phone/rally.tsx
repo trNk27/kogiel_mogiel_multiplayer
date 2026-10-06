@@ -1,6 +1,6 @@
 /**
- * Maluch Rally phone controller (with a TV): GAS and BRAKE · DRIFT at the top, the item button
- * under them, and a steering wheel you swipe left and right below.
+ * Maluch Rally phone controller (with a TV): hold a thumb on the pad. Left/right steers, up is gas,
+ * down brakes – or drifts while you're turning at speed. Lift your thumb to fire your item.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { RALLY_ITEMS, colorHex, type RallyEffect } from '../../../shared/protocol';
@@ -8,9 +8,16 @@ import { ItemIcon } from '../games/rally/items';
 import { Pierogi } from '../lib/art';
 import type { Props } from './views';
 import { RallyDrive } from './rallyDrive';
-import { DragPad, PedalButton, vibrate } from './steer';
 
 const SEND_EVERY_MS = 50;
+const DEAD = 6;
+const STEP = 5;
+
+function shape(v: number) {
+  const a = Math.abs(v);
+  if (a < DEAD) return 0;
+  return Math.sign(v) * Math.min(100, Math.round(a / STEP) * STEP);
+}
 
 const FX_TEXT: Record<RallyEffect, string> = {
   spin: 'Spinning out!',
@@ -36,87 +43,125 @@ export function RallyPad(props: Props<'rally'>) {
 }
 
 function TvPad({ view, me, send }: Props<'rally'>) {
-  const [steer, setSteer] = useState(0);
-  const [gas, setGas] = useState(false);
-  const [brake, setBrake] = useState(false);
+  const pad = useRef<HTMLDivElement>(null);
+  const [dot, setDot] = useState<{ x: number; y: number } | null>(null);
   const sendRef = useRef(send);
   sendRef.current = send;
-  const itemRef = useRef(view.item);
-  itemRef.current = view.item;
-  const want = useRef({ x: 0, y: 0 });
-  const flushRef = useRef(() => {});
+  const hasItem = useRef(false);
+  hasItem.current = !!view.item;
 
-  // Send the stick (x steers, y is -100 gas / 100 brake) when it changes, at most 20 times a second.
   useEffect(() => {
+    const el = pad.current!;
+    let want = { x: 0, y: 0 };
     let sent = { x: 0, y: 0 };
     let lastSend = 0;
     let timer: number | undefined;
+    let pointer: number | null = null;
+    const keys = { l: false, r: false, u: false, d: false };
+
     const flush = () => {
       clearTimeout(timer);
       timer = undefined;
-      const w = want.current;
-      if (w.x === sent.x && w.y === sent.y) return;
+      if (want.x === sent.x && want.y === sent.y) return;
       const now = performance.now();
-      if (now - lastSend < SEND_EVERY_MS && (w.x || w.y)) {
+      const idle = want.x === 0 && want.y === 0;
+      if (!idle && now - lastSend < SEND_EVERY_MS) {
         timer = window.setTimeout(flush, SEND_EVERY_MS - (now - lastSend));
         return;
       }
       lastSend = now;
-      sent = { ...w };
+      sent = want;
       sendRef.current({ t: 'stick', x: sent.x, y: sent.y });
     };
-    flushRef.current = flush;
-    return () => {
-      clearTimeout(timer);
-      if (sent.x || sent.y) sendRef.current({ t: 'stick', x: 0, y: 0 });
+    const fromPoint = (cx: number, cy: number) => {
+      const r = el.getBoundingClientRect();
+      const nx = Math.max(-1, Math.min(1, ((cx - r.left) / r.width) * 2 - 1));
+      const ny = Math.max(-1, Math.min(1, ((cy - r.top) / r.height) * 2 - 1));
+      setDot({ x: nx, y: ny });
+      want = { x: shape(nx * 100), y: shape(ny * 100) };
+      flush();
     };
-  }, []);
-  useEffect(() => {
-    want.current = { x: Math.round(steer * 20) * 5, y: brake ? 100 : gas ? -100 : 0 };
-    flushRef.current();
-  }, [steer, gas, brake]);
-
-  const useItem = () => {
-    if (!itemRef.current) return;
-    vibrate(15);
-    sendRef.current({ t: 'act' });
-  };
-
-  // Keyboard (for the /dev page): arrows, Shift brakes, Space uses the item.
-  useEffect(() => {
-    const keys = { l: false, r: false };
-    const key = (down: boolean) => (e: KeyboardEvent) => {
-      const k = e.key;
-      if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.l = down;
-      else if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.r = down;
-      else if (k === 'ArrowUp' || k === 'w' || k === 'W') setGas(down);
-      else if (k === 'ArrowDown' || k === 's' || k === 'S' || k === 'Shift') setBrake(down);
-      else if (k === ' ') {
-        if (down && !e.repeat) useItem();
-      } else return;
+    const down = (e: PointerEvent) => {
       e.preventDefault();
-      setSteer((keys.r ? 1 : 0) - (keys.l ? 1 : 0));
+      pointer = e.pointerId;
+      el.setPointerCapture?.(e.pointerId);
+      try {
+        navigator.vibrate?.(8);
+      } catch {
+        /* not supported */
+      }
+      fromPoint(e.clientX, e.clientY);
     };
-    const kd = key(true);
-    const ku = key(false);
+    const move = (e: PointerEvent) => {
+      if (e.pointerId !== pointer) return;
+      e.preventDefault();
+      fromPoint(e.clientX, e.clientY);
+    };
+    const up = (e: PointerEvent) => {
+      if (e.pointerId !== pointer) return;
+      pointer = null;
+      setDot(null);
+      want = { x: 0, y: 0 };
+      flush();
+      // Letting go fires the item you're holding.
+      if (hasItem.current) {
+        hasItem.current = false;
+        sendRef.current({ t: 'act' });
+      }
+    };
+    const fromKeys = () => {
+      want = { x: (keys.r ? 100 : 0) - (keys.l ? 100 : 0), y: (keys.d ? 100 : 0) - (keys.u ? 100 : 0) };
+      setDot(want.x || want.y ? { x: want.x / 100, y: want.y / 100 } : null);
+      flush();
+    };
+    const key = (isDown: boolean) => (e: KeyboardEvent) => {
+      const k = e.key;
+      if (k === ' ') {
+        e.preventDefault();
+        if (!isDown && hasItem.current) sendRef.current({ t: 'act' });
+        return;
+      }
+      if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.l = isDown;
+      else if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.r = isDown;
+      else if (k === 'ArrowUp' || k === 'w' || k === 'W') keys.u = isDown;
+      else if (k === 'ArrowDown' || k === 's' || k === 'S' || k === 'Shift') keys.d = isDown;
+      else return;
+      e.preventDefault();
+      fromKeys();
+    };
+    const keyDown = key(true);
+    const keyUp = key(false);
     const reset = () => {
-      keys.l = keys.r = false;
-      setSteer(0);
-      setGas(false);
-      setBrake(false);
+      pointer = null;
+      keys.l = keys.r = keys.u = keys.d = false;
+      setDot(null);
+      want = { x: 0, y: 0 };
+      flush();
     };
-    window.addEventListener('keydown', kd);
-    window.addEventListener('keyup', ku);
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    window.addEventListener('keydown', keyDown);
+    window.addEventListener('keyup', keyUp);
     window.addEventListener('blur', reset);
     document.addEventListener('visibilitychange', reset);
     return () => {
-      window.removeEventListener('keydown', kd);
-      window.removeEventListener('keyup', ku);
+      clearTimeout(timer);
+      el.removeEventListener('pointerdown', down);
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      window.removeEventListener('keydown', keyDown);
+      window.removeEventListener('keyup', keyUp);
       window.removeEventListener('blur', reset);
       document.removeEventListener('visibilitychange', reset);
+      if (sent.x || sent.y) sendRef.current({ t: 'stick', x: 0, y: 0 });
     };
   }, []);
 
+  const gas = dot ? Math.max(0, -dot.y) : 0;
+  const brake = dot ? Math.max(0, dot.y) : 0;
   const overlay =
     view.phase === 'countdown'
       ? { big: 'Get ready!', small: `Race ${view.race} of ${view.races} – find your car on the TV` }
@@ -126,7 +171,6 @@ function TvPad({ view, me, send }: Props<'rally'>) {
           ? { big: view.pos ? `${ordinal(view.pos)} place` : 'Race over', small: view.race < view.races ? 'Next track coming up – look at the TV' : 'Final results on the TV' }
           : null;
 
-  const sparks = view.drift ?? 0;
   return (
     <div class="pv rally-pad-view" style={{ '--me': colorHex(me.color) }}>
       <div class="rally-pad-top">
@@ -141,31 +185,34 @@ function TvPad({ view, me, send }: Props<'rally'>) {
           Race {view.race}/{view.races}
         </span>
       </div>
-      <div class="rally-pedals">
-        <PedalButton class={`rally-pedal brake lvl-${sparks}`} label={sparks >= 2 ? 'LET GO!' : 'BRAKE · DRIFT'} down={brake} onChange={setBrake} />
-        <PedalButton class="rally-pedal gas" label="GAS" down={gas} onChange={setGas} />
-      </div>
-      <button
-        class={`rally-item-btn ${view.item ? 'has' : ''}`}
-        onPointerDown={(e) => {
-          e.preventDefault();
-          useItem();
-        }}
-      >
-        {view.item ? (
-          <>
-            <ItemIcon item={view.item} size={56} />
+      <div class="rally-pad" ref={pad}>
+        <div class="rally-pad-grid" />
+        <div class="rally-pad-axis h" />
+        <div class="rally-pad-axis v" />
+        <div class="rally-pad-label up">GAS ▲</div>
+        <div class={`rally-pad-label down lvl-${view.drift ?? 0}`}>{(view.drift ?? 0) >= 2 ? '▼ LET GO: TURBO!' : '▼ BRAKE · DRIFT'}</div>
+        <div class="rally-pad-label left">◀</div>
+        <div class="rally-pad-label right">▶</div>
+        <div class="rally-pad-gas" style={{ transform: `scaleY(${gas})` }} />
+        <div class={`rally-pad-brake lvl-${view.drift ?? 0}`} style={{ transform: `scaleY(${brake})` }} />
+        {view.item && (
+          <div class={`rally-pad-item ${dot ? 'armed' : ''}`} key={view.item}>
+            <ItemIcon item={view.item} size={74} />
             <span>
               <b>{RALLY_ITEMS[view.item].name}</b>
-              <small>Tap to use · {RALLY_ITEMS[view.item].does}</small>
+              <small>{dot ? 'Let go to use it!' : RALLY_ITEMS[view.item].does}</small>
             </span>
-          </>
-        ) : (
-          <span class="muted">No item – drive through a ? box</span>
+          </div>
         )}
-      </button>
-      {view.fx && <div class={`rally-pad-fx fx-${view.fx}`}>{FX_TEXT[view.fx]}</div>}
-      <DragPad class="rally-wheel" steer={steer} onSteer={setSteer} />
+        {view.fx && <div class={`rally-pad-fx fx-${view.fx}`}>{FX_TEXT[view.fx]}</div>}
+        {dot ? (
+          <div class="rally-pad-dot" style={{ left: `${(dot.x + 1) * 50}%`, top: `${(dot.y + 1) * 50}%` }}>
+            <Pierogi color={colorHex(me.color)} size={64} mood="wow" />
+          </div>
+        ) : (
+          <div class="rally-pad-hint">Hold your thumb here to drive</div>
+        )}
+      </div>
       {overlay && (
         <div class="rally-pad-overlay">
           <Pierogi color={colorHex(me.color)} size={110} mood={view.phase === 'finished' ? 'wow' : 'happy'} class="bob" />

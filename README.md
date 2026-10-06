@@ -14,8 +14,9 @@ are named after the brand: a glass of kogiel mogiel.
 | **Quiz** | 10 questions from a pool of 100. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 40. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is the controller: GAS and BRAKE at the top, and a steering wheel below that you swipe left and right. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup, a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. Hold **BRAKE while turning** to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **tap the item button** to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup, a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
+| **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 100 prompts. | 3–8 |
 | **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
 | **Fork Fight** | A quick-draw duel. A plate on your phone: when a pierogi lands on it, tap to stab it. Socks, slippers and rubber ducks land too; stab one (or stab an empty plate) and you lose a point. The fastest three forks get 3/2/1. Eight rounds, with more fakes as you go. | 1–8 |
 | **Pierogi Parade** | Pierogi of five colours march across the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
@@ -35,7 +36,7 @@ The VIP can also start a **Tournament**: five random games in a row (see below).
 
 Pick **Tournament** at the top of the game list. The TV draws five different games at random from
 the competitive ones that suit the room (never Pierogi Panic, which is co-op; Maluch Rally only with
-up to 4 players; To Ty! only with 3 or more) and shows the line-up. Each game is played in its
+up to 4 players; To Ty! and Bazgroły only with 3 or more) and shows the line-up. Each game is played in its
 **short version**:
 
 | Game | Full game | In a tournament |
@@ -45,6 +46,7 @@ up to 4 players; To Ty! only with 3 or more) and shows the line-up. Each game is
 | Ballpark | 7 questions | 3 questions |
 | Maluch Rally | 3 races | 1 race |
 | To Ty! | 7 questions, 2 doodle rounds, 75 s for selfies | 4 questions, 1 doodle round, 45 s for selfies |
+| Bazgroły | 2 rounds (1 with 5+ players) | 1 round |
 | Tour de Pierogi | 3 heats | 1 heat |
 | Fork Fight | 8 rounds | 4 rounds (starting with more fakes) |
 | Pierogi Parade | 3 rounds | 1 medium round |
@@ -125,13 +127,17 @@ client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js
 client/src/phone/rally.tsx  Maluch Rally thumb pad (with a TV)
 client/src/phone/rallyDrive.tsx  Maluch Rally on the phone (no TV): 3D view, tilt/drag steering, minimap
 client/src/phone/notvHost.ts     a phone hosting a party without a TV
-client/src/phone/toty.tsx   To Ty! selfie camera, voting and doodle canvas
+client/src/phone/toty.tsx   To Ty! selfie camera and voting
+client/src/phone/doodlePad.tsx  the drawing canvas (To Ty! and Bazgroły)
+client/src/games/bazgroly/* Bazgroły: prompts, lies, scoring (logic.ts) and the TV views
+client/src/phone/bazgroly.tsx  Bazgroły drawing, fake titles and guessing on the phone
 client/src/games/pedal|fork|parade/*  Tour de Pierogi, Fork Fight, Pierogi Parade (pure logic + TV views)
 client/src/phone/minigames.tsx   their phone controllers (pedals, the plate, the tap counter)
 client/src/host/tournament.ts    picking the tournament's games and its points table
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
 data/toty.json              62 "who's most likely to…" questions (26 with a doodle prompt)
+data/bazgroly.json          100 Bazgroły drawing prompts
 test/*.test.ts              Vitest unit tests (scoring, Trails collisions, data checks)
 ```
 
@@ -328,7 +334,7 @@ changes.
   lap). It has houses with gable roofs, a few PRL apartment blocks, a church with a spire, a SKLEP
   corner shop and street lamps. Everything is instanced and flat-shaded.
 - **Items** (`sim.ts`, `ITUNING`): three rows of four ? boxes per lap, which come back 3 s after
-  being taken. You hold one item at a time. Tapping the item button sends `act`, which fires
+  being taken. You hold one item at a time. Lifting your thumb off the pad (without a TV: tapping the item button) sends `act`, which fires
   it (Space does the same on the dev bench). Leaders are more likely to get defence items, and the
   back of the field gets catch-up items: no Rocket or Thunderstorm for the leader.
 
@@ -354,10 +360,10 @@ changes.
   takes at most 4 players: with more people in the room, the VIP can’t start it. It renders at 45 %
   of 1080p and is scaled up with nearest-neighbour filtering. Flat-shaded low-poly meshes, 4–32 px
   textures, blob shadows and fog give it the PS2 feel.
-- With a TV the phone is a controller: GAS and BRAKE · DRIFT at the top, the item button, and a
-  steering wheel below (swipe left/right; `steer.tsx`, shared with the no-TV view). It sends the
-  stick (x = steering in steps of 5, y = −100 gas / 100 brake) at most 20 times a second, only when
-  it changes.
+- With a TV the phone is a thumb pad: left/right steers, up is gas, down brakes (and drifts once
+  you pull past halfway while turning; the brake half glows with the sparks). It sends the stick
+  (−100…100 on both axes, in steps of 5) at most 20 times a second, only when it changes, and zero
+  when the thumb lifts, which also fires your item.
 - `/?debug&shape=figure8` on the TV forces the first track shape and exposes the running game as
   `window.rally`, for testing.
 - **Without a TV** (`client.ts`), each phone runs the car physics for its **own** car (so steering
@@ -382,6 +388,27 @@ strokes (at most 2,500 points), which the TV draws as SVG.
 
 The relay allows phone messages up to 64 KB (other messages stay tiny) and host messages up to
 96 KB. Photos add a few dozen WebSocket messages per game, well within the free plan.
+
+### Bazgroły
+
+A round goes like this (timings at the top of
+[`client/src/games/bazgroly/logic.ts`](client/src/games/bazgroly/logic.ts)):
+
+1. **Draw** (80 s): every player gets a different prompt from `data/bazgroly.json` and draws it
+   on a blank page with the same canvas as To Ty!. Drawings are vector strokes, like doodles.
+2. For each drawing, in random order:
+   - **Lie** (45 s): the TV replays the drawing stroke by stroke, and everyone but the artist types
+     a fake title (up to 40 characters). A title that matches the real one is turned down
+     (“That’s the real title!”). Titles are compared without case, accents, punctuation or
+     “a/an/the”, so “The haunted toaster!” matches “A haunted toaster”. **Lie for me** picks another
+     prompt from the pool. Identical lies are merged into one option, and every author scores.
+   - **Guess** (20 s): the real title and the lies, shuffled. You can’t pick your own lie. If
+     there are fewer than three options, prompts from the pool are added as decoys.
+   - **Reveal**: the lies that fooled somebody, least popular first, with who wrote them and who
+     fell for them, and then the truth. Phones only show their result once the truth is out.
+3. Scores: 1000 for finding the truth, 1000 to the artist per player who found it, and 500 per
+   player fooled by your lie. With up to 4 players there are two rounds and the second pays
+   double; with 5 or more there's one round (everyone's drawing gets shown once).
 
 ### Tour de Pierogi, Fork Fight and Pierogi Parade
 
@@ -411,6 +438,8 @@ with made-up scores, which is handy for walking through a tournament.
   Options are shuffled when shown.
 - `data/toty.json`: `{ id, question, draw? }`. `draw` is the doodle prompt for the player the room
   picked, with `{name}` standing in for their name. Questions 3 and 6 of each game always have one.
+- `data/bazgroly.json`: `{ id, prompt }`. Prompts can be things, scenes or feelings (“Brain freeze”),
+  up to 40 characters, without a full stop. They double as decoys and as “Lie for me” titles.
 - `data/ballpark.json`: `{ id, question, answer, unit }`. Use `"unit": "year"` for years, so they
   display without thousands separators and with no decimal key.
 

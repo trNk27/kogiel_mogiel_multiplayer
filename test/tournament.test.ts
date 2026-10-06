@@ -5,6 +5,7 @@ import { mulberry32 } from '../client/src/games/rng';
 import { trailsTarget } from '../client/src/games/trails/scoring';
 import { TY_SHORT, pickPlan, type TotyQuestion } from '../client/src/games/toty/logic';
 import questions from '../data/toty.json';
+import { roundsFor } from '../client/src/games/bazgroly/logic';
 
 describe('tournament pool', () => {
   it('never offers co-op games', () => {
@@ -92,6 +93,12 @@ describe('short versions', () => {
     expect(trailsTarget(4)).toBe(30);
     expect(trailsTarget(4, true)).toBe(15);
     expect(trailsTarget(2, true)).toBe(5);
+  });
+
+  it('plays one round of Bazgroły', () => {
+    expect(roundsFor(3)).toBe(2);
+    expect(roundsFor(3, true)).toBe(1);
+    expect(roundsFor(6, true)).toBe(1);
   });
 
   it('plays four To Ty! questions with a doodle after the second', () => {

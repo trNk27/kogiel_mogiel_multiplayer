@@ -56,6 +56,25 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
         <path d="M70 12 h6 v6 h-6 Z M82 12 h6 v6 h-6 Z M76 18 h6 v6 h-6 Z" fill="#2a120a" />
       </svg>
     );
+  if (game === 'bazgroly')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <rect x="14" y="16" width="58" height="68" rx="6" fill="#fff4dc" stroke="#2a120a" stroke-width="3" transform="rotate(-6 43 50)" />
+        <path d="M24 60 q6 -18 14 -6 t12 -2 q4 10 -6 12 q-14 2 -20 -4 Z" fill="none" stroke="#ff3d6e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="35" cy="40" r="3.5" fill="#2a120a" />
+        <circle cx="47" cy="38" r="3.5" fill="#2a120a" />
+        <text x="58" y="44" font-size="22" font-weight="700" fill="#4f9dff" font-family="Fredoka Variable, sans-serif">
+          ?
+        </text>
+        <g transform="rotate(38 74 58)">
+          <rect x="68" y="20" width="12" height="54" rx="2" fill="#ffd23f" stroke="#2a120a" stroke-width="3" />
+          <rect x="68" y="20" width="12" height="9" rx="2" fill="#ff7ad1" stroke="#2a120a" stroke-width="3" />
+          <path d="M68 74 L74 88 L80 74 Z" fill="#f1c46a" stroke="#2a120a" stroke-width="3" stroke-linejoin="round" />
+          <path d="M72.4 84 L74 88 L75.6 84 Z" fill="#2a120a" />
+        </g>
+      </svg>
+    );
   if (game === 'toty')
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">

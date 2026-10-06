@@ -162,16 +162,16 @@ body.tv {
 }
 .landing-games {
   display: grid;
-  grid-template-columns: repeat(3, 520px);
-  gap: 18px 40px;
+  grid-template-columns: repeat(4, 405px);
+  gap: 14px 24px;
 }
 .landing-game {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto;
-  column-gap: 18px;
+  column-gap: 14px;
   text-align: left;
-  width: 520px;
+  width: 405px;
   align-items: center;
 }
 .landing-game svg {
@@ -179,11 +179,11 @@ body.tv {
 }
 .landing-game b {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: 30px;
 }
 .landing-game span {
   color: var(--muted);
-  font-size: 22px;
+  font-size: 19px;
 }
 
 /* ---- Lobby ---------------------------------------------------------------- */
@@ -279,7 +279,7 @@ body.tv {
 .player-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 196px);
+  grid-template-rows: repeat(2, 176px);
   gap: 16px;
 }
 .player-slot {
@@ -331,8 +331,8 @@ body.tv {
 
 .game-picker {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
   margin-top: auto;
 }
 .game-card {
@@ -361,6 +361,11 @@ body.tv {
   box-shadow:
     0 0 0 5px var(--yolk),
     0 18px 40px rgba(0, 0, 0, 0.4);
+}
+.game-card > svg {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
 }
 .game-card-title {
   font-family: var(--font-display);
@@ -403,14 +408,15 @@ body.tv {
   color: var(--ink);
 }
 .game-card-tag {
-  font-size: 21px;
+  font-size: 18px;
   opacity: 0.75;
   line-height: 1.25;
 }
 .game-card-flag {
   display: inline-block;
-  margin-top: 6px;
-  font-size: 18px;
+  margin-top: 5px;
+  margin-right: 4px;
+  font-size: 16px;
   font-weight: 800;
   background: var(--dill);
   color: var(--ink);
@@ -1931,6 +1937,201 @@ body.tv {
 .ty-gain small {
   font-size: 20px;
   font-weight: 500;
+}
+
+/* ---- Bazgroły ---------------------------------------------------------------- */
+
+.bz-title {
+  text-align: center;
+  font-size: 62px;
+  margin: 70px 0 18px;
+}
+.bz-sub {
+  text-align: center;
+  font-size: 34px;
+  color: var(--muted);
+  margin: 0 auto 50px;
+  max-width: 1300px;
+}
+.bz-sub.left {
+  text-align: left;
+  margin: 0;
+}
+.bz-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+.bz-side .bz-chips {
+  justify-content: flex-start;
+}
+.bz-side .answer-chip {
+  width: 160px;
+}
+.bz-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 56px;
+  margin-top: 14px;
+}
+.bz-art {
+  position: relative;
+  flex: 0 0 auto;
+  width: 700px;
+  padding: 12px 12px 0;
+  border-radius: 24px;
+  background: #fffaf0;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  transform: rotate(-1.2deg);
+}
+.bz-art .ty-doodle {
+  display: block;
+  width: 100%;
+  border-radius: 14px;
+}
+.bz-art-by {
+  padding: 8px 6px 10px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 28px;
+  text-align: right;
+}
+.bz-art-by b {
+  border-bottom: 5px solid var(--pc);
+}
+.bz-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.bz-ask {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 84px;
+  line-height: 1;
+  padding: 44px 50px;
+  animation: pop-in 0.5s both;
+}
+.bz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  --opt: 40px;
+}
+.bz-options.n7,
+.bz-options.n8 {
+  --opt: 34px;
+  gap: 10px;
+}
+.bz-options.n9,
+.bz-options.n10 {
+  --opt: 30px;
+  gap: 8px;
+}
+.bz-option {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 22px;
+  border-radius: 22px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--opt);
+  line-height: 1.15;
+  animation: rise-in 0.4s both;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    opacity 0.4s,
+    background 0.3s;
+}
+.bz-letter {
+  flex: 0 0 auto;
+  width: calc(var(--opt) * 1.5);
+  height: calc(var(--opt) * 1.5);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--beet);
+  color: #fff;
+  font-weight: 700;
+}
+.bz-text {
+  flex: 1;
+  min-width: 0;
+}
+.bz-who {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.66em;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.bz-gain {
+  color: #128a6a;
+}
+.bz-pickers {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  max-width: 420px;
+  justify-content: flex-end;
+}
+.bz-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 96px;
+  animation: pop-in 0.35s both;
+}
+.bz-picker small {
+  max-width: 100%;
+  font-size: 18px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bz-options.reveal .bz-option {
+  animation: none;
+}
+.bz-option.lie {
+  background: #ffc2cf;
+}
+.bz-option.lie .bz-letter {
+  background: var(--beet-deep);
+}
+.bz-option.truth {
+  background: var(--dill);
+}
+.bz-option.truth .bz-letter {
+  background: #0f7a5e;
+}
+.bz-option.current {
+  transform: scale(1.04) rotate(-0.6deg);
+  box-shadow:
+    0 0 0 6px var(--yolk),
+    0 0 50px rgba(255, 201, 60, 0.5);
+  z-index: 1;
+}
+.bz-option.dim {
+  opacity: 0.45;
+}
+.bz-verdict {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 60px;
+  color: var(--yolk);
+  text-shadow: 0 5px 0 var(--beet-deep);
+}
+.bz-verdict.none {
+  color: #ffb3c4;
 }
 
 /* ---- Maluch Rally ------------------------------------------------------------ */
