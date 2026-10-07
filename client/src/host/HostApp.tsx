@@ -15,6 +15,12 @@ import { PEDAL_GOAL, PEDAL_HEATS, PEDAL_HEATS_SHORT } from '../games/pedal/logic
 import { FORK_ROUNDS, FORK_ROUNDS_SHORT } from '../games/fork/logic';
 import { PARADE_ROUNDS, PARADE_ROUNDS_SHORT } from '../games/parade/logic';
 import { TY_FULL, TY_SHORT } from '../games/toty/logic';
+import { howTo as tanksHowTo } from '../games/tanks/logic';
+import { howTo as mushroomHowTo } from '../games/mushroom/logic';
+import { howTo as pushyHowTo } from '../games/pushy/logic';
+import { howTo as galleryHowTo } from '../games/gallery/logic';
+import { howTo as cookbookHowTo } from '../games/cookbook/logic';
+import { howTo as tilesHowTo } from '../games/tiles/logic';
 
 const controller = new HostController();
 const params = new URLSearchParams(location.search);
@@ -132,8 +138,8 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
   const saved = HostController.savedSession();
   return (
     <div class="screen landing">
-      <FolkBorder count={9} size={64} />
-      <Logo size={1.75} />
+      <FolkBorder count={9} size={52} />
+      <Logo size={1.5} />
       <p class="landing-sub">Party games for the whole sofa. One screen, everyone’s phones, zero installs.</p>
       <div class="landing-actions">
         <button class="btn btn-big btn-yolk" autofocus disabled={busy} onClick={() => controller.create()}>
@@ -152,13 +158,13 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
       <div class="landing-games">
         {GAMES.map((g) => (
           <div class="landing-game">
-            <GameIcon game={g.id} size={60} />
+            <GameIcon game={g.id} size={52} />
             <b>{g.title}</b>
             <span>{g.tagline}</span>
           </div>
         ))}
       </div>
-      <FolkBorder count={9} size={64} />
+      <FolkBorder count={9} size={52} />
     </div>
   );
 }
@@ -337,6 +343,18 @@ function howTo(game: GameId, short: boolean): string[] {
         `${rounds === 1 ? 'One round' : `${rounds} rounds, each busier than the last`}. Exactly right: 10 points, 1 off: 6, 2 off: 3, 3 off: 1.`,
       ];
     }
+    case 'tanks':
+      return tanksHowTo(short);
+    case 'mushroom':
+      return mushroomHowTo(short);
+    case 'pushy':
+      return pushyHowTo(short);
+    case 'gallery':
+      return galleryHowTo(short);
+    case 'cookbook':
+      return cookbookHowTo(short);
+    case 'tiles':
+      return tilesHowTo(short);
     default:
       return HOW_TO[game];
   }

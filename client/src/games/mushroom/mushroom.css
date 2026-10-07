@@ -1,0 +1,275 @@
+/* Grzybki: TV overlays over the 3D pond. The container and canvas reuse .rally / .rally-canvas. */
+
+.mush-top {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  top: 62px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+  z-index: 3;
+}
+.mush-rule {
+  margin-left: 8px;
+  padding: 8px 22px;
+  border-radius: 999px;
+  background: rgba(31, 10, 16, 0.62);
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mush-call {
+  position: absolute;
+  left: 96px;
+  top: 128px;
+  width: 700px;
+  padding: 12px 26px 16px 18px;
+  border-radius: 30px;
+  background: var(--mc);
+  color: var(--mt);
+  border: 6px solid #2a120a;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 3;
+  animation: mush-pop 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  transform-origin: left top;
+}
+@keyframes mush-pop {
+  0% {
+    transform: scale(0.4) rotate(-4deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.mush-call:not(.live) {
+  opacity: 0.9;
+}
+.mush-call-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.mush-ring {
+  width: 138px;
+  height: 138px;
+  flex: none;
+  transform: rotate(-90deg);
+}
+/* The icon inside the ring must not be rotated with it. */
+.mush-ring > *:not(.mush-ring-bg):not(.mush-ring-fg):not(.mush-ring-disc) {
+  transform-origin: 50px 50px;
+  transform: rotate(90deg);
+}
+.mush-ring-disc {
+  fill: #fff4dc;
+}
+.mush-ring-bg {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.22);
+  stroke-width: 9;
+}
+.mush-ring-fg {
+  fill: none;
+  stroke: #2a120a;
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+.mush-call-text {
+  text-align: left;
+  min-width: 0;
+}
+.mush-word {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 104px;
+  line-height: 1;
+  color: var(--mt);
+  -webkit-text-stroke: 7px var(--ms);
+  paint-order: stroke fill;
+  text-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+  letter-spacing: 2px;
+}
+.mush-sub {
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 32px;
+  color: var(--mt);
+  opacity: 0.9;
+}
+.mush-bar {
+  height: 16px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+.mush-bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--mt);
+  transform-origin: left center;
+}
+
+.mush-wait {
+  position: absolute;
+  left: 50%;
+  top: 150px;
+  translate: -50% 0;
+  padding: 12px 36px;
+  border-radius: 999px;
+  background: rgba(24, 8, 12, 0.7);
+  font-family: var(--font-display);
+  font-size: 48px;
+  color: var(--cream);
+  pointer-events: none;
+  z-index: 3;
+}
+.mush-splash {
+  position: absolute;
+  left: 50%;
+  bottom: 168px;
+  translate: -50% 0;
+  max-width: 1300px;
+  padding: 10px 34px;
+  border-radius: 999px;
+  background: rgba(24, 8, 12, 0.78);
+  box-shadow: 0 0 0 3px #4f9dff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 44px;
+  color: #bfe6ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  z-index: 3;
+}
+.mush-twist {
+  position: absolute;
+  left: 96px;
+  top: 356px;
+  max-width: 700px;
+  padding: 8px 24px;
+  border-radius: 20px;
+  background: var(--yolk);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.15;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.mush-chips {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  bottom: 62px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 3;
+}
+.mush-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 12px 6px 8px;
+  border-radius: 22px;
+  background: rgba(24, 8, 12, 0.78);
+  box-shadow: 0 0 0 3px var(--pc);
+  transition:
+    opacity 0.3s,
+    filter 0.3s;
+}
+.mush-chip.out {
+  opacity: 0.62;
+  filter: saturate(0.5);
+}
+.mush-chip.away {
+  opacity: 0.5;
+}
+.mush-chip-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.05;
+}
+.mush-chip-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 27px;
+  color: var(--pc);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mush-chip-status {
+  font-size: 20px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mush-chip.out .mush-chip-status {
+  color: #8cc8ff;
+}
+.mush-chip-pts {
+  font-family: var(--font-display);
+  font-size: 34px;
+  color: var(--yolk);
+  margin-left: 2px;
+}
+
+.mush-over {
+  z-index: 5;
+  max-width: 1500px;
+}
+.mush-points {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 22px;
+}
+.mush-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px 6px 10px;
+  border-radius: 24px;
+  background: rgba(255, 244, 220, 0.08);
+  box-shadow: 0 0 0 3px var(--pc);
+  font-family: var(--font-display);
+  font-size: 32px;
+}
+.mush-point-name {
+  color: var(--pc);
+  font-weight: 700;
+}
+.mush-point b {
+  color: var(--yolk);
+  font-size: 40px;
+}
+.mush-next {
+  margin-top: 18px;
+  font-size: 26px;
+}
+
+.mushroom .trails-count {
+  z-index: 4;
+}

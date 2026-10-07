@@ -1,0 +1,197 @@
+/* ---- Pushy Pierogi ------------------------------------------------------- */
+
+.pushy {
+  position: absolute;
+  inset: -54px -96px;
+  overflow: hidden;
+  background: #1b2352;
+  animation: fade-in 0.4s both;
+}
+.pushy-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.pushy-top {
+  position: absolute;
+  left: 120px;
+  right: 120px;
+  top: 74px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  pointer-events: none;
+}
+.pushy-top .pill {
+  background: rgba(20, 6, 10, 0.78);
+  color: var(--cream);
+}
+.pushy-rule {
+  flex: 0 1 auto;
+  margin: 0 auto;
+  padding: 4px 30px;
+  border-radius: 999px;
+  background: rgba(20, 6, 10, 0.72);
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--cream);
+  text-shadow: 0 3px 0 rgba(20, 6, 10, 0.7);
+}
+.pushy-rule b {
+  color: var(--yolk);
+}
+.pushy-rule b.pushy-brace {
+  color: #7db8ff;
+}
+.pushy-clock {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 46px;
+  min-width: 120px;
+  text-align: center;
+  padding: 2px 18px;
+  border-radius: 999px;
+  color: var(--cream);
+  background: rgba(20, 6, 10, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 244, 220, 0.5);
+}
+.pushy-clock.low {
+  color: #ff7a6a;
+  animation: pushy-pulse 0.5s ease-in-out infinite alternate;
+}
+@keyframes pushy-pulse {
+  to {
+    transform: scale(1.1);
+  }
+}
+.pushy-notice {
+  position: absolute;
+  left: 50%;
+  top: 168px;
+  translate: -50% 0;
+  padding: 8px 34px;
+  border-radius: 999px;
+  background: rgba(20, 6, 10, 0.78);
+  color: #ffd9a0;
+  font-family: var(--font-display);
+  font-size: 38px;
+  white-space: nowrap;
+  box-shadow: 0 0 0 3px rgba(255, 217, 160, 0.6);
+  pointer-events: none;
+}
+.pushy-splash {
+  position: absolute;
+  translate: -50% -50%;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 54px;
+  -webkit-text-stroke: 8px #2a120a;
+  paint-order: stroke fill;
+  text-shadow: 0 6px 0 rgba(20, 6, 10, 0.6);
+  animation: pushy-splash 1.5s ease-out both;
+  pointer-events: none;
+  z-index: 3;
+}
+@keyframes pushy-splash {
+  0% {
+    transform: scale(0.4) translateY(10px);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1.2) translateY(-8px);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1) translateY(-14px);
+  }
+  100% {
+    transform: scale(1) translateY(-60px);
+    opacity: 0;
+  }
+}
+.pushy-chips {
+  position: absolute;
+  left: 120px;
+  right: 120px;
+  bottom: 68px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  pointer-events: none;
+}
+.pushy-chip {
+  flex: 0 1 205px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 20px;
+  background: rgba(20, 6, 10, 0.78);
+  box-shadow: 0 0 0 4px var(--pc);
+  color: var(--cream);
+  transition:
+    opacity 0.3s,
+    filter 0.3s;
+}
+.pushy-chip.out {
+  opacity: 0.6;
+  filter: saturate(0.5);
+}
+.pushy-chip.away {
+  opacity: 0.5;
+}
+.pushy-chip-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.pushy-chip-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pushy-chip-status {
+  font-size: 18px;
+  color: var(--muted);
+}
+.pushy-chip.out .pushy-chip-status {
+  color: #7db8ff;
+}
+.pushy-chip-score {
+  font-family: var(--font-display);
+  font-size: 34px;
+  color: var(--yolk);
+}
+.pushy-banner {
+  z-index: 5;
+}
+.pushy-banner-pts {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+  font-family: var(--font-display);
+  font-size: 34px;
+  color: var(--cream);
+}
+.pushy-banner-pts span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.8;
+}
+.pushy-banner-pts span.win {
+  opacity: 1;
+  color: var(--yolk);
+}

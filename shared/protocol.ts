@@ -79,7 +79,23 @@ export const ANSWER_STYLES = [
 // Games
 // ---------------------------------------------------------------------------
 
-export type GameId = 'trails' | 'quiz' | 'ballpark' | 'kitchen' | 'toty' | 'bazgroly' | 'rally' | 'pedal' | 'fork' | 'parade';
+export type GameId =
+  | 'trails'
+  | 'quiz'
+  | 'ballpark'
+  | 'kitchen'
+  | 'toty'
+  | 'bazgroly'
+  | 'rally'
+  | 'pedal'
+  | 'fork'
+  | 'parade'
+  | 'tanks'
+  | 'mushroom'
+  | 'pushy'
+  | 'gallery'
+  | 'cookbook'
+  | 'tiles';
 
 export interface GameInfo {
   id: GameId;
@@ -114,6 +130,12 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'pedal', title: 'Tour de Pierogi', tagline: 'Pedal LEFT, RIGHT, LEFT… as fast as your thumbs go.', minPlayers: 1 },
   { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi first. Don’t fall for the sock.', minPlayers: 1 },
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count the right pierogi as the parade rolls by.', minPlayers: 1 },
+  { id: 'tanks', title: 'Czołgi', tagline: 'Little tanks. Bouncing shells, cabbage mortars. Last tank rolling wins.', minPlayers: 2 },
+  { id: 'mushroom', title: 'Grzybki', tagline: 'Run to the mushroom that’s called – the rest sink into the pond.', minPlayers: 2 },
+  { id: 'pushy', title: 'Pushy Pierogi', tagline: 'Shove everyone off the frozen pond. Mind the cracks.', minPlayers: 2 },
+  { id: 'gallery', title: 'Strzelnica', tagline: 'Fairground shooting gallery: pop the ghosts, spare the babcias.', minPlayers: 1 },
+  { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Giant pages slam shut – squeeze into the hole cut in each one.', minPlayers: 1 },
+  { id: 'tiles', title: 'Kafelki', tagline: 'Paint the kitchen floor your colour. Most tiles wins.', minPlayers: 2 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
@@ -476,6 +498,11 @@ export type PhoneView =
       endsAt: number;
       res: { n: number | null; answer: number; pts: number; total: number } | null;
     }
+  /**
+   * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki): the phone is a
+   * joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
+   */
+  | PadView
   /** Bazgroły: draw your secret prompt on a blank page. */
   | { v: 'bzDraw'; prompt: string; round: number; rounds: number; endsAt: number; done: boolean }
   /**
@@ -518,6 +545,45 @@ export type PhoneView =
   /** The end of a tournament. */
   | { v: 'tourResults'; place: number; points: number; players: number; vip: boolean };
 
+/** A button on the arena pad. */
+export interface PadButton {
+  label: string;
+  /** Background colour (hex); defaults to the player's colour. */
+  color?: string;
+  /** Host clock ms until which the button is cooling down (drawn as a filling ring); omit when ready. */
+  readyAt?: number;
+  /** Cooldown length in ms, so the ring can show how far along it is. */
+  cool?: number;
+  /** Greyed out and ignored. */
+  off?: boolean;
+}
+
+/** The arena pad: a joystick (sent as `stick`) and buttons (sent as `btn`). */
+export interface PadView {
+  v: 'pad';
+  game: GameId;
+  /**
+   * ready: the round is about to start (the stick works, buttons don't yet);
+   * play: go; out: knocked out of this round, watch the TV; over: the round is over.
+   */
+  phase: 'ready' | 'play' | 'out' | 'over';
+  round: number;
+  rounds: number;
+  /** Big line ("Run to the RED mushroom!", "You’re out!"). */
+  title?: string;
+  /** Small line under it. */
+  text?: string;
+  /** Colour for the title (hex). */
+  accent?: string;
+  /** 0–2 buttons, shown side by side under the joystick. */
+  buttons: PadButton[];
+  /** Hide the joystick (e.g. while out). */
+  noStick?: boolean;
+  /** Little stats in the top bar, e.g. [{ k: 'Armour', v: '♥♥♡' }]. */
+  stats?: { k: string; v: string }[];
+  score: number;
+}
+
 // ---------------------------------------------------------------------------
 // Phone -> host (relayed by the Durable Object)
 // ---------------------------------------------------------------------------
@@ -529,8 +595,10 @@ export type PhoneMsg =
   | { t: 'answer'; i: number }
   | { t: 'guess'; value: number }
   | { t: 'bet'; slot: number }
-  /** Joystick, each axis -100..100 (Pierogi Panic: walk; Maluch Rally: x steers, -y is gas, +y brakes – or drifts while turning). Sent when it changes (throttled). */
+  /** Joystick, each axis -100..100, +y is down / towards the player (arena games and Pierogi Panic: walk; Maluch Rally: x steers, -y is gas, +y brakes – or drifts while turning). Sent when it changes (throttled). */
   | { t: 'stick'; x: number; y: number }
+  /** Arena pad: button `b` (index in the view's `buttons`) went down (`on`) or up. */
+  | { t: 'btn'; b: number; on: boolean }
   /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
   | { t: 'act' }
   /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number; `d` is the drift (0 none, 1 drifting, 2 blue sparks, 3 orange sparks). */
