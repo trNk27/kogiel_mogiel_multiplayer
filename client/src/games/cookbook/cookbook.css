@@ -1,0 +1,193 @@
+/* ---- Babcia’s Cookbook ------------------------------------------------------------------- */
+/* The container is `.rally` (full stage, canvas behind). Everything here is an overlay. */
+
+.cookbook {
+  font-family: var(--font-display);
+  color: var(--cream);
+}
+.cookbook-top {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  top: 54px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  pointer-events: none;
+}
+.cookbook-top .pill {
+  font-size: 32px;
+  padding: 8px 26px;
+  background: rgba(31, 10, 16, 0.78);
+  box-shadow: inset 0 0 0 3px rgba(255, 244, 220, 0.25);
+}
+.cookbook-page {
+  color: var(--yolk);
+}
+.cookbook-rule {
+  font-size: 30px;
+  padding: 8px 24px;
+  border-radius: 999px;
+  background: rgba(31, 10, 16, 0.55);
+  color: var(--cream);
+  text-shadow: 0 2px 0 #1f0a10;
+}
+.cookbook-chips {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  bottom: 54px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  pointer-events: none;
+}
+.cookbook-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 20px 6px 12px;
+  border-radius: 999px;
+  background: rgba(31, 10, 16, 0.82);
+  box-shadow: inset 0 0 0 4px var(--pc);
+  min-width: 190px;
+  transition: opacity 0.3s;
+}
+.cookbook-chip.out {
+  opacity: 0.6;
+  filter: saturate(0.5);
+}
+.cookbook-chip-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+.cookbook-chip-text b {
+  font-size: 28px;
+  font-weight: 600;
+}
+.cookbook-chip-text small {
+  font-size: 19px;
+  color: var(--muted);
+}
+.cookbook-thwump {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 120px;
+  font-weight: 700;
+  color: var(--cream);
+  white-space: nowrap;
+  letter-spacing: 4px;
+  -webkit-text-stroke: 8px #2a120a;
+  paint-order: stroke fill;
+  text-shadow: 0 12px 0 #2a120a;
+  rotate: -5deg;
+  pointer-events: none;
+  animation: cookbook-thwump 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes cookbook-thwump {
+  0% {
+    scale: 0.4;
+    opacity: 0;
+  }
+  15% {
+    scale: 1.25;
+    opacity: 1;
+  }
+  35% {
+    scale: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    scale: 1.08;
+    opacity: 0;
+  }
+}
+.cookbook-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff4dc;
+  pointer-events: none;
+  animation: cookbook-flash 0.35s ease-out both;
+}
+@keyframes cookbook-flash {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.cookbook-splat {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--pc);
+  -webkit-text-stroke: 7px #2a120a;
+  paint-order: stroke fill;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cookbook-splat 1.8s ease-out both;
+}
+@keyframes cookbook-splat {
+  0% {
+    transform: translateY(10px) scale(0.5);
+    opacity: 0;
+  }
+  12% {
+    transform: translateY(0) scale(1.2);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+}
+.cookbook-banner {
+  min-width: 760px;
+}
+.cookbook-banner-big {
+  font-size: 68px;
+  margin: 6px 0 14px;
+}
+.cookbook-banner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 auto 14px;
+  max-width: 640px;
+}
+.cookbook-banner-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 22px 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 244, 220, 0.08);
+  box-shadow: inset 0 0 0 3px var(--pc);
+  font-size: 30px;
+  text-align: left;
+}
+.cookbook-banner-row.win {
+  background: rgba(255, 201, 60, 0.22);
+}
+.cookbook-banner-row b {
+  color: var(--yolk);
+  font-size: 34px;
+}
+.cookbook-banner-row .grow {
+  flex: 1;
+}
+.cookbook-next {
+  font-size: 24px;
+}
