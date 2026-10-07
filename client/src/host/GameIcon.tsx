@@ -1,8 +1,20 @@
 import type { Selection } from '../../../shared/protocol';
 import { PIEROGI_PATH } from '../lib/art';
+import { Icon as TanksIcon } from '../games/tanks/icon';
+import { Icon as MushroomIcon } from '../games/mushroom/icon';
+import { Icon as PushyIcon } from '../games/pushy/icon';
+import { Icon as GalleryIcon } from '../games/gallery/icon';
+import { Icon as CookbookIcon } from '../games/cookbook/icon';
+import { Icon as TilesIcon } from '../games/tiles/icon';
 
 /** Illustrated icons for the games (and the tournament). */
 export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }) {
+  if (game === 'tanks') return <TanksIcon size={size} />;
+  if (game === 'mushroom') return <MushroomIcon size={size} />;
+  if (game === 'pushy') return <PushyIcon size={size} />;
+  if (game === 'gallery') return <GalleryIcon size={size} />;
+  if (game === 'cookbook') return <CookbookIcon size={size} />;
+  if (game === 'tiles') return <TilesIcon size={size} />;
   if (game === 'trails')
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
