@@ -43,6 +43,7 @@ import { mulberry32 } from '../rng';
 import { BRIDGE_WALL, ROAD_HALF, TUNNEL_HEIGHT, TUNNEL_WALL, WALL, inRange, riverCoords, waterLevel, type Track } from './track';
 import { ITUNING, driftLevel, type Blast, type Bomb, type Car, type ItemBox, type Pickle, type Slick } from './sim';
 import { buildTown, type Obstacle } from './town3d';
+import { StylePass } from '../arena/styles';
 
 /** What the renderer needs from the simulation each frame. */
 export interface RaceState {
@@ -215,6 +216,8 @@ export interface CarLook {
 }
 
 export class RallyScene {
+  /** The look (`?style=` on the URL); the original PS2 look when none is set. */
+  readonly style = new StylePass();
   readonly renderer: WebGLRenderer;
   private scene = new Scene();
   private world = new Group();
@@ -355,6 +358,7 @@ export class RallyScene {
 
   dispose() {
     this.clearWorld();
+    this.style.dispose();
     this.renderer.dispose();
   }
 
@@ -1161,6 +1165,8 @@ export class RallyScene {
       }
     });
 
+    const sk = this.style.begin(this.renderer, this.scene);
+    let lastCam: PerspectiveCamera | undefined;
     layout.forEach((slot, s) => {
       const i = focus ? focus[s] : s;
       const c = cars[i];
@@ -1186,9 +1192,11 @@ export class RallyScene {
       const w = Math.round(slot.w * k);
       const h = Math.round(slot.h * k);
       const y = H - Math.round(slot.y * k) - h;
-      this.renderer.setViewport(x, y, w, h);
-      this.renderer.setScissor(x, y, w, h);
+      this.renderer.setViewport(x * sk, y * sk, w * sk, h * sk);
+      this.renderer.setScissor(x * sk, y * sk, w * sk, h * sk);
       this.renderer.render(this.scene, cam);
+      lastCam = cam;
     });
+    if (lastCam) this.style.end(this.renderer, lastCam, layout.length === 1);
   }
 }

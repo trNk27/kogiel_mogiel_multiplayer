@@ -35,6 +35,7 @@ import {
   type Object3D,
 } from 'three';
 import { mulberry32 } from '../rng';
+import { StylePass } from './styles';
 
 /** Internal resolution as a fraction of the 1920×1080 stage (same as Maluch Rally). */
 export const ARENA_SCALE = 0.45;
@@ -218,6 +219,8 @@ export class ArenaStage {
   /** Everything a game adds goes here, so `clear()` can remove it. */
   readonly world = new Group();
   readonly sun: DirectionalLight;
+  /** The look (`?style=` on the URL); the original PS2 look when none is set. */
+  readonly style = new StylePass();
   private disposables: { dispose(): void }[] = [];
 
   constructor(
@@ -263,7 +266,7 @@ export class ArenaStage {
   }
 
   render() {
-    this.renderer.render(this.scene, this.camera);
+    this.style.render(this.renderer, this.scene, this.camera);
   }
 
   /** Remove everything the game added (between rounds, say). */
@@ -282,6 +285,7 @@ export class ArenaStage {
       else mat?.dispose?.();
     });
     this.world.clear();
+    this.style.dispose();
     this.renderer.dispose();
   }
 }

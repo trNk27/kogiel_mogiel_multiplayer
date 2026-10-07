@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Styles · Couch Party</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      html, body { margin: 0; background: #111; color: #eee; font: 14px system-ui, sans-serif; }
+      .bar { position: fixed; top: 0; left: 0; right: 0; z-index: 2; display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; background: rgba(0,0,0,.6); }
+      .bar a { color: #eee; padding: 4px 10px; border-radius: 6px; background: #333; text-decoration: none; }
+      .bar a.on { background: #e8553a; }
+      .bar.hide { display: none; }
+      canvas { display: block; width: 1920px; height: 1080px; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <script type="module" src="/src/dev/styles.ts"></script>
+  </body>
+</html>

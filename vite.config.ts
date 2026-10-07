@@ -14,6 +14,7 @@ export default defineConfig({
         index: resolve(__dirname, 'client/index.html'),
         join: resolve(__dirname, 'client/join.html'),
         dev: resolve(__dirname, 'client/dev.html'),
+        styles: resolve(__dirname, 'client/styles.html'),
       },
     },
   },
