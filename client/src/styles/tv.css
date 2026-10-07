@@ -126,7 +126,7 @@ body.tv {
   margin-top: 10px;
 }
 .landing-sub {
-  font-size: 36px;
+  font-size: 32px;
   color: var(--muted);
   margin: 0;
   max-width: 1200px;
@@ -163,7 +163,7 @@ body.tv {
 .landing-games {
   display: grid;
   grid-template-columns: repeat(4, 405px);
-  gap: 14px 24px;
+  gap: 10px 24px;
 }
 .landing-game {
   display: grid;
@@ -179,11 +179,12 @@ body.tv {
 }
 .landing-game b {
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 26px;
 }
 .landing-game span {
   color: var(--muted);
-  font-size: 19px;
+  font-size: 17px;
+  line-height: 1.25;
 }
 
 /* ---- Lobby ---------------------------------------------------------------- */
@@ -279,8 +280,8 @@ body.tv {
 .player-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 176px);
-  gap: 16px;
+  grid-template-rows: repeat(2, 146px);
+  gap: 14px;
 }
 .player-slot {
   position: relative;
@@ -342,8 +343,8 @@ body.tv {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 12px 8px 10px;
-  min-height: 136px;
+  padding: 8px 6px 8px;
+  min-height: 112px;
   border-radius: var(--radius);
   background: rgba(20, 6, 10, 0.4);
   box-shadow: inset 0 0 0 3px var(--line);
@@ -364,13 +365,13 @@ body.tv {
 }
 .game-card > svg {
   flex: 0 0 auto;
-  width: 64px;
-  height: 64px;
+  width: 54px;
+  height: 54px;
 }
 .game-card-title {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 25px;
+  font-size: 23px;
   line-height: 1.1;
 }
 .game-card.tour {

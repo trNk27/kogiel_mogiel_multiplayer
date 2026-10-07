@@ -138,8 +138,8 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
   const saved = HostController.savedSession();
   return (
     <div class="screen landing">
-      <FolkBorder count={9} size={64} />
-      <Logo size={1.75} />
+      <FolkBorder count={9} size={52} />
+      <Logo size={1.5} />
       <p class="landing-sub">Party games for the whole sofa. One screen, everyone’s phones, zero installs.</p>
       <div class="landing-actions">
         <button class="btn btn-big btn-yolk" autofocus disabled={busy} onClick={() => controller.create()}>
@@ -158,13 +158,13 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
       <div class="landing-games">
         {GAMES.map((g) => (
           <div class="landing-game">
-            <GameIcon game={g.id} size={60} />
+            <GameIcon game={g.id} size={52} />
             <b>{g.title}</b>
             <span>{g.tagline}</span>
           </div>
         ))}
       </div>
-      <FolkBorder count={9} size={64} />
+      <FolkBorder count={9} size={52} />
     </div>
   );
 }
