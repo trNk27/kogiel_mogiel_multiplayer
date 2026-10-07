@@ -251,7 +251,7 @@ export function PhoneApp() {
         )}
         <form class="join-form" onSubmit={submitForm}>
           <label>
-            Room code
+            <span class="eyebrow">Room code</span>
             <input
               class="input input-code"
               value={code}
@@ -265,7 +265,7 @@ export function PhoneApp() {
             />
           </label>
           <label>
-            Your name
+            <span class="eyebrow">Your name</span>
             <input
               class="input"
               value={name}
@@ -277,19 +277,17 @@ export function PhoneApp() {
           </label>
           {stage.s === 'form' && stage.error && <div class="form-error">{stage.error}</div>}
           <button class="btn btn-big btn-yolk" type="submit">
-            Join the party
+            Join
           </button>
         </form>
-        <div class="notv-card">
-          <div class="notv-title">No TV? No problem.</div>
-          <p class="muted">Start a party right here – every phone shows the game itself. Friends join with the code you’ll see.</p>
-          <button class="btn btn-big btn-ghost" type="button" onClick={startNoTv}>
-            Play without a TV
-          </button>
+        <div class="or-line">
+          <span>or</span>
         </div>
+        <button class="btn btn-big btn-ghost notv-btn" type="button" onClick={startNoTv}>
+          📱 Play without a TV
+        </button>
         <p class="host-link">
-          To host on a TV, open this same link on a laptop or TV.{' '}
-          <a href="/?host">Show the TV screen on this phone</a>
+          <a href="/?host">Use this screen as the TV</a>
         </p>
         <Rosette size={90} class="form-rosette" />
       </div>
@@ -309,11 +307,10 @@ export function PhoneApp() {
     return (
       <div class="phone phone-color">
         <h1 class="phone-title">Pick your pierogi</h1>
-        <p class="muted">Hi {sanitizeName(stored.name || name)}! Choose a colour – it’s you on the TV.</p>
         {stage.full ? (
           <div class="notice card-paper">
             <b>Room is full</b>
-            <span>Up to 8 players can join. Wait for someone to leave.</span>
+            <span>8 players max.</span>
           </div>
         ) : (
           <div class="color-grid">
@@ -322,14 +319,14 @@ export function PhoneApp() {
               return (
                 <button class={`color-btn ${taken ? 'taken' : ''}`} disabled={taken} onClick={() => pickColor(c.id)} style={{ '--pc': c.hex }}>
                   <Pierogi color={taken ? '#5a4040' : c.hex} size={84} mood={taken ? 'sleep' : 'happy'} />
-                  <span>{taken ? 'Taken' : c.name}</span>
+                  <span>{c.name}</span>
                 </button>
               );
             })}
           </div>
         )}
         {stage.error && <div class="form-error">{stage.error}</div>}
-        {stage.inGame && <p class="muted small">A game is running – you’ll join the next one.</p>}
+        {stage.inGame && <p class="muted small">Game on – you’re in the next one.</p>}
       </div>
     );
   }
@@ -354,7 +351,7 @@ export function PhoneApp() {
         <div class="phone-overlay">
           <Pierogi color={colorHex(me.color)} size={100} mood="sleep" class="bob" />
           <div class="phone-big">{status === 'connecting' ? 'Reconnecting…' : me.noTv ? 'Waiting for the host’s phone…' : 'Waiting for the TV…'}</div>
-          <div class="muted">Your spot and score are safe.</div>
+          <div class="muted">Your score is safe</div>
         </div>
       )}
     </div>

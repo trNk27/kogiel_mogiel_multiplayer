@@ -856,9 +856,5 @@ export class MushroomSim {
 }
 
 export function howTo(short: boolean): string[] {
-  return [
-    'Babcia holds up a colour. Run to the mushroom of that colour!',
-    short ? 'When the ring runs out, everything else sinks – wrong cap, in the pond.' : 'When the ring runs out, everything else sinks – anyone on the wrong cap falls in the pond.',
-    short ? 'Shove rivals off. Last one dry wins!' : 'Shove rivals off the cap. Calls get faster; last pierogi dry wins the round. Three rounds.',
-  ];
+  return ['Run to the mushroom Babcia calls', 'Everything else sinks', short ? 'Shove rivals off · last one dry wins' : 'Shove rivals off · three rounds'];
 }

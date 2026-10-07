@@ -129,7 +129,7 @@ function labelTexture(text: string, color: string) {
   c.width = 128;
   c.height = 32;
   const ctx = c.getContext('2d')!;
-  ctx.font = 'bold 22px Fredoka Variable, sans-serif';
+  ctx.font = '800 22px "Fraunces Variable", Georgia, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineWidth = 5;

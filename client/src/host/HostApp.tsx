@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 import { GAMES, MAX_PLAYERS, TOURNAMENT_GAMES, TOURNAMENT_POINTS, colorHex, difficultyName, gameInfo, rallyTrack, type GameId, type Selection } from '../../../shared/protocol';
-import { FolkBorder, Logo, Pierogi, Rosette } from '../lib/art';
+import { FolkBorder, Logo, Pierogi } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
 import { HostController, type Standing } from './controller';
@@ -96,10 +96,6 @@ export function HostApp() {
   return (
     <div class="viewport">
       <div class="stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
-        <div class="stage-bg" aria-hidden="true">
-          <Rosette class="bg-rosette r1" size={420} petals="#5c1a2e" inner="#6e2236" center="#4a1424" leaves="#3d1622" />
-          <Rosette class="bg-rosette r2" size={360} petals="#5c1a2e" inner="#6e2236" center="#4a1424" leaves="#3d1622" />
-        </div>
         <div class="safe">{body}</div>
         {c.code && s.s !== 'landing' && s.s !== 'creating' && <CornerInfo />}
         {c.status === 'connecting' && c.code && <div class="reconnecting">Reconnecting to the server…</div>}
@@ -140,7 +136,7 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
     <div class="screen landing">
       <FolkBorder count={9} size={52} />
       <Logo size={1.5} />
-      <p class="landing-sub">Party games for the whole sofa. One screen, everyone’s phones, zero installs.</p>
+      <p class="landing-sub">One screen · everyone’s phones · no installs</p>
       <div class="landing-actions">
         <button class="btn btn-big btn-yolk" autofocus disabled={busy} onClick={() => controller.create()}>
           {busy ? 'Warming up the pierogi…' : 'Host a party'}
@@ -153,14 +149,13 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
       </div>
       {error && <p class="landing-error">{error}</p>}
       <p class="landing-notv">
-        No TV? Open <b>{location.host}</b> on your phone and tap <b>Play without a TV</b> – every phone shows the race itself.
+        No TV? Open <b>{location.host}</b> on a phone → <b>Play without a TV</b>
       </p>
       <div class="landing-games">
         {GAMES.map((g) => (
           <div class="landing-game">
-            <GameIcon game={g.id} size={52} />
+            <GameIcon game={g.id} size={84} />
             <b>{g.title}</b>
-            <span>{g.tagline}</span>
           </div>
         ))}
       </div>
@@ -182,15 +177,15 @@ function Lobby() {
         <Logo size={1.15} />
         <div class="join-card card-paper">
           <div class="join-steps">
-            <div class="join-step-title">Join on your phone</div>
+            <div class="join-step-title">Scan to join</div>
             <div class="join-qr">
               <QrCode text={joinUrl} size={300} />
             </div>
             <div class="join-url">
-              or go to <b>{location.host}/join</b>
+              <b>{location.host}/join</b>
             </div>
           </div>
-          <div class="join-code-label">Room code</div>
+          <div class="join-code-label eyebrow">Room code</div>
           <div class="join-code">
             {c.code.split('').map((ch, i) => (
               <span style={{ animationDelay: `${i * 90}ms` }}>{ch}</span>
@@ -206,7 +201,7 @@ function Lobby() {
           </h2>
           {party.length > 0 && (
             <div class="party-mini">
-              <span class="muted">Party standings</span>
+              <span class="eyebrow">Standings</span>
               {party.slice(0, 4).map((p, i) => (
                 <span class="party-mini-item" style={{ color: colorHex(p.color) }}>
                   {i === 0 ? '👑 ' : ''}
@@ -223,7 +218,7 @@ function Lobby() {
               return (
                 <div class="player-slot empty" key={`e${i}`}>
                   <Pierogi color="rgba(255,244,220,.12)" size={92} mood="sleep" />
-                  <span>{i === 0 ? 'First one in is the VIP!' : 'Waiting…'}</span>
+                  {i === 0 && <span>First in = VIP</span>}
                 </div>
               );
             return (
@@ -248,10 +243,10 @@ function Lobby() {
         <SelectedGame sel={c.selected} />
         <div class="lobby-hint">
           {!vip
-            ? 'Scan the code to join – the first player becomes the VIP.'
+            ? 'Scan the code to join'
             : !enough
               ? c.startProblem()
-              : `${vip.name} (VIP) picks a game and presses Start on their phone.`}
+              : `${vip.name} picks on their phone`}
         </div>
       </div>
     </div>
@@ -265,16 +260,16 @@ function SelectedGame({ sel }: { sel: Selection }) {
     return (
       <div class="game-detail">
         <b>Tournament</b>
-        <span>{TOURNAMENT_GAMES} random games in a row, short versions, no co-op. Win games, collect points, take the crown.</span>
+        <span>{TOURNAMENT_GAMES} random games · short versions</span>
       </div>
     );
   const g = gameInfo(sel);
   const flags: string[] = [];
   if (g.maxPlayers) flags.push(`Up to ${g.maxPlayers} players`);
   if (g.coop) flags.push('Co-op');
-  if (sel === 'rally') flags.push(`${rallyTrack(o.track).name} · ${o.items ? 'items on' : 'items off'}`);
-  if (sel === 'trails' && o.powerups) flags.push('Power-ups on');
-  if (sel === 'kitchen') flags.push(`${difficultyName(o.difficulty)} · from level ${o.level}`);
+  if (sel === 'rally') flags.push(`${rallyTrack(o.track).name} · ${o.items ? 'items' : 'no items'}`);
+  if (sel === 'trails' && o.powerups) flags.push('Power-ups');
+  if (sel === 'kitchen') flags.push(`${difficultyName(o.difficulty)} · level ${o.level}`);
   return (
     <div class="game-detail">
       <b>{g.title}</b>
@@ -286,63 +281,32 @@ function SelectedGame({ sel }: { sel: Selection }) {
   );
 }
 
-/** How to play, for the intro screen. Tournaments play the short versions. */
+/** How to play, for the intro screen: three short lines. Tournaments play the short versions. */
 function howTo(game: GameId, short: boolean): string[] {
+  const n = (k: number, one: string, many: string) => (k === 1 ? one : `${k} ${many}`);
   switch (game) {
     case 'quiz':
-      return [
-        'Read the question on the TV.',
-        'Tap the matching colour on your phone – faster answers score more.',
-        `Up to 1000 points per question. ${short ? QUIZ_ROUND_LENGTH_SHORT : QUIZ_ROUND_LENGTH} questions.`,
-      ];
+      return ['Tap the colour of the right answer', 'Faster answers score more', `${short ? QUIZ_ROUND_LENGTH_SHORT : QUIZ_ROUND_LENGTH} questions · up to 1000 each`];
     case 'ballpark':
-      return [
-        'Type your best guess for the number on your phone.',
-        'Then bet on the guess you think is closest without going over.',
-        `Win points for the best guess and for smart bets – edges pay more! ${short ? BP_QUESTIONS_SHORT : BP_QUESTIONS_PER_GAME} questions.`,
-      ];
-    case 'rally': {
-      const races = short ? RACES_SHORT : RACES;
-      return [
-        HOW_TO.rally[0],
-        HOW_TO.rally[1],
-        `${races === 1 ? 'One race' : `${races} races`} of ${LAPS} laps on ${races === 1 ? 'a random track' : 'random tracks'} with bridges and tunnels. 15 points for a win, 12 for second, and so on.`,
-      ];
-    }
+      return ['Guess the number', 'Bet on the closest guess – without going over', `Edges pay more · ${short ? BP_QUESTIONS_SHORT : BP_QUESTIONS_PER_GAME} questions`];
+    case 'rally':
+      return ['Thumb on the pad: up is gas, down is brake', 'Brake into a turn to drift, let go for a turbo', `Lift your thumb to use an item · ${n(short ? RACES_SHORT : RACES, 'one race', 'races')} of ${LAPS} laps`];
     case 'trails':
-      return short ? [...HOW_TO.trails.slice(0, 2), 'Each time someone crashes, everyone still alive gets a point. Short game: first to 5 per opponent!'] : HOW_TO.trails;
+      return ['Hold LEFT or RIGHT to steer', 'Touch anything and you’re out', short ? 'Outlive the others · first to 5 per rival' : 'Outlive the others to score'];
+    case 'kitchen':
+      return ['Joystick to walk, big button for everything', 'Roll, fill, boil, plate, serve', 'Beat the tickets · up to ★★★ per level'];
     case 'toty': {
       const l = short ? TY_SHORT : TY_FULL;
-      return [
-        HOW_TO.toty[0],
-        `${l.questions} “Who’s most likely to…?” questions. Vote for a player – you score if you agree with the room.`,
-        l.doodleAfter.length === 1 ? 'Once, everyone doodles on the chosen player’s photo. Vote for the best one!' : HOW_TO.toty[2],
-      ];
+      return ['Snap a selfie – or be a pierogi', `${l.questions} × “Who’s most likely to…?” – vote with the room`, l.doodleAfter.length === 1 ? 'Doodle on the winner, vote for the best' : 'Twice: doodle on the winner, vote for the best'];
     }
-    case 'pedal': {
-      const heats = short ? PEDAL_HEATS_SHORT : PEDAL_HEATS;
-      return [
-        'Your phone has two pedals. Tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can.',
-        `Only alternating taps count! ${PEDAL_GOAL} strokes to the finish line.`,
-        heats === 1 ? 'One heat – first across the line wins.' : `${heats} heats: 10 points for a win, 8 for second, and so on.`,
-      ];
-    }
-    case 'fork': {
-      const rounds = short ? FORK_ROUNDS_SHORT : FORK_ROUNDS;
-      return [
-        'Watch the plate on your phone. When a pierogi lands on it, tap to stab it – fast!',
-        'Socks, slippers and rubber ducks land too. Stab one (or stab too early) and you lose a point.',
-        `${rounds} rounds. The fastest fork gets 3 points, then 2, then 1.`,
-      ];
-    }
-    case 'parade': {
-      const rounds = short ? PARADE_ROUNDS_SHORT : PARADE_ROUNDS;
-      return [
-        'Pierogi of every colour march across the TV.',
-        'Tap your phone once for every pierogi of the colour you’re told to count – and ignore the rest.',
-        `${rounds === 1 ? 'One round' : `${rounds} rounds, each busier than the last`}. Exactly right: 10 points, 1 off: 6, 2 off: 3, 3 off: 1.`,
-      ];
-    }
+    case 'bazgroly':
+      return ['Draw your secret prompt', 'Make up a fake title for every drawing', 'Spot the real one · fool the rest'];
+    case 'pedal':
+      return ['Tap LEFT, RIGHT, LEFT, RIGHT…', 'The same side twice doesn’t count', n(short ? PEDAL_HEATS_SHORT : PEDAL_HEATS, 'One heat – first over the line wins', `heats of ${PEDAL_GOAL} strokes`)];
+    case 'fork':
+      return ['A pierogi lands – stab it!', 'Sock, slipper or duck? Hands off', `${short ? FORK_ROUNDS_SHORT : FORK_ROUNDS} rounds · fastest fork wins`];
+    case 'parade':
+      return ['Count only the colour on your phone', 'One tap per pierogi', `Spot on = 10 points · ${n(short ? PARADE_ROUNDS_SHORT : PARADE_ROUNDS, 'one round', 'rounds')}`];
     case 'tanks':
       return tanksHowTo(short);
     case 'mushroom':
@@ -355,38 +319,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return cookbookHowTo(short);
     case 'tiles':
       return tilesHowTo(short);
-    default:
-      return HOW_TO[game];
   }
 }
-
-const HOW_TO: Record<'trails' | 'kitchen' | 'rally' | 'toty' | 'bazgroly', string[]> = {
-  trails: [
-    'Hold LEFT or RIGHT on your phone to steer your noodle.',
-    'Hit a wall or any trail and you’re out. Slip through the little gaps!',
-    'Each time someone crashes, everyone still alive gets a point.',
-  ],
-  kitchen: [
-    'Everyone cooks together! Walk your chef with the joystick on your phone.',
-    'Press the big button to pick up, put down and use stations. Some jobs are a quick minigame on your phone.',
-    'Serve the pierogi on the tickets before they run out. Three levels, up to 3 stars each!',
-  ],
-  rally: [
-    'Hold your thumb on the pad on your phone: left and right steer, up is gas, down is brake.',
-    'Pull down while turning to drift – let go when the sparks show for a turbo. Lift your thumb for a moment to use an item.',
-    `${RACES} races of ${LAPS} laps on random tracks with bridges and tunnels. 15 points for a win, 12 for second, and so on.`,
-  ],
-  toty: [
-    'Take a selfie on your phone (or skip it and be a pierogi).',
-    '“Who’s most likely to…?” Vote for a player. You score if you agree with the room.',
-    'Twice a game, everyone doodles on the chosen player’s photo. Vote for the best one!',
-  ],
-  bazgroly: [
-    'Everyone gets a weird secret prompt on their phone. Draw it!',
-    'Each drawing appears on the TV. Make up a fake title – one that sounds real.',
-    'Find the real title among the lies: 1000 for you and the artist. Each player you fool earns you 500.',
-  ],
-};
 
 function Intro({ game }: { game: GameId }) {
   const info = gameInfo(game);
@@ -395,7 +329,7 @@ function Intro({ game }: { game: GameId }) {
     <div class="screen intro">
       {t && (
         <div class="intro-tour">
-          🏆 Tournament · game {t.index + 1} of {t.games.length} · short version
+          🏆 {t.index + 1} / {t.games.length}
         </div>
       )}
       <div class="intro-icon pop-in">
@@ -406,9 +340,9 @@ function Intro({ game }: { game: GameId }) {
       {!t && <p class="intro-tag">{info.tagline}</p>}
       <ol class={`intro-steps ${t ? 'short' : ''}`}>
         {howTo(game, !!t).map((step, i) => (
-          <li style={{ animationDelay: `${400 + i * 250}ms` }}>
+          <li style={{ animationDelay: `${400 + i * 200}ms` }}>
             <span class="intro-num">{i + 1}</span>
-            {step}
+            <span>{step}</span>
           </li>
         ))}
       </ol>
@@ -446,7 +380,7 @@ function RestOfField({ standings, unit = '' }: { standings: Standing[]; unit?: s
     <div class="results-rest card-dark">
       {standings.slice(3).map((st) => (
         <div class="results-rest-row">
-          <span>{st.place}.</span>
+          <span class="party-rank">{st.place}</span>
           <Pierogi color={colorHex(st.color)} size={40} />
           <span class="grow">{st.name}</span>
           <b>
@@ -481,16 +415,19 @@ function Results({ game, standings }: { game: GameId; standings: Standing[] }) {
   const vip = controller.summaries().find((p) => p.vip);
   return (
     <div class="screen results">
-      <h1 class="results-title">{gameInfo(game).title} – final scores</h1>
+      <h1 class="results-title">
+        <GameIcon game={game} size={88} />
+        {gameInfo(game).title}
+      </h1>
       <div class="results-body">
         <Podium standings={standings} />
         <Confetti />
         <div class="results-side">
           <RestOfField standings={standings} />
-          <PartyTable sub="3 points for a win, 2 for second, 1 for third" />
+          <PartyTable sub="3 · 2 · 1 per game" />
         </div>
       </div>
-      <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>
+      <div class="lobby-hint">{vip ? `${vip.name} picks what’s next` : ''}</div>
     </div>
   );
 }
@@ -522,7 +459,7 @@ function TourIntro() {
       </div>
       <h1 class="intro-title">Tournament!</h1>
       <p class="intro-tag">
-        {t.games.length} quick games. Points for every game: {TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} for 1st, 2nd, 3rd…
+        {t.games.length} quick games · {TOURNAMENT_POINTS.filter((p) => p > 0).join(' · ')} points
       </p>
       <Lineup games={t.games} current={-1} done={0} />
       <div class="intro-bar">
@@ -540,9 +477,7 @@ function TourTable({ title }: { title: string }) {
   return (
     <div class="party-table card-paper">
       <div class="party-title">{title}</div>
-      <div class="party-sub">
-        {TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} points for 1st, 2nd, 3rd… in each game
-      </div>
+      <div class="party-sub">{TOURNAMENT_POINTS.filter((p) => p > 0).join(' · ')} per game</div>
       {rows.map(({ p, pts, gained }) => (
         <div class="party-row">
           <span class="party-rank">{1 + rows.filter((o) => o.pts > pts).length}</span>
@@ -563,7 +498,11 @@ function TourResults({ game, standings }: { game: GameId; standings: Standing[] 
   return (
     <div class="screen results tour-results">
       <h1 class="results-title">
-        {gameInfo(game).title} – game {t.index + 1} of {t.games.length}
+        <GameIcon game={game} size={88} />
+        {gameInfo(game).title}
+        <span class="results-count">
+          {t.index + 1} / {t.games.length}
+        </span>
       </h1>
       <Lineup games={t.games} current={t.index} done={t.index + 1} compact />
       <div class="results-body">
@@ -575,7 +514,7 @@ function TourResults({ game, standings }: { game: GameId; standings: Standing[] 
         </div>
       </div>
       <div class="lobby-hint">
-        {vip ? (next ? `${vip.name} (VIP): press “Next game” for ${gameInfo(next).title}.` : `${vip.name} (VIP): press “Crown the champion”!`) : ''}
+        {vip ? (next ? `Next up: ${gameInfo(next).title}` : 'Time to crown the champion') : ''}
       </div>
     </div>
   );
@@ -595,10 +534,10 @@ function TourEnd({ standings, games }: { standings: Standing[]; games: GameId[] 
         <Confetti />
         <div class="results-side">
           <RestOfField standings={standings} unit=" pts" />
-          <PartyTable sub="The tournament counts as one game: 3 / 2 / 1 party points" />
+          <PartyTable sub="The tournament counts as one game" />
         </div>
       </div>
-      <div class="lobby-hint">{vip ? `${vip.name} (VIP): another tournament, or pick a game on your phone.` : ''}</div>
+      <div class="lobby-hint">{vip ? `${vip.name} picks what’s next` : ''}</div>
     </div>
   );
 }
@@ -612,7 +551,10 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
   const crew = [...standings].sort((a, b) => b.score - a.score);
   return (
     <div class="screen results coop-results">
-      <h1 class="results-title">{gameInfo(game).title} – service report</h1>
+      <h1 class="results-title">
+        <GameIcon game={game} size={88} />
+        {gameInfo(game).title}
+      </h1>
       <div class="results-body">
         <div class="coop-main">
           <Stars n={coop.stars} size={150} />
@@ -656,7 +598,7 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
         <div class="results-side">
           <div class="party-table card-paper">
             <div class="party-title">Party standings</div>
-            <div class="party-sub">Co-op: everyone gets 1 point per star (average over the levels)</div>
+            <div class="party-sub">1 point per ★ for everyone</div>
             {party.map((p, i) => (
               <div class="party-row">
                 <span class="party-rank">{i + 1}</span>
@@ -668,7 +610,7 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
           </div>
         </div>
       </div>
-      <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>
+      <div class="lobby-hint">{vip ? `${vip.name} picks what’s next` : ''}</div>
     </div>
   );
 }

@@ -7,6 +7,7 @@
   background: #000;
   animation: fade-in 0.4s both;
   font-family: var(--font-display);
+  font-weight: 750;
 }
 .stage:has(.tiles-root) .corner {
   display: none;
@@ -30,7 +31,7 @@
   justify-self: start;
   font-size: 34px;
   background: rgba(30, 12, 16, 0.78);
-  box-shadow: 0 0 0 3px rgba(255, 244, 220, 0.3);
+  box-shadow: 0 0 0 3px rgba(251, 240, 217, 0.3);
 }
 .tiles-timer {
   font-weight: 700;
@@ -133,7 +134,7 @@
   margin-top: 6px;
   height: 12px;
   border-radius: 6px;
-  background: rgba(255, 244, 220, 0.14);
+  background: rgba(251, 240, 217, 0.14);
   overflow: hidden;
 }
 .tiles-chip-bar i {
@@ -234,7 +235,7 @@
 .tiles-tally-track {
   height: 34px;
   border-radius: 17px;
-  background: rgba(255, 244, 220, 0.12);
+  background: rgba(251, 240, 217, 0.12);
   overflow: hidden;
 }
 .tiles-tally-track i {

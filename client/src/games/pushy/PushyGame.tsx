@@ -307,7 +307,7 @@ export class PushyGame implements Game {
       { label: 'Brace', color: BRACE_BLUE, ...cd(this.braceUntil[i] ?? 0, BRACE_COOL_MS), ...(off ? { off: true } : {}) },
     ];
     if (this.phase === 'ready')
-      return { ...base, phase: 'ready', title: 'Get ready!', text: 'Slide about with the stick. Shove and Brace work from GO.', buttons: buttons(true) };
+      return { ...base, phase: 'ready', title: 'Get ready!', text: 'Stick to slide · Shove and Brace from GO', buttons: buttons(true) };
     if (this.phase === 'settle' || this.phase === 'over') {
       const won = this.winners.includes(i);
       return {
@@ -321,7 +321,7 @@ export class PushyGame implements Game {
       };
     }
     if (p && !p.alive)
-      return { ...base, phase: 'out', title: 'Splash!', text: 'You’re in the pond. Watch the TV.', accent: BRACE_BLUE, buttons: [], noStick: true };
+      return { ...base, phase: 'out', title: 'Splash!', text: 'You’re in the pond', accent: BRACE_BLUE, buttons: [], noStick: true };
     return { ...base, phase: 'play', buttons: buttons(false) };
   }
 

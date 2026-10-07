@@ -335,7 +335,7 @@ export class TanksGame implements Game {
         ...base,
         phase: 'ready',
         title: 'Get ready!',
-        text: 'Push the stick to drive and aim. Let go to stop.',
+        text: 'Stick drives and aims',
         buttons: [{ ...shell, off: true }, { ...mortar, off: true }],
         stats,
       };

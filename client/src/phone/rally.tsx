@@ -164,11 +164,11 @@ function TvPad({ view, me, send }: Props<'rally'>) {
   const brake = dot ? Math.max(0, dot.y) : 0;
   const overlay =
     view.phase === 'countdown'
-      ? { big: 'Get ready!', small: `Race ${view.race} of ${view.races} – find your car on the TV` }
+      ? { big: 'Get ready!', small: `Race ${view.race} / ${view.races} · find your car on the TV` }
       : view.phase === 'finished'
         ? { big: `Finished ${ordinal(view.pos)}!`, small: 'Watch the others come in…' }
         : view.phase === 'standings'
-          ? { big: view.pos ? `${ordinal(view.pos)} place` : 'Race over', small: view.race < view.races ? 'Next track coming up – look at the TV' : 'Final results on the TV' }
+          ? { big: view.pos ? `${ordinal(view.pos)} place` : 'Race over', small: view.race < view.races ? 'Next track coming up' : 'Final results on the TV' }
           : null;
 
   return (

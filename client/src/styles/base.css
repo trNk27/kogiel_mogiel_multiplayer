@@ -1,33 +1,54 @@
-/* Kogiel Mogiel · Couch Party — shared theme
-   Palette borrowed from a Polish kitchen: beetroot, egg yolk, sour cream, dill, rye bread. */
+/* Kogiel Mogiel · Couch Party — shared design language.
+
+   "Wycinanki on the kitchen table": flat, printed, tactile.
+   - Two surfaces: PAPER (cream card, ink text) for what matters, SLATE (flat dark panel) for the rest.
+   - Hard shadows only, never blurred glows: things are cut paper stacked on a table.
+   - Fraunces (soft, heavy) for anything you read from the sofa; Nunito for the odd sentence.
+   - Yolk is "do this", beet is "careful", dill is "good". Player colours do the rest. */
 
 :root {
-  --bg-deep: #1f0a10;
-  --bg: #2b0f14;
-  --bg-2: #3d1420;
-  --bg-3: #521b2b;
-  --cream: #fff4dc;
-  --cream-2: #f6e3bd;
-  --ink: #2a120a;
+  --bg-deep: #150910;
+  --bg: #1d0d15;
+  --bg-2: #2a1520;
+  --bg-3: #3a1e2b;
+  --panel: #2a1520;
+  --panel-2: #351b28;
+  --scrim: rgba(21, 9, 16, 0.82);
+  --cream: #fbf0d9;
+  --cream-2: #ead7b0;
+  --ink: #241015;
   --yolk: #ffc93c;
-  --yolk-deep: #f2a900;
+  --yolk-deep: #c98a00;
   --beet: #e8335a;
-  --beet-deep: #a51c3d;
+  --beet-deep: #9e1a3a;
   --dill: #2fd6a8;
+  --dill-deep: #12916d;
   --pickle: #a3e048;
   --blueberry: #4f9dff;
-  --muted: rgba(255, 244, 220, 0.62);
-  --line: rgba(255, 244, 220, 0.14);
+  --blueberry-deep: #2a5fb8;
+  --muted: rgba(251, 240, 217, 0.6);
+  --line: rgba(251, 240, 217, 0.12);
+  --edge: inset 0 0 0 2px rgba(251, 240, 217, 0.09);
+  --drop: 0 6px 0 rgba(0, 0, 0, 0.38);
+  --drop-lg: 0 10px 0 rgba(0, 0, 0, 0.38);
   --radius: 22px;
-  --font-display: 'Fredoka Variable', 'Fredoka', 'Trebuchet MS', system-ui, sans-serif;
+  --font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
   --font-body: 'Nunito Variable', 'Nunito', 'Segoe UI', system-ui, sans-serif;
   color-scheme: dark;
+  /* Fraunces' soft, rounded cut; ignored by Nunito. */
+  font-variation-settings: 'SOFT' 100, 'WONK' 0;
+  font-variant-numeric: lining-nums;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html,
@@ -41,26 +62,42 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* A flat table top with a faint printed paper-cut repeat. No glows. */
 body {
   background:
-    radial-gradient(1200px 700px at 15% -10%, rgba(232, 51, 90, 0.28), transparent 60%),
-    radial-gradient(900px 600px at 110% 110%, rgba(255, 201, 60, 0.12), transparent 60%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23fff4dc' fill-opacity='0.035'%3E%3Ccircle cx='60' cy='60' r='7'/%3E%3Cellipse cx='60' cy='44' rx='4' ry='8'/%3E%3Cellipse cx='60' cy='76' rx='4' ry='8'/%3E%3Cellipse cx='44' cy='60' rx='8' ry='4'/%3E%3Cellipse cx='76' cy='60' rx='8' ry='4'/%3E%3Ccircle cx='0' cy='0' r='3'/%3E%3Ccircle cx='120' cy='0' r='3'/%3E%3Ccircle cx='0' cy='120' r='3'/%3E%3Ccircle cx='120' cy='120' r='3'/%3E%3C/g%3E%3C/svg%3E"),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='%23fbf0d9' fill-opacity='0.028'%3E%3Cpath d='M48 30c4 6 4 12 0 18c-4-6-4-12 0-18zM48 66c-4-6-4-12 0-18c4 6 4 12 0 18zM30 48c6-4 12-4 18 0c-6 4-12 4-18 0zM66 48c-6 4-12 4-18 0c6-4 12-4 18 0z'/%3E%3Ccircle cx='0' cy='0' r='4'/%3E%3Ccircle cx='96' cy='0' r='4'/%3E%3Ccircle cx='0' cy='96' r='4'/%3E%3Ccircle cx='96' cy='96' r='4'/%3E%3C/g%3E%3C/svg%3E"),
+    var(--bg);
   background-attachment: fixed;
 }
 
+/* One reset for every button, so iOS Safari's native button sizing and padding never leak in. */
 button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
   font: inherit;
   color: inherit;
+  line-height: inherit;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+button:disabled {
+  cursor: default;
 }
 
 h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .muted {
@@ -75,19 +112,31 @@ h3 {
 .grow {
   flex: 1;
 }
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.72em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
-/* ---- Buttons ------------------------------------------------------------ */
+/* ---- Buttons: chunky printed keys with a hard edge underneath ------------- */
 
 .btn {
-  appearance: none;
-  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-height: 48px;
   border-radius: 999px;
   padding: 0.7em 1.5em;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
   font-size: 1.1rem;
-  cursor: pointer;
-  touch-action: manipulation;
+  line-height: 1.1;
+  text-align: center;
+  --key: var(--yolk-deep);
   transition:
     transform 0.08s ease,
     box-shadow 0.08s ease,
@@ -96,34 +145,37 @@ h3 {
   -webkit-user-select: none;
 }
 .btn:disabled {
-  cursor: default;
-  filter: grayscale(0.8) brightness(0.7);
+  filter: grayscale(0.85) brightness(0.6);
 }
 .btn-big {
   font-size: 1.35rem;
-  padding: 0.85em 1.6em;
+  padding: 0.8em 1.6em;
+  min-height: 60px;
+}
+.btn-yolk,
+.btn-beet,
+.btn-dill {
+  box-shadow: 0 6px 0 var(--key);
 }
 .btn-yolk {
   background: var(--yolk);
   color: var(--ink);
-  box-shadow:
-    0 6px 0 var(--yolk-deep),
-    0 10px 24px rgba(0, 0, 0, 0.35);
-}
-.btn-yolk:not(:disabled):active {
-  transform: translateY(4px);
-  box-shadow:
-    0 2px 0 var(--yolk-deep),
-    0 4px 12px rgba(0, 0, 0, 0.35);
 }
 .btn-beet {
+  --key: var(--beet-deep);
   background: var(--beet);
-  color: #fff;
-  box-shadow: 0 6px 0 var(--beet-deep);
+  color: var(--cream);
 }
-.btn-beet:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 var(--beet-deep);
+.btn-dill {
+  --key: var(--dill-deep);
+  background: var(--dill);
+  color: var(--ink);
+}
+.btn-yolk:not(:disabled):active,
+.btn-beet:not(:disabled):active,
+.btn-dill:not(:disabled):active {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 var(--key);
 }
 .btn-ghost {
   background: transparent;
@@ -131,7 +183,7 @@ h3 {
   box-shadow: inset 0 0 0 3px var(--line);
 }
 .btn-ghost:active {
-  background: rgba(255, 244, 220, 0.08);
+  background: rgba(251, 240, 217, 0.08);
 }
 
 .pill {
@@ -140,43 +192,35 @@ h3 {
   gap: 0.4em;
   padding: 0.35em 1em;
   border-radius: 999px;
-  background: rgba(255, 244, 220, 0.1);
+  background: var(--panel);
+  box-shadow: var(--edge);
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 700;
 }
 
+/* Paper: a cream card cut out and laid on the table. */
 .card-paper {
   background: var(--cream);
   color: var(--ink);
   border-radius: var(--radius);
-  box-shadow:
-    0 0 0 4px rgba(255, 244, 220, 0.25),
-    0 18px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--drop-lg);
   position: relative;
 }
-/* Scalloped "doily" edge on paper cards */
-.card-paper::after {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border: 3px dashed rgba(165, 28, 61, 0.22);
-  border-radius: calc(var(--radius) - 8px);
-  pointer-events: none;
-}
+/* Slate: a flat dark panel for secondary things. */
 .card-dark {
-  background: rgba(20, 6, 10, 0.45);
+  background: var(--panel);
   border-radius: var(--radius);
-  box-shadow: inset 0 0 0 2px var(--line);
+  box-shadow: var(--edge);
 }
 
 .vip-badge {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 900;
   background: var(--yolk);
   color: var(--ink);
-  padding: 0.15em 0.6em;
+  padding: 0.1em 0.55em 0.15em;
   border-radius: 999px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 .vip-badge.small {
   font-size: 0.75rem;
@@ -193,19 +237,20 @@ h3 {
   line-height: 1;
 }
 .logo-small {
-  font-family: var(--font-display);
-  font-weight: 500;
+  font-family: var(--font-body);
+  font-weight: 800;
   color: var(--yolk);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  font-size: 0.85em;
+  font-size: 0.75em;
 }
 .logo-big {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 900;
   font-size: 2.6em;
+  letter-spacing: -0.02em;
   color: var(--cream);
-  text-shadow: 0 4px 0 var(--beet-deep);
+  text-shadow: 0 0.07em 0 var(--beet-deep);
 }
 
 .folk-border {
@@ -336,7 +381,7 @@ h3 {
   line-height: 1;
 }
 .stars span {
-  color: rgba(255, 244, 220, 0.16);
+  color: rgba(251, 240, 217, 0.16);
   display: inline-block;
 }
 .stars span.on {

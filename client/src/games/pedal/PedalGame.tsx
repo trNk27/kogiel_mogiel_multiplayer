@@ -217,7 +217,7 @@ function PedalView({ game }: { game: PedalGame }) {
           Heat {game.heat} / {game.heats}
         </div>
         <div class="pedal-how">
-          Tap <b>LEFT</b>, <b>RIGHT</b>, <b>LEFT</b>… in turn on your phone. {PEDAL_GOAL} strokes to the finish!
+          <b>LEFT</b>, <b>RIGHT</b>, <b>LEFT</b>… · {PEDAL_GOAL} strokes
         </div>
       </div>
       <div class={`pedal-lanes n${riders.length}`} ref={lanes}>

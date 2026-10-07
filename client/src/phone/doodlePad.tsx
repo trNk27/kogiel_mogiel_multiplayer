@@ -139,7 +139,7 @@ export function DoodlePad({ prompt, note, endsAt, offset, done, photo: bg, color
           <Doodle strokes={strokes.current} photo={bg} color={subject} />
         </div>
         <div class="phone-big">{strokes.current.length || done ? 'Masterpiece sent!' : 'Time’s up!'}</div>
-        <p class="muted">Look at the TV.</p>
+        <p class="muted">📺 Look up</p>
       </div>
     );
   }

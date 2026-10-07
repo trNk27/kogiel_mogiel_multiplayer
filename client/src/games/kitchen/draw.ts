@@ -100,7 +100,7 @@ function countBadge(ctx: Ctx, n: number, x: number, y: number) {
   ellipse(ctx, x, y, 13, 13);
   ctx.fill();
   ctx.fillStyle = '#fff4dc';
-  ctx.font = '700 17px "Fredoka Variable", "Fredoka", sans-serif';
+  ctx.font = '800 17px "Fraunces Variable", Georgia, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(String(n), x, y + 1);
@@ -412,7 +412,7 @@ function drawStationContents(ctx: Ctx, sim: KitchenSim, s: Station, now: number)
       for (let i = 0; i < Math.min(6, s.count); i++) drawItem(ctx, it, cx, cy + 6 - i * 5, T * 0.74);
       if (s.count > 1) countBadge(ctx, s.count, r.x + T - 14, r.y + 14);
       if (s.kind === 'rack' && s.count === 0) {
-        ctx.font = '700 16px "Fredoka Variable", "Fredoka", sans-serif';
+        ctx.font = '800 16px "Fraunces Variable", Georgia, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.lineWidth = 5;
@@ -479,7 +479,7 @@ function drawCook(ctx: Ctx, c: Cook, look: CookLook, now: number, seed: number) 
   }
 
   // Name tag
-  ctx.font = '700 21px "Fredoka Variable", "Fredoka", sans-serif';
+  ctx.font = '800 21px "Fraunces Variable", Georgia, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.lineWidth = 5;
@@ -599,7 +599,7 @@ function drawCookVector(ctx: Ctx, c: Cook, look: CookLook, now: number, seed: nu
   if (c.hold) drawItem(ctx, c.hold, holdX, holdY, back ? T * 0.46 : T * 0.52);
 
   // Name tag
-  ctx.font = '700 21px "Fredoka Variable", "Fredoka", sans-serif';
+  ctx.font = '800 21px "Fraunces Variable", Georgia, serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.lineWidth = 5;
@@ -676,7 +676,7 @@ export function drawDynamic(ctx: Ctx, sim: KitchenSim, looks: Map<string, CookLo
       continue;
     }
     ctx.globalAlpha = k < 0.75 ? 1 : 1 - (k - 0.75) / 0.25;
-    ctx.font = '700 34px "Fredoka Variable", "Fredoka", sans-serif';
+    ctx.font = '800 34px "Fraunces Variable", Georgia, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineWidth = 7;

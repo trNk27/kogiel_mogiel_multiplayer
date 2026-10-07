@@ -114,28 +114,28 @@ export interface GameInfo {
 }
 
 export const GAMES: readonly GameInfo[] = [
-  { id: 'trails', title: 'Trails', tagline: 'Steer your noodle. Don’t touch anything.', minPlayers: 2 },
+  { id: 'trails', title: 'Trails', tagline: 'Steer your noodle. Touch nothing.', minPlayers: 2 },
   { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
   { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
-  { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking. Serve every order in time.', minPlayers: 1, coop: true },
+  { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking against the clock.', minPlayers: 1, coop: true },
   {
     id: 'rally',
-    title: 'Maluch Rally', tagline: 'Split-screen racing for up to 4. Your thumb is the wheel.',
+    title: 'Maluch Rally', tagline: 'Little cars, big drifts. Up to 4.',
     minPlayers: 1,
     maxPlayers: 4,
-    noTv: 'Low-poly racing on every phone. Tilt or drag to steer, up to 8 cars.',
+    noTv: 'Racing on every phone. Up to 8 cars.',
   },
-  { id: 'toty', title: 'To Ty!', tagline: 'Selfies, “who’s most likely to…” and doodles.', minPlayers: 3 },
-  { id: 'bazgroly', title: 'Bazgroły', tagline: 'Draw a weird secret prompt. Fool everyone with fake titles.', minPlayers: 3 },
-  { id: 'pedal', title: 'Tour de Pierogi', tagline: 'Pedal LEFT, RIGHT, LEFT… as fast as your thumbs go.', minPlayers: 1 },
-  { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi first. Don’t fall for the sock.', minPlayers: 1 },
-  { id: 'parade', title: 'Pierogi Parade', tagline: 'Count the right pierogi as the parade rolls by.', minPlayers: 1 },
-  { id: 'tanks', title: 'Czołgi', tagline: 'Little tanks. Bouncing shells, cabbage mortars. Last tank rolling wins.', minPlayers: 2 },
-  { id: 'mushroom', title: 'Grzybki', tagline: 'Run to the mushroom that’s called – the rest sink into the pond.', minPlayers: 2 },
-  { id: 'pushy', title: 'Pushy Pierogi', tagline: 'Shove everyone off the frozen pond. Mind the cracks.', minPlayers: 2 },
-  { id: 'gallery', title: 'Strzelnica', tagline: 'Fairground shooting gallery: pop the ghosts, spare the babcias.', minPlayers: 1 },
-  { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Giant pages slam shut – squeeze into the hole cut in each one.', minPlayers: 1 },
-  { id: 'tiles', title: 'Kafelki', tagline: 'Paint the kitchen floor your colour. Most tiles wins.', minPlayers: 2 },
+  { id: 'toty', title: 'To Ty!', tagline: 'Selfies, votes and doodles.', minPlayers: 3 },
+  { id: 'bazgroly', title: 'Bazgroły', tagline: 'Draw it. Fake it. Spot the real title.', minPlayers: 3 },
+  { id: 'pedal', title: 'Tour de Pierogi', tagline: 'Left, right, left – as fast as you can.', minPlayers: 1 },
+  { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi. Spare the sock.', minPlayers: 1 },
+  { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1 },
+  { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
+  { id: 'mushroom', title: 'Grzybki', tagline: 'Run to the mushroom Babcia calls.', minPlayers: 2 },
+  { id: 'pushy', title: 'Pushy Pierogi', tagline: 'Shove everyone off the ice.', minPlayers: 2 },
+  { id: 'gallery', title: 'Strzelnica', tagline: 'Pop the ghosts. Spare the babcias.', minPlayers: 1 },
+  { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
+  { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {

@@ -358,8 +358,8 @@ export class BazgrolyGame implements Game {
             <div class="grow" />
             {timer(BZ_DRAW_MS)}
           </div>
-          <h2 class="bz-title">Everyone has a secret prompt on their phone.</h2>
-          <p class="bz-sub">Draw it! Then the others make up fake titles – and you all try to spot the real one.</p>
+          <h2 class="bz-title">Draw your secret prompt!</h2>
+          <p class="bz-sub">Then fake a title for everyone else’s</p>
           <div class="bz-chips">
             {players.map((p) => {
               const done = this.drawings.has(p.id);

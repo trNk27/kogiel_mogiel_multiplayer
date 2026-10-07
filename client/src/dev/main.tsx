@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import '@fontsource-variable/fredoka';
+import '@fontsource-variable/fraunces/soft.css';
 import '../styles/base.css';
 
 /**

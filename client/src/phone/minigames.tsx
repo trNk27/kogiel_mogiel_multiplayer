@@ -271,7 +271,7 @@ export function ForkPad({ view, send, offset }: Props<'fork'>) {
         <span>
           Round {view.round} / {view.rounds}
         </span>
-        <span class="muted">Tap anywhere to stab</span>
+        <span class="muted">Tap to stab</span>
       </div>
       <div class="fork-pad-plate">
         <Plate size={280}>{shown && <div class="fork-drop">{<ForkThing k={shown} size={170} />}</div>}</Plate>
@@ -339,7 +339,7 @@ export function ParadePad({ view, send, offset }: Props<'parade'>) {
         <span>
           Round {view.round} / {view.rounds}
         </span>
-        <span class="muted">Look at the TV</span>
+        <span class="muted">📺</span>
       </div>
       <div class="parade-pad-ask">
         Count the <Pierogi color={view.color} size={44} /> <b style={{ color: view.color }}>{view.colorName}</b> ones

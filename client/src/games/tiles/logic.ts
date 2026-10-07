@@ -634,9 +634,5 @@ export function placeText(place: number) {
 }
 
 export function howTo(short: boolean): string[] {
-  return [
-    'Walk over tiles to paint them your colour. Painting over other colours steals them.',
-    'Roll dashes and paints a streak and bowls people over; Splat lobs a paint bomb. Mind the cracks and Babcia’s mop!',
-    short ? 'Most tiles when the 45 seconds are up wins.' : 'Most tiles after 2 rounds of 60 seconds wins.',
-  ];
+  return ['Walk to paint tiles your colour', 'Roll to dash · Splat to bomb', short ? 'Most tiles after 45 seconds wins' : 'Most tiles after 2 × 60 seconds wins'];
 }

@@ -377,7 +377,6 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
             </div>
           )}
           <div class="drive-modes">
-            <span class="muted">Steer by</span>
             <button class={`chip ${mode === 'touch' ? 'on' : ''}`} onClick={() => chooseMode('touch')}>
               👆 Dragging
             </button>
@@ -386,8 +385,8 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
             </button>
           </div>
           <div class="muted small center">
-            {mode === 'tilt' ? 'Hold your phone like a steering wheel and turn it. ' : 'Drag your thumb left and right on the pad. '}
-            The car speeds up by itself. BRAKE slows you down – hold it while turning to drift round tight corners, and let go when the sparks show for a turbo.
+            {mode === 'tilt' ? 'Turn the phone like a wheel. ' : 'Drag left and right on the pad. '}
+            Hold BRAKE in a turn to drift, let go for a turbo.
           </div>
           {tiltProblem && <div class="form-error">{tiltProblem}</div>}
           {canFullscreen && !fullscreen && (
@@ -396,7 +395,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
             </button>
           )}
           {!canFullscreen && isIOS() && !standalone() && (
-            <div class="muted small center">For full screen on an iPhone: Share → Add to Home Screen, then play from there.</div>
+            <div class="muted small center">Full screen on iPhone: Share → Add to Home Screen</div>
           )}
         </div>
       )}

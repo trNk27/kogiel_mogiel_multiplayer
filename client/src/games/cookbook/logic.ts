@@ -773,9 +773,5 @@ export function pageAngle(phase: Phase, phaseT: number, swing: number): number {
 }
 
 export function howTo(short: boolean): string[] {
-  return [
-    'A giant page swings over and slams down. Every page has holes cut in it, shown by lit patches on the page below.',
-    'Walk into a hole before it lands, or get squashed flat. Dash (the button) to hurry and to shove others out of the way.',
-    short ? 'One round: last pierogi standing wins!' : 'Three rounds. Points for every pierogi squashed before you, and a bonus for the last one standing.',
-  ];
+  return ['A page slams down – stand in a hole', 'Dash to hurry and to shove', short ? 'One round · last one standing wins' : 'Three rounds · last one standing wins'];
 }

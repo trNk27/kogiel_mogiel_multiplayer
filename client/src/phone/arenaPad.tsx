@@ -203,7 +203,7 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
             <small>{s.k}</small> {s.v}
           </span>
         ))}
-        <span class="muted">{view.rounds > 1 ? `Round ${view.round}/${view.rounds}` : 'Look at the TV'}</span>
+        <span class="muted">{view.rounds > 1 ? `Round ${view.round}/${view.rounds}` : '📺'}</span>
       </div>
       {(view.title || view.text) && (
         <div class="ar-msg" key={view.title}>
@@ -227,7 +227,6 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
               <Pierogi color={colorHex(me.color)} size={64} />
             </div>
           </div>
-          {!active && <div class="k-stick-label">Drag anywhere here to move</div>}
         </div>
       )}
       {view.buttons.length > 0 && (

@@ -33,7 +33,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
         <rect x="53" y="14" width="33" height="33" rx="8" fill="#3d7eff" />
         <rect x="14" y="53" width="33" height="33" rx="8" fill="#f2b705" />
         <rect x="53" y="53" width="33" height="33" rx="8" fill="#4caf50" />
-        <text x="50" y="66" text-anchor="middle" font-size="46" font-weight="700" fill="#fff4dc" font-family="Fredoka Variable, sans-serif" stroke="#2a120a" stroke-width="3" paint-order="stroke">
+        <text x="50" y="66" text-anchor="middle" font-size="46" font-weight="700" fill="#fff4dc" font-family="Fraunces Variable, Georgia, serif" stroke="#2a120a" stroke-width="3" paint-order="stroke">
           ?
         </text>
       </svg>
@@ -76,7 +76,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
         <path d="M24 60 q6 -18 14 -6 t12 -2 q4 10 -6 12 q-14 2 -20 -4 Z" fill="none" stroke="#ff3d6e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
         <circle cx="35" cy="40" r="3.5" fill="#2a120a" />
         <circle cx="47" cy="38" r="3.5" fill="#2a120a" />
-        <text x="58" y="44" font-size="22" font-weight="700" fill="#4f9dff" font-family="Fredoka Variable, sans-serif">
+        <text x="58" y="44" font-size="22" font-weight="700" fill="#4f9dff" font-family="Fraunces Variable, Georgia, serif">
           ?
         </text>
         <g transform="rotate(38 74 58)">
@@ -147,7 +147,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
           </g>
         ))}
         <circle cx="84" cy="62" r="11" fill="#ffd23f" stroke="#2a120a" stroke-width="2.5" />
-        <text x="84" y="67.5" text-anchor="middle" font-size="15" font-weight="700" fill="#2a120a" font-family="Fredoka Variable, sans-serif">
+        <text x="84" y="67.5" text-anchor="middle" font-size="15" font-weight="700" fill="#2a120a" font-family="Fraunces Variable, Georgia, serif">
           3
         </text>
       </svg>

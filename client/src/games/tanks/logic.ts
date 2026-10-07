@@ -853,10 +853,8 @@ export function armourHearts(armour: number, max = TUNING.armour) {
 
 export function howTo(short: boolean): string[] {
   return [
-    'Push the stick to drive and aim: your tank turns towards it and the turret follows. Let go to stop.',
-    'Shell bounces once off walls and pops on the second hit. Mortar lobs a cabbage over everything onto the red ring.',
-    short
-      ? 'Three hits and you’re scrap. One round of 90 seconds: knock tanks out and outlast them.'
-      : `Three hits and you’re scrap. ${TANKS_ROUNDS} rounds of 90 seconds: points for knock-outs and for outlasting, +2 for the last tank rolling.`,
+    'The stick drives and aims',
+    'Shells bounce once · the mortar lobs over walls',
+    short ? 'Three hits and you’re out · One round' : `Three hits and you’re out · ${TANKS_ROUNDS} rounds`,
   ];
 }
