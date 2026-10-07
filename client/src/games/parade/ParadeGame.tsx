@@ -3,7 +3,6 @@ import type { Game, GameHost } from '../types';
 import {
   PARADE_COLORS,
   PARADE_GRACE_MS,
-  PARADE_LANES,
   PARADE_READY_MS,
   PARADE_ROUNDS,
   PARADE_ROUNDS_SHORT,
@@ -13,13 +12,13 @@ import {
   type Parade,
 } from './logic';
 import { BigCountdown, CountUp, TimerRing } from '../../host/components';
+import { Backdrop, Balloon, Birds, Firework, Kite, PropView, TramView, laneScale, laneY, laneZ } from './scene';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 
 const RESULT_MS = 8000;
 /** Counts sent just before the deadline get this long to arrive. */
 const LATE_MS = 500;
-const LANE_H = 136;
 
 type Phase = 'ready' | 'count' | 'result';
 
@@ -157,17 +156,22 @@ export class ParadeGame implements Game {
       const decoys = PARADE_COLORS.filter((_, i) => i !== this.parade.target && this.parade.marchers.some((m) => m.c === i));
       return (
         <div class="screen parade parade-ready" key={`ready-${this.round}`}>
+          <div class="parade-scene dim">
+            <Backdrop />
+          </div>
           <div class="parade-ready-card">
             <div class="parade-ready-small">Tap your phone once for every…</div>
-            <Pierogi color={colour.hex} size={300} mood="wow" class="bob" />
+            <Pierogi color={colour.hex} size={260} mood="wow" class="bob" />
             <div class="parade-ready-big" style={{ color: colour.hex }}>
               {colour.name} pierogi
             </div>
+            <div class="parade-ready-small">…walking down the street.</div>
             <div class="parade-ignore">
               Ignore
               {decoys.map((c) => (
                 <Pierogi color={c.hex} size={56} mood="sleep" />
               ))}
+              <span>– and {ignoreList(this.parade.scene)}!</span>
             </div>
           </div>
           <BigCountdown endsAt={this.startAt} go="Count!" />
@@ -176,30 +180,51 @@ export class ParadeGame implements Game {
     }
 
     if (this.phase === 'count') {
+      const sc = this.parade.scene;
       return (
         <div class="screen parade" key={`count-${this.round}`}>
-          {head}
-          <div class="parade-street">
-            {Array.from({ length: PARADE_LANES }, (_, i) => (
-              <div class="parade-lane" style={{ top: `${i * LANE_H + LANE_H - 18}px` }} />
+          <div class="parade-scene">
+            <Backdrop />
+            {sc.fireworks.map((f) => (
+              <Firework fw={f} />
             ))}
-            {this.parade.marchers.map((m, i) => (
-              <div
-                class="parade-walker"
-                key={i}
-                style={{
-                  top: `${m.lane * LANE_H + LANE_H - 18 - 110 * m.size * 0.8}px`,
-                  animationName: m.dir > 0 ? 'parade-ltr' : 'parade-rtl',
-                  animationDuration: `${m.dur}ms`,
-                  animationDelay: `${m.at}ms`,
-                }}
-              >
-                <div class={m.hop ? 'parade-hop' : 'parade-waddle'}>
-                  <Pierogi color={PARADE_COLORS[m.c].hex} size={110 * m.size} />
+            {sc.birds.map((f) => (
+              <Birds f={f} />
+            ))}
+            {sc.kites.map((k) => (
+              <Kite k={k} />
+            ))}
+            {sc.balloons.map((b) => (
+              <Balloon b={b} />
+            ))}
+            {this.parade.marchers.map((m, i) => {
+              const size = 124 * laneScale(m.lane) * m.size;
+              return (
+                <div
+                  class="parade-walker"
+                  key={i}
+                  style={{
+                    top: `${laneY(m.lane) - size * 0.8 + 6}px`,
+                    zIndex: laneZ(m.lane),
+                    animationName: m.dir > 0 ? 'parade-ltr' : 'parade-rtl',
+                    animationDuration: `${m.dur}ms`,
+                    animationDelay: `${m.at}ms`,
+                  }}
+                >
+                  <div class={m.hop ? 'parade-hop' : 'parade-waddle'}>
+                    <Pierogi color={PARADE_COLORS[m.c].hex} size={size} />
+                  </div>
                 </div>
-              </div>
+              );
+            })}
+            {sc.props.map((p) => (
+              <PropView prop={p} />
+            ))}
+            {sc.trams.map((t) => (
+              <TramView tram={t} />
             ))}
           </div>
+          {head}
         </div>
       );
     }
@@ -210,6 +235,9 @@ export class ParadeGame implements Game {
       .sort((a, b) => (a.n === null ? 999 : Math.abs(a.n - answer)) - (b.n === null ? 999 : Math.abs(b.n - answer)));
     return (
       <div class="screen parade parade-result" key={`result-${this.round}`}>
+        <div class="parade-scene dim">
+          <Backdrop />
+        </div>
         {head}
         <div class="parade-answer">
           <span>There were</span>
@@ -238,4 +266,10 @@ export class ParadeGame implements Game {
       </div>
     );
   }
+}
+
+/** "balloons, kites, trams and the neighbours in the windows" – whatever is about to distract you. */
+function ignoreList(sc: Parade['scene']) {
+  const things = ['balloons', sc.kites.length ? 'the pierogi kites' : '', sc.trams.length ? 'the trams' : '', 'the neighbours in the windows'].filter(Boolean);
+  return things.length > 1 ? `${things.slice(0, -1).join(', ')} and ${things.at(-1)}` : things[0];
 }

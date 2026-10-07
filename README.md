@@ -19,7 +19,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 100 prompts. | 3–8 |
 | **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
 | **Fork Fight** | A quick-draw duel. A plate on your phone: when a pierogi lands on it, tap to stab it. Socks, slippers and rubber ducks land too; stab one (or stab an empty plate) and you lose a point. The fastest three forks get 3/2/1. Eight rounds, with more fakes as you go. | 1–8 |
-| **Pierogi Parade** | Pierogi of five colours march across the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
+| **Pierogi Parade** | Pierogi of five colours march down a busy market street on the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Lamp posts, trees, market stalls, barrels and trams hide them for a moment, some march in tight groups, and balloons, pierogi kites, pigeons, fireworks and the neighbours in the windows try to distract you. Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
 
 The VIP can also start a **Tournament**: five random games in a row (see below).
 
@@ -425,8 +425,17 @@ A round goes like this (timings at the top of
   your phone!") and reveals what landed afterwards. The pierogi stays 1.5 s; fakes 0.9 s.
 - **Pierogi Parade** (`games/parade/logic.ts`): each round is generated up front: the target
   colour, how many of it march (the answer) and the decoys, each with a lane, start time, speed and
-  hop. Pierogi in one lane never catch up with each other, and with traffic both ways odd lanes walk
-  right to left. The TV animates them with CSS only. Phones keep the count and send it as it changes
+  hop. Later rounds cut the marchers into tight groups of up to four (mixing colours), so you have to
+  pick the right ones out of a bunch. Pierogi in one lane never catch up with each other, and with
+  traffic both ways odd lanes walk right to left. The round also plans its **scene**
+  (`scene.tsx` draws it): props standing in front of a lane (lamp posts, trees, market stalls,
+  barrels) that hide pierogi walking behind them for a moment, trams that rattle across in front of
+  a lane, and things that don't count: balloons in the parade colours, pierogi-shaped kites in the
+  sky, pigeons, fireworks and neighbours watching from the windows. Props stay away from the edges,
+  so every pierogi is seen walking on and off, and trams are faster than any pierogi, so they never
+  hide one for its whole walk. Round 1 has a couple of lamp posts and a few balloons; round 3 has up
+  to six props, two or three trams, kites, fireworks and 14–20 targets among 28–38 decoys. The TV
+  animates everything with CSS only. Phones keep the count and send it as it changes
   (`count {r, n}`, at most every 150 ms); counting closes 2.5 s after the last pierogi has left.
 
 `/?debug` on the TV exposes the room as `window.host`; `host.finish({...})` ends the current game

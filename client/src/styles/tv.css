@@ -2902,26 +2902,50 @@ body.tv {
   color: var(--muted);
 }
 .parade-ready .trails-count {
-  inset: auto 0 0 auto;
+  z-index: 300;
+  inset: 0 0 auto auto;
   width: 420px;
   height: 320px;
   font-size: 180px;
 }
-.parade-street {
+.parade-scene {
   position: absolute;
-  top: 150px;
   left: -96px;
+  top: -54px;
   width: 1920px;
-  height: 700px;
+  height: 1080px;
   overflow: hidden;
+  z-index: 0;
 }
-.parade-lane {
+.parade-scene.dim::after {
+  content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 244, 220, 0.1);
+  inset: 0;
+  background: rgba(31, 10, 16, 0.72);
+  z-index: 200;
+}
+.parade-backdrop {
+  position: absolute;
+  inset: 0;
+}
+.parade .quiz-top {
+  position: relative;
+  z-index: 300;
+}
+.parade .quiz-top > .pill,
+.parade-ask {
+  background: rgba(20, 6, 10, 0.78);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.parade-ask {
+  padding: 4px 30px 4px 18px;
+  border-radius: 999px;
+}
+.parade-ready-card,
+.parade-answer,
+.parade-board {
+  position: relative;
+  z-index: 300;
 }
 .parade-walker {
   position: absolute;
@@ -2944,6 +2968,143 @@ body.tv {
   }
   to {
     transform: translateX(-180px);
+  }
+}
+.parade-prop {
+  position: absolute;
+  transform-origin: 50% 100%;
+}
+.parade-prop svg,
+.parade-tram svg {
+  display: block;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.35));
+}
+.parade-tram {
+  position: absolute;
+  left: 0;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  will-change: transform;
+}
+@keyframes parade-tram-ltr {
+  from {
+    transform: translateX(-860px);
+  }
+  to {
+    transform: translateX(1980px);
+  }
+}
+@keyframes parade-tram-rtl {
+  from {
+    transform: translateX(1980px);
+  }
+  to {
+    transform: translateX(-860px);
+  }
+}
+.parade-balloon {
+  position: absolute;
+  top: 0;
+  z-index: 5;
+  animation: parade-balloon linear both;
+  will-change: transform;
+}
+@keyframes parade-balloon {
+  0% {
+    transform: translate(0, 1100px);
+  }
+  25% {
+    transform: translate(26px, 760px);
+  }
+  50% {
+    transform: translate(-18px, 420px);
+  }
+  75% {
+    transform: translate(22px, 80px);
+  }
+  100% {
+    transform: translate(0, -260px);
+  }
+}
+.parade-kite {
+  position: absolute;
+  z-index: 4;
+  transform-origin: 30% 30%;
+  animation: parade-kite 3s ease-in-out infinite alternate;
+}
+@keyframes parade-kite {
+  from {
+    transform: translate(-50%, -50%) rotate(-12deg) translateY(-10px);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(14deg) translateY(12px);
+  }
+}
+.parade-birds {
+  position: absolute;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  gap: 18px;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+@keyframes parade-sky-ltr {
+  from {
+    transform: translateX(-400px);
+  }
+  to {
+    transform: translateX(2000px);
+  }
+}
+@keyframes parade-sky-rtl {
+  from {
+    transform: translateX(2000px);
+  }
+  to {
+    transform: translateX(-400px);
+  }
+}
+.parade-bird {
+  animation: parade-flap 0.35s ease-in-out infinite alternate;
+}
+@keyframes parade-flap {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(-0.6);
+  }
+}
+.parade-firework {
+  position: absolute;
+  z-index: 2;
+}
+.parade-firework i {
+  position: absolute;
+  left: -10px;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: parade-burst 1.4s ease-out both;
+  box-shadow: 0 0 18px currentColor;
+}
+@keyframes parade-burst {
+  0% {
+    transform: rotate(var(--a)) translateX(0) scale(0.4);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotate(var(--a)) translateX(190px) scale(0.6);
+    opacity: 0;
   }
 }
 .parade-waddle {

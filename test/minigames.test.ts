@@ -133,6 +133,43 @@ describe('Pierogi Parade', () => {
     }
   });
 
+  it('gets busier in the background each round', () => {
+    const busy = (round: number) => {
+      let n = 0;
+      for (let seed = 1; seed <= 40; seed++) {
+        const sc = makeParade(round, mulberry32(seed)).scene;
+        n += sc.props.length + sc.trams.length * 3 + sc.balloons.length + sc.kites.length + sc.birds.length + sc.fireworks.length;
+      }
+      return n;
+    };
+    expect(busy(1)).toBeGreaterThan(busy(0));
+    expect(busy(2)).toBeGreaterThan(busy(1));
+    for (let seed = 1; seed <= 40; seed++) expect(makeParade(2, mulberry32(seed)).scene.trams.length).toBeGreaterThan(0);
+  });
+
+  it('only hides pierogi for a moment', () => {
+    for (let seed = 1; seed < 100; seed++) {
+      const { scene, marchers } = makeParade(seed % 3, mulberry32(seed));
+      // Props stand away from the edges, so everybody is seen walking on and off.
+      for (const p of scene.props) {
+        expect(p.x).toBeGreaterThan(0.15);
+        expect(p.x).toBeLessThan(0.85);
+      }
+      // Trams are much faster than any pierogi, so they can't hide one for its whole walk.
+      const slowest = Math.min(...marchers.map((m) => m.dur));
+      for (const t of scene.trams) expect(t.dur).toBeLessThan(slowest);
+    }
+  });
+
+  it('sends some pierogi marching in tight groups in later rounds', () => {
+    let grouped = 0;
+    for (let seed = 1; seed <= 20; seed++) {
+      const ms = makeParade(2, mulberry32(seed)).marchers;
+      grouped += ms.filter((m) => ms.some((o) => o !== m && o.lane === m.lane && Math.abs(o.at - m.at) <= m.dur * 0.15)).length;
+    }
+    expect(grouped).toBeGreaterThan(50);
+  });
+
   it('scores 10 / 6 / 3 / 1 by how far off the count is', () => {
     expect(paradePoints(12, 12)).toBe(10);
     expect(paradePoints(11, 12)).toBe(6);

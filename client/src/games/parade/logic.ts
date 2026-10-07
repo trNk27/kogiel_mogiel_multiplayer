@@ -1,8 +1,10 @@
 import type { Rng } from '../rng';
 
 /**
- * Pierogi Parade: pierogi of every colour march across the TV. Tap your phone once for every
- * pierogi of the target colour. The closer your count, the more points.
+ * Pierogi Parade: pierogi of every colour march down a busy market street on the TV. Tap your phone
+ * once for every pierogi of the target colour walking on the street. The closer your count, the more
+ * points. Lamp posts, trees, market stalls and trams hide them for a moment; balloons, pierogi kites,
+ * birds and fireworks try to distract you.
  */
 
 export const PARADE_ROUNDS = 3;
@@ -10,7 +12,7 @@ export const PARADE_ROUNDS = 3;
 export const PARADE_ROUNDS_SHORT = 1;
 export const PARADE_LANES = 5;
 /** Showing the target colour before the parade starts. */
-export const PARADE_READY_MS = 3500;
+export const PARADE_READY_MS = 4500;
 /** Counting stays open this long after the last pierogi has left. */
 export const PARADE_GRACE_MS = 2500;
 /** Points by how far off your count is: exact, 1 off, 2 off, 3 off. */
@@ -27,6 +29,7 @@ export const PARADE_COLORS = [
 export interface Marcher {
   /** Index in PARADE_COLORS. */
   c: number;
+  /** 0 is the back of the street, PARADE_LANES - 1 the front. */
   lane: number;
   /** ms after the parade starts. */
   at: number;
@@ -39,58 +42,183 @@ export interface Marcher {
   hop: boolean;
 }
 
+/** Something standing on the street in front of lane `lane` (and hiding it, and the lanes behind). */
+export interface Prop {
+  kind: 'lamp' | 'tree' | 'stall' | 'barrels';
+  /** Centre, as a share of the screen width. */
+  x: number;
+  lane: number;
+}
+
+/** A tram rattling across in front of lane `lane`. Fast, so it never hides anyone for long. */
+export interface Tram {
+  at: number;
+  dur: number;
+  dir: 1 | -1;
+  lane: number;
+}
+
+/** Background distractions. None of them count. */
+export interface Scene {
+  props: Prop[];
+  trams: Tram[];
+  /** Balloons drifting up from the street, in the parade colours. */
+  balloons: { c: number; x: number; at: number; dur: number }[];
+  /** Pierogi-shaped kites in the sky – they look the part, but they're not on the street. `y` is 0..1 down the sky. */
+  kites: { c: number; x: number; y: number }[];
+  /** Flocks of pigeons crossing the sky. */
+  birds: { at: number; dur: number; y: number; dir: 1 | -1; n: number }[];
+  fireworks: { c: number; x: number; y: number; at: number }[];
+}
+
 export interface Parade {
   target: number;
   answer: number;
   marchers: Marcher[];
+  scene: Scene;
   /** ms until the last pierogi has left the screen. */
   length: number;
 }
 
-const DIFFICULTY = [
-  { targets: [6, 10], decoys: [8, 12], colours: 2, speed: [2900, 3800], window: 11_000, both: false },
-  { targets: [9, 14], decoys: [14, 20], colours: 3, speed: [2200, 3200], window: 12_500, both: true },
-  { targets: [12, 18], decoys: [20, 28], colours: 5, speed: [1700, 2700], window: 14_000, both: true },
-] as const;
+type Range = readonly [number, number];
 
-const between = (rng: Rng, [a, b]: readonly [number, number]) => a + Math.floor(rng() * (b - a + 1));
+interface Level {
+  targets: Range;
+  decoys: Range;
+  colours: number;
+  speed: Range;
+  window: number;
+  both: boolean;
+  /** Most pierogi marching together in one tight group. */
+  group: number;
+  /** Share of pierogi that march in groups. */
+  grouped: number;
+  props: Range;
+  trams: Range;
+  balloons: Range;
+  kites: Range;
+  birds: Range;
+  fireworks: Range;
+}
+
+const LEVELS: readonly Level[] = [
+  {
+    targets: [6, 10], decoys: [8, 12], colours: 2, speed: [2900, 3800], window: 11_000, both: false,
+    group: 2, grouped: 0.2, props: [2, 2], trams: [0, 0], balloons: [3, 5], kites: [0, 1], birds: [1, 2], fireworks: [0, 0],
+  },
+  {
+    targets: [10, 15], decoys: [18, 26], colours: 3, speed: [2200, 3200], window: 12_500, both: true,
+    group: 3, grouped: 0.4, props: [3, 4], trams: [1, 1], balloons: [6, 9], kites: [2, 3], birds: [2, 3], fireworks: [2, 4],
+  },
+  {
+    targets: [14, 20], decoys: [28, 38], colours: 5, speed: [1700, 2700], window: 14_000, both: true,
+    group: 4, grouped: 0.55, props: [4, 6], trams: [2, 3], balloons: [10, 14], kites: [3, 4], birds: [3, 4], fireworks: [6, 9],
+  },
+];
+
+const between = (rng: Rng, [a, b]: Range) => a + Math.floor(rng() * (b - a + 1));
+const pick = <T>(rng: Rng, xs: readonly T[]): T => xs[Math.floor(rng() * xs.length)];
+
+function shuffle<T>(xs: T[], rng: Rng): T[] {
+  for (let i = xs.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [xs[i], xs[j]] = [xs[j], xs[i]];
+  }
+  return xs;
+}
 
 /** Make round `round` (0-based; later rounds are longer, faster and busier). */
 export function makeParade(round: number, rng: Rng = Math.random): Parade {
-  const d = DIFFICULTY[Math.max(0, Math.min(DIFFICULTY.length - 1, round))];
+  const d = LEVELS[Math.max(0, Math.min(LEVELS.length - 1, round))];
   const target = Math.floor(rng() * PARADE_COLORS.length);
-  const others = PARADE_COLORS.map((_, i) => i).filter((i) => i !== target);
-  // Shuffle the decoy colours and keep a few.
-  for (let i = others.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [others[i], others[j]] = [others[j], others[i]];
-  }
+  const others = shuffle(
+    PARADE_COLORS.map((_, i) => i).filter((i) => i !== target),
+    rng,
+  );
   const decoyColours = others.slice(0, Math.max(1, d.colours - 1));
   const answer = between(rng, d.targets);
   const decoys = between(rng, d.decoys);
+
+  // Everybody who marches, in random order, then cut into groups that walk close together.
+  const colours = shuffle([...Array.from({ length: answer }, () => target), ...Array.from({ length: decoys }, (_, i) => decoyColours[i % decoyColours.length])], rng);
+  const groups: number[][] = [];
+  for (let i = 0; i < colours.length; ) {
+    const size = rng() < d.grouped ? 2 + Math.floor(rng() * (d.group - 1)) : 1;
+    groups.push(colours.slice(i, i + size));
+    i += size;
+  }
+
   const marchers: Marcher[] = [];
   // With traffic both ways, odd lanes walk right to left, so nobody walks through anybody.
   const laneDir = (lane: number): 1 | -1 => (d.both && lane % 2 === 1 ? -1 : 1);
-  const fits = (m: Marcher) => marchers.every((o) => o.lane !== m.lane || apart(o, m));
-  const add = (c: number) => {
+  const fits = (ms: Marcher[]) => ms.every((m) => marchers.every((o) => o.lane !== m.lane || apart(o, m)));
+  const place = (group: number[]) => {
     const dur = between(rng, d.speed);
-    const size = 0.75 + rng() * 0.45;
     const hop = rng() < 0.3;
+    // Members follow each other a little more than the minimum gap apart.
+    const step = Math.ceil(dur * GAP * 1.2);
     let at = Math.round(rng() * d.window);
-    const lanes = Array.from({ length: PARADE_LANES }, (_, i) => i).sort(() => rng() - 0.5);
-    for (let tries = 0; tries < 60; tries++, at += 250) {
+    const lanes = shuffle(
+      Array.from({ length: PARADE_LANES }, (_, i) => i),
+      rng,
+    );
+    const make = (lane: number, start: number) =>
+      group.map((c, k): Marcher => ({ c, lane, at: start + k * step, dur, dir: laneDir(lane), size: 0.8 + rng() * 0.4, hop }));
+    for (let tries = 0; tries < 80; tries++, at += 250) {
       for (const lane of lanes) {
-        const m: Marcher = { c, lane, at, dur, dir: laneDir(lane), size, hop };
-        if (fits(m)) return void marchers.push(m);
+        const ms = make(lane, at);
+        if (fits(ms)) return void marchers.push(...ms);
       }
     }
-    marchers.push({ c, lane: lanes[0], at, dur, dir: laneDir(lanes[0]), size, hop });
+    // Couldn't fit the group: march its members one by one instead.
+    for (const c of group) place([c]);
   };
-  for (let i = 0; i < answer; i++) add(target);
-  for (let i = 0; i < decoys; i++) add(decoyColours[i % decoyColours.length]);
+  for (const g of groups) place(g);
   marchers.sort((a, b) => a.at - b.at);
   const length = Math.max(...marchers.map((m) => m.at + m.dur));
-  return { target, answer, marchers, length };
+
+  return { target, answer, marchers, scene: makeScene(d, length, rng), length };
+}
+
+function makeScene(d: Level, length: number, rng: Rng): Scene {
+  // Props stand in different spots, never at the edges, so every pierogi can be seen walking on and off.
+  const props: Prop[] = [];
+  const nProps = between(rng, d.props);
+  const slots = shuffle([0.2, 0.32, 0.44, 0.56, 0.68, 0.8], rng);
+  for (let i = 0; i < nProps; i++) {
+    props.push({ kind: pick(rng, ['lamp', 'tree', 'stall', 'barrels'] as const), x: slots[i % slots.length] + (rng() - 0.5) * 0.04, lane: Math.floor(rng() * PARADE_LANES) });
+  }
+  const trams: Tram[] = Array.from({ length: between(rng, d.trams) }, () => ({
+    at: Math.round(1500 + rng() * Math.max(0, length - 3000)),
+    dur: 1300 + Math.floor(rng() * 300),
+    dir: rng() < 0.5 ? 1 : -1,
+    lane: 1 + Math.floor(rng() * (PARADE_LANES - 1)),
+  }));
+  const balloons = Array.from({ length: between(rng, d.balloons) }, () => ({
+    c: Math.floor(rng() * PARADE_COLORS.length),
+    x: 0.05 + rng() * 0.9,
+    at: Math.round(rng() * length),
+    dur: 6000 + Math.floor(rng() * 4000),
+  }));
+  const kites = Array.from({ length: between(rng, d.kites) }, (_, i) => ({
+    c: Math.floor(rng() * PARADE_COLORS.length),
+    x: (i + 0.5) / 4 + (rng() - 0.5) * 0.12,
+    y: rng(),
+  }));
+  const birds = Array.from({ length: between(rng, d.birds) }, () => ({
+    at: Math.round(rng() * length),
+    dur: 5000 + Math.floor(rng() * 3000),
+    y: rng(),
+    dir: (rng() < 0.5 ? 1 : -1) as 1 | -1,
+    n: 3 + Math.floor(rng() * 5),
+  }));
+  const fireworks = Array.from({ length: between(rng, d.fireworks) }, () => ({
+    c: Math.floor(rng() * PARADE_COLORS.length),
+    x: 0.1 + rng() * 0.8,
+    y: rng(),
+    at: Math.round(rng() * length),
+  }));
+  return { props, trams, balloons, kites, birds, fireworks };
 }
 
 /** How far apart two pierogi in one lane must stay, as a share of the walk across. */
