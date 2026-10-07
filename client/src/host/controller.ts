@@ -695,18 +695,18 @@ export class HostController implements GameHost {
         };
       case 'intro': {
         const t = this.tournament;
-        const ready = this.noTv ? 'Get ready – it starts right here on your phone!' : 'Get ready – look at the TV!';
-        return { v: 'wait', title: gameInfo(s.game).title, text: t ? `Game ${t.index + 1} of ${t.games.length}. ${ready}` : ready, icon: s.game };
+        const ready = this.noTv ? 'Get ready!' : 'Get ready · 📺 look up';
+        return { v: 'wait', title: gameInfo(s.game).title, text: t ? `🏆 ${t.index + 1} / ${t.games.length} · ${ready}` : ready, icon: s.game };
       }
       case 'tourIntro':
-        return { v: 'wait', title: 'Tournament!', text: `${this.tournament?.games.length ?? 0} quick games in a row. Look at the TV!`, icon: 'tournament' };
+        return { v: 'wait', title: 'Tournament!', text: `${this.tournament?.games.length ?? 0} quick games · 📺`, icon: 'tournament' };
       case 'tourEnd': {
         const st = s.standings.find((x) => x.id === id);
         return { v: 'tourResults', place: st?.place ?? 0, points: st?.score ?? 0, players: s.standings.length, vip };
       }
       case 'game':
         if (this.game?.ids.includes(id)) return this.game.viewFor(id);
-        return { v: 'wait', title: 'Game in progress', text: 'Hang tight – you’ll be in the next one!', icon: 'sleep' };
+        return { v: 'wait', title: 'Game in progress', text: 'You’re in the next one', icon: 'sleep' };
       case 'results': {
         const st = s.standings.find((x) => x.id === id);
         return {

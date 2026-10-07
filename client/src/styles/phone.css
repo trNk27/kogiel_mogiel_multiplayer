@@ -1,4 +1,5 @@
-/* Phone controller. Portrait, big touch targets, no zoom, no text selection. */
+/* Phone controller. Portrait, big touch targets, no zoom, no text selection.
+   Every tappable thing is at least 48px; game pads fill the screen. */
 
 html:has(body.phone-body),
 body.phone-body {
@@ -33,28 +34,30 @@ body.phone-body input {
 }
 .phone-big {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 850;
   font-size: 30px;
   line-height: 1.15;
 }
 .phone-huge {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 44px;
+  font-weight: 900;
+  font-size: 46px;
   line-height: 1.05;
+  letter-spacing: -0.01em;
 }
 .phone-small {
   font-size: 16px;
 }
 .phone-title {
-  font-size: 32px;
+  font-size: 34px;
+  font-weight: 900;
   margin-top: 8px;
 }
 
 /* ---- Join form --------------------------------------------------------- */
 
 .phone-form {
-  gap: 22px;
+  gap: 18px;
   justify-content: center;
   position: relative;
   overflow: hidden;
@@ -64,71 +67,100 @@ body.phone-body input {
   align-items: center;
   gap: 12px;
   justify-content: center;
+  margin-bottom: 8px;
 }
 .phone-brand .logo-small {
-  font-size: 13px;
+  font-size: 12px;
 }
 .phone-brand-big {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 40px;
+  font-weight: 900;
+  font-size: 42px;
   line-height: 1;
+  letter-spacing: -0.02em;
   text-shadow: 0 3px 0 var(--beet-deep);
 }
 .join-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 .join-form label {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--muted);
+}
+.join-form .eyebrow {
+  font-size: 12px;
+  padding-left: 4px;
 }
 .input {
   font: inherit;
   font-size: 24px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
   padding: 14px 18px;
-  border-radius: 16px;
+  min-height: 60px;
+  border-radius: 18px;
   border: 0;
   background: var(--cream);
   color: var(--ink);
   outline: none;
-  box-shadow: inset 0 -4px 0 var(--cream-2);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.4);
   width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .input:focus {
   box-shadow:
-    inset 0 -4px 0 var(--cream-2),
+    0 5px 0 rgba(0, 0, 0, 0.4),
     0 0 0 4px var(--yolk);
 }
+.input::placeholder {
+  color: rgba(36, 16, 21, 0.3);
+}
 .input-code {
-  font-size: 44px;
+  font-size: 46px;
+  font-weight: 900;
   letter-spacing: 0.35em;
   text-align: center;
   text-transform: uppercase;
-  padding: 10px 0 10px 0.35em;
+  padding: 8px 0 8px 0.35em;
 }
 .input-code::placeholder {
-  color: rgba(42, 18, 10, 0.2);
+  color: rgba(36, 16, 21, 0.16);
 }
 .form-error {
-  background: rgba(232, 51, 90, 0.18);
-  color: #ffb3c4;
+  background: color-mix(in srgb, var(--beet) 22%, var(--panel));
+  color: #ffc2cf;
   border-radius: 14px;
   padding: 10px 14px;
   text-align: center;
+  font-weight: 700;
 }
 .join-form .btn {
   margin-top: 8px;
 }
-.host-link {
+.or-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: var(--muted);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.or-line::before,
+.or-line::after {
+  content: '';
+  flex: 1;
+  border-top: 2px dashed var(--line);
+}
+.notv-btn {
+  width: 100%;
+}
+.host-link {
   font-size: 14px;
   text-align: center;
   margin: 0;
@@ -136,13 +168,15 @@ body.phone-body input {
   z-index: 1;
 }
 .host-link a {
-  color: var(--yolk);
+  display: inline-block;
+  padding: 12px;
+  color: var(--muted);
 }
 .form-rosette {
   position: absolute;
   right: -24px;
   bottom: -24px;
-  opacity: 0.5;
+  opacity: 0.35;
   pointer-events: none;
 }
 .notice {
@@ -154,45 +188,51 @@ body.phone-body input {
 }
 .notice b {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-weight: 900;
+  font-size: 24px;
   color: var(--beet-deep);
 }
 
 /* ---- Colour picker ------------------------------------------------------- */
 
 .phone-color {
-  gap: 12px;
+  gap: 14px;
   text-align: center;
 }
 .color-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
   margin-top: 6px;
 }
 .color-btn {
-  appearance: none;
-  border: 0;
-  border-radius: 18px;
-  padding: 10px 4px 8px;
-  background: rgba(255, 244, 220, 0.07);
-  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--pc) 70%, transparent);
+  border-radius: 20px;
+  padding: 12px 4px 10px;
+  min-height: 112px;
+  background: color-mix(in srgb, var(--pc) 16%, var(--panel));
+  box-shadow:
+    inset 0 0 0 3px var(--pc),
+    0 5px 0 color-mix(in srgb, var(--pc) 40%, #000);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 4px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 850;
   font-size: 15px;
-  cursor: pointer;
-  touch-action: manipulation;
 }
 .color-btn:active {
-  transform: scale(0.95);
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 0 0 3px var(--pc),
+    0 1px 0 color-mix(in srgb, var(--pc) 40%, #000);
 }
 .color-btn.taken {
-  opacity: 0.35;
+  opacity: 0.3;
+  background: transparent;
   box-shadow: none;
+  border: 2px dashed var(--line);
 }
 
 /* ---- In-room shell ------------------------------------------------------- */
@@ -208,15 +248,16 @@ body.phone-body input {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px 6px 4px;
+  min-height: 56px;
+  padding: 4px 6px 4px 6px;
   border-radius: 999px;
-  background: rgba(20, 6, 10, 0.45);
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--me) 55%, transparent);
+  background: color-mix(in srgb, var(--me) 14%, var(--panel));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--me) 60%, transparent);
   flex: 0 0 auto;
 }
 .phone-name {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 850;
   font-size: 20px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -224,18 +265,21 @@ body.phone-body input {
 }
 .phone-code {
   font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: 0.15em;
+  font-weight: 900;
+  letter-spacing: 0.14em;
   color: var(--yolk);
+  padding-right: 8px;
 }
 .vip-menu-btn {
-  border: 0;
-  background: rgba(255, 244, 220, 0.12);
+  background: var(--bg-3);
   border-radius: 999px;
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
   font-size: 22px;
   line-height: 1;
+  display: grid;
+  place-items: center;
 }
 .phone-main {
   flex: 1;
@@ -253,7 +297,7 @@ body.phone-body input {
 .phone-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(31, 10, 16, 0.92);
+  background: rgba(21, 9, 16, 0.94);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -266,7 +310,7 @@ body.phone-body input {
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: flex-end;
   z-index: 30;
@@ -274,7 +318,8 @@ body.phone-body input {
 .sheet {
   width: 100%;
   background: var(--bg-2);
-  border-radius: 24px 24px 0 0;
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -3px 0 var(--line);
   padding: 22px 18px max(22px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
@@ -283,58 +328,85 @@ body.phone-body input {
 }
 .sheet-title {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-weight: 900;
+  font-size: 24px;
   text-align: center;
 }
 
 /* ---- Lobby --------------------------------------------------------------- */
 
 .pv-lobby {
-  gap: 10px;
+  gap: 12px;
   overflow-y: auto;
   padding-bottom: 10px;
+  margin: 0 -4px;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 .section-label {
-  font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 16px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
+/* Games as a grid of icon tiles: one tap, no reading. */
 .pgames {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 .pgame {
-  appearance: none;
-  border: 0;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
   align-items: center;
-  text-align: left;
-  padding: 8px 14px 8px 8px;
-  border-radius: 18px;
-  background: rgba(20, 6, 10, 0.45);
-  box-shadow: inset 0 0 0 2px var(--line);
-  touch-action: manipulation;
+  justify-content: center;
+  gap: 6px;
+  min-height: 100px;
+  padding: 10px 4px 8px;
+  border-radius: 20px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  color: rgba(251, 240, 217, 0.85);
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    background 0.15s;
+}
+.pgame b {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 15px;
+  line-height: 1.05;
+}
+.pgame:active {
+  transform: scale(0.95);
 }
 .pgame.selected {
   background: var(--cream);
   color: var(--ink);
-  box-shadow: 0 0 0 4px var(--yolk);
+  box-shadow: 0 5px 0 var(--yolk-deep), inset 0 0 0 3px var(--yolk);
+  transform: translateY(-3px) rotate(-1.5deg);
 }
-.pgame-text {
+.pgame-detail {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--panel-2);
+  box-shadow: var(--edge);
 }
-.pgame-text b {
+.pgame-detail b {
   font-family: var(--font-display);
+  font-weight: 900;
   font-size: 22px;
+  color: var(--yolk);
 }
-.pgame-text small {
-  opacity: 0.7;
-  font-size: 14px;
+.pgame-detail span {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.3;
 }
 .toggles {
   display: flex;
@@ -342,16 +414,15 @@ body.phone-body input {
   gap: 8px;
 }
 .toggle {
-  appearance: none;
-  border: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  min-height: 56px;
+  padding: 8px 14px;
   border-radius: 16px;
-  background: rgba(20, 6, 10, 0.35);
+  background: var(--panel);
+  box-shadow: var(--edge);
   text-align: left;
-  touch-action: manipulation;
 }
 .toggle-text {
   flex: 1;
@@ -360,17 +431,18 @@ body.phone-body input {
 }
 .toggle-text b {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
 }
 .toggle-text small {
   color: var(--muted);
   font-size: 13px;
 }
 .toggle-track {
+  flex: 0 0 auto;
   width: 56px;
   height: 32px;
   border-radius: 999px;
-  background: rgba(255, 244, 220, 0.2);
+  background: var(--bg-3);
   position: relative;
   transition: background 0.2s;
 }
@@ -382,6 +454,7 @@ body.phone-body input {
   height: 26px;
   border-radius: 50%;
   background: var(--cream);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
   transition: transform 0.2s;
 }
 .toggle.on .toggle-track {
@@ -390,8 +463,13 @@ body.phone-body input {
 .toggle.on .toggle-knob {
   transform: translateX(24px);
 }
+/* Start stays in reach at the bottom while the VIP scrolls the options. */
 .start-btn {
-  margin: 6px 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  margin: 6px 0 8px;
 }
 .plist {
   display: flex;
@@ -402,29 +480,28 @@ body.phone-body input {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 6px 4px 4px;
-  border-radius: 14px;
-  background: rgba(20, 6, 10, 0.3);
+  min-height: 52px;
+  padding: 4px 6px 4px 6px;
+  border-radius: 16px;
+  background: var(--panel);
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 750;
   font-size: 18px;
 }
 .plist-row.offline {
   opacity: 0.5;
 }
 .kick {
-  border: 0;
   border-radius: 999px;
-  min-width: 40px;
-  height: 40px;
-  background: rgba(232, 51, 90, 0.2);
-  color: #ffb3c4;
-  font-weight: 800;
-  touch-action: manipulation;
+  min-width: 44px;
+  height: 44px;
+  background: color-mix(in srgb, var(--beet) 22%, var(--panel));
+  color: #ffc2cf;
+  font-weight: 900;
 }
 .kick.sure {
   background: var(--beet);
-  color: #fff;
+  color: var(--cream);
   padding: 0 14px;
 }
 
@@ -439,6 +516,7 @@ body.phone-body input {
   justify-content: space-between;
   align-items: baseline;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 20px;
   padding: 0 6px;
 }
@@ -458,14 +536,14 @@ body.phone-body input {
 .steer {
   border-radius: 28px;
   background: color-mix(in srgb, var(--me) 82%, #000);
-  color: rgba(42, 18, 10, 0.75);
+  color: rgba(36, 16, 21, 0.75);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 26px;
   letter-spacing: 0.1em;
   box-shadow:
@@ -492,6 +570,7 @@ body.phone-body input {
   padding: 12px 22px;
   border-radius: 999px;
   font-family: var(--font-display);
+  font-weight: 750;
   white-space: nowrap;
   pointer-events: none;
 }
@@ -512,7 +591,7 @@ body.phone-body input {
 }
 .dead-text {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 96px;
   line-height: 1;
   color: var(--beet);
@@ -525,14 +604,14 @@ body.phone-body input {
 .timebar {
   height: 10px;
   border-radius: 999px;
-  background: rgba(255, 244, 220, 0.12);
+  background: rgba(251, 240, 217, 0.12);
   overflow: hidden;
   width: 100%;
   flex: 0 0 auto;
 }
 .timebar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--beet), var(--yolk), var(--dill));
+  background: var(--yolk);
   transform-origin: left;
 }
 .quiz-pad {
@@ -542,6 +621,7 @@ body.phone-body input {
   display: flex;
   justify-content: space-between;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 18px;
 }
 .quiz-pad-grid {
@@ -581,7 +661,7 @@ body.phone-body input {
 }
 .gain-big {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 56px;
   color: var(--dill);
   animation: pop-in 0.5s 0.15s both;
@@ -603,13 +683,14 @@ body.phone-body input {
   min-width: 120px;
   padding: 10px 16px;
   border-radius: 18px;
-  background: rgba(20, 6, 10, 0.45);
+  background: var(--panel);
 }
 .stat small {
   color: var(--muted);
 }
 .stat b {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 30px;
 }
 
@@ -620,7 +701,7 @@ body.phone-body input {
 }
 .bp-q {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 650;
   font-size: 19px;
   line-height: 1.25;
 }
@@ -637,7 +718,7 @@ body.phone-body input {
 }
 .numpad-display span {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 46px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -662,14 +743,14 @@ body.phone-body input {
   appearance: none;
   border: 0;
   border-radius: 16px;
-  background: rgba(255, 244, 220, 0.1);
+  background: rgba(251, 240, 217, 0.1);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 32px;
   touch-action: none;
 }
 .numkey:active {
-  background: rgba(255, 244, 220, 0.25);
+  background: rgba(251, 240, 217, 0.25);
 }
 .numkey.del {
   background: rgba(232, 51, 90, 0.25);
@@ -679,7 +760,7 @@ body.phone-body input {
 }
 .guess-big {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 54px;
   color: var(--yolk);
   word-break: break-word;
@@ -723,7 +804,7 @@ body.phone-body input {
   display: flex;
   flex-direction: column;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 24px;
   line-height: 1.1;
 }
@@ -739,7 +820,7 @@ body.phone-body input {
   border-radius: 999px;
   padding: 4px 12px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 20px;
 }
 .result-tags {
@@ -751,7 +832,7 @@ body.phone-body input {
 .tag {
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(255, 244, 220, 0.08);
+  background: rgba(251, 240, 217, 0.08);
   color: var(--muted);
   font-weight: 700;
 }
@@ -780,6 +861,7 @@ body.phone-body input {
   align-items: baseline;
   padding: 0 6px;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 18px;
 }
 .k-pad-score b {
@@ -796,9 +878,8 @@ body.phone-body input {
   -webkit-user-select: none;
   user-select: none;
   background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--me) 14%, transparent), transparent 70%),
-    rgba(20, 6, 10, 0.4);
-  box-shadow: inset 0 0 0 2px var(--line);
+    var(--panel);
+  box-shadow: var(--edge);
 }
 .k-stick-zone.active {
   box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--me) 60%, transparent);
@@ -819,7 +900,7 @@ body.phone-body input {
   height: 156px;
   border-radius: 50%;
   border: 4px dashed color-mix(in srgb, var(--me) 55%, transparent);
-  background: rgba(255, 244, 220, 0.05);
+  background: rgba(251, 240, 217, 0.05);
 }
 .k-stick-knob {
   position: absolute;
@@ -862,10 +943,10 @@ body.phone-body input {
   border: 0;
   border-radius: 28px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 30px;
-  color: rgba(255, 244, 220, 0.5);
-  background: rgba(255, 244, 220, 0.1);
+  color: rgba(251, 240, 217, 0.5);
+  background: rgba(251, 240, 217, 0.1);
   box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.2);
   touch-action: none;
   -webkit-user-select: none;
@@ -896,7 +977,7 @@ body.phone-body input {
 }
 .k-mini-title {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 30px;
   color: var(--yolk);
 }
@@ -991,7 +1072,7 @@ body.phone-body input {
   gap: 8px;
   padding: 10px 14px 12px;
   border-radius: 16px;
-  background: rgba(20, 6, 10, 0.35);
+  background: var(--panel);
 }
 .slider-value {
   color: var(--yolk);
@@ -1007,12 +1088,12 @@ body.phone-body input {
 .slider input[type='range']::-webkit-slider-runnable-track {
   height: 10px;
   border-radius: 5px;
-  background: linear-gradient(90deg, var(--dill), var(--yolk) 50%, var(--beet)) 0 0 / var(--fill) 100% no-repeat, rgba(255, 244, 220, 0.18);
+  background: linear-gradient(var(--yolk), var(--yolk)) 0 0 / var(--fill) 100% no-repeat, var(--bg-3);
 }
 .slider input[type='range']::-moz-range-track {
   height: 10px;
   border-radius: 5px;
-  background: rgba(255, 244, 220, 0.18);
+  background: rgba(251, 240, 217, 0.18);
 }
 .slider input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1043,11 +1124,10 @@ body.phone-body input {
   gap: 6px;
 }
 .segmented button {
-  appearance: none;
-  border: 0;
+  min-height: 56px;
   border-radius: 12px;
   padding: 6px 4px;
-  background: rgba(255, 244, 220, 0.08);
+  background: rgba(251, 240, 217, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1056,6 +1136,7 @@ body.phone-body input {
 }
 .segmented button b {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 22px;
 }
 .segmented button small {
@@ -1067,7 +1148,7 @@ body.phone-body input {
   color: var(--ink);
 }
 .segmented button.on small {
-  color: rgba(42, 18, 10, 0.7);
+  color: rgba(36, 16, 21, 0.7);
 }
 .k-stick-chef {
   width: 86px;
@@ -1140,7 +1221,7 @@ body.phone-body input {
 }
 .ty-q {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 22px;
   line-height: 1.2;
   text-align: center;
@@ -1177,7 +1258,7 @@ body.phone-body input {
   align-items: center;
   gap: 12px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 18px;
 }
 .ty-face-btn:active .ty-face {
@@ -1227,10 +1308,11 @@ body.phone-body input {
   margin-top: 6px;
 }
 .ty-swatch {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
   border-radius: 50%;
-  border: 3px solid rgba(255, 244, 220, 0.35);
+  border: 3px solid rgba(251, 240, 217, 0.35);
 }
 .ty-swatch.on {
   border-color: var(--cream);
@@ -1248,7 +1330,7 @@ body.phone-body input {
   flex: 0 0 auto;
   border: 0;
   border-radius: 14px;
-  background: rgba(255, 244, 220, 0.1);
+  background: rgba(251, 240, 217, 0.1);
   display: grid;
   place-items: center;
   font-size: 20px;
@@ -1256,10 +1338,10 @@ body.phone-body input {
 .ty-tool i {
   display: block;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(255, 244, 220, 0.4);
+  box-shadow: 0 0 0 2px rgba(251, 240, 217, 0.4);
 }
 .ty-tool.on {
-  background: rgba(255, 244, 220, 0.28);
+  background: rgba(251, 240, 217, 0.28);
   box-shadow: inset 0 0 0 2px var(--cream);
 }
 .ty-tool:disabled {
@@ -1294,7 +1376,7 @@ body.phone-body input {
   background: var(--beet);
   color: #fff;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 44px;
   box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.25);
   display: flex;
@@ -1307,7 +1389,7 @@ body.phone-body input {
   transform: scale(0.96);
 }
 .ty-letter-btn.mine {
-  background: rgba(255, 244, 220, 0.1);
+  background: rgba(251, 240, 217, 0.1);
   color: var(--muted);
   box-shadow: none;
 }
@@ -1323,7 +1405,7 @@ body.phone-body input {
   place-items: center;
   background: var(--beet);
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 90px;
   animation: pop-in 0.4s both;
 }
@@ -1350,7 +1432,7 @@ body.phone-body input {
   background: var(--cream);
   color: var(--ink);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 26px;
   line-height: 1.2;
   text-align: center;
@@ -1375,7 +1457,7 @@ body.phone-body input {
   background: var(--cream);
   color: var(--ink);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 19px;
   line-height: 1.2;
   text-align: left;
@@ -1386,7 +1468,7 @@ body.phone-body input {
   transform: scale(0.97);
 }
 .bz-choice.mine {
-  background: rgba(255, 244, 220, 0.1);
+  background: rgba(251, 240, 217, 0.1);
   color: var(--muted);
   box-shadow: none;
 }
@@ -1407,6 +1489,7 @@ body.phone-body input {
   align-items: baseline;
   justify-content: space-between;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 20px;
   padding: 0 4px;
 }
@@ -1425,7 +1508,7 @@ body.phone-body input {
   inset: 0;
   top: 52px;
   border-radius: 28px;
-  background: rgba(31, 10, 16, 0.78);
+  background: rgba(21, 9, 16, 0.78);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1444,11 +1527,11 @@ body.phone-body input {
   padding: 6px 16px;
   border-radius: 999px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 17px;
   white-space: nowrap;
   pointer-events: none;
-  background: rgba(255, 244, 220, 0.14);
+  background: rgba(251, 240, 217, 0.14);
 }
 .fx-spin,
 .fx-slow {
@@ -1470,8 +1553,8 @@ body.phone-body input {
   gap: 8px;
   padding: 14px;
   border-radius: var(--radius);
-  background: rgba(20, 6, 10, 0.4);
-  box-shadow: inset 0 0 0 2px var(--line);
+  background: var(--panel);
+  box-shadow: var(--edge);
 }
 .notv-card p {
   margin: 0;
@@ -1479,7 +1562,7 @@ body.phone-body input {
 }
 .notv-title {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 20px;
   color: var(--yolk);
 }
@@ -1502,6 +1585,7 @@ body.phone-body input {
 }
 .invite-code {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 40px;
   letter-spacing: 0.18em;
   color: var(--beet-deep);
@@ -1530,6 +1614,7 @@ body.phone-body input {
   align-items: center;
   gap: 8px;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 17px;
 }
 .board-row.me {
@@ -1571,8 +1656,8 @@ body.phone-body input {
 .drive-top {
   position: absolute;
   top: max(8px, env(safe-area-inset-top));
-  left: 10px;
-  right: 10px;
+  left: max(10px, env(safe-area-inset-left));
+  right: max(10px, env(safe-area-inset-right));
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -1580,10 +1665,10 @@ body.phone-body input {
 }
 .drive-fs {
   pointer-events: auto;
-  border: 0;
+  flex: 0 0 auto;
   border-radius: 999px;
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1599,11 +1684,11 @@ body.phone-body input {
 .drive-speed,
 .drive-closing {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   color: var(--cream);
   text-shadow:
-    0 3px 0 rgba(42, 18, 10, 0.85),
-    0 0 6px rgba(42, 18, 10, 0.6);
+    0 3px 0 rgba(36, 16, 21, 0.85),
+    0 0 6px rgba(36, 16, 21, 0.6);
 }
 .drive-pos {
   font-size: 54px;
@@ -1634,7 +1719,7 @@ body.phone-body input {
   height: 118px;
   border-radius: 18px;
   background: rgba(20, 6, 10, 0.45);
-  box-shadow: inset 0 0 0 2px rgba(255, 244, 220, 0.25);
+  box-shadow: inset 0 0 0 2px rgba(251, 240, 217, 0.25);
 }
 .drive-flash {
   position: absolute;
@@ -1642,14 +1727,14 @@ body.phone-body input {
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 34px;
   text-align: center;
   white-space: nowrap;
   color: var(--yolk);
   text-shadow:
     0 4px 0 var(--beet-deep),
-    0 0 10px rgba(42, 18, 10, 0.6);
+    0 0 10px rgba(36, 16, 21, 0.6);
   pointer-events: none;
   animation: drive-flash 1.6s ease-out both;
 }
@@ -1689,6 +1774,7 @@ body.phone-body input {
   border-radius: 999px;
   background: rgba(20, 6, 10, 0.6);
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 16px;
   white-space: nowrap;
   pointer-events: none;
@@ -1721,8 +1807,9 @@ body.phone-body input {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 150px;
-  padding: 0 10px max(10px, env(safe-area-inset-bottom));
+  /* The safe area (iPhone home bar) is added on top, never taken out of the buttons. */
+  height: calc(150px + max(10px, env(safe-area-inset-bottom)));
+  padding: 0 max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   display: flex;
   gap: 10px;
   align-items: stretch;
@@ -1732,7 +1819,7 @@ body.phone-body input {
   flex: 1;
   border-radius: 24px;
   background: rgba(20, 6, 10, 0.32);
-  box-shadow: inset 0 0 0 2px rgba(255, 244, 220, 0.2);
+  box-shadow: inset 0 0 0 2px rgba(251, 240, 217, 0.2);
   touch-action: none;
 }
 .drive-pad-hint {
@@ -1743,7 +1830,8 @@ body.phone-body input {
   justify-content: center;
   padding-bottom: 6px;
   font-family: var(--font-display);
-  color: rgba(255, 244, 220, 0.75);
+  font-weight: 750;
+  color: rgba(251, 240, 217, 0.75);
   font-size: 14px;
   pointer-events: none;
 }
@@ -1771,7 +1859,8 @@ body.phone-body input {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 112px;
+  width: 120px;
+  flex: 0 0 auto;
 }
 .mode-tilt .drive-right {
   width: 128px;
@@ -1781,16 +1870,17 @@ body.phone-body input {
   border: 0;
   border-radius: 22px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   touch-action: none;
 }
 .drive-item {
   flex: 1;
+  min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(20, 6, 10, 0.45);
-  box-shadow: inset 0 0 0 3px rgba(255, 244, 220, 0.25);
+  box-shadow: inset 0 0 0 3px rgba(251, 240, 217, 0.25);
 }
 .drive-item.has {
   background: var(--cream);
@@ -1801,10 +1891,11 @@ body.phone-body input {
 }
 .drive-item-empty {
   font-size: 34px;
-  color: rgba(255, 244, 220, 0.4);
+  color: rgba(251, 240, 217, 0.4);
 }
 .drive-brake {
-  height: 52px;
+  height: 60px;
+  min-height: 56px;
   background: var(--beet);
   color: var(--cream);
   font-size: 17px;
@@ -1824,6 +1915,7 @@ body.phone-body input {
 }
 .mode-tilt .drive-right .drive-item {
   flex: 1;
+  min-height: 56px;
 }
 .drive-overlay {
   position: absolute;
@@ -1834,11 +1926,12 @@ body.phone-body input {
   justify-content: center;
   gap: 14px;
   padding: 24px;
-  background: rgba(31, 10, 16, 0.55);
+  background: rgba(21, 9, 16, 0.55);
   text-align: center;
 }
 .drive-count-title {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 36px;
   display: flex;
   flex-direction: column;
@@ -1849,7 +1942,7 @@ body.phone-body input {
 }
 .drive-count {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 120px;
   line-height: 1;
   color: var(--yolk);
@@ -1870,12 +1963,13 @@ body.phone-body input {
   gap: 8px;
 }
 .chip {
-  border: 0;
+  min-height: 48px;
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 10px 16px;
   font-family: var(--font-display);
+  font-weight: 800;
   font-size: 16px;
-  background: rgba(255, 244, 220, 0.14);
+  background: rgba(251, 240, 217, 0.16);
 }
 .chip.on {
   background: var(--cream);
@@ -1891,6 +1985,7 @@ body.phone-body input {
   border-radius: 20px;
   background: rgba(20, 6, 10, 0.7);
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 30px;
   color: var(--yolk);
   display: flex;
@@ -1903,7 +1998,7 @@ body.phone-body input {
   color: var(--cream);
 }
 .drive-standings {
-  background: rgba(31, 10, 16, 0.88);
+  background: rgba(21, 9, 16, 0.88);
   justify-content: flex-start;
   overflow-y: auto;
   padding-top: max(24px, env(safe-area-inset-top));
@@ -1924,8 +2019,9 @@ body.phone-body input {
   gap: 8px;
   padding: 6px 12px;
   border-radius: 14px;
-  background: rgba(255, 244, 220, 0.08);
+  background: rgba(251, 240, 217, 0.08);
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 17px;
   text-align: left;
 }
@@ -1947,7 +2043,7 @@ body.phone-body input {
 }
 @media (orientation: landscape) {
   .drive-controls {
-    height: 120px;
+    height: calc(124px + max(10px, env(safe-area-inset-bottom)));
   }
   .drive-speed {
     right: max(14px, env(safe-area-inset-right));
@@ -1969,13 +2065,14 @@ body.phone-body input {
   gap: 6px;
 }
 .track-chip {
-  border: 0;
+  min-height: 44px;
   border-radius: 999px;
-  padding: 7px 11px;
+  padding: 7px 13px;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 14px;
-  background: rgba(255, 244, 220, 0.1);
-  box-shadow: inset 0 0 0 2px var(--line);
+  background: rgba(251, 240, 217, 0.1);
+  box-shadow: var(--edge);
 }
 .track-chip.cup {
   font-size: 16px;
@@ -1996,7 +2093,7 @@ body.phone-body input {
 .mode-touch .drive-right {
   width: 150px;
   display: grid;
-  grid-template-rows: 1fr 68px;
+  grid-template-rows: minmax(56px, 1fr) 68px;
 }
 .mode-touch .drive-right .drive-brake {
   height: auto;
@@ -2022,6 +2119,7 @@ body.phone-body input {
   border-radius: 999px;
   background: rgba(20, 6, 10, 0.55);
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 14px;
   letter-spacing: 0.08em;
   white-space: nowrap;
@@ -2033,7 +2131,16 @@ body.phone-body input {
 .drive-sparks.lvl-3 {
   color: var(--yolk);
 }
+/* Landscape is short: item and BRAKE sit side by side so neither gets squeezed. */
 @media (orientation: landscape) {
+  .mode-touch .drive-right {
+    width: 300px;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+  .mode-tilt .drive-right {
+    width: 150px;
+  }
   .drive-sparks {
     bottom: calc(max(10px, env(safe-area-inset-bottom)) + 128px);
   }
@@ -2046,7 +2153,7 @@ body.phone-body input {
   min-height: 260px;
   border-radius: 28px;
   overflow: hidden;
-  background: rgba(20, 6, 10, 0.55);
+  background: var(--panel);
   box-shadow: inset 0 0 0 3px var(--line);
   touch-action: none;
 }
@@ -2054,13 +2161,13 @@ body.phone-body input {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 244, 220, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 244, 220, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(251, 240, 217, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 240, 217, 0.06) 1px, transparent 1px);
   background-size: 12.5% 12.5%;
 }
 .rally-pad-axis {
   position: absolute;
-  background: rgba(255, 244, 220, 0.25);
+  background: rgba(251, 240, 217, 0.25);
 }
 .rally-pad-axis.h {
   left: 0;
@@ -2095,7 +2202,7 @@ body.phone-body input {
 .rally-pad-label {
   position: absolute;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   color: var(--muted);
   font-size: 18px;
   pointer-events: none;
@@ -2152,7 +2259,7 @@ body.phone-body input {
   gap: 10px;
   padding: 6px 14px 6px 6px;
   border-radius: 20px;
-  background: rgba(255, 244, 220, 0.12);
+  background: rgba(251, 240, 217, 0.12);
   box-shadow: inset 0 0 0 2px rgba(255, 210, 63, 0.6);
   pointer-events: none;
   animation: pop-in 0.35s both;
@@ -2164,6 +2271,7 @@ body.phone-body input {
 }
 .rally-pad-item b {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 19px;
   color: var(--yolk);
 }
@@ -2201,12 +2309,12 @@ body.phone-body input {
 /* ---- Tournament ----------------------------------------------------------------- */
 
 .pgame-tour {
-  background: linear-gradient(180deg, rgba(255, 201, 60, 0.3), rgba(255, 201, 60, 0.1));
-  box-shadow: inset 0 0 0 2px rgba(255, 201, 60, 0.6);
+  background: color-mix(in srgb, var(--yolk) 18%, var(--panel));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--yolk) 55%, transparent);
 }
 .pgame-tour.selected {
   background: var(--yolk);
-  box-shadow: 0 0 0 4px var(--cream);
+  box-shadow: 0 5px 0 var(--yolk-deep);
 }
 .tour-card {
   padding: 10px 18px;
@@ -2217,6 +2325,7 @@ body.phone-body input {
 }
 .tour-card b {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 24px;
   color: #138a68;
 }
@@ -2253,7 +2362,7 @@ body.phone-body input {
   top: 0;
   bottom: 0;
   width: 14px;
-  background: repeating-conic-gradient(#fff4dc 0 25%, #2a120a 0 50%) 0 0 / 14px 14px;
+  background: repeating-conic-gradient(#fbf0d9 0 25%, #241015 0 50%) 0 0 / 14px 14px;
 }
 .bike-wheel {
   transform-box: fill-box;
@@ -2263,6 +2372,7 @@ body.phone-body input {
 .pedal-hint {
   text-align: center;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 20px;
   color: var(--muted);
   animation: fade-in 0.2s both;
@@ -2278,15 +2388,15 @@ body.phone-body input {
   appearance: none;
   border: 0;
   border-radius: 28px;
-  background: color-mix(in srgb, var(--me) 45%, #2a120a);
-  color: rgba(255, 244, 220, 0.7);
+  background: color-mix(in srgb, var(--me) 45%, #241015);
+  color: rgba(251, 240, 217, 0.7);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 24px;
   letter-spacing: 0.1em;
   box-shadow:
@@ -2299,7 +2409,7 @@ body.phone-body input {
 }
 .pedal-btn.next {
   background: var(--me);
-  color: rgba(42, 18, 10, 0.8);
+  color: rgba(36, 16, 21, 0.8);
   box-shadow:
     inset 0 -10px 0 rgba(0, 0, 0, 0.22),
     0 0 36px color-mix(in srgb, var(--me) 55%, transparent);
@@ -2365,6 +2475,7 @@ body.phone-body input {
   justify-content: center;
   gap: 8px;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 22px;
 }
 .parade-tap {
@@ -2391,13 +2502,13 @@ body.phone-body input {
 }
 .parade-tap-n {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 120px;
   line-height: 1;
 }
 .parade-tap-label {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 24px;
   letter-spacing: 0.08em;
   opacity: 0.75;
@@ -2420,6 +2531,7 @@ body.phone-body input {
   gap: 10px;
   padding: 0 6px;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 18px;
 }
 .ar-score b {
@@ -2441,7 +2553,7 @@ body.phone-body input {
 }
 .ar-title {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 30px;
   line-height: 1.1;
 }
@@ -2475,7 +2587,7 @@ body.phone-body input {
   border: 0;
   border-radius: 28px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 24px;
   line-height: 1.1;
   padding: 6px;
@@ -2498,8 +2610,8 @@ body.phone-body input {
 }
 .ar-btn.off,
 .ar-btn.cooling {
-  color: rgba(255, 244, 220, 0.55);
-  background: rgba(255, 244, 220, 0.1);
+  color: rgba(251, 240, 217, 0.55);
+  background: rgba(251, 240, 217, 0.1);
   box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.2);
 }
 .ar-btn-cool {

@@ -178,7 +178,7 @@ export function TySelfie({ view, me, send, offset }: Props<'tySelfie'>) {
     <div class="pv pv-center ty-selfie-menu">
       <Face color={me.color} photo={current} size={180} />
       <div class="phone-big">Selfie time!</div>
-      <p class="muted">Pull a face – everyone will see it on the TV.</p>
+      <p class="muted">Pull a face!</p>
       <TimeBar endsAt={view.endsAt} offset={offset} />
       {current && (
         <button class="btn btn-big btn-yolk" onClick={() => (view.done ? setRetake(false) : send({ t: 'selfie', data: 'keep' }))}>
@@ -298,7 +298,7 @@ export function TyPick({ view, send, offset }: Props<'tyPick'>) {
   }
   return (
     <div class="pv ty-pick">
-      <div class="section-label">Which doodle is the best? Look at the TV!</div>
+      <div class="section-label">Best doodle? 📺</div>
       <TimeBar endsAt={view.endsAt} offset={offset} />
       <div class="ty-letters">
         {view.letters.map((l, i) => (

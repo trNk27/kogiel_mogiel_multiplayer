@@ -312,12 +312,12 @@ export class KitchenGame implements Game {
 
 function recipe(fried: boolean): { icon: JSX.Element; text: string }[] {
   return [
-    { icon: <ItemIcon item={{ k: 'flour' }} size={50} />, text: 'Take flour to a rolling board and roll it' },
-    { icon: <ItemIcon item={{ k: 'fill', f: 'potato' }} size={50} />, text: 'Dough + filling on a pierogi board, then fold' },
-    { icon: <ItemIcon item={{ k: 'raw', f: 'potato' }} size={50} />, text: 'Boil the raw pierogi on the stove' },
-    ...(fried ? [{ icon: <ItemIcon item={{ k: 'plate', f: 'meat', fried: true }} size={50} />, text: 'Fried orders: fry them in a pan instead' }] : []),
-    { icon: <ItemIcon item={{ k: 'plate', f: 'potato' }} size={50} />, text: 'Bring a plate, plate up and serve at the hatch' },
-    { icon: <ItemIcon item={{ k: 'dirty', n: 1 }} size={50} />, text: 'Dirty plates come back – wash them in the sink' },
+    { icon: <ItemIcon item={{ k: 'flour' }} size={50} />, text: 'Roll flour into dough' },
+    { icon: <ItemIcon item={{ k: 'fill', f: 'potato' }} size={50} />, text: 'Dough + filling → fold' },
+    { icon: <ItemIcon item={{ k: 'raw', f: 'potato' }} size={50} />, text: 'Boil on the stove' },
+    ...(fried ? [{ icon: <ItemIcon item={{ k: 'plate', f: 'meat', fried: true }} size={50} />, text: 'Fried orders: use a pan' }] : []),
+    { icon: <ItemIcon item={{ k: 'plate', f: 'potato' }} size={50} />, text: 'Plate up, serve at the hatch' },
+    { icon: <ItemIcon item={{ k: 'dirty', n: 1 }} size={50} />, text: 'Wash dirty plates' },
   ];
 }
 

@@ -8,6 +8,14 @@ The look borrows from a Polish kitchen. Players are little pierogi in Beetroot, 
 Dill, Blueberry, Plum and other colours. The screens use folk paper-cut (*wycinanki*) rosettes and
 are named after the brand: a glass of kogiel mogiel.
 
+**Design language** (`client/src/styles/base.css`): cut paper on a kitchen table. Cream *paper*
+cards with ink text carry what matters, flat dark *slate* panels the rest. Shadows are hard and
+never blurred, buttons are chunky keys with an edge underneath, empty slots are dashed cut lines.
+Headings, numbers and buttons use Fraunces (soft, heavy); the odd sentence uses Nunito. Yolk means
+"do this", beet "careful", dill "good". Text is kept short: icons, colours and three-line
+how-tos do the explaining. Phone buttons are at least 48 px, and safe areas (the iPhone home bar,
+the notch) are added around controls, never taken out of them.
+
 | Game | What happens | Players |
 | --- | --- | --- |
 | **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups can be switched on in the lobby: 11 pickups that change speed, line width and gaps (green ones affect you, red ones everyone else, blue ones everyone). | 2–8 |

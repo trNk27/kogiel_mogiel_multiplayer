@@ -15,8 +15,9 @@
   margin-left: 8px;
   padding: 8px 22px;
   border-radius: 999px;
-  background: rgba(31, 10, 16, 0.62);
+  background: rgba(21, 9, 16, 0.62);
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 26px;
   color: var(--cream);
   white-space: nowrap;
@@ -33,7 +34,7 @@
   border-radius: 30px;
   background: var(--mc);
   color: var(--mt);
-  border: 6px solid #2a120a;
+  border: 6px solid #241015;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   pointer-events: none;
   z-index: 3;
@@ -70,7 +71,7 @@
   transform: rotate(90deg);
 }
 .mush-ring-disc {
-  fill: #fff4dc;
+  fill: #fbf0d9;
 }
 .mush-ring-bg {
   fill: none;
@@ -79,7 +80,7 @@
 }
 .mush-ring-fg {
   fill: none;
-  stroke: #2a120a;
+  stroke: #241015;
   stroke-width: 9;
   stroke-linecap: round;
 }
@@ -89,7 +90,7 @@
 }
 .mush-word {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 104px;
   line-height: 1;
   color: var(--mt);
@@ -101,7 +102,7 @@
 .mush-sub {
   margin-top: 2px;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 750;
   font-size: 32px;
   color: var(--mt);
   opacity: 0.9;
@@ -131,6 +132,7 @@
   border-radius: 999px;
   background: rgba(24, 8, 12, 0.7);
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 48px;
   color: var(--cream);
   pointer-events: none;
@@ -147,7 +149,7 @@
   background: rgba(24, 8, 12, 0.78);
   box-shadow: 0 0 0 3px #4f9dff;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 44px;
   color: #bfe6ff;
   white-space: nowrap;
@@ -166,7 +168,7 @@
   background: var(--yolk);
   color: var(--ink);
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 30px;
   line-height: 1.15;
   pointer-events: none;
@@ -212,7 +214,7 @@
 }
 .mush-chip-name {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 27px;
   color: var(--pc);
   max-width: 120px;
@@ -230,6 +232,7 @@
 }
 .mush-chip-pts {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 34px;
   color: var(--yolk);
   margin-left: 2px;
@@ -252,9 +255,10 @@
   gap: 10px;
   padding: 6px 18px 6px 10px;
   border-radius: 24px;
-  background: rgba(255, 244, 220, 0.08);
+  background: rgba(251, 240, 217, 0.08);
   box-shadow: 0 0 0 3px var(--pc);
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 32px;
 }
 .mush-point-name {

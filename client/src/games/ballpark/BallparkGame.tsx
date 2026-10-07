@@ -234,7 +234,7 @@ export class BallparkGame implements Game {
             {q.question}
             {q.unit && q.unit !== 'year' && <div class="bp-unit">Answer in {q.unit}</div>}
           </div>
-          <div class="bp-hint">Type your best guess on your phone. Close counts – but don’t go over!</div>
+          <div class="bp-hint">Guess on your phone · close, but not over</div>
           <div class="answer-strip">
             {players.map((p) => {
               const done = this.guesses.has(p.id);

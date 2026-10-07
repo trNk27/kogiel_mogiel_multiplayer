@@ -149,7 +149,7 @@ export class ForkGame implements Game {
             Round {this.round} / {this.rounds}
           </div>
           <div class="fork-rule">
-            Stab the <b>pierogi</b> – not the sock, the slipper or the duck!
+            Stab the <b>pierogi</b> – nothing else!
           </div>
         </div>
         {!revealed ? (

@@ -9,7 +9,7 @@ import type { Props } from './views';
 export function BzDraw({ view, send, offset }: Props<'bzDraw'>) {
   return (
     <DoodlePad
-      note={`Round ${view.round} / ${view.rounds} · your secret prompt (shh!)`}
+      note={`Round ${view.round} / ${view.rounds} · shh, secret!`}
       prompt={view.prompt}
       endsAt={view.endsAt}
       offset={offset}
@@ -37,7 +37,7 @@ export function BzLie({ view, me, send, offset }: Props<'bzLie'>) {
       <div class="pv pv-center">
         <Pierogi color={colorHex(me.color)} size={150} mood="happy" class="bob" />
         <div class="phone-big">That’s your drawing!</div>
-        <p class="muted">The others are making up titles for it. Keep a straight face…</p>
+        <p class="muted">Keep a straight face…</p>
         <TimeBar endsAt={view.endsAt} offset={offset} />
       </div>
     );
@@ -64,10 +64,10 @@ export function BzLie({ view, me, send, offset }: Props<'bzLie'>) {
         <small class="muted">
           Drawing {view.n} / {view.of} · by {view.artist}
         </small>
-        <div>Look at the TV. What could it be?</div>
+        <div>📺 What could it be?</div>
       </div>
       <TimeBar endsAt={view.endsAt} offset={offset} />
-      <p class="muted">Write a fake title that sounds real. Every player who falls for it earns you points!</p>
+      <p class="muted">Write a fake title that sounds real</p>
       <input
         class="input bz-input"
         value={text}
@@ -96,7 +96,7 @@ export function BzGuess({ view, send, offset }: Props<'bzGuess'>) {
     return (
       <div class="pv pv-center">
         <div class="phone-big">Your drawing!</div>
-        <p class="muted">Sit back and see if they can find your prompt. You score for everyone who does.</p>
+        <p class="muted">Sit back – it’s your drawing</p>
         <TimeBar endsAt={view.endsAt} offset={offset} />
       </div>
     );

@@ -261,7 +261,7 @@ export class CookbookGame implements Game {
     }
     const base = { v: 'pad' as const, game: 'cookbook' as const, round: this.round, rounds: this.rounds, score: this.scores[i] ?? 0 };
     if (this.phase === 'ready') {
-      return { ...base, phase: 'ready', title: 'Get ready!', text: 'Stand in a hole when the page comes down.', buttons: [dash] };
+      return { ...base, phase: 'ready', title: 'Get ready!', text: 'Stand in a hole when the page drops', buttons: [dash] };
     }
     if (this.phase === 'over') {
       const pts = this.roundPts[i] ?? 0;
@@ -283,7 +283,7 @@ export class CookbookGame implements Game {
       ...base,
       phase: 'play',
       title: this.sim.page.n >= MAX_PAGES ? 'Last page – find a hole!' : `Page ${this.sim.page.n} – find a hole!`,
-      text: 'Run into a lit patch. Dash to hurry or to shove.',
+      text: 'Run to a lit patch · Dash to shove',
       buttons: [dash],
     };
   }
@@ -307,7 +307,7 @@ export class CookbookGame implements Game {
             Round {this.round} / {this.rounds}
           </span>
           <span class="pill cookbook-page">{sim.page.n >= MAX_PAGES ? 'Last page!' : `Page ${sim.page.n}`}</span>
-          <span class="cookbook-rule">Stand in a hole when the page comes down!</span>
+          <span class="cookbook-rule">Stand in a hole!</span>
         </div>
         {thump && (
           <>

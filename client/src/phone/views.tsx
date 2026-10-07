@@ -113,13 +113,10 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
     return (
       <div class="pv pv-center">
         <Pierogi color={colorHex(me.color)} size={170} class="bob" />
-        <div class="phone-big">You’re in!</div>
-        <p class="muted">
-          {view.vipName ? `${view.vipName} is the VIP and will start the game.` : 'Waiting for the VIP…'}
-          <br />
-          {me.noTv ? 'No TV needed – the game plays right here on your phone.' : 'Look at the TV.'}
-        </p>
-        <div class="pill">{view.playerCount} player{view.playerCount === 1 ? '' : 's'} in the room</div>
+        <div class="phone-huge">You’re in!</div>
+        <div class="pill">
+          👑 {view.vipName ? `${view.vipName} picks` : 'Waiting for the VIP'} · {view.playerCount} 🥟
+        </div>
         {me.noTv && <Invite room={me.room ?? ''} />}
       </div>
     );
@@ -137,40 +134,35 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
   return (
     <div class="pv pv-lobby">
       {noTv && <Invite room={me.room ?? ''} />}
-      <div class="section-label">{noTv ? 'You’re the VIP – games without a TV' : 'You’re the VIP – pick a game'}</div>
+      <div class="section-label">👑 Pick a game</div>
       <div class="pgames">
         {!noTv && (
           <button class={`pgame pgame-tour ${tour ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: 'tournament' })}>
-            <GameIcon game="tournament" size={54} />
-            <span class="pgame-text">
-              <b>Tournament</b>
-              <small>
-                {tourCount} random games in a row{view.options.tourShort ? ', short versions' : ''}. Most points wins!
-              </small>
-            </span>
+            <GameIcon game="tournament" size={46} />
+            <b>Tournament</b>
           </button>
         )}
         {gamesFor(noTv).map((g) => (
           <button class={`pgame ${g.id === view.selected ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
-            <GameIcon game={g.id} size={54} />
-            <span class="pgame-text">
-              <b>{g.title}</b>
-              <small>{noTv ? g.noTv : g.tagline}</small>
-            </span>
+            <GameIcon game={g.id} size={46} />
+            <b>{g.title}</b>
           </button>
         ))}
       </div>
-      {noTv && <div class="muted small">Quiz, Trails and the rest need a shared screen – start a party from a TV or laptop to play them.</div>}
+      <div class="pgame-detail">
+        <b>{selected ? selected.title : 'Tournament'}</b>
+        <span>{selected ? (noTv ? selected.noTv : selected.tagline) : `${tourCount} random games · ${view.options.tourShort ? 'short versions' : 'full length'}`}</span>
+      </div>
+      {noTv && <div class="muted small center">More games need a TV or laptop.</div>}
       <div class="toggles">
         {tour && <TourSettings options={view.options} connected={connected} inRoom={view.players.length} send={send} />}
         {(view.selected === 'trails' || tour) && (
-          <Toggle label={tour ? 'Trails power-ups' : 'Power-ups'} hint="Speed, line size, gaps, jumps, through walls and more" on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
+          <Toggle label={tour ? 'Trails power-ups' : 'Power-ups'} on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
         {view.selected === 'rally' && <TrackPicker value={view.options.track} onChange={(v) => send({ t: 'option', key: 'track', value: v })} />}
         {(view.selected === 'rally' || tour) && (
           <Toggle
             label={tour ? 'Maluch Rally items' : 'Items'}
-            hint={noTv ? '? boxes on the track – tap the item button to use one' : '? boxes on the track – lift your thumb to use one'}
             on={view.options.items}
             onChange={(v) => send({ t: 'option', key: 'items', value: v })}
           />
@@ -179,7 +171,6 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
           <>
             <Slider
               label="Difficulty"
-              hint="How fast the orders come in"
               min={1}
               max={DIFFICULTIES.length}
               value={view.options.difficulty}
@@ -189,7 +180,6 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
             <div class="segmented-wrap">
               <div class="toggle-text">
                 <b>Start at level</b>
-                <small>{KITCHEN_LEVELS[view.options.level - 1]?.news}</small>
               </div>
               <div class="segmented">
                 {KITCHEN_LEVELS.map((l, i) => (
@@ -202,11 +192,11 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
             </div>
           </>
         )}
-        {!noTv && <Toggle label="TV sound" on={view.options.sound} onChange={(v) => send({ t: 'option', key: 'sound', value: v })} />}
+        {!noTv && <Toggle label="🔊 TV sound" on={view.options.sound} onChange={(v) => send({ t: 'option', key: 'sound', value: v })} />}
       </div>
       <button class="btn btn-big btn-yolk start-btn" disabled={!canStart} onClick={() => send({ t: 'start' })}>
         {canStart
-          ? `Start ${selected ? selected.title : 'the tournament'}`
+          ? '▶ Start'
           : !selected
             ? connected < TOURNAMENT_MIN_PLAYERS
               ? `Needs ${TOURNAMENT_MIN_PLAYERS}+ players`
@@ -215,7 +205,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
               ? `Max ${max} players`
               : `Needs ${selected.minPlayers}+ players`}
       </button>
-      <div class="section-label">Players</div>
+      <div class="section-label">Players · {view.players.length}</div>
       <div class="plist">
         {view.players.map((p) => (
           <div class={`plist-row ${p.connected ? '' : 'offline'}`}>
@@ -243,11 +233,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
           </div>
         ))}
       </div>
-      {me.vip && (
-        <div class="muted small center">
-          {me.hosting ? 'Keep this page open – your phone is hosting the party.' : noTv ? 'You run the show from here.' : 'Tip: the TV needs no remote – you run the show from here.'}
-        </div>
-      )}
+      {me.hosting && <div class="muted small center">Keep this page open – you’re hosting.</div>}
     </div>
   );
 }
@@ -324,8 +310,8 @@ function TrackPicker({ value, onChange }: { value: string; onChange: (id: string
   return (
     <div class="segmented-wrap">
       <div class="toggle-text">
-        <b>Tracks: {chosen.name}</b>
-        <small>{chosen.cup ? chosen.hint : `All three races on a ${chosen.name} – ${chosen.hint.toLowerCase()}`}</small>
+        <b>Tracks</b>
+        <small>{chosen.hint}</small>
       </div>
       <div class="track-grid">
         {RALLY_TRACKS.map((t) => (
@@ -346,9 +332,9 @@ function Invite({ room }: { room: string }) {
   return (
     <div class="invite card-paper" onClick={() => setBig(!big)}>
       <div class="invite-text">
-        <small>Friends join at {location.host}/join with</small>
+        <small>{location.host}/join</small>
         <b class="invite-code">{room}</b>
-        <small>{big ? 'Tap to hide the QR code' : 'Tap to show a QR code'}</small>
+        <small>{big ? 'Tap to hide QR' : 'Tap for QR'}</small>
       </div>
       {big && (
         <div class="invite-qr">
@@ -526,18 +512,16 @@ function TrailsPad({ view, me, send }: Props<'trails'>) {
           <span>RIGHT</span>
         </div>
       </div>
-      {view.phase === 'countdown' && <div class="trails-pad-banner">Get ready! Find yourself on the TV</div>}
+      {view.phase === 'countdown' && <div class="trails-pad-banner">Find yourself on the TV</div>}
       {dead && (
         <div class="dead-overlay">
           <Pierogi color={colorHex(me.color)} size={140} mood="dead" />
-          <div class="dead-text">DEAD</div>
-          <div class="muted">Cheer on the others – a new round starts soon.</div>
+          <div class="dead-text">OUT</div>
         </div>
       )}
       {view.phase === 'roundOver' && (
         <div class="dead-overlay calm">
           <div class="phone-big">{view.winner ? `${view.winner} wins the round` : 'Round over'}</div>
-          <div class="muted">Next round in a moment…</div>
         </div>
       )}
     </div>
@@ -559,7 +543,6 @@ function QuizPad({ view, send, offset }: Props<'quiz'>) {
           <Shape index={picked} size={110} />
         </div>
         <div class="phone-big">Locked in!</div>
-        <p class="muted">Fingers crossed…</p>
         <TimeBar endsAt={view.endsAt} offset={offset} />
       </div>
     );
@@ -568,9 +551,9 @@ function QuizPad({ view, send, offset }: Props<'quiz'>) {
     <div class="pv quiz-pad">
       <div class="quiz-pad-top">
         <span>
-          Question {view.q} / {view.total}
+          {view.q} / {view.total}
         </span>
-        <span class="muted">Look at the TV</span>
+        <span class="muted">📺 Look up</span>
       </div>
       <TimeBar endsAt={view.endsAt} offset={offset} />
       <div class="quiz-pad-grid">
@@ -634,7 +617,6 @@ function BpGuess({ view, send, offset }: Props<'bpGuess'>) {
         <div class="phone-small muted">Your guess</div>
         <div class="guess-big">{submitted !== null ? formatNumber(submitted, view.unit) : groupDigits(raw)}</div>
         {view.unit && view.unit !== 'year' && <div class="muted">{view.unit}</div>}
-        <p class="muted">Waiting for the others…</p>
         <TimeBar endsAt={view.endsAt} offset={offset} />
       </div>
     );
@@ -686,7 +668,7 @@ function BpGuess({ view, send, offset }: Props<'bpGuess'>) {
           setSent(true);
         }}
       >
-        Lock in guess
+        Lock in
       </button>
     </div>
   );
@@ -706,14 +688,14 @@ function BpBet({ view, send, offset }: Props<'bpBet'>) {
         <div class="phone-small muted">Your bet</div>
         <div class="guess-big">{label(picked)}</div>
         <div class="pill">pays {view.slots[picked]?.payout}×</div>
-        <p class="muted">Watch the TV for the answer!</p>
+        <p class="muted">📺 Watch the TV</p>
         <TimeBar endsAt={view.endsAt} offset={offset} />
       </div>
     );
   }
   return (
     <div class="pv bp-bet">
-      <div class="section-label">Which guess is closest without going over?</div>
+      <div class="section-label">Closest without going over?</div>
       <TimeBar endsAt={view.endsAt} offset={offset} />
       <div class="bet-list">
         {view.slots
@@ -773,7 +755,7 @@ function Results({ view, me, send }: Props<'results'>) {
         <>
           <Stars n={view.coop.stars} size={64} />
           <p class="muted">
-            Team tips: {view.coop.score.toLocaleString('en-US')} · +{view.coop.stars} party point{view.coop.stars === 1 ? '' : 's'} each
+            {view.coop.score.toLocaleString('en-US')} tips
           </p>
         </>
       ) : view.place > 0 ? (
@@ -782,7 +764,7 @@ function Results({ view, me, send }: Props<'results'>) {
             {medal} {ordinal(view.place)} place
           </div>
           <p class="muted">
-            {view.score.toLocaleString('en-US')} points in {gameInfo(view.game).title}
+            {view.score.toLocaleString('en-US')} pts
           </p>
         </>
       ) : (
@@ -792,10 +774,10 @@ function Results({ view, me, send }: Props<'results'>) {
       {view.tour && (
         <div class="tour-card card-paper">
           <small>
-            Tournament · game {view.tour.game} of {view.tour.games}
+            🏆 {view.tour.game} / {view.tour.games}
           </small>
           <div>
-            <b>+{view.tour.gained}</b> points · {view.tour.points} in total · {ordinal(view.tour.place)}
+            <b>+{view.tour.gained}</b> · {view.tour.points} total · {ordinal(view.tour.place)}
           </div>
         </div>
       )}
@@ -805,20 +787,20 @@ function Results({ view, me, send }: Props<'results'>) {
             {view.tour.next ? `Next game: ${gameInfo(view.tour.next).title}` : 'Crown the champion'}
           </button>
           <button class="btn btn-big btn-ghost" onClick={() => send({ t: 'lobby' })}>
-            End the tournament
+            End tournament
           </button>
         </div>
       ) : view.vip ? (
         <div class="vip-actions">
           <button class="btn btn-big btn-yolk" onClick={() => send({ t: 'again' })}>
-            Play {gameInfo(view.game).title} again
+            ↻ Play again
           </button>
           <button class="btn btn-big btn-ghost" onClick={() => send({ t: 'lobby' })}>
-            Choose another game
+            Other game
           </button>
         </div>
       ) : (
-        <p class="muted">The VIP decides what’s next.</p>
+        <p class="muted">👑 VIP picks what’s next</p>
       )}
     </div>
   );
@@ -830,18 +812,18 @@ function TourResults({ view, me, send }: Props<'tourResults'>) {
     <div class="pv pv-center">
       <Pierogi color={colorHex(me.color)} size={150} mood={view.place === 1 ? 'wow' : 'happy'} class="bob" />
       <div class="phone-huge">{view.place === 1 ? `${medal} Champion!` : `${medal} ${ordinal(view.place)} place`}</div>
-      <p class="muted">{view.points} tournament points</p>
+      <p class="muted">{view.points} pts</p>
       {view.vip ? (
         <div class="vip-actions">
           <button class="btn btn-big btn-yolk" onClick={() => send({ t: 'again' })}>
             Another tournament
           </button>
           <button class="btn btn-big btn-ghost" onClick={() => send({ t: 'lobby' })}>
-            Choose a game
+            Other game
           </button>
         </div>
       ) : (
-        <p class="muted">The VIP decides what’s next.</p>
+        <p class="muted">👑 VIP picks what’s next</p>
       )}
     </div>
   );

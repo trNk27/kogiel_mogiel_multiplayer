@@ -37,6 +37,7 @@
   background: rgba(20, 6, 10, 0.72);
   text-align: center;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 30px;
   color: var(--cream);
   text-shadow: 0 3px 0 rgba(20, 6, 10, 0.7);
@@ -49,7 +50,7 @@
 }
 .pushy-clock {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 46px;
   min-width: 120px;
   text-align: center;
@@ -57,7 +58,7 @@
   border-radius: 999px;
   color: var(--cream);
   background: rgba(20, 6, 10, 0.7);
-  box-shadow: 0 0 0 3px rgba(255, 244, 220, 0.5);
+  box-shadow: 0 0 0 3px rgba(251, 240, 217, 0.5);
 }
 .pushy-clock.low {
   color: #ff7a6a;
@@ -78,6 +79,7 @@
   background: rgba(20, 6, 10, 0.78);
   color: #ffd9a0;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 38px;
   white-space: nowrap;
   box-shadow: 0 0 0 3px rgba(255, 217, 160, 0.6);
@@ -87,9 +89,9 @@
   position: absolute;
   translate: -50% -50%;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 54px;
-  -webkit-text-stroke: 8px #2a120a;
+  -webkit-text-stroke: 8px #241015;
   paint-order: stroke fill;
   text-shadow: 0 6px 0 rgba(20, 6, 10, 0.6);
   animation: pushy-splash 1.5s ease-out both;
@@ -154,7 +156,7 @@
 }
 .pushy-chip-name {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 850;
   font-size: 24px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -169,6 +171,7 @@
 }
 .pushy-chip-score {
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 34px;
   color: var(--yolk);
 }
@@ -182,6 +185,7 @@
   margin-top: 18px;
   flex-wrap: wrap;
   font-family: var(--font-display);
+  font-weight: 750;
   font-size: 34px;
   color: var(--cream);
 }

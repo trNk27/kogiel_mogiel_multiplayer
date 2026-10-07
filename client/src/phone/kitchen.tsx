@@ -191,7 +191,7 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
           <b>{view.score}</b> tips
         </span>
         <span class="muted">
-          Level {view.level}/{view.levels} · look at the TV
+          Level {view.level}/{view.levels}
         </span>
       </div>
       <div class={`k-stick-zone ${active ? 'active' : ''}`} ref={zone}>
@@ -201,7 +201,6 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
             <img class="k-stick-chef" src={spriteUrl(chefSprite(me.color, 'front'))} alt="" draggable={false} />
           </div>
         </div>
-        {!active && <div class="k-stick-label">Drag anywhere here to walk</div>}
       </div>
       <div class="k-hold">
         {view.hold ? (
@@ -231,7 +230,7 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
       {view.phase === 'over' && (
         <div class="dead-overlay calm">
           <div class="phone-big">Service over!</div>
-          <div class="muted">Look at the TV for your stars.</div>
+          <div class="muted">📺 Stars on the TV</div>
         </div>
       )}
     </div>
@@ -250,10 +249,10 @@ function holdText(it: NonNullable<View['hold']>) {
 // ---------------------------------------------------------------------------
 
 const MINI_TEXT: Record<KitchenMini['kind'], { title: string; how: string }> = {
-  roll: { title: 'Roll the dough', how: 'Swipe up and down to roll it thin' },
-  fold: { title: 'Make pierogi', how: 'Swipe across to fold, then pinch the edge' },
-  boil: { title: 'Boil the pierogi', how: 'Stir in circles until they float' },
-  fry: { title: 'Fry the pierogi', how: 'Tap each one to flip it when it turns golden' },
+  roll: { title: 'Roll the dough', how: 'Swipe up and down' },
+  fold: { title: 'Make pierogi', how: 'Swipe to fold, then pinch' },
+  boil: { title: 'Boil the pierogi', how: 'Stir in circles' },
+  fry: { title: 'Fry the pierogi', how: 'Tap to flip when golden' },
   wash: { title: 'Wash the plate', how: 'Scrub off every spot' },
 };
 
@@ -517,7 +516,7 @@ function BoilGame({ seed, f, progress, done, setHow }: MiniProps & { setHow: (s:
       progress((0.6 * next) / STIR_NEED);
       if (next >= STIR_NEED) {
         setSpoon(null);
-        setHow('They float! Tap each one to scoop it out');
+        setHow('They float! Tap to scoop');
         vibrate([20, 30, 20]);
       }
       return;

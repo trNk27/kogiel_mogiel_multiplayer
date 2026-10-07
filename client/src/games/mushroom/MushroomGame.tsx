@@ -326,7 +326,7 @@ export class MushroomGame implements Game {
         stats,
       };
     } else if (!p.alive) {
-      view = { ...base, phase: 'out', title: 'Splash!', text: 'You’re in the pond – watch the TV', accent: '#4f9dff', buttons: [], noStick: true, stats };
+      view = { ...base, phase: 'out', title: 'Splash!', text: 'You’re in the pond', accent: '#4f9dff', buttons: [], noStick: true, stats };
     } else if (sim.phase === 'ready') {
       view = { ...base, phase: 'ready', title: 'Get ready!', text: 'Stay on the stump', buttons, stats };
     } else if (sim.phase === 'call') {
@@ -362,7 +362,7 @@ export class MushroomGame implements Game {
             Round {Math.max(1, this.round)} / {this.rounds}
           </div>
           {sim.callNo > 0 && <div class="pill">Call {sim.callNo}</div>}
-          <div class="mush-rule">Be on the called colour when the timer runs out – shove rivals off!</div>
+          <div class="mush-rule">Get on the called colour · shove rivals off</div>
         </div>
 
         {sim.phase === 'ready' && <BigCountdown endsAt={this.readyEndsAt} key={`r${this.round}`} />}

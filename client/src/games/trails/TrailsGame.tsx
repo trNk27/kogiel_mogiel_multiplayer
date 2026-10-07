@@ -285,7 +285,7 @@ export class TrailsGame implements Game {
         ctx.closePath();
         ctx.fill();
         const name = this.host.player(this.ids[s.idx])?.name ?? '';
-        ctx.font = '700 30px "Fredoka Variable", "Fredoka", sans-serif';
+        ctx.font = '800 30px "Fraunces Variable", Georgia, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.lineWidth = 6;

@@ -556,9 +556,5 @@ export class GallerySim {
 }
 
 export function howTo(short: boolean): string[] {
-  return [
-    'Move your crosshair with the stick and press Fire to shoot a cork – you have six, then Reload.',
-    'Ghosts score 1, bats 2 and the golden ghost 5, but shoot a babcia cut-out and you lose 3 points!',
-    short ? 'One 40-second round with everything at once – most points wins.' : 'Three 30-second rounds, each faster and trickier – most points wins.',
-  ];
+  return ['Aim with the stick · Fire · Reload after six', 'Ghost 1 · Bat 2 · Gold ghost 5 · Babcia −3', short ? 'One 40-second round' : 'Three 30-second rounds'];
 }

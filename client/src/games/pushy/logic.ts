@@ -629,9 +629,5 @@ export class PushySim {
 }
 
 export function howTo(short: boolean): string[] {
-  return [
-    'Glide around the frozen pond and shove everybody else into the water.',
-    'Tap Shove to dash at someone, or Brace to stand firm – and watch out for cracks and curling stones.',
-    short ? 'Last pierogi on the ice wins the round.' : `Last pierogi on the ice wins the round; ${PUSHY_ROUNDS} rounds.`,
-  ];
+  return ['Shove everyone into the water', 'Shove dashes · Brace holds firm', short ? 'Last one on the ice wins' : `Last one on the ice wins · ${PUSHY_ROUNDS} rounds`];
 }

@@ -383,7 +383,7 @@ export class TotyGame implements Game {
             <div class="grow" />
             {timer(this.layout.selfieMs)}
           </div>
-          <h2 class="ty-title">Take a selfie on your phone – pull your best face!</h2>
+          <h2 class="ty-title">Selfie time – pull a face!</h2>
           <div class="ty-selfies">
             {players.map((p) => {
               const done = this.selfieDone.has(p.id);
