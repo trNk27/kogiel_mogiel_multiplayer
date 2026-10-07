@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
-import { GAMES, MAX_PLAYERS, TOURNAMENT_GAMES, TOURNAMENT_POINTS, colorHex, difficultyName, gameInfo, rallyTrack, type GameId, type Selection } from '../../../shared/protocol';
+import { GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, type GameId, type Selection } from '../../../shared/protocol';
 import { FolkBorder, Logo, Pierogi, Rosette } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
@@ -7,6 +7,8 @@ import { HostController, type Standing } from './controller';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
+import { ScoreStory, useAfter, type ChartSeries, type RaceRow } from './Scoreboard';
+import { runningTotals, type Tournament } from './tournament';
 import { RACES, RACES_SHORT } from '../games/rally/RallyGame';
 import { LAPS } from '../games/rally/sim';
 import { QUIZ_ROUND_LENGTH, QUIZ_ROUND_LENGTH_SHORT } from '../games/quiz/logic';
@@ -77,7 +79,7 @@ export function HostApp() {
       body = <TourIntro />;
       break;
     case 'tourEnd':
-      body = <TourEnd standings={s.standings} games={s.games} />;
+      body = <TourEnd standings={s.standings} games={s.games} log={s.log} />;
       break;
     case 'game':
       body = c.game?.render();
@@ -261,13 +263,22 @@ function Lobby() {
 /** The selected game's tagline and settings, under the game picker. */
 function SelectedGame({ sel }: { sel: Selection }) {
   const o = controller.options;
-  if (sel === 'tournament')
+  if (sel === 'tournament') {
+    const c = controller;
+    const pool = tournamentPool(c.connectedCount(), c.players.size, o.tourOff);
+    const count = tournamentLength(o.tourGames, pool.length);
     return (
       <div class="game-detail">
         <b>Tournament</b>
-        <span>{TOURNAMENT_GAMES} random games in a row, short versions, no co-op. Win games, collect points, take the crown.</span>
+        <span>
+          {count} random games in a row{o.tourShort ? ', short versions' : ', full length'}, no co-op. Win games, collect points, take the crown.
+        </span>
+        <span class="game-card-flag">
+          {o.tourOff.length ? `${TOURNAMENT_CANDIDATES.length - o.tourOff.length} of ${TOURNAMENT_CANDIDATES.length} games in the draw` : 'All games in the draw'}
+        </span>
       </div>
     );
+  }
   const g = gameInfo(sel);
   const flags: string[] = [];
   if (g.maxPlayers) flags.push(`Up to ${g.maxPlayers} players`);
@@ -395,7 +406,8 @@ function Intro({ game }: { game: GameId }) {
     <div class="screen intro">
       {t && (
         <div class="intro-tour">
-          🏆 Tournament · game {t.index + 1} of {t.games.length} · short version
+          🏆 Tournament · game {t.index + 1} of {t.games.length}
+          {t.short ? ' · short version' : ''}
         </div>
       )}
       <div class="intro-icon pop-in">
@@ -403,9 +415,9 @@ function Intro({ game }: { game: GameId }) {
       </div>
       <h1 class="intro-title">{info.title}</h1>
       {/* Taglines name the full game's length; in a tournament the steps say how long it is. */}
-      {!t && <p class="intro-tag">{info.tagline}</p>}
-      <ol class={`intro-steps ${t ? 'short' : ''}`}>
-        {howTo(game, !!t).map((step, i) => (
+      {!t?.short && <p class="intro-tag">{info.tagline}</p>}
+      <ol class={`intro-steps ${t?.short ? 'short' : ''}`}>
+        {howTo(game, !!t?.short).map((step, i) => (
           <li style={{ animationDelay: `${400 + i * 250}ms` }}>
             <span class="intro-num">{i + 1}</span>
             {step}
@@ -479,6 +491,14 @@ function PartyTable({ sub }: { sub: string }) {
 
 function Results({ game, standings }: { game: GameId; standings: Standing[] }) {
   const vip = controller.summaries().find((p) => p.vip);
+  const hint = <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>;
+  if (useAfter(STORY_MS) && controller.players.size > 1)
+    return (
+      <div class="screen results">
+        <PartyStory title={`After ${gameInfo(game).title}`} sub="3 points for a win, 2 for second, 1 for third" />
+        {hint}
+      </div>
+    );
   return (
     <div class="screen results">
       <h1 class="results-title">{gameInfo(game).title} – final scores</h1>
@@ -522,7 +542,7 @@ function TourIntro() {
       </div>
       <h1 class="intro-title">Tournament!</h1>
       <p class="intro-tag">
-        {t.games.length} quick games. Points for every game: {TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} for 1st, 2nd, 3rd…
+        {t.games.length} {t.short ? 'quick ' : ''}games. Points for every game: {TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} for 1st, 2nd, 3rd…
       </p>
       <Lineup games={t.games} current={-1} done={0} />
       <div class="intro-bar">
@@ -560,6 +580,29 @@ function TourResults({ game, standings }: { game: GameId; standings: Standing[] 
   const t = controller.tournament!;
   const vip = controller.summaries().find((p) => p.vip);
   const next = t.games[t.index + 1];
+  const story = useAfter(STORY_MS);
+  const hint = (
+    <div class="lobby-hint">
+      {vip ? (next ? `${vip.name} (VIP): press “Next game” for ${gameInfo(next).title}.` : `${vip.name} (VIP): press “Crown the champion”!`) : ''}
+    </div>
+  );
+  if (story) {
+    const ids = [...controller.players.keys()];
+    return (
+      <div class="screen results">
+        <ScoreStory
+          title={`Tournament standings after game ${t.index + 1} of ${t.games.length}`}
+          race={raceRows(ids, (id) => t.points[id] ?? 0, (id) => t.gained[id] ?? 0)}
+          raceTitle="Tournament points"
+          raceSub={`${gameInfo(game).title}: ${TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} for 1st, 2nd, 3rd…`}
+          series={tourSeries(t.log, ids)}
+          games={t.log.map((e) => e.game)}
+          chartTitle="Game by game"
+        />
+        {hint}
+      </div>
+    );
+  }
   return (
     <div class="screen results tour-results">
       <h1 class="results-title">
@@ -574,16 +617,32 @@ function TourResults({ game, standings }: { game: GameId; standings: Standing[] 
           <TourTable title="Tournament" />
         </div>
       </div>
-      <div class="lobby-hint">
-        {vip ? (next ? `${vip.name} (VIP): press “Next game” for ${gameInfo(next).title}.` : `${vip.name} (VIP): press “Crown the champion”!`) : ''}
-      </div>
+      {hint}
     </div>
   );
 }
 
-function TourEnd({ standings, games }: { standings: Standing[]; games: GameId[] }) {
+function TourEnd({ standings, games, log }: { standings: Standing[]; games: GameId[]; log: Tournament['log'] }) {
   const vip = controller.summaries().find((p) => p.vip);
   const champs = standings.filter((st) => st.place === 1);
+  if (useAfter(STORY_MS + 2000)) {
+    const ids = [...controller.players.keys()];
+    const last = controller.history[controller.history.length - 1];
+    return (
+      <div class="screen results">
+        <ScoreStory
+          title="The tournament, game by game"
+          race={raceRows(ids, (id) => controller.players.get(id)!.party, (id) => last?.gained[id] ?? 0)}
+          raceTitle="Party standings"
+          raceSub="The tournament counts as one game: 3 / 2 / 1 party points"
+          series={tourSeries(log, ids)}
+          games={log.map((e) => e.game)}
+          chartTitle="Tournament points"
+        />
+        <div class="lobby-hint">{vip ? `${vip.name} (VIP): another tournament, or pick a game on your phone.` : ''}</div>
+      </div>
+    );
+  }
   return (
     <div class="screen results tour-end">
       <h1 class="results-title">
@@ -610,6 +669,13 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
   const party = [...c.players.values()].sort((a, b) => b.party - a.party);
   const vip = c.summaries().find((p) => p.vip);
   const crew = [...standings].sort((a, b) => b.score - a.score);
+  if (useAfter(STORY_MS + 3000) && c.players.size > 1)
+    return (
+      <div class="screen results">
+        <PartyStory title={`After ${gameInfo(game).title}`} sub="Co-op: everyone gets 1 point per star (average over the levels)" />
+        <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>
+      </div>
+    );
   return (
     <div class="screen results coop-results">
       <h1 class="results-title">{gameInfo(game).title} – service report</h1>
@@ -670,6 +736,56 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
       </div>
       <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>
     </div>
+  );
+}
+
+// ---- How the scores changed ---------------------------------------------------
+
+/** How long the podium shows before the standings take over. */
+const STORY_MS = 7000;
+/** The party chart shows at most this many of the latest games. */
+const CHART_GAMES = 10;
+
+/** Race rows for everybody in the room: their total now, and what the last game added. */
+function raceRows(ids: string[], total: (id: string) => number, gained: (id: string) => number): RaceRow[] {
+  return ids.map((id) => {
+    const p = controller.players.get(id)!;
+    return { id, name: p.name, color: p.color, before: total(id) - gained(id), after: total(id) };
+  });
+}
+
+function tourSeries(log: Tournament['log'], ids: string[]): ChartSeries[] {
+  const totals = runningTotals(log, ids);
+  return ids.map((id) => {
+    const p = controller.players.get(id)!;
+    return { id, name: p.name, color: p.color, values: totals.map((t) => t[id]) };
+  });
+}
+
+/** Party standings: the race for the game just played, and the chart of the latest games. */
+function PartyStory({ title, sub }: { title: string; sub: string }) {
+  const c = controller;
+  const ids = [...c.players.keys()];
+  const recent = c.history.slice(-CHART_GAMES);
+  const last = recent[recent.length - 1];
+  // Totals before the chart's first game, so the lines end at everyone's party points.
+  const deltas = runningTotals(recent, ids);
+  const end = deltas[deltas.length - 1];
+  const series: ChartSeries[] = ids.map((id) => {
+    const p = c.players.get(id)!;
+    const base = p.party - end[id];
+    return { id, name: p.name, color: p.color, values: deltas.map((d) => base + d[id]) };
+  });
+  return (
+    <ScoreStory
+      title={title}
+      race={raceRows(ids, (id) => c.players.get(id)!.party, (id) => last?.gained[id] ?? 0)}
+      raceTitle="Party standings"
+      raceSub={sub}
+      series={series}
+      games={recent.map((e) => e.game)}
+      chartTitle={c.history.length > recent.length ? `The last ${recent.length} games` : 'Game by game'}
+    />
   );
 }
 

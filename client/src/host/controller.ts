@@ -5,6 +5,9 @@ import {
   KITCHEN_LEVELS,
   MAX_PLAYERS,
   RECONNECT_GRACE_MS,
+  TOURNAMENT_CANDIDATES,
+  TOURNAMENT_MAX_GAMES,
+  TOURNAMENT_MIN_GAMES,
   gameInfo,
   gamesFor,
   RALLY_TRACKS,
@@ -30,7 +33,7 @@ import { createGame } from '../games/registry';
 import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { sound } from '../lib/sound';
 import { placesFor } from './standings';
-import { awardGame, newTournament, nextGame, tournamentPlaces, type Tournament } from './tournament';
+import { awardGame, cleanTourOff, newTournament, nextGame, tournamentPlaces, type Tournament } from './tournament';
 
 export interface Player {
   id: string;
@@ -41,6 +44,12 @@ export interface Player {
   disconnectedAt: number | null;
   /** Party points across games (3 / 2 / 1 for podium places). */
   party: number;
+}
+
+/** One finished game (or whole tournament) and the party points it handed out, by player id. */
+export interface PartyEntry {
+  game: Selection;
+  gained: Record<string, number>;
 }
 
 export interface Standing {
@@ -61,9 +70,13 @@ export type Screen =
   /** The games of a new tournament, before the first one starts. */
   | { s: 'tourIntro' }
   /** The end of a tournament: everyone ranked by tournament points. */
-  | { s: 'tourEnd'; standings: Standing[]; games: GameId[] };
+  | { s: 'tourEnd'; standings: Standing[]; games: GameId[]; log: Tournament['log'] };
+
+/** Party points for a place in one game (or a whole tournament). */
+const partyPoints = (place: number) => (place === 1 ? 3 : place === 2 ? 2 : place === 3 ? 1 : 0);
 
 const SESSION_KEY = 'cp.host';
+const HISTORY_MAX = 30;
 /** A phone hosting a room without a TV keeps its session separately (the /dev page runs several phones in one tab). */
 export const noTvSessionKey = (dev: string | null) => `cp.notvhost${dev ? `.${dev}` : ''}`;
 const SESSION_MAX_AGE = 30 * 60_000;
@@ -77,6 +90,7 @@ interface SavedSession {
   selected: Selection;
   options: LobbyOptions;
   gamesPlayed: number;
+  history?: PartyEntry[];
   savedAt: number;
   noTv?: boolean;
 }
@@ -106,6 +120,8 @@ export class HostController implements GameHost {
   /** The tournament being played, if any. */
   tournament: Tournament | null = null;
   gamesPlayed = 0;
+  /** Party points per finished game, oldest first – for the standings chart. */
+  history: PartyEntry[] = [];
   status: SocketStatus = 'closed';
 
   private socket: ReconnectingSocket<ServerToHost, HostToServer> | null = null;
@@ -165,6 +181,7 @@ export class HostController implements GameHost {
       this.hostKey = hostKey;
       this.players.clear();
       this.gamesPlayed = 0;
+      this.history = [];
       this.connect();
       this.screen = { s: 'lobby' };
       this.persist();
@@ -189,6 +206,7 @@ export class HostController implements GameHost {
     if (this.selectable(saved.selected)) this.selected = saved.selected;
     this.options = { ...DEFAULT_OPTIONS, ...saved.options };
     this.gamesPlayed = saved.gamesPlayed;
+    this.history = saved.history ?? [];
     sound.muted = this.noTv || !this.options.sound;
     const now = Date.now();
     for (const p of saved.players) {
@@ -244,6 +262,7 @@ export class HostController implements GameHost {
       selected: this.selected,
       options: this.options,
       gamesPlayed: this.gamesPlayed,
+      history: this.history,
       savedAt: Date.now(),
       noTv: this.noTv,
     };
@@ -362,7 +381,18 @@ export class HostController implements GameHost {
         return;
       case 'option':
         if (!isVip) return;
-        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items') this.options = { ...this.options, [m.key]: !!m.value };
+        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items' || m.key === 'tourShort') this.options = { ...this.options, [m.key]: !!m.value };
+        else if (m.key === 'tourGames') {
+          const v = Math.round(Number(m.value));
+          if (!(v >= TOURNAMENT_MIN_GAMES && v <= TOURNAMENT_MAX_GAMES)) return;
+          this.options = { ...this.options, tourGames: v };
+          sound.tick();
+        } else if (m.key === 'tourOff') {
+          const off = cleanTourOff(m.value, TOURNAMENT_CANDIDATES);
+          if (!off) return;
+          this.options = { ...this.options, tourOff: off };
+          sound.tick();
+        }
         else if (m.key === 'track') {
           if (!RALLY_TRACKS.some((t) => t.id === m.value)) return;
           this.options = { ...this.options, track: String(m.value) };
@@ -472,7 +502,7 @@ export class HostController implements GameHost {
   }
 
   startProblem(sel: Selection = this.selected) {
-    if (sel === 'tournament') return tournamentProblem(this.connectedCount(), this.players.size, this.noTv);
+    if (sel === 'tournament') return tournamentProblem(this.connectedCount(), this.players.size, this.noTv, this.options.tourOff);
     return playerCountProblem(gameInfo(sel), this.connectedCount(), this.players.size, this.noTv);
   }
 
@@ -481,14 +511,28 @@ export class HostController implements GameHost {
     return sel === 'tournament' ? !this.noTv : gamesFor(this.noTv).some((g) => g.id === sel);
   }
 
-  /** Games in a tournament are the short versions. */
+  /** Games in a tournament are the short versions, unless the VIP asked for the full ones. */
   get short() {
-    return !!this.tournament;
+    return !!this.tournament?.short;
+  }
+
+  private logParty(game: Selection, gained: Record<string, number>) {
+    this.history.push({ game, gained });
+    // The chart only shows the latest games; totals come from the players' party points.
+    if (this.history.length > HISTORY_MAX) this.history.splice(0, this.history.length - HISTORY_MAX);
+  }
+
+  /** The games a tournament can draw from right now. */
+  private tourPool() {
+    return tournamentPool(this.connectedCount(), this.players.size, this.options.tourOff);
   }
 
   private startTournament() {
     this.endGame();
-    this.tournament = newTournament(tournamentPool(this.connectedCount(), this.players.size), [...this.players.keys()]);
+    this.tournament = newTournament(this.tourPool(), [...this.players.keys()], Math.random, {
+      games: this.options.tourGames,
+      short: this.options.tourShort,
+    });
     this.screen = { s: 'tourIntro' };
     sound.fanfare();
     this.refresh();
@@ -499,7 +543,7 @@ export class HostController implements GameHost {
   private nextTourGame() {
     const t = this.tournament;
     if (!t) return;
-    const game = nextGame(t, (g) => this.canStart(g), tournamentPool(this.connectedCount(), this.players.size));
+    const game = nextGame(t, (g) => this.canStart(g), this.tourPool());
     if (game) this.startGame(game);
     else this.endTournament();
   }
@@ -513,10 +557,15 @@ export class HostController implements GameHost {
       return { id: r.id, name: p.name, color: p.color, score: r.points, place: r.place };
     });
     // The tournament counts as one game in the party standings.
-    if (standings.length > 1) for (const st of standings) this.players.get(st.id)!.party += st.place === 1 ? 3 : st.place === 2 ? 2 : st.place === 3 ? 1 : 0;
+    const gained: Record<string, number> = {};
+    for (const st of standings) {
+      gained[st.id] = standings.length > 1 ? partyPoints(st.place) : 0;
+      this.players.get(st.id)!.party += gained[st.id];
+    }
+    this.logParty('tournament', gained);
     this.tournament = null;
     this.gamesPlayed++;
-    this.screen = { s: 'tourEnd', standings, games: t.games };
+    this.screen = { s: 'tourEnd', standings, games: t.games, log: t.log };
     sound.fanfare();
     this.refresh();
     this.persist();
@@ -591,11 +640,12 @@ export class HostController implements GameHost {
       // In a tournament, games earn tournament points; the party points come at the end.
       awardGame(this.tournament, Object.fromEntries(entries.map((e) => [e.id, e.score])));
     } else {
+      const gained: Record<string, number> = {};
       for (const e of entries) {
-        const p = this.players.get(e.id)!;
-        if (coop) p.party += coop.stars;
-        else if (entries.length > 1) p.party += e.place === 1 ? 3 : e.place === 2 ? 2 : e.place === 3 ? 1 : 0;
+        gained[e.id] = coop ? coop.stars : entries.length > 1 ? partyPoints(e.place) : 0;
+        this.players.get(e.id)!.party += gained[e.id];
       }
+      this.logParty(game, gained);
       this.gamesPlayed++;
     }
     this.endGame();

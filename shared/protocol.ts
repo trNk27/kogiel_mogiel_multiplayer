@@ -150,9 +150,14 @@ export function gamesFor(noTv: boolean): readonly GameInfo[] {
 /** What the VIP has picked in the lobby: one game, or a tournament of several. */
 export type Selection = GameId | 'tournament';
 
-/** A tournament plays this many games, picked at random from the competitive ones. */
+/** A tournament plays this many games by default, picked at random from the competitive ones. */
 export const TOURNAMENT_GAMES = 5;
+/** The VIP can set the length of a tournament between these. */
+export const TOURNAMENT_MIN_GAMES = 2;
+export const TOURNAMENT_MAX_GAMES = 10;
 export const TOURNAMENT_MIN_PLAYERS = 2;
+/** Games that can ever be in a tournament (the competitive ones). */
+export const TOURNAMENT_CANDIDATES: readonly GameId[] = GAMES.filter((g) => !g.coop).map((g) => g.id);
 /** Tournament points for 1st, 2nd, 3rd… place in each game (ties share a place). */
 export const TOURNAMENT_POINTS = [10, 7, 5, 3, 2, 1, 0, 0] as const;
 
@@ -160,16 +165,22 @@ export function tournamentPoints(place: number): number {
   return TOURNAMENT_POINTS[place - 1] ?? 0;
 }
 
-/** Games a tournament can pick from with these players: competitive ones that can start. */
-export function tournamentPool(connected: number, inRoom: number): GameId[] {
-  return GAMES.filter((g) => !g.coop && playerCountProblem(g, connected, inRoom) === null).map((g) => g.id);
+/** Games a tournament can pick from with these players: competitive ones that can start and aren't switched off. */
+export function tournamentPool(connected: number, inRoom: number, off: readonly GameId[] = []): GameId[] {
+  return GAMES.filter((g) => !g.coop && !off.includes(g.id) && playerCountProblem(g, connected, inRoom) === null).map((g) => g.id);
+}
+
+/** How many games a tournament will play: what the VIP asked for, or fewer if not enough games are on. */
+export function tournamentLength(wanted: number, poolSize: number): number {
+  return Math.min(wanted, poolSize);
 }
 
 /** Why a tournament can't start, or null if it can. */
-export function tournamentProblem(connected: number, inRoom: number, noTv = false): string | null {
+export function tournamentProblem(connected: number, inRoom: number, noTv = false, off: readonly GameId[] = []): string | null {
   if (noTv) return 'A tournament needs a TV.';
   if (connected < TOURNAMENT_MIN_PLAYERS) return `A tournament needs at least ${TOURNAMENT_MIN_PLAYERS} players.`;
-  if (tournamentPool(connected, inRoom).length < TOURNAMENT_GAMES) return `Not enough games for ${inRoom} players.`;
+  if (tournamentPool(connected, inRoom, off).length < TOURNAMENT_MIN_GAMES)
+    return off.length ? `Switch on at least ${TOURNAMENT_MIN_GAMES} games that suit ${inRoom} players.` : `Not enough games for ${inRoom} players.`;
   return null;
 }
 
@@ -195,9 +206,25 @@ export interface LobbyOptions {
   items: boolean;
   /** Maluch Rally: which tracks the cup is raced on (an id from RALLY_TRACKS). */
   track: string;
+  /** Tournament: how many games (TOURNAMENT_MIN_GAMES to TOURNAMENT_MAX_GAMES). */
+  tourGames: number;
+  /** Tournament: play the short versions of the games. */
+  tourShort: boolean;
+  /** Tournament: games the VIP switched off (everything else can be drawn). */
+  tourOff: GameId[];
 }
 
-export const DEFAULT_OPTIONS: LobbyOptions = { powerups: false, sound: true, difficulty: 3, level: 1, items: true, track: 'cup' };
+export const DEFAULT_OPTIONS: LobbyOptions = {
+  powerups: false,
+  sound: true,
+  difficulty: 3,
+  level: 1,
+  items: true,
+  track: 'cup',
+  tourGames: TOURNAMENT_GAMES,
+  tourShort: true,
+  tourOff: [],
+};
 
 /**
  * Maluch Rally track choices: a cup of three different tracks, a cup of three hard ones,
@@ -625,7 +652,7 @@ export type PhoneMsg =
   | { t: 'lie'; text: string; auto?: boolean }
   // VIP-only actions (the host ignores them from anybody else)
   | { t: 'select'; game: Selection }
-  | { t: 'option'; key: keyof LobbyOptions; value: boolean | number | string }
+  | { t: 'option'; key: keyof LobbyOptions; value: boolean | number | string | string[] }
   | { t: 'start' }
   | { t: 'kick'; id: string }
   /** Play the same game again – or, in a tournament, go on to the next game. */
