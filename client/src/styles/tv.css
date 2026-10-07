@@ -3403,3 +3403,219 @@ body.tv {
 .swap-reveal-scores .gain b {
   color: var(--dill);
 }
+
+/* ---- How the scores changed (after the podium) ------------------------------- */
+
+.story {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  animation: rise-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.story .results-title {
+  font-size: 60px;
+}
+.story-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 36px;
+  align-items: center;
+  min-height: 0;
+}
+.race {
+  padding: 26px 30px 30px;
+  align-self: center;
+}
+.race-rows {
+  position: relative;
+}
+.race-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: top 0.9s cubic-bezier(0.5, 0, 0.2, 1.15);
+}
+.race-row.lead .race-rank {
+  color: var(--beet-deep);
+  opacity: 1;
+}
+.race-rank {
+  width: 34px;
+  text-align: right;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 34px;
+  opacity: 0.55;
+}
+.race-move {
+  width: 48px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.3s 0.7s,
+    transform 0.4s 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.6);
+}
+.race-move.up,
+.race-move.down {
+  opacity: 1;
+  transform: none;
+}
+.race-move.up {
+  color: #138a68;
+}
+.race-move.down {
+  color: #b3263f;
+}
+.race-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.race-name {
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.race-track {
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(42, 18, 10, 0.08);
+  overflow: hidden;
+}
+.race-bar {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--pc);
+  box-shadow: inset 0 0 0 2px rgba(42, 18, 10, 0.18);
+  transition: width 1.2s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.race-gain {
+  min-width: 64px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--yolk);
+  color: var(--ink);
+  opacity: 0;
+  transform: translateY(10px) scale(0.6);
+  transition:
+    opacity 0.25s,
+    transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.8);
+}
+.race-gain.show {
+  opacity: 1;
+  transform: none;
+}
+.race-total {
+  width: 70px;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart {
+  padding: 22px 24px 18px;
+  align-self: center;
+}
+.chart-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 36px;
+  color: var(--yolk);
+  margin-bottom: 6px;
+}
+.chart-plot {
+  position: relative;
+}
+.chart-plot svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.chart-grid {
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.chart-axis {
+  fill: var(--muted);
+  font-size: 22px;
+  font-family: var(--font-display);
+}
+.chart-line {
+  fill: none;
+  stroke: var(--pc);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: chart-draw 1.6s var(--delay, 0ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes chart-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.chart-dot {
+  fill: var(--pc);
+  /* A ring in the card colour keeps crossing lines apart. */
+  stroke: #2a0f14;
+  stroke-width: 3;
+  opacity: 0;
+  animation: fade-in 0.3s both;
+}
+.chart-label text {
+  fill: var(--cream);
+  font-size: 24px;
+  font-weight: 800;
+  opacity: 0;
+  animation: fade-in 0.4s 1.8s both;
+}
+.chart-label circle,
+.chart-leader {
+  opacity: 0;
+  animation: fade-in 0.4s 1.8s both;
+}
+.chart-leader {
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+.chart-x {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 60px;
+}
+.chart-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  font-family: var(--font-display);
+  color: var(--muted);
+}
+.chart-tick.start {
+  font-size: 20px;
+  top: 14px;
+}

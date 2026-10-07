@@ -6,7 +6,9 @@ import {
   KITCHEN_LEVELS,
   MAX_PLAYERS,
   RALLY_TRACKS,
-  TOURNAMENT_GAMES,
+  TOURNAMENT_CANDIDATES,
+  TOURNAMENT_MAX_GAMES,
+  TOURNAMENT_MIN_GAMES,
   TOURNAMENT_MIN_PLAYERS,
   gamesFor,
   rallyTrack,
@@ -14,8 +16,11 @@ import {
   difficultyName,
   gameInfo,
   playerCountProblem,
+  tournamentLength,
+  tournamentPool,
   tournamentProblem,
   type GameId,
+  type LobbyOptions,
   type PhoneView,
 } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
@@ -125,7 +130,8 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
   const connected = view.players.filter((p) => p.connected).length;
   const problem = selected
     ? playerCountProblem(selected, connected, view.players.length, noTv)
-    : tournamentProblem(connected, view.players.length, noTv);
+    : tournamentProblem(connected, view.players.length, noTv, view.options.tourOff);
+  const tourCount = tournamentLength(view.options.tourGames, tournamentPool(connected, view.players.length, view.options.tourOff).length);
   const canStart = problem === null;
   const max = noTv ? MAX_PLAYERS : selected?.maxPlayers;
   return (
@@ -138,7 +144,9 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
             <GameIcon game="tournament" size={54} />
             <span class="pgame-text">
               <b>Tournament</b>
-              <small>{TOURNAMENT_GAMES} random games in a row, short versions. Most points wins!</small>
+              <small>
+                {tourCount} random games in a row{view.options.tourShort ? ', short versions' : ''}. Most points wins!
+              </small>
             </span>
           </button>
         )}
@@ -154,6 +162,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
       </div>
       {noTv && <div class="muted small">Quiz, Trails and the rest need a shared screen – start a party from a TV or laptop to play them.</div>}
       <div class="toggles">
+        {tour && <TourSettings options={view.options} connected={connected} inRoom={view.players.length} send={send} />}
         {(view.selected === 'trails' || tour) && (
           <Toggle label={tour ? 'Trails power-ups' : 'Power-ups'} hint="Speed, line size, gaps, jumps, through walls and more" on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
@@ -199,7 +208,9 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         {canStart
           ? `Start ${selected ? selected.title : 'the tournament'}`
           : !selected
-            ? `Needs ${TOURNAMENT_MIN_PLAYERS}+ players`
+            ? connected < TOURNAMENT_MIN_PLAYERS
+              ? `Needs ${TOURNAMENT_MIN_PLAYERS}+ players`
+              : `Switch on ${TOURNAMENT_MIN_GAMES}+ games`
             : max && view.players.length > max
               ? `Max ${max} players`
               : `Needs ${selected.minPlayers}+ players`}
@@ -238,6 +249,72 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Tournament: how many games, short or full versions, and which games can be drawn. */
+function TourSettings({ options, connected, inRoom, send }: { options: LobbyOptions; connected: number; inRoom: number; send: Send }) {
+  const off = options.tourOff;
+  const pool = tournamentPool(connected, inRoom, off);
+  const fits = (g: GameId) => playerCountProblem(gameInfo(g), connected, inRoom) === null;
+  const count = tournamentLength(options.tourGames, pool.length);
+  const setOff = (next: GameId[]) => send({ t: 'option', key: 'tourOff', value: next });
+  return (
+    <>
+      <Slider
+        label="Games"
+        hint={
+          count < options.tourGames
+            ? `Only ${pool.length} switched-on game${pool.length === 1 ? '' : 's'} suit${pool.length === 1 ? 's' : ''} ${inRoom} players – the tournament plays ${count}.`
+            : 'How many games the tournament plays'
+        }
+        min={TOURNAMENT_MIN_GAMES}
+        max={TOURNAMENT_MAX_GAMES}
+        value={options.tourGames}
+        format={String}
+        onChange={(v) => send({ t: 'option', key: 'tourGames', value: v })}
+      />
+      <Toggle
+        label="Short versions"
+        hint={options.tourShort ? 'Quick games: fewer rounds, questions and laps' : 'Every game is played in full – a long evening!'}
+        on={options.tourShort}
+        onChange={(v) => send({ t: 'option', key: 'tourShort', value: v })}
+      />
+      <div class="segmented-wrap">
+        <div class="toggle-text">
+          <b>
+            Games in the draw: {TOURNAMENT_CANDIDATES.length - off.length} of {TOURNAMENT_CANDIDATES.length}
+          </b>
+          <small>
+            Tap a game to switch it on or off.
+            {pool.length < TOURNAMENT_CANDIDATES.length - off.length ? ` Faded ones don’t suit ${inRoom} players, so ${pool.length} can be drawn.` : ''}
+          </small>
+        </div>
+        <div class="tour-picks">
+          {TOURNAMENT_CANDIDATES.map((g) => {
+            const on = !off.includes(g);
+            return (
+              <button
+                class={`tour-pick ${on ? 'on' : ''} ${fits(g) ? '' : 'unfit'}`}
+                aria-pressed={on}
+                onClick={() => setOff(on ? [...off, g] : off.filter((x) => x !== g))}
+              >
+                <GameIcon game={g} size={40} />
+                <small>{gameInfo(g).title}</small>
+              </button>
+            );
+          })}
+        </div>
+        <div class="tour-picks-all">
+          <button class="btn btn-ghost" disabled={off.length === 0} onClick={() => setOff([])}>
+            All on
+          </button>
+          <button class="btn btn-ghost" disabled={off.length === TOURNAMENT_CANDIDATES.length} onClick={() => setOff([...TOURNAMENT_CANDIDATES])}>
+            All off
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 

@@ -30,7 +30,7 @@ are named after the brand: a glass of kogiel mogiel.
 
 The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. They need a TV for now.
 
-The VIP can also start a **Tournament**: five random games in a row (see below).
+The VIP can also start a **Tournament**: five random games in a row by default (see below).
 
 ## How a party works
 
@@ -39,14 +39,25 @@ The VIP can also start a **Tournament**: five random games in a row (see below).
 3. The **first player to join is the VIP**. The VIP picks the game, toggles options, starts rounds,
    ends a game early (⋯ menu) and can remove players, all from their phone.
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
-   places; in the co-op Pierogi Panic everyone gets 1 point per star, averaged over the levels played). The VIP chooses **Play again** or another game.
+   places; in the co-op Pierogi Panic everyone gets 1 point per star, averaged over the levels played). After a few
+   seconds the podium gives way to a **standings screen**: the table starts as it stood before the game, the bars
+   grow by what everyone just earned, the rows slide into their new places (▲▼ shows who moved), and a line chart
+   shows everyone's total game by game (the last 10 games). The VIP chooses **Play again** or another game.
 
 ### Tournament
 
-Pick **Tournament** at the top of the game list. The TV draws five different games at random from
+Pick **Tournament** at the top of the game list. The VIP's phone then shows the tournament settings:
+
+- **Games**: how many games to play, 2 to 10 (default 5). If fewer switched-on games suit the room, the
+  tournament plays as many as there are.
+- **Short versions**: on by default; switch it off to play every game in full.
+- **Games in the draw**: tap a game to switch it on or off (All on / All off). Games that don't suit the
+  current number of players are faded. A tournament needs at least two games it can play.
+
+The TV draws that many different games at random from
 the competitive ones that suit the room (never Pierogi Panic, which is co-op; Maluch Rally only with
-up to 4 players; To Ty! and Bazgroły only with 3 or more) and shows the line-up. Each game is played in its
-**short version**:
+up to 4 players; To Ty! and Bazgroły only with 3 or more) and switched on, and shows the line-up. Each game
+is played in its **short version** unless the VIP switched that off:
 
 | Game | Full game | In a tournament |
 | --- | --- | --- |
@@ -67,9 +78,11 @@ up to 4 players; To Ty! and Bazgroły only with 3 or more) and shows the line-up
 | Kafelki | 2 rounds of 60 s, tiles added up | 1 round of 45 s |
 
 After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
-points** for 1st to 6th place (ties share a place). The VIP presses **Next game** on their phone to
-go on, or ends the tournament. After the fifth game the TV crowns the champion, and the tournament
-counts as one game in the party standings (3/2/1). If the room changes mid-tournament so that the
+points** for 1st to 6th place (ties share a place). Then the standings screen animates the tournament
+table (with what each player just earned) next to a chart of everyone's tournament points game by game.
+The VIP presses **Next game** on their phone to go on, or ends the tournament. After the last game the TV
+crowns the champion, shows the whole tournament as a chart, and the tournament counts as one game in the
+party standings (3/2/1). If the room changes mid-tournament so that the
 next game can't start (say a fifth player joins before Maluch Rally), another game takes its place.
 Tournaments need a TV.
 

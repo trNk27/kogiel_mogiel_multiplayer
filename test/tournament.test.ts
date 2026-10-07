@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { GAMES, TOURNAMENT_GAMES, gameInfo, tournamentPoints, tournamentPool, tournamentProblem, type GameId } from '../shared/protocol';
-import { awardGame, newTournament, nextGame, tournamentPlaces } from '../client/src/host/tournament';
+import { GAMES, TOURNAMENT_CANDIDATES, TOURNAMENT_GAMES, gameInfo, tournamentLength, tournamentPoints, tournamentPool, tournamentProblem, type GameId } from '../shared/protocol';
+import { awardGame, cleanTourOff, newTournament, nextGame, runningTotals, tournamentPlaces } from '../client/src/host/tournament';
+import { spread } from '../client/src/host/Scoreboard';
 import { mulberry32 } from '../client/src/games/rng';
 import { trailsTarget } from '../client/src/games/trails/scoring';
 import { TY_SHORT, pickPlan, type TotyQuestion } from '../client/src/games/toty/logic';
@@ -111,5 +112,71 @@ describe('short versions', () => {
     const all = new Set<GameId>();
     for (let n = 1; n <= 8; n++) for (const g of tournamentPool(n, n)) all.add(g);
     expect([...all].sort()).toEqual(GAMES.filter((g) => !g.coop).map((g) => g.id).sort());
+  });
+});
+
+describe('tournament settings', () => {
+  const ids = ['a', 'b', 'c'];
+
+  it('plays as many games as the VIP asks for, short or full', () => {
+    const t = newTournament(tournamentPool(4, 4), ids, mulberry32(7), { games: 8, short: false });
+    expect(t.games).toHaveLength(8);
+    expect(new Set(t.games).size).toBe(8);
+    expect(t.short).toBe(false);
+    expect(newTournament(tournamentPool(4, 4), ids, mulberry32(7)).short).toBe(true);
+  });
+
+  it('only draws games that are switched on', () => {
+    const off: GameId[] = ['quiz', 'trails', 'rally'];
+    const pool = tournamentPool(4, 4, off);
+    for (const g of off) expect(pool).not.toContain(g);
+    const t = newTournament(pool, ids, mulberry32(8), { games: 10 });
+    for (const g of off) expect(t.games).not.toContain(g);
+  });
+
+  it('plays fewer games when fewer are switched on', () => {
+    const off = TOURNAMENT_CANDIDATES.filter((g) => g !== 'quiz' && g !== 'fork' && g !== 'pedal');
+    const pool = tournamentPool(4, 4, off);
+    expect(pool.sort()).toEqual(['fork', 'pedal', 'quiz']);
+    expect(tournamentLength(5, pool.length)).toBe(3);
+    expect(newTournament(pool, ids, mulberry32(9), { games: 5 }).games).toHaveLength(3);
+    expect(tournamentProblem(4, 4, false, off)).toBeNull();
+  });
+
+  it('needs at least two games switched on', () => {
+    const off = TOURNAMENT_CANDIDATES.filter((g) => g !== 'quiz');
+    expect(tournamentProblem(4, 4, false, off)).toMatch(/Switch on/);
+    // Switched on, but no good for two players.
+    const offToo = TOURNAMENT_CANDIDATES.filter((g) => g !== 'toty' && g !== 'bazgroly');
+    expect(tournamentProblem(2, 2, false, offToo)).toMatch(/Switch on/);
+  });
+
+  it('keeps only real tournament games in the off list', () => {
+    expect(cleanTourOff(['quiz', 'kitchen', 'nope', 'quiz'], TOURNAMENT_CANDIDATES)).toEqual(['quiz']);
+    expect(cleanTourOff('quiz', TOURNAMENT_CANDIDATES)).toBeNull();
+  });
+
+  it('logs every game for the chart', () => {
+    const t = newTournament(['quiz', 'fork'], ids, mulberry32(10), { games: 2 });
+    nextGame(t, () => true, []);
+    awardGame(t, { a: 3, b: 2, c: 1 });
+    nextGame(t, () => true, []);
+    awardGame(t, { a: 0, b: 2, c: 5 });
+    expect(t.log.map((e) => e.game)).toEqual(t.games);
+    expect(runningTotals(t.log, ids)).toEqual([
+      { a: 0, b: 0, c: 0 },
+      { a: 10, b: 7, c: 5 },
+      { a: 15, b: 14, c: 15 },
+    ]);
+  });
+});
+
+describe('chart labels', () => {
+  it('spreads close labels apart and keeps them in the plot', () => {
+    const ys = spread([100, 102, 300, 101], 30, 0, 320);
+    const sorted = [...ys].sort((a, b) => a - b);
+    for (let i = 1; i < sorted.length; i++) expect(sorted[i] - sorted[i - 1]).toBeGreaterThanOrEqual(30);
+    expect(ys[2]).toBe(300);
+    expect(spread([310, 315, 320], 30, 0, 320)).toEqual([260, 290, 320]);
   });
 });
