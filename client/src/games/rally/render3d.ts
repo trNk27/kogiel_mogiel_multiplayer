@@ -216,7 +216,7 @@ export interface CarLook {
 }
 
 export class RallyScene {
-  /** The look (`?style=` on the URL); the original PS2 look when none is set. */
+  /** The look: original, Vaporwave or Papercraft at random, or forced with `?style=`. */
   readonly style = new StylePass();
   readonly renderer: WebGLRenderer;
   private scene = new Scene();

@@ -8,7 +8,8 @@
  *    compiles (cel-banded lighting, PS1 vertex wobble). Patching keeps the material objects, so
  *    game code that tweaks colours or emissive later still works.
  *
- * Pick one with `?style=<id>` on the page URL. No param (or `psx`) is the original look.
+ * Each 3D game rolls its look when its scene is built: original, Vaporwave or Papercraft, a third
+ * each. `?style=<id>` on the page URL forces one (`psx` is the original).
  */
 import {
   DepthTexture,
@@ -270,9 +271,19 @@ export const STYLES: StyleDef[] = [
   { id: 'noir', name: 'Noir', frag: noir },
 ];
 
-export function styleFromUrl(): StyleDef {
+/** The looks a game can roll, equally likely. */
+export const RANDOM_STYLES = ['psx', 'vaporwave', 'paper'];
+
+/** The style forced by `?style=<id>`, if any. */
+export function styleFromUrl(): StyleDef | undefined {
   const id = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('style') : null;
-  return STYLES.find((s) => s.id === id) ?? STYLES[0];
+  return STYLES.find((s) => s.id === id);
+}
+
+/** The URL's style, or a random one of RANDOM_STYLES. */
+export function pickStyle(rng: () => number = Math.random): StyleDef {
+  const id = RANDOM_STYLES[Math.floor(rng() * RANDOM_STYLES.length)];
+  return styleFromUrl() ?? STYLES.find((s) => s.id === id) ?? STYLES[0];
 }
 
 // ---------------------------------------------------------------------------
@@ -290,7 +301,7 @@ export class StylePass {
   private size = new Vector2();
   private t0 = performance.now();
 
-  constructor(readonly style: StyleDef = styleFromUrl()) {
+  constructor(readonly style: StyleDef = pickStyle()) {
     if (!style.frag) return;
     this.mat = new ShaderMaterial({
       uniforms: {

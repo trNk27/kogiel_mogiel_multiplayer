@@ -15,8 +15,13 @@ import { DT as RALLY_DT, RallySim } from '../games/rally/sim';
 import { generateTrack, pointAt } from '../games/rally/track';
 
 const params = new URLSearchParams(location.search);
+// The games roll a random look when there's no ?style=; here, default to the original instead.
+if (!params.get('style')) {
+  params.set('style', 'psx');
+  history.replaceState(null, '', `?${params}`);
+}
 const game = params.get('game') ?? 'tanks';
-const style = styleFromUrl();
+const style = styleFromUrl() ?? STYLES[0];
 
 const bar = document.createElement('div');
 bar.className = `bar ${params.has('bare') ? 'hide' : ''}`;

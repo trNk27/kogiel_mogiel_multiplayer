@@ -219,7 +219,7 @@ export class ArenaStage {
   /** Everything a game adds goes here, so `clear()` can remove it. */
   readonly world = new Group();
   readonly sun: DirectionalLight;
-  /** The look (`?style=` on the URL); the original PS2 look when none is set. */
+  /** The look: original, Vaporwave or Papercraft at random, or forced with `?style=`. */
   readonly style = new StylePass();
   private disposables: { dispose(): void }[] = [];
 
