@@ -41,11 +41,12 @@ S = {
   'crate-berry': CRATE.format("fresh dark blueberries"),
   'fried-pan': "a round black cast iron frying pan with a short wooden handle pointing right, seen from directly above, holding three sizzling crispy golden-brown fried pierogi dumplings with onions",
 }
-names = sys.argv[1:] or [k for k in S if not os.path.exists(f'raw/{k}.png')]
-c0 = credits()
-def one(k):
-    gen('flux-2-pro', f'raw/{k}.png', STYLE.format(S[k]))
-    return k
-with cf.ThreadPoolExecutor(6) as ex:
-    for k in ex.map(one, names): print('done', k, flush=True)
-print('used', c0 - credits(), 'left', credits())
+if __name__ == '__main__':
+    names = sys.argv[1:] or [k for k in S if not os.path.exists(f'raw/{k}.png')]
+    c0 = credits()
+    def one(k):
+        gen('flux-2-pro', f'raw/{k}.png', STYLE.format(S[k]))
+        return k
+    with cf.ThreadPoolExecutor(6) as ex:
+        for k in ex.map(one, names): print('done', k, flush=True)
+    print('used', c0 - credits(), 'left', credits())

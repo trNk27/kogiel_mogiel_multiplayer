@@ -3157,3 +3157,249 @@ body.tv {
 .intro-steps.short {
   margin-top: 30px;
 }
+
+/* ---- Podmianka ------------------------------------------------------------------ */
+
+.swap-hint {
+  font-family: var(--font-display);
+  font-size: 34px;
+  margin-left: 12px;
+}
+.swap-stage {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 150px;
+  bottom: 30px;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 6px #5b2a1a,
+    0 24px 50px rgba(0, 0, 0, 0.45);
+}
+/* Wallpaper: cream with little folk flowers. */
+.swap-wall {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(232, 51, 90, 0.18) 0 5px, transparent 6px),
+    radial-gradient(circle at 75% 75%, rgba(47, 214, 168, 0.18) 0 5px, transparent 6px),
+    linear-gradient(180deg, #fbefd6, #f1dcb7);
+  background-size:
+    70px 70px,
+    70px 70px,
+    100% 100%;
+}
+.swap-shelves {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  top: 90px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+.swap-shelf {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 0 20px;
+  height: 300px;
+  align-items: end;
+}
+.swap-plank {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -22px;
+  height: 26px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #b07a46, #8b5a2b 60%, #6b4220);
+  box-shadow: 0 10px 14px rgba(60, 25, 10, 0.35);
+}
+.swap-slot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  animation: pop-in 0.45s both;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    opacity 0.4s,
+    filter 0.4s;
+}
+.swap-slot img {
+  width: 250px;
+  height: 250px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 6px rgba(60, 25, 10, 0.3));
+}
+.swap-slot.old {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+.swap-slot.new {
+  transform: scale(1.12);
+  z-index: 2;
+}
+.swap-slot.new img {
+  filter: drop-shadow(0 0 22px rgba(255, 201, 60, 0.95)) drop-shadow(0 0 6px #fff);
+}
+.swap-badge {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: var(--beet);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  box-shadow: 0 5px 0 var(--beet-deep);
+  animation: pop-in 0.4s 0.2s both;
+}
+.swap-pickers {
+  position: absolute;
+  bottom: -18px;
+  display: flex;
+  gap: 2px;
+  z-index: 3;
+}
+/* The pelmet at the top, like a little theatre. */
+.swap-pelmet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 56px;
+  z-index: 5;
+  background:
+    radial-gradient(ellipse 40px 18px at 40px 56px, transparent 97%, #a51c3d 100%) 0 0 / 80px 56px repeat-x,
+    linear-gradient(180deg, #c2185b, #a51c3d);
+  box-shadow: inset 0 -6px 0 #ffd23f;
+}
+.swap-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.swap-drape {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0 10px, rgba(255, 255, 255, 0.05) 30px, rgba(0, 0, 0, 0.28) 60px),
+    linear-gradient(180deg, #d81b60, #a51c3d 70%, #7a1230);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  animation-timing-function: cubic-bezier(0.6, 0, 0.3, 1);
+  animation-fill-mode: both;
+}
+.swap-drape::after {
+  /* Gold fringe along the bottom. */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22px;
+  background: repeating-linear-gradient(90deg, #ffd23f 0 4px, #f2a900 4px 8px);
+}
+.swap-drape.left {
+  left: 0;
+  animation-name: swap-drape-left;
+}
+.swap-drape.right {
+  right: 0;
+  animation-name: swap-drape-right;
+}
+@keyframes swap-drape-left {
+  0% {
+    translate: -100% 0;
+  }
+  32%,
+  62% {
+    translate: 0 0;
+  }
+  100% {
+    translate: -100% 0;
+  }
+}
+@keyframes swap-drape-right {
+  0% {
+    translate: 100% 0;
+  }
+  32%,
+  62% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 100% 0;
+  }
+}
+.swap-status {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  z-index: 6;
+}
+.swap-status .answer-chip {
+  width: 150px;
+  padding: 6px 4px 8px;
+  background: rgba(20, 6, 10, 0.75);
+}
+.swap-reveal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 12px;
+  font-family: var(--font-display);
+  font-size: 34px;
+}
+.swap-reveal img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+.swap-reveal-old {
+  opacity: 0.6;
+  filter: grayscale(0.7);
+}
+.swap-arrow {
+  font-size: 40px;
+  color: var(--yolk);
+}
+.swap-reveal-text {
+  margin-left: 8px;
+}
+.swap-reveal-text b {
+  color: var(--yolk);
+}
+.swap-reveal-scores {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  gap: 2px 20px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--muted);
+}
+.swap-reveal-scores span {
+  border-left: 5px solid var(--pc);
+  padding-left: 8px;
+  white-space: nowrap;
+}
+.swap-reveal-scores .gain b {
+  color: var(--dill);
+}

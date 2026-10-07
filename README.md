@@ -20,6 +20,7 @@ are named after the brand: a glass of kogiel mogiel.
 | **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
 | **Fork Fight** | A quick-draw duel. A plate on your phone: when a pierogi lands on it, tap to stab it. Socks, slippers and rubber ducks land too; stab one (or stab an empty plate) and you lose a point. The fastest three forks get 3/2/1. Eight rounds, with more fakes as you go. | 1–8 |
 | **Pierogi Parade** | Pierogi of five colours march down a busy market street on the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Lamp posts, trees, market stalls, barrels and trams hide them for a moment, some march in tight groups, and balloons, pierogi kites, pigeons, fireworks and the neighbours in the windows try to distract you. Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
+| **Podmianka** | “The swap”: eight things from a Polish kitchen stand on two shelves. Remember them, then a red curtain closes, and when it opens one of them has been swapped for something new. Tap the new one on your phone; right answers score 1000, dropping to 500 as the 15 s run out. Eight rounds: the look time shrinks from 9 to 5 s, from round 4 the shelves get rearranged too, and from round 5 the swap is a lookalike (jam for pickles, radishes for cabbage). 56 painted objects. | 1–8 |
 | **Czołgi** | Our take on Shell Shocked: little tanks in a farmyard: a shell that bounces once, a cabbage mortar that flies over walls, three armour. Last tank rolling wins. | 2–8 |
 | **Grzybki** | Our take on Mushroom Mixup. Babcia calls a colour; run to the giant mushroom of that colour before the timer runs out, then everything else sinks into the pond. Shove rivals off, ride the spinning ring, and watch for colour swaps. Last one dry wins the round. | 2–8 |
 | **Pushy Pierogi** | Our take on Pushy Penguins: sumo on a frozen pond: glide, Shove and Brace to knock everyone into the water while the ice cracks and curling stones slide through. | 2–8 |
@@ -300,6 +301,9 @@ total). The chefs were painted the same way: one base chef, back and side views 
 image editing, then the dough recoloured into each player colour so every chef is the same
 character. Floors, counter tops and walls are FLUX.2 textures too, with a different floor per
 level. The scripts are in [`tools/sprites`](tools/sprites).
+
+Podmianka's 36 extra objects (`client/public/sprites/swap/`) were made the same way with
+`tools/sprites/swap.py`, which reuses the kitchen style prompt, and `process.py … raw-swap`.
 
 Phones send the joystick 20 times a second at most, quantised to 32 directions and two speeds, and
 only when it changes. The button and the minigame results are single messages. The TV runs the

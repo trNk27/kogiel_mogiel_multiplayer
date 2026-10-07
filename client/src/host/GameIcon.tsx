@@ -130,6 +130,22 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
         <path d="M14 22 l8 6 M20 14 l5 9 M30 12 l1 9" stroke="#ffd23f" stroke-width="4" stroke-linecap="round" />
       </svg>
     );
+  if (game === 'swap')
+    return (
+      <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="4" y="4" width="92" height="92" rx="22" fill="#3a1420" />
+        <rect x="12" y="40" width="76" height="6" rx="2" fill="#8b5a2b" />
+        <rect x="12" y="74" width="76" height="6" rx="2" fill="#8b5a2b" />
+        <circle cx="26" cy="31" r="8" fill="#ff3d6e" stroke="#2a120a" stroke-width="2.5" />
+        <rect x="44" y="20" width="12" height="20" rx="3" fill="#a3e048" stroke="#2a120a" stroke-width="2.5" />
+        <path d="M66 40 l8 -18 l8 18 Z" fill="#ffd23f" stroke="#2a120a" stroke-width="2.5" stroke-linejoin="round" />
+        <circle cx="26" cy="64" r="9" fill="#4f9dff" stroke="#2a120a" stroke-width="2.5" />
+        <text x="50" y="72" text-anchor="middle" font-size="22" font-weight="700" fill="#ffd23f" font-family="Fredoka Variable, sans-serif">?</text>
+        <rect x="66" y="56" width="16" height="18" rx="4" fill="#b27bff" stroke="#2a120a" stroke-width="2.5" />
+        <path d="M8 12 H92 V22 Q72 30 50 22 Q28 30 8 22 Z" fill="#c2185b" />
+        <path d="M8 12 Q10 50 20 92 H8 Z M92 12 Q90 50 80 92 H92 Z" fill="#a51c3d" />
+      </svg>
+    );
   if (game === 'parade')
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">

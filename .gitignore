@@ -8,3 +8,5 @@ tools/sprites/raw/
 tools/sprites/chef/
 tools/sprites/tex/
 dist-*/
+tools/sprites/raw-swap/
+tools/sprites/__pycache__/

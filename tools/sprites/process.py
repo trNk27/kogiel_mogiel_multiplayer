@@ -1,15 +1,16 @@
 """Cut each generated sprite out of its white background and save a 192px WebP with alpha.
 
-Usage: python3 process.py ../../client/public/sprites/kitchen   (reads raw/*.png; needs Pillow and numpy)
+Usage: python3 process.py ../../client/public/sprites/kitchen [raw-dir]   (reads raw/*.png by default; needs Pillow and numpy)
 """
 import glob, os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 OUT = sys.argv[1]
+RAW = sys.argv[2] if len(sys.argv) > 2 else 'raw'
 os.makedirs(OUT, exist_ok=True)
 SIZE = 192
 SKIP = {'crate'}
-for f in sorted(glob.glob('raw/*.png')):
+for f in sorted(glob.glob(f'{RAW}/*.png')):
     name = os.path.splitext(os.path.basename(f))[0]
     if name in SKIP: continue
     im = Image.open(f).convert('RGB')

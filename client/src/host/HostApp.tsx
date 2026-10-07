@@ -14,6 +14,7 @@ import { BP_QUESTIONS_PER_GAME, BP_QUESTIONS_SHORT } from '../games/ballpark/log
 import { PEDAL_GOAL, PEDAL_HEATS, PEDAL_HEATS_SHORT } from '../games/pedal/logic';
 import { FORK_ROUNDS, FORK_ROUNDS_SHORT } from '../games/fork/logic';
 import { PARADE_ROUNDS, PARADE_ROUNDS_SHORT } from '../games/parade/logic';
+import { SWAP_ROUNDS, SWAP_ROUNDS_SHORT } from '../games/swap/logic';
 import { TY_FULL, TY_SHORT } from '../games/toty/logic';
 import { howTo as tanksHowTo } from '../games/tanks/logic';
 import { howTo as mushroomHowTo } from '../games/mushroom/logic';
@@ -333,6 +334,14 @@ function howTo(game: GameId, short: boolean): string[] {
         'Watch the plate on your phone. When a pierogi lands on it, tap to stab it – fast!',
         'Socks, slippers and rubber ducks land too. Stab one (or stab too early) and you lose a point.',
         `${rounds} rounds. The fastest fork gets 3 points, then 2, then 1.`,
+      ];
+    }
+    case 'swap': {
+      const rounds = short ? SWAP_ROUNDS_SHORT : SWAP_ROUNDS;
+      return [
+        'Eight things sit on the shelves. Remember them!',
+        'A curtain closes, and one of them gets swapped for something new.',
+        `Tap the new one on your phone – faster answers score more. ${rounds} rounds; later the shelves get rearranged and the swaps get sneaky.`,
       ];
     }
     case 'parade': {

@@ -95,7 +95,8 @@ export type GameId =
   | 'pushy'
   | 'gallery'
   | 'cookbook'
-  | 'tiles';
+  | 'tiles'
+  | 'swap';
 
 export interface GameInfo {
   id: GameId;
@@ -130,6 +131,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'pedal', title: 'Tour de Pierogi', tagline: 'Pedal LEFT, RIGHT, LEFT… as fast as your thumbs go.', minPlayers: 1 },
   { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi first. Don’t fall for the sock.', minPlayers: 1 },
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count the right pierogi as the parade rolls by.', minPlayers: 1 },
+  { id: 'swap', title: 'Podmianka', tagline: 'Eight things, a curtain, one swap. Spot the new one.', minPlayers: 1 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Little tanks. Bouncing shells, cabbage mortars. Last tank rolling wins.', minPlayers: 2 },
   { id: 'mushroom', title: 'Grzybki', tagline: 'Run to the mushroom that’s called – the rest sink into the pond.', minPlayers: 2 },
   { id: 'pushy', title: 'Pushy Pierogi', tagline: 'Shove everyone off the frozen pond. Mind the cracks.', minPlayers: 2 },
@@ -499,6 +501,20 @@ export type PhoneView =
       res: { n: number | null; answer: number; pts: number; total: number } | null;
     }
   /**
+   * Podmianka: remember the shelves on the TV; after the curtain, tap the thing that's new.
+   * `items` are sprite URLs of what's on the shelves now (only once you're allowed to pick).
+   */
+  | {
+      v: 'swap';
+      phase: 'look' | 'curtain' | 'pick' | 'result';
+      round: number;
+      rounds: number;
+      endsAt: number;
+      items: string[] | null;
+      picked: number | null;
+      res: { correct: boolean; answer: number; added: string; removed: string; removedSrc: string; pts: number; total: number } | null;
+    }
+  /**
    * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki): the phone is a
    * joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
    */
@@ -611,7 +627,7 @@ export type PhoneMsg =
   | { t: 'photos'; ids: string[] }
   /** To Ty! Vote for a player. */
   | { t: 'vote'; id: string }
-  /** To Ty! Vote for a doodle, by its position in the gallery. Bazgroły: pick a title, by its position. */
+  /** To Ty! Vote for a doodle, by its position in the gallery. Bazgroły: pick a title, by its position. Podmianka: the shelf slot you think is new. */
   | { t: 'pick'; i: number }
   /** To Ty! doodle on a photo; Bazgroły drawing of your prompt. */
   | { t: 'doodle'; strokes: Stroke[] }

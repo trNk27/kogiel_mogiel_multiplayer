@@ -10,6 +10,7 @@ import { BazgrolyGame } from './bazgroly/BazgrolyGame';
 import { PedalGame } from './pedal/PedalGame';
 import { ForkGame } from './fork/ForkGame';
 import { ParadeGame } from './parade/ParadeGame';
+import { SwapGame } from './swap/SwapGame';
 import { TanksGame } from './tanks/TanksGame';
 import { MushroomGame } from './mushroom/MushroomGame';
 import { PushyGame } from './pushy/PushyGame';
@@ -39,6 +40,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new ForkGame(host, ids);
     case 'parade':
       return new ParadeGame(host, ids);
+    case 'swap':
+      return new SwapGame(host, ids);
     case 'tanks':
       return new TanksGame(host, ids);
     case 'mushroom':
