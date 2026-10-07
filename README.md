@@ -20,6 +20,14 @@ are named after the brand: a glass of kogiel mogiel.
 | **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
 | **Fork Fight** | A quick-draw duel. A plate on your phone: when a pierogi lands on it, tap to stab it. Socks, slippers and rubber ducks land too; stab one (or stab an empty plate) and you lose a point. The fastest three forks get 3/2/1. Eight rounds, with more fakes as you go. | 1–8 |
 | **Pierogi Parade** | Pierogi of five colours march down a busy market street on the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Lamp posts, trees, market stalls, barrels and trams hide them for a moment, some march in tight groups, and balloons, pierogi kites, pigeons, fireworks and the neighbours in the windows try to distract you. Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
+| **Czołgi** | Our take on Shell Shocked: little tanks in a farmyard: a shell that bounces once, a cabbage mortar that flies over walls, three armour. Last tank rolling wins. | 2–8 |
+| **Grzybki** | Our take on Mushroom Mixup. Babcia calls a colour; run to the giant mushroom of that colour before the timer runs out, then everything else sinks into the pond. Shove rivals off, ride the spinning ring, and watch for colour swaps. Last one dry wins the round. | 2–8 |
+| **Pushy Pierogi** | Our take on Pushy Penguins: sumo on a frozen pond: glide, Shove and Brace to knock everyone into the water while the ice cracks and curling stones slide through. | 2–8 |
+| **Strzelnica** | Our take on Boo-ting Gallery: a fairground shooting gallery: steer a crosshair with the joystick, Fire corks and Reload. Ghosts 1, bats 2, golden ghost 5 – but shoot a babcia cut-out and you lose 3. | 1–8 |
+| **Babcia’s Cookbook** | Our take on Booksquirm: a giant page slams down on the book: stand in one of the holes cut in it to survive, and shove rivals out of it. Holes get smaller and pages faster. | 1–8 |
+| **Kafelki** | Inspired by Tiles and Tribulations: paint the kitchen floor your colour: walk, roll-dash and splat paint bombs while tiles crack and Babcia's mop sweeps. Most tiles wins. | 2–8 |
+
+The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. They need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row (see below).
 
@@ -50,6 +58,12 @@ up to 4 players; To Ty! and Bazgroły only with 3 or more) and shows the line-up
 | Tour de Pierogi | 3 heats | 1 heat |
 | Fork Fight | 8 rounds | 4 rounds (starting with more fakes) |
 | Pierogi Parade | 3 rounds | 1 medium round |
+| Czołgi | 3 rounds of 90 s | 1 round |
+| Grzybki | 3 rounds | 1 round |
+| Pushy Pierogi | 3 rounds | 1 round |
+| Strzelnica | 3 rounds of 30 s | 1 round of 40 s, everything mixed |
+| Babcia’s Cookbook | 3 rounds | 1 round |
+| Kafelki | 2 rounds of 60 s, tiles added up | 1 round of 45 s |
 
 After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
 points** for 1st to 6th place (ties share a place). The VIP presses **Next game** on their phone to
@@ -133,6 +147,10 @@ client/src/games/bazgroly/* Bazgroły: prompts, lies, scoring (logic.ts) and the
 client/src/phone/bazgroly.tsx  Bazgroły drawing, fake titles and guessing on the phone
 client/src/games/pedal|fork|parade/*  Tour de Pierogi, Fork Fight, Pierogi Parade (pure logic + TV views)
 client/src/phone/minigames.tsx   their phone controllers (pedals, the plate, the tap counter)
+client/src/phone/arenaPad.tsx    the arena games' phone pad: a joystick and up to two buttons
+client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts) and pad input (input.ts)
+client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki, Pushy Pierogi, Strzelnica,
+                            Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
 client/src/host/tournament.ts    picking the tournament's games and its points table
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
@@ -155,6 +173,7 @@ npm run dev          # builds the frontend (in watch mode) and runs `wrangler de
 - **Test bench:** <http://localhost:8787/dev?n=4> opens the host and 4 simulated phones in iframes.
   The phones join automatically. Click a phone and use ← → (or A / D) to steer in Trails or pedal in
   Tour de Pierogi, and Space to stab in Fork Fight or count in Pierogi Parade (↓ / Backspace takes one off).
+  In the arena games, arrows / WASD are the joystick and Space and Shift the two buttons.
 - **No-TV test bench:** <http://localhost:8787/dev?notv&n=3>: the first phone starts a party
   without a TV and the others join it. In a race, ← → steer, ↓ brakes and Space fires the item.
   `/join?debug` exposes a phone's race as `window.rally` (`rally.autodrive = true` drives for you).
@@ -437,6 +456,63 @@ A round goes like this (timings at the top of
   to six props, two or three trams, kites, fireworks and 14–20 targets among 28–38 decoys. The TV
   animates everything with CSS only. Phones keep the count and send it as it changes
   (`count {r, n}`, at most every 150 ms); counting closes 2.5 s after the last pierogi has left.
+
+### Arena games
+
+Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook and Kafelki share one phone controller
+(`client/src/phone/arenaPad.tsx`): a floating joystick that fills most of the screen and up to two
+buttons under it. The host sends a `pad` view naming the buttons, with a cooldown deadline (`readyAt`)
+the phone animates itself, so cooldowns cost no extra messages. Phones send the stick as `stick {x, y}`
+(32 directions × 3 speeds, at most 20 times a second and only when it changes) and buttons as
+`btn {b, on}` on press and release. The TV runs each game's simulation at a fixed 60 Hz in a pure,
+unit-tested `logic.ts` and draws it with the shared kit in `client/src/games/arena/kit.ts`: one
+three.js camera over the whole arena, rendered at 45 % of 1080p and scaled up pixelated, flat-shaded
+low-poly meshes, pixel textures, blob shadows and low-poly pierogi characters, like Maluch Rally.
+`/?debug` on the TV exposes the running game as `window.tanks`, `window.mushroom` and so on.
+
+### Czołgi
+Little toy tanks in a walled farmyard (44 × 26 m) with stone walls, hay stacks, wells, a shed and wooden crates. The whole arena is on the TV; each phone is a joystick plus two buttons. Push the stick to drive and aim at once: the hull turns towards it (it turns on the spot first if you point more than about 100° away) and the turret snaps to it. Let go and the tank stops, with the turret left where it was.
+
+- **Shell** flies at 22 m/s, ricochets once off walls and obstacles and pops on the second contact. One damage. At most two of your shells at a time, half a second between shots. Your own shell can hit you after it has bounced. Two shells that meet both pop.
+- **Mortar** (green button) lobs a cabbage over everything to a point 11 m ahead of the turret, landing after one second. A red ring shows where. Everything within 3 m takes a hit (you too), crates are destroyed and tanks are knocked back. Four seconds to reload.
+- **Armour** is three hits. At one heart the tank smokes; at zero it explodes into a wreck that stays as an obstacle and the driver pops out. Crates break after two shell hits or one mortar blast. New spawns get two seconds of shield.
+- **Rounds** last 90 seconds or until one tank is left. In the last 20 seconds it is sudden death and every hit takes all remaining armour. Each round: +1 for every tank you knock out, plus one for every tank that went out before you, plus 2 for the last tank rolling. Three rounds (a different layout each time); one round in a tournament.
+- Layouts come from five templates with random, point-symmetric crates; a flood fill makes sure every spawn can reach every open area. Spawns are evenly spread round the edge, facing the centre.
+
+The simulation is in `client/src/games/tanks/logic.ts` (`TUNING`, pure, 60 Hz), the 3D scene in `scene.ts` and the HUD in `TanksGame.tsx`.
+
+### Grzybki
+A forest pond at golden hour. Everyone starts on a tree stump ringed by 6–8 giant mushrooms (6 for 2–4 players, 7 for 5–6, 8 for 7–8). Babcia, on her boat, holds up a colour (also a big banner on the TV and the title on your phone). Run to a mushroom of that colour before the ring runs out! Then the stump and every other mushroom sink, and anyone whose centre isn't on a cap of the called colour falls in the pond and swims to the bank, out for the round.
+- **Controls:** the joystick walks (5.5 m/s, a little inertia). **Shove** is a short dash (1.2 s cooldown) that knocks back anyone you bump, so shove rivals off the cap. Walking alone can't take you over an edge; shoves and crowds can.
+- **Calls:** 4.5 s for the first, 12 % shorter each time, down to 1.6 s. From call 3 the ring turns and carries you. Now and then the mushrooms swap colours as the colour is called (with 0.45 s extra), and from call 5 two mushrooms may share the called colour. The target can always be reached from where every survivor stands; if not, the call gets longer.
+- **Scoring:** a player scores the number of players who fell in before them, and the last one dry gets +2. If everyone left falls in the same call it's a tie with no bonus; a round also ends after 30 calls. 3 rounds, 1 in a tournament. Tuning is in `client/src/games/mushroom/logic.ts`.
+
+### Pushy Pierogi
+A sumo brawl on a frozen pond at dusk. The TV shows a round ice floe (10 m radius) in a snowy village with pine trees, a lit wooden hut and falling snow. Everyone is a skating pierogi with a little knitted hat. The stick pushes rather than steers, so you glide and drift, topping out at 7 m/s.
+- **Shove** is a dash in the stick direction with a 1.6 s cooldown. A pierogi hit mid-dash goes flying. **Brace** (blue button) plants your feet for 0.8 s: you become very heavy and almost stop, and anyone pushing into you bounces off. It has a 3 s cooldown.
+- A pierogi whose centre leaves the ice falls in with a splash and is out for the round.
+- After 15 s the outer chunks of the floe crack and flash. 2 s later they break off and sink, outer ring first, until only a small centre disc is left around the 73 s mark.
+- Every 9–13 s a curling stone slides across the pond. An arrow on the bank and a red lane on the ice warn you 1.2 s before.
+- A round ends when one pierogi is left, or at 90 s, when everyone still standing shares the win. Round points are the number of players who fell in before you, and the winner gets +2. Three rounds; one in a tournament. Tuning is in `client/src/games/pushy/logic.ts`.
+
+### Strzelnica
+A night-time fairground shooting gallery seen straight on. Each player steers a crosshair in their colour with the joystick: full deflection crosses the screen in about 1.1 s and gentle pushes are much slower for fine aim. **Fire** shoots a cork (6 per magazine, at most about 7 shots a second); **Reload** takes 0.9 s and is never automatic.
+- The TV decides every hit when it processes the shot. It projects each target's visible bounds to screen pixels, so a ghost half hidden behind a hedge only counts above the hedge, and picks the nearest target under the crosshair. If two players hit the same target in the same frame, both score.
+- Ghosts are 1 point, bats 2 and the rare golden ghost 5, but shooting a babcia cut-out costs 3 and earns an "Ojej!". Targets glide on two rails, pop up behind hedges, gravestones and waves, or peek out of the haunted cottage's windows, door and attic.
+- Three rounds of 30 s, each with its own pattern: gliding ghosts, then pop-ups, windows and bats, then everything faster with more babcias. A round is a seeded list of spawns (`makeSchedule(seed, round, short, players)` in `client/src/games/gallery/logic.ts`); more players mean a denser round (up to 2.4×). In a tournament it is one 40 s round that mixes everything.
+
+### Babcia’s Cookbook
+A giant old cookbook lies open on Babcia’s kitchen table and everyone stands on the right-hand page (16 × 11 m). Every few seconds the left-hand page lifts, swings over the spine and slams down. It has holes cut in it (circles, rectangles, a pierogi, a star, a heart), and light shining through them marks lit patches on the page below. A pierogi whose centre is inside a hole when the page lands survives; everyone else is squashed flat and leaves a sticker.
+- Controls: joystick walks (6 m/s, a little inertia); **Dash** is a short burst (about 3 m, 1.5 s cooldown) that shoves anyone it touches. Players are soft circles, so a full hole pushes people out.
+- First pages: 3–4 big holes, 2.8 s from lift to landing. The swing shortens by 0.085 s a page down to 1.7 s; holes shrink from about 2.2 m to 0.55 m and drop to 1–2 per page; from page 6 a hole sometimes slides while the page swings. Every hole is reachable from every corner of the page within the swing time.
+- Points: one per player squashed before you, plus 2 for the last one standing (a tie shares the win). Alone you score the pages you survived. 3 rounds, 1 in a tournament. Logic in `client/src/games/cookbook/logic.ts`.
+
+### Kafelki
+A tile-claiming brawl on a big old kitchen floor. Everyone is a pierogi in their colour; walk over a tile to paint it, including tiles somebody else painted. Most tiles at the end of the round wins. The floor is 12×8 tiles for 2–3 players, 16×10 for 4–5 and 20×12 for 6–8.
+- **Controls:** the joystick walks (6 m/s). **Roll** is a 0.5 s rolling-pin dash that paints a 3-wide streak and bowls over anyone it hits for 1 s (cooldown 3 s). **Splat** lobs a paint bomb 6 m ahead that lands after 0.7 s and paints a 3×3 blob, stunning anyone on it (cooldown 6 s). Stunned players can't paint.
+- **Tribulations:** in the second half of the round a few tiles crack, then crumble into holes for 4 s before coming back as fresh, unclaimed tiles. Walk onto a hole and you fall in and respawn at the edge after 2 s. Babcia's mop sweeps two rows now and then, wiping them to white; it is announced with a striped warning band 1.8 s ahead.
+- **Rounds:** 2 rounds of 60 s, tile counts added up. The TV shows a live tile count per player, then a tally where the bars grow from last place to first.
+- Tuning is in `client/src/games/tiles/logic.ts` (speeds, cooldowns, stun, crack/hole times, round lengths).
 
 `/?debug` on the TV exposes the room as `window.host`; `host.finish({...})` ends the current game
 with made-up scores, which is handy for walking through a tournament.
