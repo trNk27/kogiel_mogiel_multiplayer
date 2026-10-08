@@ -24,7 +24,7 @@ export const STAGE_H = 1080;
 /** Crosshairs stay inside this box (stage px): clear of the top bar and the counter. */
 export const PLAY = { x0: 84, y0: 150, x1: 1836, y1: 905 } as const;
 /** Full stick deflection crosses the stage in about this many seconds. */
-export const CROSS_SECONDS = 1.1;
+export const CROSS_SECONDS = 2.2;
 export const MAX_SPEED = STAGE_W / CROSS_SECONDS;
 /** Speed curve: gentle deflections are much slower than full (precision), full is MAX_SPEED. */
 export const SPEED_CURVE = 1.5;

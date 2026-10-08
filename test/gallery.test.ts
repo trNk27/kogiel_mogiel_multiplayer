@@ -39,16 +39,16 @@ const run = (s: ReturnType<typeof newShooter>, sx: number, sy: number, secs: num
 };
 
 describe('crosshair motion', () => {
-  it('full deflection crosses the stage in about 1.1 s, with a light acceleration', () => {
+  it('full deflection crosses the stage in about 2.2 s, with a light acceleration', () => {
     const s = newShooter(0, 1);
     s.x = PLAY.x0;
     s.y = 500;
     run(s, 1, 0, 0.1);
     expect(s.vx).toBeGreaterThan(0);
     expect(s.vx).toBeLessThan(MAX_SPEED * 0.8);
-    run(s, 1, 0, 1.2, 0.1);
+    run(s, 1, 0, 2.4, 0.1);
     expect(s.x).toBe(PLAY.x1);
-    // Without the clamp it would take ~1.1 s: cross 1808 px at full speed.
+    // Without the clamp it would take ~2.2 s: cross 1808 px at full speed.
     const t = newShooter(0, 1);
     t.x = PLAY.x0;
     let secs = 0;
@@ -56,8 +56,8 @@ describe('crosshair motion', () => {
       stepShooter(t, 1, 0, 1 / 60, secs);
       secs += 1 / 60;
     }
-    expect(secs).toBeGreaterThan(1.0);
-    expect(secs).toBeLessThan(1.35);
+    expect(secs).toBeGreaterThan(2.0);
+    expect(secs).toBeLessThan(2.5);
   });
 
   it('gentle deflections are much slower (precision)', () => {
