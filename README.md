@@ -39,7 +39,7 @@ the notch) are added around controls, never taken out of them.
 
 The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. They need a TV for now.
 
-The VIP can also start a **Tournament**: five random games in a row by default (see below).
+The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
 ## How a party works
 
@@ -59,6 +59,8 @@ Pick **Tournament** at the top of the game list. The VIP's phone then shows the 
 
 - **Games**: how many games to play, 2 to 10 (default 5). If fewer switched-on games suit the room, the
   tournament plays as many as there are.
+- **Party mode**: off by default. Instead of a random line-up, the players vote for every game (see
+  *Party mode* below).
 - **Short versions**: on by default; switch it off to play every game in full.
 - **Games in the draw**: tap a game to switch it on or off (All on / All off). Games that don't suit the
   current number of players are faded. A tournament needs at least two games it can play.
@@ -95,6 +97,21 @@ crowns the champion, shows the whole tournament as a chart, and the tournament c
 party standings (3/2/1). If the room changes mid-tournament so that the
 next game can't start (say a fifth player joins before Maluch Rally), another game takes its place.
 Tournaments need a TV.
+
+#### Party mode
+
+With **Party mode** on, nothing is drawn up front: the line-up on the TV is a row of question marks.
+Before every game the TV shows a little 3D village square (the arena games' look) with a market stall
+for each of **three games** that suit the room, and every phone becomes the arena pad. Walk your pierogi
+onto a stall's mat to vote for that game; you can change your mind until the 15 s are up (once everybody
+stands on a mat, it's cut to 2.5 s). Then comes the draw, as in Ultimate Chicken Horse: **every vote is a
+ticket**, a light hops from ticket to ticket, slows down and stops on one, and that game is played. Three
+votes for Kafelki and one for Quiz give Kafelki a 3 in 4 chance, not a sure win. If nobody votes, each game
+gets one ticket. The three games on offer are ones not played yet in this tournament, as long as there
+are any; if only two games can be played, the vote is between two, and with one there's no vote.
+After each game the VIP's button reads **Vote for the next game**. The vote's rules and timings are in
+`client/src/host/vote/logic.ts`, the draw (`drawVote`) and the choice of games (`partyChoices`) in
+`client/src/host/tournament.ts`.
 
 ### No TV? Play on phones only
 
@@ -182,7 +199,8 @@ client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki
                             Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
-client/src/host/tournament.ts    picking the tournament's games and its points table
+client/src/host/tournament.ts    picking the tournament's games and its points table, party mode's choices and draw
+client/src/host/vote/*      party mode's vote: walking onto a game (logic.ts), the village square (scene.ts), TV view (VoteRoom.tsx)
 data/trivia.json            100 quiz questions
 data/ballpark.json          40 estimation questions
 data/toty.json              62 "who's most likely to…" questions (26 with a doodle prompt)

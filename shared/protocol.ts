@@ -216,6 +216,8 @@ export interface LobbyOptions {
   tourShort: boolean;
   /** Tournament: games the VIP switched off (everything else can be drawn). */
   tourOff: GameId[];
+  /** Tournament party mode: before every game, walk onto one of three games to vote for it. */
+  tourParty: boolean;
 }
 
 export const DEFAULT_OPTIONS: LobbyOptions = {
@@ -228,6 +230,7 @@ export const DEFAULT_OPTIONS: LobbyOptions = {
   tourGames: TOURNAMENT_GAMES,
   tourShort: true,
   tourOff: [],
+  tourParty: false,
 };
 
 /**
@@ -600,7 +603,7 @@ export type PhoneView =
       /** Rooms without a TV: the final scores and party standings that the TV would show. */
       board?: { name: string; color: ColorId; score: number; place: number; party: number }[];
       /** In a tournament: this was game `game` of `games`; what you earned and where you stand. */
-      tour?: { game: number; games: number; next: GameId | null; gained: number; points: number; place: number };
+      tour?: { game: number; games: number; next: GameId | null; gained: number; points: number; place: number; vote?: boolean };
     }
   /** The end of a tournament. */
   | { v: 'tourResults'; place: number; points: number; players: number; vip: boolean };
@@ -621,7 +624,8 @@ export interface PadButton {
 /** The arena pad: a joystick (sent as `stick`) and buttons (sent as `btn`). */
 export interface PadView {
   v: 'pad';
-  game: GameId;
+  /** 'vote': walking onto the next game in a party-mode tournament. */
+  game: GameId | 'vote';
   /**
    * ready: the round is about to start (the stick works, buttons don't yet);
    * play: go; out: knocked out of this round, watch the TV; over: the round is over.

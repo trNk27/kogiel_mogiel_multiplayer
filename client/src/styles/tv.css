@@ -2624,6 +2624,22 @@ body.tv {
   color: var(--ink);
   box-shadow: 0 0 0 5px var(--yolk);
 }
+.tour-slot.open {
+  background: transparent;
+  box-shadow: inset 0 0 0 3px var(--line);
+  border: 3px dashed rgba(251, 240, 217, 0.25);
+}
+.tour-slot.open b {
+  color: var(--muted);
+}
+.tour-slot-q {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 850;
+  line-height: 1;
+  color: var(--yolk);
+}
 .tour-intro .intro-title {
   font-size: 120px;
 }
