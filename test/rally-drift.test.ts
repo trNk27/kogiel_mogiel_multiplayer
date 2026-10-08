@@ -57,10 +57,15 @@ describe('hard tracks', () => {
   it('offers a mixed cup, a hard cup and every single track', () => {
     expect(RALLY_TRACKS.filter((t) => !t.cup).map((t) => t.id)).toEqual([...ALL_SHAPES]);
     for (const s of ALL_SHAPES) expect(SHAPE_NAMES[s]).toBe(rallyTrack(s).name);
-    expect(cupShapes('cup', 3, shuffle).every((s) => (SHAPES as readonly string[]).includes(s))).toBe(true);
+    for (const races of [1, 3]) {
+      const mixed = cupShapes('cup', races, shuffle);
+      expect(mixed).toHaveLength(races);
+      expect(new Set(mixed).size).toBe(races);
+      expect(mixed.filter((s) => (HARD_SHAPES as readonly string[]).includes(s))).toHaveLength(Math.ceil(races / 2));
+    }
     expect(new Set(cupShapes('hard', 3, shuffle))).toEqual(new Set(HARD_SHAPES));
     expect(cupShapes('pass', 3, shuffle)).toEqual(['pass', 'pass', 'pass']);
-    expect(cupShapes('nonsense', 3, shuffle)).toHaveLength(6);
+    expect(cupShapes('nonsense', 3, shuffle)).toHaveLength(3);
   });
 });
 
