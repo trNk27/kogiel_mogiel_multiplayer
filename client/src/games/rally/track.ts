@@ -33,7 +33,10 @@ export const SHAPE_NAMES = Object.fromEntries(ALL_SHAPES.map((s) => [s, rallyTra
 export function cupShapes(choice: string, races: number, shuffle: <T>(xs: readonly T[]) => T[]): Shape[] {
   if (choice === 'hard') return shuffle(HARD_SHAPES);
   if ((ALL_SHAPES as readonly string[]).includes(choice)) return Array.from({ length: races }, () => choice as Shape);
-  return shuffle(SHAPES);
+  // The mixed cup: different tracks, more than half of them hard (a single race is always a hard one).
+  const hard = shuffle(HARD_SHAPES).slice(0, Math.ceil(races / 2));
+  const easy = shuffle(SHAPES).slice(0, Math.max(0, races - hard.length));
+  return shuffle([...hard, ...easy]);
 }
 
 export const isHard = (shape: Shape) => (HARD_SHAPES as readonly Shape[]).includes(shape);

@@ -238,7 +238,7 @@ export const DEFAULT_OPTIONS: LobbyOptions = {
  * or all three races on one kind of track (a new random layout each time).
  */
 export const RALLY_TRACKS: readonly { id: string; name: string; hint: string; hard?: boolean; cup?: boolean }[] = [
-  { id: 'cup', name: 'Mixed cup', hint: 'Three different tracks', cup: true },
+  { id: 'cup', name: 'Mixed cup', hint: 'Three different tracks, mostly hard ones', cup: true },
   { id: 'hard', name: 'Hard cup', hint: 'Hairpins, S-bends and narrow barriers – drift!', cup: true, hard: true },
   { id: 'ring', name: 'Forest Ring', hint: 'Sweeping bends through the woods' },
   { id: 'kidney', name: 'Kidney Bend', hint: 'One long hook' },
