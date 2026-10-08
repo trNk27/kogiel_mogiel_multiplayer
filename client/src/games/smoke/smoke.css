@@ -1,0 +1,229 @@
+/* ---- Fajki ------------------------------------------------------------------- */
+
+.smoke-table {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.smoke-timer {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.cig-ember {
+  fill: #ff7a2a;
+  filter: drop-shadow(0 0 4px #ff5a1a);
+  transition: fill 0.15s;
+}
+.cig-ember.hot {
+  fill: #ffe14a;
+  filter: drop-shadow(0 0 10px #ff8a2a) drop-shadow(0 0 18px #ff5a1a);
+}
+.smoke-slot {
+  animation: smoke-appear 0.35s ease-out both;
+}
+@keyframes smoke-appear {
+  from {
+    opacity: 0;
+  }
+}
+.smoke-pull {
+  animation: smoke-inhale 0.6s ease-out both;
+}
+@keyframes smoke-inhale {
+  to {
+    transform: scale(1.08);
+  }
+}
+.smoke-cough {
+  animation: smoke-shake 0.3s linear infinite;
+}
+@keyframes smoke-shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  25% {
+    transform: translate(-5px, 2px) rotate(-4deg);
+  }
+  75% {
+    transform: translate(5px, -2px) rotate(4deg);
+  }
+}
+.smoke-khe {
+  animation: smoke-khe 1.35s ease-out infinite both;
+}
+@keyframes smoke-khe {
+  from {
+    transform: translate(0, -10px) scale(0.3);
+    opacity: 0.9;
+  }
+  to {
+    transform: translate(0, -110px) scale(1.4);
+    opacity: 0;
+  }
+}
+.smoke-wrong {
+  animation: smoke-toss 1s ease-in 0.5s both;
+}
+@keyframes smoke-toss {
+  to {
+    transform: translate(40px, -120px) rotate(300deg);
+    opacity: 0;
+  }
+}
+.smoke-cloud {
+  animation: smoke-drift 2.8s ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes smoke-drift {
+  from {
+    transform: translate(0, 0) scale(0.3);
+    opacity: 0.95;
+  }
+  to {
+    transform: translate(-190px, -40px) scale(var(--sz, 1.5));
+    opacity: 0;
+  }
+}
+.smoke-free {
+  animation: smoke-blink 1s ease-in-out infinite alternate;
+}
+@keyframes smoke-blink {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+/* The tower of grins at the end. */
+.smoke-tower {
+  display: grid;
+  place-items: center;
+}
+.smoke-stack {
+  position: relative;
+  width: 1000px;
+}
+.smoke-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 28px;
+  animation: smoke-drop 0.45s cubic-bezier(0.5, 0, 0.6, 1.4) both;
+}
+@keyframes smoke-drop {
+  from {
+    transform: translateY(-1100px);
+  }
+}
+.smoke-floor-name {
+  text-align: right;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  color: var(--pc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.smoke-floor-pierogi {
+  position: relative;
+}
+.smoke-floor-pierogi svg {
+  display: block;
+}
+.smoke-floor-score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  animation: fade-in 0.4s both;
+  animation-delay: calc(var(--flash) + 1.6s);
+}
+.smoke-floor.win .smoke-floor-score {
+  color: var(--yolk);
+}
+.tw-grin,
+.tw-eyes-squint {
+  opacity: 0;
+  animation: smoke-show 0.12s both;
+  animation-delay: var(--flash);
+}
+.tw-smile,
+.tw-eyes-open {
+  animation: smoke-hide 0.12s both;
+  animation-delay: var(--flash);
+}
+@keyframes smoke-show {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes smoke-hide {
+  to {
+    opacity: 0;
+  }
+}
+.tw-teeth {
+  fill: #fbf8ee;
+  animation: smoke-yellow 1.6s ease-in both;
+  animation-delay: calc(var(--flash) + 0.35s);
+}
+@keyframes smoke-yellow {
+  to {
+    fill: var(--teeth);
+  }
+}
+.smoke-crown {
+  position: absolute;
+  right: -6%;
+  top: -22%;
+  font-size: 56px;
+  transform: rotate(18deg);
+  animation: pop-in 0.5s both;
+  animation-delay: var(--crown);
+  z-index: 2;
+}
+.smoke-floor.win .smoke-floor-pierogi {
+  animation: smoke-glow 0.8s ease-in-out infinite alternate;
+  animation-delay: var(--crown);
+}
+@keyframes smoke-glow {
+  from {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  to {
+    filter: drop-shadow(0 0 26px var(--yolk));
+  }
+}
+.smoke-flash {
+  position: absolute;
+  inset: -54px -96px;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  animation: smoke-flash 0.7s ease-out both;
+  animation-delay: var(--flash);
+}
+@keyframes smoke-flash {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}

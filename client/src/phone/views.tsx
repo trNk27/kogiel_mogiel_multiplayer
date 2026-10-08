@@ -38,6 +38,7 @@ import { TyDraw, TyPick, TyResult, TySelfie, TyVote } from './toty';
 import { BzDraw, BzGuess, BzLie, BzResult } from './bazgroly';
 import { ForkPad, ParadePad, PedalPad } from './minigames';
 import { ArenaPad } from './arenaPad';
+import { SmokePad } from './smoke';
 
 export interface Props<V extends PhoneView['v']> {
   view: Extract<PhoneView, { v: V }>;
@@ -94,6 +95,8 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <ParadePad view={view} me={me} send={send} offset={offset} key={view.round} />;
     case 'swap':
       return <SwapPad view={view} me={me} send={send} offset={offset} key={view.round} />;
+    case 'smoke':
+      return <SmokePad view={view} me={me} send={send} offset={offset} />;
     case 'pad':
       return <ArenaPad view={view} me={me} send={send} offset={offset} key={view.game} />;
     case 'results':

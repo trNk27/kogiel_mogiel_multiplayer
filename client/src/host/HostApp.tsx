@@ -24,6 +24,7 @@ import { howTo as pushyHowTo } from '../games/pushy/logic';
 import { howTo as galleryHowTo } from '../games/gallery/logic';
 import { howTo as cookbookHowTo } from '../games/cookbook/logic';
 import { howTo as tilesHowTo } from '../games/tiles/logic';
+import { howTo as smokeHowTo } from '../games/smoke/logic';
 
 const controller = new HostController();
 const params = new URLSearchParams(location.search);
@@ -333,6 +334,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return cookbookHowTo(short);
     case 'tiles':
       return tilesHowTo(short);
+    case 'smoke':
+      return smokeHowTo();
   }
 }
 

@@ -2763,3 +2763,232 @@ body.phone-body input {
 .tour-picks-all .btn:disabled {
   opacity: 0.4;
 }
+
+/* ---- Fajki ----------------------------------------------------------------------- */
+
+.smoke-pad {
+  position: relative;
+  gap: 10px;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.smoke-grab {
+  appearance: none;
+  flex: 1;
+  border: 0;
+  border-radius: 32px;
+  background: color-mix(in srgb, var(--me) 30%, #241015);
+  color: var(--cream);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 46px;
+  letter-spacing: 0.08em;
+  box-shadow:
+    inset 0 -12px 0 rgba(0, 0, 0, 0.25),
+    0 0 0 4px color-mix(in srgb, var(--me) 60%, transparent);
+  touch-action: none;
+  transition:
+    transform 0.06s,
+    opacity 0.15s;
+}
+.smoke-grab:active {
+  transform: scale(0.97) translateY(4px);
+}
+.smoke-grab-hand {
+  animation: smoke-grab-reach 1.1s ease-in-out infinite;
+}
+@keyframes smoke-grab-reach {
+  0%,
+  100% {
+    transform: translateY(18px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.smoke-grab.busy {
+  opacity: 0.45;
+}
+.smoke-grab.busy .smoke-grab-hand {
+  animation: none;
+  transform: translateY(-14px);
+}
+.smoke-held {
+  flex: 0 0 auto;
+  padding: 6px 4px 0;
+}
+.smoke-track {
+  position: relative;
+  flex: 1;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--me) 14%, #241015);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--me) 35%, transparent);
+  overflow: hidden;
+  touch-action: none;
+}
+.smoke-track.on {
+  background: color-mix(in srgb, var(--me) 8%, #1a0b10);
+}
+.smoke-arrows {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--me);
+  pointer-events: none;
+}
+.smoke-arrows svg {
+  animation: smoke-arrow 1.2s ease-in-out infinite both;
+}
+@keyframes smoke-arrow {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(-8px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(8px);
+  }
+}
+.smoke-trail,
+.smoke-goal,
+.smoke-ghost,
+.smoke-finger {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  pointer-events: none;
+}
+.smoke-trail {
+  left: calc(50% - 9px);
+  right: auto;
+  width: 18px;
+  border-radius: 9px;
+  opacity: 0.85;
+  transition: background 0.1s;
+}
+.smoke-goal {
+  height: 0;
+  border-top: 4px dashed rgba(251, 240, 217, 0.45);
+}
+.smoke-ghost {
+  height: 0;
+}
+.smoke-ghost::before {
+  content: '';
+  position: absolute;
+  left: calc(50% - 30px);
+  top: -30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 4px dashed rgba(251, 240, 217, 0.55);
+}
+.smoke-finger {
+  height: 0;
+}
+.smoke-hold {
+  position: absolute;
+  left: calc(50% - 46px);
+  top: -46px;
+}
+.smoke-verdict {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 18%;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 48px;
+  pointer-events: none;
+  animation: pop-in 0.3s both;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+.smoke-verdict.v0 {
+  color: var(--dill);
+}
+.smoke-verdict.v1,
+.smoke-verdict.v4 {
+  color: var(--beet);
+}
+.smoke-verdict.v2 {
+  color: var(--blueberry);
+}
+.smoke-verdict.v3 {
+  color: var(--yolk);
+}
+.smoke-exhale {
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  font-size: 70px;
+  pointer-events: none;
+  animation: smoke-exhale 1.1s ease-out both;
+}
+@keyframes smoke-exhale {
+  from {
+    transform: translate(-50%, 30px) scale(0.5);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -40px) scale(1.6);
+    opacity: 0;
+  }
+}
+.smoke-cough-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.smoke-cough-face > * {
+  grid-area: 1 / 1;
+}
+.smoke-shake {
+  animation: smoke-phone-shake 0.3s linear infinite;
+}
+@keyframes smoke-phone-shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  25% {
+    transform: translate(-6px, 2px) rotate(-5deg);
+  }
+  75% {
+    transform: translate(6px, -2px) rotate(5deg);
+  }
+}
+.smoke-coughing .tw-grin,
+.pv-center .tw-grin {
+  opacity: 1;
+}
+.pv-center .tw-smile,
+.pv-center .tw-eyes-open {
+  opacity: 0;
+}
+.pv-center .tw-teeth {
+  fill: var(--teeth);
+}
+.pv-center .tw-eyes-squint {
+  opacity: 1;
+}
+.smoke-pad .cig-ember {
+  fill: #ff7a2a;
+  transition: fill 0.15s;
+}
+.smoke-pad .cig-ember.hot {
+  fill: #ffe14a;
+  filter: drop-shadow(0 0 6px #ff8a2a);
+}

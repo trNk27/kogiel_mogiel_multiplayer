@@ -17,6 +17,7 @@ import { PushyGame } from './pushy/PushyGame';
 import { GalleryGame } from './gallery/GalleryGame';
 import { CookbookGame } from './cookbook/CookbookGame';
 import { TilesGame } from './tiles/TilesGame';
+import { SmokeGame } from './smoke/SmokeGame';
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
   switch (id) {
@@ -54,5 +55,7 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new CookbookGame(host, ids);
     case 'tiles':
       return new TilesGame(host, ids);
+    case 'smoke':
+      return new SmokeGame(host, ids);
   }
 }

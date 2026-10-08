@@ -96,7 +96,8 @@ export type GameId =
   | 'gallery'
   | 'cookbook'
   | 'tiles'
-  | 'swap';
+  | 'swap'
+  | 'smoke';
 
 export interface GameInfo {
   id: GameId;
@@ -138,6 +139,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'gallery', title: 'Strzelnica', tagline: 'Pop the ghosts. Spare the babcias.', minPlayers: 1 },
   { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
   { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
+  { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
@@ -546,6 +548,21 @@ export type PhoneView =
    * joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
    */
   | PadView
+  /**
+   * Fajki. `hand`: empty (GRAB), reaching for the tray, holding a cigarette of your colour (`left` of
+   * CIG_LENGTH still to smoke), or coughing until `coughUntil` (host clock ms). The game ends at `endsAt`.
+   */
+  | {
+      v: 'smoke';
+      phase: 'ready' | 'play' | 'over';
+      goAt: number;
+      endsAt: number;
+      hand: 'empty' | 'reach' | 'cig' | 'cough';
+      left: number;
+      coughUntil: number;
+      /** Bumped on every grab, so the phone can reset its gesture. */
+      n: number;
+    }
   /** Bazgroły: draw your secret prompt on a blank page. */
   | { v: 'bzDraw'; prompt: string; round: number; rounds: number; endsAt: number; done: boolean }
   /**
@@ -664,6 +681,10 @@ export type PhoneMsg =
   | { t: 'fork'; r: number; ms: number }
   /** Pierogi Parade: your count in round `r` (sent while it changes). */
   | { t: 'count'; r: number; n: number }
+  /** Fajki: reach for the cigarette in front of you. */
+  | { t: 'grab' }
+  /** Fajki: started pulling on the cigarette (`pull`), or let go: puff quality `q` (0–1) and how it went (`v`, see Verdict). */
+  | { t: 'puff'; ev: 'pull' | 'blow'; q?: number; v?: number }
   /** Bazgroły: a fake title for the drawing on the TV, or `auto` to have the game make one up. */
   | { t: 'lie'; text: string; auto?: boolean }
   // VIP-only actions (the host ignores them from anybody else)

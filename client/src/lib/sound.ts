@@ -111,6 +111,32 @@ export class Sound {
   whoosh() {
     this.tone(300, 0.25, { type: 'sine', vol: 0.1, slide: 900 });
   }
+  /** A breath of smoke going out; `strength` 0–1. */
+  puff(strength = 1) {
+    this.noise(0.25 + 0.5 * strength, 0.08 + 0.14 * strength);
+  }
+  cough() {
+    [0, 0.32, 0.6].forEach((d, i) => {
+      this.tone(170 - i * 15, 0.16, { type: 'sawtooth', vol: 0.07, delay: d, slide: 95 });
+      this.later(d, () => this.noise(0.18, 0.3));
+    });
+  }
+  /** A camera shutter. */
+  shutter() {
+    this.noise(0.05, 0.4);
+    this.later(0.09, () => this.noise(0.07, 0.3));
+    this.tone(2400, 0.05, { type: 'square', vol: 0.03 });
+  }
+
+  private later(sec: number, fn: () => void) {
+    if (sec <= 0) fn();
+    else window.setTimeout(fn, sec * 1000);
+  }
+
+  /** The shared audio context once sound is unlocked (the music plays through it too). */
+  get context(): AudioContext | null {
+    return this.ctx;
+  }
 }
 
 export const sound = new Sound();
