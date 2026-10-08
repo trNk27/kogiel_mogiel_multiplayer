@@ -3,6 +3,8 @@ import { GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, tournamen
 import { FolkBorder, Logo, Pierogi } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
+import { music } from '../lib/music';
+import { trackForGame, type TrackId } from '../lib/tracks';
 import { HostController, type Standing } from './controller';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
@@ -65,6 +67,11 @@ export function HostApp() {
   }, [c.code]);
 
   const s = c.screen;
+  // Music: the waiting-room tune between games, each game's own track from its intro on.
+  const track: TrackId | null =
+    s.s === 'landing' || s.s === 'creating' ? null : s.s === 'intro' ? trackForGame(s.game) : s.s === 'game' && c.game ? trackForGame(c.game.id) : 'lobby';
+  useEffect(() => music.play(track), [track]);
+
   let body;
   switch (s.s) {
     case 'landing':

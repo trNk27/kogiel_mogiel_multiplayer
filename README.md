@@ -149,7 +149,12 @@ they were. If the TV reloads, it resumes the same room. During games, phones kee
 - **Frontend:** Preact + Vite with three pages: `/` (TV), `/join` (phone) and `/dev` (test bench).
   Trails renders on a Canvas 2D at a fixed 60 Hz timestep with an occupancy grid for collisions.
   Sound effects are synthesized with WebAudio, so there are no audio files, and there's a mute
-  toggle on the TV and in the VIP's lobby options.
+  toggle on the TV and in the VIP's lobby options. The music is synthesized too: tracks written out
+  note by note in `client/src/lib/tracks.ts` and played by a small scheduler (`client/src/lib/music.ts`).
+  The waiting room has its own tune (a lazy accordion mazurka), and games that feel alike share a track:
+  *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły), *Polka Pierogi* (Tour de Pierogi,
+  Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games), *Maluch Turbo*
+  (Maluch Rally, Trails) and *Smoke Rings* (Fajki).
 - The TV is a fixed **1920×1080 stage with a 5 % safe-area margin**, scaled to fit any screen.
 
 ```
