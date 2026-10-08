@@ -33,7 +33,8 @@ import { createGame } from '../games/registry';
 import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { sound } from '../lib/sound';
 import { placesFor } from './standings';
-import { awardGame, cleanTourOff, newTournament, nextGame, tournamentPlaces, type Tournament } from './tournament';
+import { awardGame, cleanTourOff, hasNext, newTournament, nextGame, nextVote, setVoted, tournamentPlaces, type Tournament } from './tournament';
+import { VoteRoom } from './vote/VoteRoom';
 
 export interface Player {
   id: string;
@@ -69,6 +70,8 @@ export type Screen =
   | { s: 'results'; game: GameId; standings: Standing[]; coop?: CoopResult }
   /** The games of a new tournament, before the first one starts. */
   | { s: 'tourIntro' }
+  /** Party mode: walking onto the next game to vote for it. */
+  | { s: 'vote' }
   /** The end of a tournament: everyone ranked by tournament points. */
   | { s: 'tourEnd'; standings: Standing[]; games: GameId[]; log: Tournament['log'] };
 
@@ -120,6 +123,8 @@ export class HostController implements GameHost {
   game: Game | null = null;
   /** The tournament being played, if any. */
   tournament: Tournament | null = null;
+  /** Party mode: the vote for the next game, while it's on. */
+  vote: VoteRoom | null = null;
   gamesPlayed = 0;
   /** Who's VIP now: it passes to the next player (in joining order) after every game. */
   private vip: string | null = null;
@@ -294,7 +299,10 @@ export class HostController implements GameHost {
           p.connected = online.has(p.id);
           if (was && !p.connected) p.disconnectedAt = now;
           if (p.connected) p.disconnectedAt = null;
-          if (was !== p.connected) this.game?.onConnection?.(p.id, p.connected);
+          if (was !== p.connected) {
+            this.game?.onConnection?.(p.id, p.connected);
+            this.vote?.onConnection(p.id, p.connected);
+          }
         }
         for (const id of online) {
           if (this.players.has(id)) this.sendView(id, true);
@@ -327,6 +335,7 @@ export class HostController implements GameHost {
     this.sendView(id, true);
     if (!was) {
       this.game?.onConnection?.(id, true);
+      this.vote?.onConnection(id, true);
       this.refreshLobby();
       this.changed();
     }
@@ -340,6 +349,7 @@ export class HostController implements GameHost {
     p.connected = false;
     p.disconnectedAt = Date.now();
     this.game?.onConnection?.(id, false);
+    this.vote?.onConnection(id, false);
     this.refreshLobby();
     this.changed();
   }
@@ -387,7 +397,7 @@ export class HostController implements GameHost {
         return;
       case 'option':
         if (!isVip) return;
-        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items' || m.key === 'tourShort') this.options = { ...this.options, [m.key]: !!m.value };
+        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items' || m.key === 'tourShort' || m.key === 'tourParty') this.options = { ...this.options, [m.key]: !!m.value };
         else if (m.key === 'tourGames') {
           const v = Math.round(Number(m.value));
           if (!(v >= TOURNAMENT_MIN_GAMES && v <= TOURNAMENT_MAX_GAMES)) return;
@@ -444,6 +454,7 @@ export class HostController implements GameHost {
         return;
       default:
         if (this.screen.s === 'game' && this.game?.ids.includes(id)) this.game.onMessage(id, m);
+        else if (this.screen.s === 'vote' && this.vote?.ids.includes(id)) this.vote.onMessage(id, m);
     }
   }
 
@@ -478,6 +489,7 @@ export class HostController implements GameHost {
     this.lastSent.delete(id);
     sound.leave();
     if (this.game?.ids.includes(id)) this.game.onRemoved?.(id);
+    this.vote?.onRemoved(id);
     this.afterRosterChange();
   }
 
@@ -538,6 +550,7 @@ export class HostController implements GameHost {
     this.tournament = newTournament(this.tourPool(), [...this.players.keys()], Math.random, {
       games: this.options.tourGames,
       short: this.options.tourShort,
+      party: this.options.tourParty,
     });
     this.screen = { s: 'tourIntro' };
     sound.fanfare();
@@ -549,9 +562,38 @@ export class HostController implements GameHost {
   private nextTourGame() {
     const t = this.tournament;
     if (!t) return;
+    if (t.party) {
+      const pool = this.tourPool().filter((g) => this.canStart(g));
+      const choices = nextVote(t, pool);
+      if (!choices) this.endTournament();
+      else if (choices.length === 1) {
+        // Nothing to vote about.
+        setVoted(t, choices[0]);
+        this.startGame(choices[0]);
+      } else this.startVote(choices);
+      return;
+    }
     const game = nextGame(t, (g) => this.canStart(g), this.tourPool());
     if (game) this.startGame(game);
     else this.endTournament();
+  }
+
+  /** Party mode: everybody walks onto the game they want next, then the draw picks one. */
+  private startVote(choices: GameId[]) {
+    const t = this.tournament!;
+    this.endGame();
+    this.screen = { s: 'vote' };
+    const vote = new VoteRoom(this, [...this.players.keys()], choices, t.index + 1, t.total, (game) => {
+      if (this.vote !== vote || this.tournament !== t) return;
+      setVoted(t, game);
+      this.startGame(game);
+    }, t.points);
+    this.vote = vote;
+    this.lastSent.clear();
+    sound.whoosh();
+    vote.start();
+    this.refresh();
+    this.changed();
   }
 
   private endTournament() {
@@ -599,6 +641,8 @@ export class HostController implements GameHost {
     clearTimeout(this.introTimer);
     this.game?.dispose();
     this.game = null;
+    this.vote?.dispose();
+    this.vote = null;
   }
 
   private toLobby() {
@@ -719,10 +763,16 @@ export class HostController implements GameHost {
       case 'intro': {
         const t = this.tournament;
         const ready = this.noTv ? 'Get ready!' : 'Get ready · 📺 look up';
-        return { v: 'wait', title: gameInfo(s.game).title, text: t ? `🏆 ${t.index + 1} / ${t.games.length} · ${ready}` : ready, icon: s.game };
+        return { v: 'wait', title: gameInfo(s.game).title, text: t ? `🏆 ${t.index + 1} / ${t.total} · ${ready}` : ready, icon: s.game };
       }
-      case 'tourIntro':
-        return { v: 'wait', title: 'Tournament!', text: `${this.tournament?.games.length ?? 0} quick games · 📺`, icon: 'tournament' };
+      case 'tourIntro': {
+        const t = this.tournament;
+        const n = t?.total ?? 0;
+        return { v: 'wait', title: t?.party ? 'Party tournament!' : 'Tournament!', text: `${n} ${t?.short ? 'quick ' : ''}games${t?.party ? ' · you vote for each' : ''} · 📺`, icon: 'tournament' };
+      }
+      case 'vote':
+        if (this.vote?.ids.includes(id)) return this.vote.viewFor(id);
+        return { v: 'wait', title: 'Voting for the next game', text: 'You’re in the next one · 📺', icon: 'tournament' };
       case 'tourEnd': {
         const st = s.standings.find((x) => x.id === id);
         return { v: 'tourResults', place: st?.place ?? 0, points: st?.score ?? 0, players: s.standings.length, vip };
@@ -758,8 +808,9 @@ export class HostController implements GameHost {
     const table = tournamentPlaces(t, [...this.players.keys()]);
     return {
       game: t.index + 1,
-      games: t.games.length,
+      games: t.total,
       next: t.games[t.index + 1] ?? null,
+      ...(t.party && hasNext(t) ? { vote: true } : {}),
       gained: t.gained[id] ?? 0,
       points: t.points[id] ?? 0,
       place: table.find((r) => r.id === id)?.place ?? 0,

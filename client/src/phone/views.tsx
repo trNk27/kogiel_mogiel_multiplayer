@@ -154,7 +154,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
       </div>
       <div class="pgame-detail">
         <b>{selected ? selected.title : 'Tournament'}</b>
-        <span>{selected ? (noTv ? selected.noTv : selected.tagline) : `${tourCount} random games · ${view.options.tourShort ? 'short versions' : 'full length'}`}</span>
+        <span>{selected ? (noTv ? selected.noTv : selected.tagline) : `${tourCount} ${view.options.tourParty ? 'games, voted for one by one' : 'random games'} · ${view.options.tourShort ? 'short versions' : 'full length'}`}</span>
       </div>
       {noTv && <div class="muted small center">More games need a TV or laptop.</div>}
       <div class="toggles">
@@ -262,6 +262,16 @@ function TourSettings({ options, connected, inRoom, send }: { options: LobbyOpti
         value={options.tourGames}
         format={String}
         onChange={(v) => send({ t: 'option', key: 'tourGames', value: v })}
+      />
+      <Toggle
+        label="Party mode"
+        hint={
+          options.tourParty
+            ? 'Before every game, walk onto one of three games to vote – every vote is a ticket in the draw'
+            : 'Off: the games are drawn at random'
+        }
+        on={options.tourParty}
+        onChange={(v) => send({ t: 'option', key: 'tourParty', value: v })}
       />
       <Toggle
         label="Short versions"
@@ -787,7 +797,7 @@ function Results({ view, me, send }: Props<'results'>) {
       {view.vip && view.tour ? (
         <div class="vip-actions">
           <button class="btn btn-big btn-yolk" onClick={() => send({ t: 'again' })}>
-            {view.tour.next ? `Next game: ${gameInfo(view.tour.next).title}` : 'Crown the champion'}
+            {view.tour.next ? `Next game: ${gameInfo(view.tour.next).title}` : view.tour.vote ? 'Vote for the next game' : 'Crown the champion'}
           </button>
           <button class="btn btn-big btn-ghost" onClick={() => send({ t: 'lobby' })}>
             End tournament

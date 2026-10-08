@@ -5,7 +5,12 @@ import { placesFor } from './standings';
 
 /** A run of short games with its own points table. */
 export interface Tournament {
+  /** The games, in order. In party mode only the ones voted for so far. */
   games: GameId[];
+  /** How many games the tournament plays. */
+  total: number;
+  /** Party mode: before every game the players vote between a few, instead of a random line-up. */
+  party: boolean;
   /** The game being played (or just played); -1 before the first one. */
   index: number;
   /** Play the short versions of the games. */
@@ -22,14 +27,70 @@ export interface TournamentSettings {
   /** How many games to play (fewer if the pool is smaller). */
   games?: number;
   short?: boolean;
+  /** Party mode: vote for each game. */
+  party?: boolean;
 }
 
-/** Pick the games: `settings.games` different ones from `pool`, in random order. */
+/**
+ * Pick the games: `settings.games` different ones from `pool`, in random order.
+ * In party mode none are picked yet: the players vote before each game.
+ */
 export function newTournament(pool: readonly GameId[], ids: readonly string[], rng: Rng = Math.random, settings: TournamentSettings = {}): Tournament {
   const points: Record<string, number> = {};
   for (const id of ids) points[id] = 0;
-  const count = settings.games ?? TOURNAMENT_GAMES;
-  return { games: shuffle(pool, rng).slice(0, count), index: -1, short: settings.short ?? true, points, gained: {}, log: [] };
+  const count = Math.min(settings.games ?? TOURNAMENT_GAMES, pool.length);
+  const party = !!settings.party;
+  const games = party ? [] : shuffle(pool, rng).slice(0, count);
+  return { games, total: party ? count : games.length, party, index: -1, short: settings.short ?? true, points, gained: {}, log: [] };
+}
+
+/** Games to vote between in party mode. */
+export const PARTY_CHOICES = 3;
+
+/** Is there another game to play after the current one? */
+export function hasNext(t: Tournament): boolean {
+  return t.index + 1 < t.total;
+}
+
+/**
+ * Party mode, before each game: up to `n` different games to vote between, from the ones that can be
+ * played now. Games not played yet in this tournament come first; played ones only fill up the choice.
+ */
+export function partyChoices(t: Tournament, pool: readonly GameId[], rng: Rng = Math.random, n = PARTY_CHOICES): GameId[] {
+  const fresh = shuffle(pool.filter((g) => !t.games.includes(g)), rng);
+  const played = shuffle(pool.filter((g) => t.games.includes(g)), rng);
+  return [...fresh, ...played].slice(0, n);
+}
+
+/**
+ * Party mode, before each game: move on, and return the games to vote between – or null when the
+ * tournament is over (all its games played, or none of the games can be played any more).
+ */
+export function nextVote(t: Tournament, pool: readonly GameId[], rng: Rng = Math.random): GameId[] | null {
+  if (!hasNext(t)) return null;
+  const choices = partyChoices(t, pool, rng);
+  if (choices.length === 0) {
+    t.total = t.index + 1;
+    return null;
+  }
+  t.index++;
+  return choices;
+}
+
+/** Party mode: the vote is in – this is the game being played now. */
+export function setVoted(t: Tournament, game: GameId) {
+  t.games[t.index] = game;
+}
+
+/**
+ * Party mode, the draw (as in Ultimate Chicken Horse): every vote is a ticket, and one ticket wins.
+ * Without a single vote every choice gets one ticket. Returns the tickets (choice indices, in order)
+ * and the index of the winning ticket.
+ */
+export function drawVote(votes: readonly (number | null)[], choices: number, rng: Rng = Math.random): { tickets: number[]; win: number } {
+  let tickets = votes.filter((v): v is number => v !== null && v >= 0 && v < choices).sort((a, b) => a - b);
+  if (tickets.length === 0) tickets = Array.from({ length: choices }, (_, i) => i);
+  return { tickets, win: Math.min(tickets.length - 1, Math.floor(rng() * tickets.length)) };
 }
 
 /** Hand out tournament points for a finished game (scores by player id; higher is better). */
@@ -57,6 +118,7 @@ export function nextGame(t: Tournament, playable: (g: GameId) => boolean, spares
     if (unused.length) t.games[t.index] = unused[Math.floor(rng() * unused.length)];
     else t.games.splice(t.index, 1);
   }
+  t.total = t.games.length;
   return t.games[t.index] ?? null;
 }
 

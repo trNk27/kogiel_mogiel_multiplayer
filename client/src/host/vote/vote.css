@@ -1,0 +1,193 @@
+/* Party-mode vote: TV overlays over the 3D village square. The container and canvas reuse .rally / .rally-canvas. */
+
+.vote-top {
+  position: absolute;
+  left: 150px;
+  right: 150px;
+  top: 100px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+  z-index: 3;
+}
+.vote-rule {
+  padding: 8px 26px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.66);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 34px;
+  color: var(--cream);
+  white-space: nowrap;
+}
+.vote-clock {
+  margin-left: auto;
+  min-width: 96px;
+  padding: 4px 22px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.66);
+  box-shadow: 0 0 0 4px var(--dill);
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 56px;
+  text-align: center;
+  color: var(--cream);
+}
+.vote-clock.hurry {
+  box-shadow: 0 0 0 4px var(--beet);
+  color: #ffd0da;
+  animation: pop-in 0.3s;
+}
+
+/* A label floating over each stall: the game's icon and name. Anchored at its bottom centre. */
+.vote-label {
+  position: absolute;
+  translate: -50% -100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 22px 10px;
+  border-radius: 26px;
+  background: rgba(21, 9, 16, 0.78);
+  box-shadow:
+    0 0 0 4px var(--cc),
+    0 8px 0 rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 2;
+  transition:
+    opacity 0.35s,
+    filter 0.35s,
+    scale 0.25s;
+}
+.vote-label b {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 34px;
+  color: var(--cream);
+  white-space: nowrap;
+}
+.vote-count {
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 26px;
+  color: var(--cc);
+  filter: brightness(1.35);
+}
+.vote-label.hot {
+  scale: 1.08;
+  box-shadow:
+    0 0 0 6px #fff4dc,
+    0 0 40px 8px var(--cc);
+}
+.vote-label.won {
+  scale: 1.12;
+  box-shadow:
+    0 0 0 6px var(--yolk),
+    0 0 60px 14px var(--cc);
+}
+.vote-label.lost {
+  opacity: 0.45;
+  filter: saturate(0.4);
+}
+
+/* The draw: one ticket per vote, the light hopping along them. */
+.vote-tickets {
+  position: absolute;
+  left: 150px;
+  right: 150px;
+  bottom: 96px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 3;
+}
+.vote-ticket {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 128px;
+  padding: 8px 6px 6px;
+  border-radius: 20px;
+  background: rgba(21, 9, 16, 0.8);
+  box-shadow: 0 0 0 4px var(--cc);
+  transition:
+    scale 0.08s,
+    opacity 0.3s;
+}
+.vote-ticket small {
+  max-width: 116px;
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 20px;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vote-ticket.on {
+  scale: 1.18;
+  background: var(--cc);
+  box-shadow:
+    0 0 0 5px #fff4dc,
+    0 0 36px 6px var(--cc);
+}
+.vote-ticket.dim {
+  opacity: 0.4;
+}
+
+.vote-note {
+  position: absolute;
+  left: 50%;
+  bottom: 262px;
+  translate: -50% 0;
+  padding: 8px 26px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.72);
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 30px;
+  color: var(--cream);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+.vote-note.vote-gl {
+  top: 240px;
+  bottom: auto;
+}
+
+.vote-chosen {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  translate: -50% -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 64px 22px;
+  border-radius: 32px;
+  background: rgba(20, 6, 10, 0.88);
+  box-shadow:
+    0 0 0 6px var(--cc),
+    0 12px 0 rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 5;
+}
+.vote-chosen small {
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 32px;
+  color: var(--muted);
+}
+.vote-chosen b {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 96px;
+  color: var(--cream);
+  white-space: nowrap;
+}

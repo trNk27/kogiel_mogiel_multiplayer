@@ -87,6 +87,9 @@ export function HostApp() {
     case 'tourIntro':
       body = <TourIntro />;
       break;
+    case 'vote':
+      body = c.vote?.render();
+      break;
     case 'tourEnd':
       body = <TourEnd standings={s.standings} games={s.games} log={s.log} />;
       break;
@@ -273,9 +276,9 @@ function SelectedGame({ sel }: { sel: Selection }) {
     const count = tournamentLength(o.tourGames, pool.length);
     return (
       <div class="game-detail">
-        <b>Tournament</b>
+        <b>{o.tourParty ? 'Party tournament' : 'Tournament'}</b>
         <span>
-          {count} random games · {o.tourShort ? 'short versions' : 'full length'}
+          {count} {o.tourParty ? 'games, voted for one by one' : 'random games'} · {o.tourShort ? 'short versions' : 'full length'}
         </span>
         <span class="game-card-flag">
           {o.tourOff.length ? `${TOURNAMENT_CANDIDATES.length - o.tourOff.length} of ${TOURNAMENT_CANDIDATES.length} games in the draw` : 'All games in the draw'}
@@ -353,7 +356,7 @@ function Intro({ game }: { game: GameId }) {
     <div class="screen intro">
       {t && (
         <div class="intro-tour">
-          🏆 {t.index + 1} / {t.games.length}
+          🏆 {t.index + 1} / {t.total}
           {t.short ? ' · short' : ''}
         </div>
       )}
@@ -468,14 +471,16 @@ function Results({ game, standings }: { game: GameId; standings: Standing[] }) {
 // ---- Tournament ---------------------------------------------------------------
 
 /** The tournament's games in a row: played ones ticked, the current one highlighted. */
-function Lineup({ games, current, done, compact }: { games: GameId[]; current: number; done: number; compact?: boolean }) {
+function Lineup({ games, current, done, compact, total = games.length }: { games: GameId[]; current: number; done: number; compact?: boolean; total?: number }) {
+  // Party mode: games still to be voted for are question marks.
+  const slots: (GameId | null)[] = Array.from({ length: Math.max(total, games.length) }, (_, i) => games[i] ?? null);
   return (
     <div class={`tour-lineup ${compact ? 'compact' : ''}`}>
-      {games.map((g, i) => (
-        <div class={`tour-slot ${i < done ? 'done' : ''} ${i === current ? 'now' : ''}`} style={{ animationDelay: `${compact ? 0 : 300 + i * 450}ms` }}>
+      {slots.map((g, i) => (
+        <div class={`tour-slot ${i < done ? 'done' : ''} ${i === current ? 'now' : ''} ${g ? '' : 'open'}`} style={{ animationDelay: `${compact ? 0 : 300 + i * 450}ms` }}>
           <span class="tour-slot-num">{i < done && i !== current ? '✓' : i + 1}</span>
-          <GameIcon game={g} size={compact ? 40 : i === current ? 96 : 76} />
-          <b>{gameInfo(g).title}</b>
+          {g ? <GameIcon game={g} size={compact ? 40 : i === current ? 96 : 76} /> : <span class="tour-slot-q" style={{ fontSize: `${compact ? 34 : 64}px` }}>?</span>}
+          <b>{g ? gameInfo(g).title : 'You vote'}</b>
         </div>
       ))}
     </div>
@@ -490,11 +495,12 @@ function TourIntro() {
       <div class="intro-icon pop-in">
         <GameIcon game="tournament" size={180} />
       </div>
-      <h1 class="intro-title">Tournament!</h1>
+      <h1 class="intro-title">{t.party ? 'Party tournament!' : 'Tournament!'}</h1>
       <p class="intro-tag">
-        {t.games.length} {t.short ? 'quick ' : ''}games · {TOURNAMENT_POINTS.filter((p) => p > 0).join(' · ')} points
+        {t.total} {t.short ? 'quick ' : ''}games · {TOURNAMENT_POINTS.filter((p) => p > 0).join(' · ')} points
       </p>
-      <Lineup games={t.games} current={-1} done={0} />
+      {t.party && <p class="intro-tag">Before every game, walk onto the one you want – every vote is a ticket in the draw</p>}
+      <Lineup games={t.games} current={-1} done={0} total={t.total} />
       <div class="intro-bar">
         <div class="intro-bar-fill" style={{ animationDuration: '9s' }} />
       </div>
@@ -528,10 +534,17 @@ function TourResults({ game, standings }: { game: GameId; standings: Standing[] 
   const t = controller.tournament!;
   const vip = controller.summaries().find((p) => p.vip);
   const next = t.games[t.index + 1];
+  const vote = t.party && t.index + 1 < t.total;
   const story = useAfter(STORY_MS);
   const hint = (
     <div class="lobby-hint">
-      {vip ? (next ? `${vip.name} (VIP): press “Next game” for ${gameInfo(next).title}.` : `${vip.name} (VIP): press “Crown the champion”!`) : ''}
+      {vip
+        ? next
+          ? `${vip.name} (VIP): press “Next game” for ${gameInfo(next).title}.`
+          : vote
+            ? `${vip.name} (VIP): press “Vote for the next game”.`
+            : `${vip.name} (VIP): press “Crown the champion”!`
+        : ''}
     </div>
   );
   if (story) {
@@ -539,7 +552,7 @@ function TourResults({ game, standings }: { game: GameId; standings: Standing[] 
     return (
       <div class="screen results">
         <ScoreStory
-          title={`Tournament standings after game ${t.index + 1} of ${t.games.length}`}
+          title={`Tournament standings after game ${t.index + 1} of ${t.total}`}
           race={raceRows(ids, (id) => t.points[id] ?? 0, (id) => t.gained[id] ?? 0)}
           raceTitle="Tournament points"
           raceSub={`${gameInfo(game).title}: ${TOURNAMENT_POINTS.filter((p) => p > 0).join(' / ')} for 1st, 2nd, 3rd…`}
@@ -557,10 +570,10 @@ function TourResults({ game, standings }: { game: GameId; standings: Standing[] 
         <GameIcon game={game} size={88} />
         {gameInfo(game).title}
         <span class="results-count">
-          {t.index + 1} / {t.games.length}
+          {t.index + 1} / {t.total}
         </span>
       </h1>
-      <Lineup games={t.games} current={t.index} done={t.index + 1} compact />
+      <Lineup games={t.games} current={t.index} done={t.index + 1} total={t.total} compact />
       <div class="results-body">
         <Podium standings={standings} />
         <Confetti />
