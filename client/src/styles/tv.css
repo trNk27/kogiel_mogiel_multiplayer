@@ -1059,6 +1059,10 @@ body.tv {
   color: var(--ink);
   border-radius: var(--radius);
   padding: 12px;
+  /* Same size whether it shows the target or a power-up toast, so the list below doesn't jump. */
+  box-sizing: border-box;
+  height: 166px;
+  flex: none;
 }
 .trails-goal-label {
   font-family: var(--font-display);
@@ -1138,22 +1142,18 @@ body.tv {
   place-items: center;
 }
 .trails-toast {
-  position: absolute;
-  left: 50%;
-  top: 18px;
-  translate: -50% 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 8px 26px 8px 10px;
-  border-radius: 999px;
-  background: rgba(20, 6, 10, 0.85);
+  justify-content: center;
+  gap: 6px;
+  background: var(--ink);
+  color: var(--cream);
   box-shadow: 0 0 0 3px rgba(251, 240, 217, 0.25);
   font-family: var(--font-display);
   font-weight: 750;
-  font-size: 30px;
-  white-space: nowrap;
-  pointer-events: none;
+  font-size: 24px;
+  line-height: 1.15;
 }
 
 /* ---- Ballpark --------------------------------------------------------------- */

@@ -29,9 +29,9 @@ export const TUNING: TrailsTuning = {
   speed: 88,
   turnRate: 3.4,
   radius: 2.5,
-  gapMin: 0.9,
-  gapMax: 1.9,
-  gapLength: 15,
+  gapMin: 0.55,
+  gapMax: 1.2,
+  gapLength: 24,
   ghostTime: 0.55,
 };
 
@@ -86,9 +86,9 @@ export const POWER_TUNING = {
   thin: 0.5,
   fat: 2.2,
   /** "holes": gaps this much longer, every holesMin..holesMax seconds. */
-  holesLength: 2.4,
-  holesMin: 0.35,
-  holesMax: 0.75,
+  holesLength: 2.6,
+  holesMin: 0.25,
+  holesMax: 0.5,
 };
 const POWER_RADIUS = 9;
 const MAX_POWERUPS = 6;

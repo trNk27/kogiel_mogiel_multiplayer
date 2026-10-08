@@ -390,14 +390,6 @@ function TrailsView({ game }: { game: TrailsGame }) {
       <div class="trails-arena">
         <canvas ref={ref} width={CANVAS_W} height={CANVAS_H} class="trails-canvas" />
         {info.phase !== 'roundOver' && <Countdown endsAt={info.countdownEnds} key={info.round} />}
-        {info.toast && (
-          <div class="trails-toast pop-in" key={info.toast.until}>
-            <PowerIcon kind={info.toast.kind} size={44} />
-            <span>
-              <b style={{ color: info.toast.color }}>{info.toast.name}</b> {POWER_INFO[info.toast.kind].toast}
-            </span>
-          </div>
-        )}
         {info.phase === 'roundOver' && (
           <div class="trails-banner pop-in">
             {info.winnerName ? (
@@ -414,11 +406,21 @@ function TrailsView({ game }: { game: TrailsGame }) {
         )}
       </div>
       <aside class="trails-side">
-        <div class="trails-goal">
-          <div class="trails-goal-label">First to</div>
-          <div class="trails-goal-num">{info.target}</div>
-          <div class="trails-goal-label">Round {info.round}</div>
-        </div>
+        {/* Power-up news shows here, off the arena, in place of the target for a moment. */}
+        {info.toast ? (
+          <div class="trails-goal trails-toast pop-in" key={info.toast.until}>
+            <PowerIcon kind={info.toast.kind} size={48} />
+            <div>
+              <b style={{ color: info.toast.color }}>{info.toast.name}</b> {POWER_INFO[info.toast.kind].toast}
+            </div>
+          </div>
+        ) : (
+          <div class="trails-goal">
+            <div class="trails-goal-label">First to</div>
+            <div class="trails-goal-num">{info.target}</div>
+            <div class="trails-goal-label">Round {info.round}</div>
+          </div>
+        )}
         <div class="trails-list">
           {board.map((r) => (
             <div class={`trails-row ${r.alive ? '' : 'dead'} ${r.p!.connected ? '' : 'offline'}`} key={r.id}>
