@@ -42,8 +42,6 @@ export class MushroomGame implements Game {
   private last = 0;
   private lastHud = 0;
   private lastTick = -1;
-  private ring: SVGCircleElement | null = null;
-  private bar: HTMLElement | null = null;
 
   constructor(
     private host: GameHost,
@@ -159,7 +157,6 @@ export class MushroomGame implements Game {
       this.tick();
     }
     this.scene?.render(elapsed);
-    this.hudDom();
     if (now - this.lastHud > HUD_MS) {
       this.lastHud = now;
       this.host.changed();
@@ -258,19 +255,6 @@ export class MushroomGame implements Game {
     return all.length > 0 ? `Splash! ${all.join(', ')}` : '';
   }
 
-  /** Per-frame DOM bits that must not wait for a Preact render: the shrinking timer. */
-  private hudDom() {
-    const sim = this.sim;
-    const frac = sim.phase === 'call' ? Math.max(0, sim.callLeft / sim.callTime) : 0;
-    if (this.ring) this.ring.style.strokeDashoffset = String(RING_LEN * (1 - frac));
-    if (this.bar) this.bar.style.transform = `scaleX(${frac})`;
-  }
-
-  setTimerEls(ring: SVGCircleElement | null, bar: HTMLElement | null) {
-    this.ring = ring;
-    this.bar = bar;
-  }
-
   // ---- phones --------------------------------------------------------------------------
 
   onMessage(id: string, m: PhoneMsg) {
@@ -349,8 +333,6 @@ export class MushroomGame implements Game {
   hud() {
     const sim = this.sim;
     const now = Date.now();
-    const sp = sim.targetColour >= 0 ? SPECIES[sim.targetColour] : null;
-    const ink = sp ? luma(sp.hex) > 0.6 : false;
     const calling = sim.phase === 'call' || sim.phase === 'sink' || (sim.phase === 'rise' && sim.callNo > 0);
     const over = sim.phase === 'over' && this.overAt > 0 && now >= this.overAt;
     const live = this.ids.map((id, i) => ({ id, i, p: this.host.player(id) })).filter((r) => r.p && !this.removed.has(r.i));
@@ -367,29 +349,6 @@ export class MushroomGame implements Game {
 
         {sim.phase === 'ready' && <BigCountdown endsAt={this.readyEndsAt} key={`r${this.round}`} />}
 
-        {calling && sp && !over && (
-          <div class={`mush-call ${sim.phase === 'call' ? 'live' : ''}`} key={`c${sim.callNo}`} style={{ '--mc': sp.hex, '--mt': ink ? '#2a120a' : '#fff4dc', '--ms': ink ? '#fff4dc' : '#2a120a' }}>
-            <div class="mush-call-row">
-              <svg class="mush-ring" viewBox="0 0 100 100" aria-hidden="true">
-                <circle cx="50" cy="50" r="42" class="mush-ring-disc" />
-                <circle cx="50" cy="50" r="42" class="mush-ring-bg" />
-                <circle cx="50" cy="50" r="42" class="mush-ring-fg" ref={(el) => this.setTimerEls(el, this.bar)} style={{ strokeDasharray: RING_LEN }} />
-                <rect x="40" y="52" width="20" height="26" rx="6" fill="#fff4dc" stroke="#2a120a" stroke-width="4" />
-                <path d="M26 56 Q26 20 50 19 Q74 20 74 56 Q50 62 26 56 Z" fill={sp.hex} stroke="#2a120a" stroke-width="5" stroke-linejoin="round" />
-                <circle cx="41" cy="38" r="4.5" fill={sp.spot} />
-                <circle cx="58" cy="32" r="3.6" fill={sp.spot} />
-                <circle cx="62" cy="47" r="3.2" fill={sp.spot} />
-              </svg>
-              <div class="mush-call-text">
-                <div class="mush-word">{sp.word}!</div>
-                <div class="mush-sub">{sp.mushroom}</div>
-              </div>
-            </div>
-            <div class="mush-bar">
-              <i ref={(el) => this.setTimerEls(this.ring, el)} />
-            </div>
-          </div>
-        )}
         {!calling && sim.phase === 'gap' && sim.callNo > 0 && <div class="mush-wait">Next call coming…</div>}
         {sim.phase !== 'ready' && !over && this.splashLine && (
           <div class="mush-splash pop-in" key={this.splashLine}>
@@ -443,14 +402,6 @@ export class MushroomGame implements Game {
       </>
     );
   }
-}
-
-const RING_LEN = 2 * Math.PI * 42;
-
-/** Perceived brightness 0..1 of a #rrggbb colour. */
-function luma(hex: string) {
-  const n = parseInt(hex.slice(1), 16);
-  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
 }
 
 function MushroomView({ game }: { game: MushroomGame }) {
