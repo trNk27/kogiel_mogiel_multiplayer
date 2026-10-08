@@ -292,6 +292,12 @@ export class TanksScene {
   private scorchAt = 0;
   private shocks: { mesh: Mesh; age: number; max: number; r: number }[] = [];
   private shake = 0;
+  /** Sudden death: red tint outside the safe zone (4 strips) and its glowing edge (4 lines). */
+  private zoneMat = new MeshBasicMaterial({ color: '#ff2a1a', transparent: true, opacity: 0.16, depthWrite: false });
+  private zoneEdgeMat = new MeshBasicMaterial({ color: '#ff3b30', transparent: true, opacity: 0.9, depthWrite: false });
+  private zoneGeo = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+  private zoneStrips: Mesh[] = [];
+  private zoneEdges: Mesh[] = [];
   private cam = new Vector3();
   private camBase = new Vector3();
   private clock = 0;
@@ -315,6 +321,16 @@ export class TanksScene {
     this.camBase.copy(s.camera.position);
     this.buildGround();
     s.world.add(this.obGroup, this.fx.group);
+    for (let k = 0; k < 4; k++) {
+      const strip = new Mesh(this.zoneGeo, this.zoneMat);
+      strip.position.y = 0.05;
+      const edge = new Mesh(this.zoneGeo, this.zoneEdgeMat);
+      edge.position.y = 0.08;
+      strip.visible = edge.visible = false;
+      this.zoneStrips.push(strip);
+      this.zoneEdges.push(edge);
+      s.world.add(strip, edge);
+    }
     this.shellMats = looks.map((l) => new MeshBasicMaterial({ color: l.color }));
     const outline = new MeshBasicMaterial({ color: '#2a120a', side: BackSide });
     this.shellOutline = outline;
@@ -353,6 +369,9 @@ export class TanksScene {
     for (const t of Object.values(this.tex)) t.dispose();
     for (const m of Object.values(this.mat)) m.dispose();
     this.ringMat.dispose();
+    this.zoneMat.dispose();
+    this.zoneEdgeMat.dispose();
+    this.zoneGeo.dispose();
     this.discMat.dispose();
     this.shockMat.dispose();
     this.scorchMat.dispose();
@@ -1047,7 +1066,8 @@ export class TanksScene {
       const u = Math.min(1, m.t / m.T);
       const x = m.x0 + (m.tx - m.x0) * u;
       const z = m.z0 + (m.tz - m.z0) * u;
-      const h = 1.3 + 40 * u * (1 - u) * 1;
+      // Barrage strikes drop straight down from high up; tank mortars arc over.
+      const h = m.sky ? 1.3 + 34 * (1 - u) : 1.3 + 40 * u * (1 - u);
       v.cab.position.set(x, h, z);
       v.cab.rotation.set(m.t * 7, m.t * 4, 0);
       v.shadow.position.set(x, 0.06, z);
@@ -1063,6 +1083,8 @@ export class TanksScene {
       this.removeMortar(v);
       this.mortars.delete(id);
     }
+
+    this.updateZone(sim, now);
 
     for (const s of this.shocks) {
       s.age += dt;
@@ -1088,6 +1110,41 @@ export class TanksScene {
     }
     cam.position.copy(this.cam);
     this.stage.render();
+  }
+
+  private updateZone(sim: TanksSim, now: number) {
+    const on = sim.suddenDeath && !sim.over;
+    const { hx, hz } = sim.safeZone();
+    const shrunk = on && (hx < HX - 0.05 || hz < HZ - 0.05);
+    // Strips: left, right (full height), then top, bottom (between them).
+    const strips: [number, number, number, number][] = [
+      [(-HX - hx) / 2, 0, HX - hx, HZ * 2],
+      [(HX + hx) / 2, 0, HX - hx, HZ * 2],
+      [0, (-HZ - hz) / 2, hx * 2, HZ - hz],
+      [0, (HZ + hz) / 2, hx * 2, HZ - hz],
+    ];
+    const T = 0.3;
+    const edges: [number, number, number, number][] = [
+      [-hx, 0, T, hz * 2 + T],
+      [hx, 0, T, hz * 2 + T],
+      [0, -hz, hx * 2 + T, T],
+      [0, hz, hx * 2 + T, T],
+    ];
+    for (let k = 0; k < 4; k++) {
+      const [sx, sz, sw, sd] = strips[k];
+      const st = this.zoneStrips[k];
+      st.visible = shrunk && sw > 0.01 && sd > 0.01;
+      st.position.set(sx, 0.05, sz);
+      st.scale.set(Math.max(sw, 0.01), 1, Math.max(sd, 0.01));
+      const [ex, ez, ew, ed] = edges[k];
+      const e = this.zoneEdges[k];
+      e.visible = on;
+      e.position.set(ex, 0.08, ez);
+      e.scale.set(ew, 1, ed);
+    }
+    const pulse = 0.5 + 0.5 * Math.sin(now * 8);
+    this.zoneMat.opacity = 0.12 + pulse * 0.08;
+    this.zoneEdgeMat.opacity = 0.6 + pulse * 0.4;
   }
 
   private makeMortar(): MortarVis {

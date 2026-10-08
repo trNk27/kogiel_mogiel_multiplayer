@@ -41,6 +41,19 @@ export const TUNING = {
   protect: 2,
   roundTime: 90,
   sudden: 20,
+  /** Sudden death barrage: the safe zone's half-size at the end (it starts as the whole arena)… */
+  safeMinX: 5,
+  safeMinZ: 3.5,
+  /** …which it reaches this far (fraction) into sudden death. */
+  safeClose: 0.8,
+  /** Seconds between strikes along the closing edge of the safe zone. */
+  barrageEvery: 0.12,
+  /** How deep (m) outside the safe zone the edge strikes land. */
+  barrageBand: 4,
+  /** A tank caught outside the safe zone gets a strike aimed at it this often (s). */
+  barrageAim: 0.8,
+  /** Seconds from a strike's warning ring to the blast. */
+  strikeTime: 1.1,
   knockShell: 3.2,
   knockMortar: 11,
   knockDecay: 6,
@@ -120,6 +133,8 @@ export interface Mortar {
   tz: number;
   t: number;
   T: number;
+  /** Dropped from the sky by the sudden death barrage (owner -1), not lobbed by a tank. */
+  sky?: boolean;
 }
 
 export type TankEvent =
@@ -133,6 +148,7 @@ export type TankEvent =
   | { e: 'crateHit'; id: number; x: number; z: number }
   | { e: 'crate'; id: number; x: number; z: number }
   | { e: 'lob'; idx: number; id: number; tx: number; tz: number }
+  | { e: 'strike'; id: number; tx: number; tz: number }
   | { e: 'splash'; x: number; z: number; owner: number }
   | { e: 'over'; winner: number; timeout: boolean };
 
@@ -455,8 +471,15 @@ export class TanksSim {
   readonly started: number;
   private nextId = 1000;
   private events: TankEvent[] = [];
+  private barrageClock = 0;
+  /** Per tank: seconds until the barrage aims at it again while it's outside the safe zone. */
+  private aimClock: number[] = [];
 
-  constructor(n: number, rng: Rng, opts: SimOptions = {}) {
+  constructor(
+    n: number,
+    private rng: Rng,
+    opts: SimOptions = {},
+  ) {
     this.n = n;
     this.layout = opts.layout ?? makeLayout(rng);
     this.obstacles = this.layout.obstacles.map((o) => ({ ...o }));
@@ -497,6 +520,22 @@ export class TanksSim {
 
   get suddenDeath() {
     return !this.locked && this.timeLeft <= TUNING.sudden;
+  }
+
+  /**
+   * Half-size of the safe zone in the middle of the arena. It's the whole arena until sudden death,
+   * then shrinks towards the centre while the barrage rains down outside it.
+   */
+  safeZone(): { hx: number; hz: number } {
+    if (!this.suddenDeath) return { hx: HX, hz: HZ };
+    const p = clamp((TUNING.sudden - this.timeLeft) / (TUNING.sudden * TUNING.safeClose), 0, 1);
+    return { hx: HX + (TUNING.safeMinX - HX) * p, hz: HZ + (TUNING.safeMinZ - HZ) * p };
+  }
+
+  /** Is this point outside the safe zone? */
+  outsideSafe(x: number, z: number) {
+    const s = this.safeZone();
+    return Math.abs(x) > s.hx || Math.abs(z) > s.hz;
   }
 
   aliveCount() {
@@ -550,6 +589,7 @@ export class TanksSim {
       }
     }
     this.separateTanks();
+    if (this.suddenDeath) this.stepBarrage();
     this.stepShells();
     this.stepMortars();
     this.checkEnd();
@@ -756,6 +796,53 @@ export class TanksSim {
         }
       }
     this.shells = keep.filter((s) => !dead.has(s.id));
+  }
+
+  /** Sudden death: strikes all along the closing edge of the safe zone, and on anyone caught outside it. */
+  private stepBarrage() {
+    const { hx, hz } = this.safeZone();
+    const B = TUNING.barrageBand;
+    this.barrageClock += DT;
+    while (this.barrageClock >= TUNING.barrageEvery) {
+      this.barrageClock -= TUNING.barrageEvery;
+      // Pick a spot in the band just outside the safe zone, evenly along its perimeter (and not so
+      // close to the walls that dropStrike would pull it back inside).
+      const w = Math.max(0, Math.min(B, HX - 0.8 - hx));
+      const d = Math.max(0, Math.min(B, HZ - 0.8 - hz));
+      if (w < 0.3 && d < 0.3) continue;
+      const sides = [2 * hz * w, 2 * hz * w, 2 * (hx + w) * d, 2 * (hx + w) * d];
+      let r = this.rng() * (sides[0] + sides[1] + sides[2] + sides[3]);
+      let side = 0;
+      while (side < 3 && r > sides[side]) r -= sides[side++];
+      const along = this.rng() * 2 - 1;
+      const depth = this.rng();
+      let x: number;
+      let z: number;
+      if (side < 2) {
+        x = (side === 0 ? -1 : 1) * (hx + depth * w);
+        z = along * hz;
+      } else {
+        x = along * (hx + w);
+        z = (side === 2 ? -1 : 1) * (hz + depth * d);
+      }
+      this.dropStrike(x, z);
+    }
+    for (const t of this.tanks) {
+      if (!t.alive) continue;
+      const left = (this.aimClock[t.idx] ?? 0) - DT;
+      if (this.outsideSafe(t.x, t.z) && left <= 0) {
+        this.dropStrike(t.x + (this.rng() - 0.5) * 2, t.z + (this.rng() - 0.5) * 2);
+        this.aimClock[t.idx] = TUNING.barrageAim;
+      } else this.aimClock[t.idx] = Math.max(0, left);
+    }
+  }
+
+  private dropStrike(x: number, z: number) {
+    const tx = clamp(x, -HX + 0.8, HX - 0.8);
+    const tz = clamp(z, -HZ + 0.8, HZ - 0.8);
+    const m: Mortar = { id: this.nextId++, owner: -1, x0: tx, z0: tz, tx, tz, t: 0, T: TUNING.strikeTime, sky: true };
+    this.mortars.push(m);
+    this.events.push({ e: 'strike', id: m.id, tx, tz });
   }
 
   private stepMortars() {

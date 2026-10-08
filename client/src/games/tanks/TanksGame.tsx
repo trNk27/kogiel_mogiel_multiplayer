@@ -59,6 +59,7 @@ export class TanksGame implements Game {
   private flashId = 0;
   private suddenShown = false;
   private suddenAt = 0;
+  private lastSkyCrash = 0;
   private disposed = false;
 
   constructor(
@@ -245,7 +246,11 @@ export class TanksGame implements Game {
           this.host.refresh(this.ids[e.idx]);
           break;
         case 'splash':
-          sound.crash();
+          // The barrage drops several a second: one crash at a time is plenty.
+          if (e.owner >= 0 || now - this.lastSkyCrash > 220) {
+            sound.crash();
+            if (e.owner < 0) this.lastSkyCrash = now;
+          }
           break;
         case 'crate':
           sound.plop();
@@ -265,7 +270,9 @@ export class TanksGame implements Game {
           this.host.refresh(this.ids[e.idx]);
           const weapon = e.kind === 'mortar' ? 'mortar' : 'shell';
           const text =
-            e.by === e.idx
+            e.by < 0
+              ? `${this.name(e.idx)} got caught in the barrage`
+              : e.by === e.idx
               ? `${this.name(e.idx)} got hit by their own ${weapon}`
               : `${this.name(e.by)}’s ${weapon} got ${this.name(e.idx)}`;
           this.feed.push({ text, color: this.colorOf(e.by >= 0 ? e.by : e.idx), until: now + FEED_MS });
@@ -342,7 +349,7 @@ export class TanksGame implements Game {
     return {
       ...base,
       phase: 'play',
-      ...(this.sim.suddenDeath ? { title: 'Sudden death!', text: 'Any hit takes all your armour', accent: '#ff3d6e' } : {}),
+      ...(this.sim.suddenDeath ? { title: 'Sudden death!', text: 'One hit and you’re out. Get inside the red line!', accent: '#ff3d6e' } : {}),
       buttons: [shell, mortar],
       stats,
     };
@@ -373,7 +380,7 @@ export class TanksGame implements Game {
           <span class="tanks-rule">Shell bounces once · Mortar flies over walls</span>
         </div>
         {sudden && now - this.suddenAt < 3500 && <div class="tanks-sudden pop-in">Sudden death!</div>}
-        {sudden && now - this.suddenAt >= 3500 && <div class="tanks-sudden-small">Sudden death: every hit counts double… and then some</div>}
+        {sudden && now - this.suddenAt >= 3500 && <div class="tanks-sudden-small">Sudden death: one hit and you’re out · the barrage is closing in</div>}
         <div class="tanks-feed">
           {this.phase !== 'results' && this.feed.map((f, k) => (
             <div class="tanks-feed-line" key={f.until + f.text + k} style={{ '--pc': f.color }}>

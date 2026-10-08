@@ -453,6 +453,40 @@ describe('rounds and scoring', () => {
     expect(sim.winner).toBe(0);
   });
 
+  it('sudden death barrage: the safe zone closes in and strikes land only outside it', () => {
+    const sim = arena(2, [{ x: 0, z: 0 }, { x: 1.5, z: 0 }]);
+    sim.timeLeft = TUNING.sudden + 1;
+    expect(sim.safeZone()).toEqual({ hx: HX, hz: HZ });
+    run(sim, 60);
+    expect(sim.mortars.length).toBe(0);
+    const strikes: { tx: number; tz: number; zone: { hx: number; hz: number } }[] = [];
+    let last = { hx: HX, hz: HZ };
+    for (let k = 0; k < Math.round(TUNING.sudden / DT) - 30 && !sim.over; k++) {
+      for (const e of sim.step([])) if (e.e === 'strike') strikes.push({ tx: e.tx, tz: e.tz, zone: sim.safeZone() });
+      const z = sim.safeZone();
+      expect(z.hx).toBeLessThanOrEqual(last.hx + 1e-9);
+      expect(z.hz).toBeLessThanOrEqual(last.hz + 1e-9);
+      last = z;
+    }
+    expect(last.hx).toBeCloseTo(TUNING.safeMinX, 5);
+    expect(last.hz).toBeCloseTo(TUNING.safeMinZ, 5);
+    expect(strikes.length).toBeGreaterThan(50);
+    for (const s of strikes) expect(Math.abs(s.tx) > s.zone.hx - 1e-6 || Math.abs(s.tz) > s.zone.hz - 1e-6).toBe(true);
+    // Both tanks sat in the middle the whole time: the barrage never touched them.
+    expect(sim.tanks.every((t) => t.alive)).toBe(true);
+  });
+
+  it('sudden death barrage: a tank caught outside the safe zone gets knocked out by the sky', () => {
+    const sim = arena(2, [{ x: 0, z: 0 }, { x: HX - 2, z: HZ - 2 }]);
+    sim.timeLeft = TUNING.sudden * (1 - TUNING.safeClose);
+    const ev = run(sim, 120);
+    expect(sim.tanks[1].alive).toBe(false);
+    expect(sim.tanks[0].alive).toBe(true);
+    expect(ev.some((e) => e.e === 'ko' && e.idx === 1 && e.by === -1)).toBe(true);
+    expect(sim.tanks[0].kos).toBe(0);
+    expect(sim.winner).toBe(0);
+  });
+
   it('a removed player vanishes and does not count', () => {
     const sim = arena(3, [{ x: -15, z: -9 }, { x: 15, z: -9 }, { x: -15, z: 9 }]);
     sim.remove(2);

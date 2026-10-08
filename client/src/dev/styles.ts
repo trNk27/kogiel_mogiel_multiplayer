@@ -2,12 +2,13 @@
  * /styles – the real 3D scenes driven by bots, to compare looks side by side.
  *   /styles?game=tanks|mushroom|rally&style=<id>   (see STYLES in games/arena/styles.ts)
  *   &bare  hides the switcher bar (for screenshots)
+ *   &sudden  Czołgi: jump to the middle of sudden death (the barrage)
  */
 import '@fontsource-variable/fraunces/soft.css';
 import { STYLES, styleFromUrl } from '../games/arena/styles';
 import { mulberry32 } from '../games/rng';
 import { TanksScene } from '../games/tanks/scene';
-import { DT as TANK_DT, TanksSim } from '../games/tanks/logic';
+import { DT as TANK_DT, TUNING, TanksSim } from '../games/tanks/logic';
 import { MushroomScene } from '../games/mushroom/scene';
 import { MushroomSim } from '../games/mushroom/logic';
 import { RallyScene } from '../games/rally/render3d';
@@ -46,15 +47,19 @@ let tick: (dt: number) => void;
 if (game === 'tanks') {
   const sim = new TanksSim(4, mulberry32(3));
   sim.locked = false;
+  const sudden = params.has('sudden');
+  if (sudden) sim.timeLeft = TUNING.sudden * 0.8;
   const scene = new TanksScene(canvas, looks);
   scene.setLayout(sim.layout);
   const sticks = looks.map(() => ({ x: 0, y: 0 }));
   const step = () => {
     if (rnd() < 0.02) for (const s of sticks) ((s.x = rnd() * 2 - 1), (s.y = rnd() * 2 - 1));
+    // In sudden death the bots run for the middle (+y on the stick is towards the viewer, +z).
+    if (sudden) sim.tanks.forEach((t, i) => (sticks[i] = { x: -t.x / 8 + (rnd() - 0.5) * 0.6, y: -t.z / 5 + (rnd() - 0.5) * 0.6 }));
     const ev = sim.step(sticks.map((s) => ({ x: s.x, y: s.y, fire: rnd() < 0.03 ? 1 : 0, mortar: rnd() < 0.005 ? 1 : 0 })));
     scene.handle(ev, sim);
   };
-  for (let k = 0; k < 60 * 4; k++) step();
+  for (let k = 0; k < (sudden ? 0 : 60 * 4); k++) step();
   let acc = 0;
   tick = (dt) => {
     acc += dt;
