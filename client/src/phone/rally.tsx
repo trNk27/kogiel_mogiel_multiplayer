@@ -8,6 +8,7 @@ import { ItemIcon } from '../games/rally/items';
 import { Pierogi } from '../lib/art';
 import type { Props } from './views';
 import { RallyDrive } from './rallyDrive';
+import { keepStickInSync } from './stickSync';
 
 const SEND_EVERY_MS = 50;
 const DEAD = 6;
@@ -142,6 +143,8 @@ function TvPad({ view, me, send }: Props<'rally'>) {
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
+    el.addEventListener('lostpointercapture', up);
+    const stopSync = keepStickInSync(() => sent, (x, y) => sendRef.current({ t: 'stick', x, y }));
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
     window.addEventListener('blur', reset);
@@ -152,6 +155,8 @@ function TvPad({ view, me, send }: Props<'rally'>) {
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', up);
+      el.removeEventListener('lostpointercapture', up);
+      stopSync();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       window.removeEventListener('blur', reset);

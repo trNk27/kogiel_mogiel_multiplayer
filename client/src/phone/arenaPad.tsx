@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { colorHex, type PadButton, type PadView } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
 import type { Me, Send } from './PhoneApp';
+import { keepStickInSync } from './stickSync';
 
 function vibrate(p: number | number[]) {
   try {
@@ -104,8 +105,11 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
 
     const pdown = (e: PointerEvent) => {
       e.preventDefault();
-      if (pid !== null) return;
+      // A new touch always takes over: if the last finger's "up" never arrived (it happens on
+      // iOS), refusing it would leave the stick dead.
+      const old = pid;
       pid = e.pointerId;
+      if (old !== null && old !== pid && el.hasPointerCapture?.(old)) el.releasePointerCapture(old);
       el.setPointerCapture?.(pid);
       const r = el.getBoundingClientRect();
       ox = e.clientX;
@@ -171,6 +175,8 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
     el.addEventListener('pointermove', pmove);
     el.addEventListener('pointerup', pup);
     el.addEventListener('pointercancel', pup);
+    el.addEventListener('lostpointercapture', pup);
+    const stopSync = keepStickInSync(() => sent, (x, y) => sendRef.current({ t: 'stick', x, y }));
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
     window.addEventListener('blur', reset);
@@ -181,6 +187,8 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
       el.removeEventListener('pointermove', pmove);
       el.removeEventListener('pointerup', pup);
       el.removeEventListener('pointercancel', pup);
+      el.removeEventListener('lostpointercapture', pup);
+      stopSync();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       window.removeEventListener('blur', reset);

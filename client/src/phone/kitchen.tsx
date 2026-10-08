@@ -5,6 +5,7 @@ import { ItemIcon, chefSprite, spriteUrl } from '../games/kitchen/art';
 import { itemName } from '../games/kitchen/logic';
 import { mulberry32 } from '../games/rng';
 import type { Me, Send } from './PhoneApp';
+import { keepStickInSync } from './stickSync';
 
 type View = Extract<PhoneView, { v: 'kitchen' }>;
 
@@ -99,8 +100,12 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
 
     const down = (e: PointerEvent) => {
       e.preventDefault();
-      if (pid !== null || performance.now() - mountedAt < 500) return;
+      if (performance.now() - mountedAt < 500) return;
+      // A new touch always takes over: if the last finger's "up" never arrived (it happens on
+      // iOS), refusing it would leave the stick dead.
+      const old = pid;
       pid = e.pointerId;
+      if (old !== null && old !== pid && el.hasPointerCapture?.(old)) el.releasePointerCapture(old);
       el.setPointerCapture?.(pid);
       const r = el.getBoundingClientRect();
       ox = e.clientX;
@@ -163,6 +168,8 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
+    el.addEventListener('lostpointercapture', up);
+    const stopSync = keepStickInSync(() => sent, (x, y) => sendRef.current({ t: 'stick', x, y }));
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
     window.addEventListener('blur', reset);
@@ -173,6 +180,8 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', up);
+      el.removeEventListener('lostpointercapture', up);
+      stopSync();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       window.removeEventListener('blur', reset);
@@ -320,9 +329,11 @@ function useDrag(onMove: (p: { x: number; y: number }, prev: { x: number; y: num
     let prev: { x: number; y: number } | null = null;
     let pid: number | null = null;
     const down = (e: PointerEvent) => {
-      if (pid !== null) return;
       e.preventDefault();
+      // A new touch always takes over, in case the last one's "up" never arrived.
+      const old = pid;
       pid = e.pointerId;
+      if (old !== null && old !== pid && svg.hasPointerCapture?.(old)) svg.releasePointerCapture(old);
       svg.setPointerCapture?.(pid);
       prev = svgPoint(svg, e);
       cb.current(prev, null, true);
@@ -343,7 +354,9 @@ function useDrag(onMove: (p: { x: number; y: number }, prev: { x: number; y: num
     svg.addEventListener('pointermove', move);
     svg.addEventListener('pointerup', up);
     svg.addEventListener('pointercancel', up);
+    svg.addEventListener('lostpointercapture', up);
     return () => {
+      svg.removeEventListener('lostpointercapture', up);
       svg.removeEventListener('pointerdown', down);
       svg.removeEventListener('pointermove', move);
       svg.removeEventListener('pointerup', up);

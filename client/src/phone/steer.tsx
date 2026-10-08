@@ -25,8 +25,10 @@ export function DragPad(props: { steer: number; onSteer: (v: number) => void; cl
     let x0 = 0;
     const down = (e: PointerEvent) => {
       e.preventDefault();
-      if (pid !== null) return;
+      // A new touch always takes over, in case the last one's "up" never arrived.
+      const old = pid;
       pid = e.pointerId;
+      if (old !== null && old !== pid && pad.hasPointerCapture?.(old)) pad.releasePointerCapture(old);
       pad.setPointerCapture?.(pid);
       x0 = e.clientX;
       const r = pad.getBoundingClientRect();
@@ -49,7 +51,9 @@ export function DragPad(props: { steer: number; onSteer: (v: number) => void; cl
     pad.addEventListener('pointermove', move);
     pad.addEventListener('pointerup', up);
     pad.addEventListener('pointercancel', up);
+    pad.addEventListener('lostpointercapture', up);
     return () => {
+      pad.removeEventListener('lostpointercapture', up);
       pad.removeEventListener('pointerdown', down);
       pad.removeEventListener('pointermove', move);
       pad.removeEventListener('pointerup', up);
