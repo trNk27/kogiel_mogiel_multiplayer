@@ -224,11 +224,13 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
         </div>
       )}
       {view.noStick ? (
-        <div class="ar-idle">
+        <div class="ar-idle" key="idle">
           <Pierogi color={colorHex(me.color)} size={150} mood={out ? 'sleep' : 'happy'} class="bob" />
         </div>
       ) : (
-        <div class={`k-stick-zone ar-zone ${active ? 'active' : ''}`} ref={zone}>
+        // Keyed, so the zone survives the message above it appearing or going away (Kafelki drops its
+        // title when play starts): a new element would leave the stick's listeners on the old one.
+        <div class={`k-stick-zone ar-zone ${active ? 'active' : ''}`} ref={zone} key="stick">
           <div class="k-stick-base" ref={baseEl}>
             <div class="k-stick-ring" />
             <div class="k-stick-knob" ref={knobEl}>
