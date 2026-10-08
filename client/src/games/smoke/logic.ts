@@ -20,11 +20,55 @@ export const MIN_PUFF_GAP_MS = 700;
 /** An empty slot on the tray is refilled after this long (ms, random in between). */
 export const REFILL_MS: readonly [number, number] = [900, 2200];
 
-/** The tower at the end: the pierogi land one by one, the camera flashes, the winner gets the crown (ms). */
-export const DROP_MS = 380;
-export const FLASH_AFTER_MS = 700;
-export const CROWN_AFTER_MS = 2400;
-export const FINALE_TAIL_MS = 4200;
+/**
+ * The tower at the end. The pierogi fall in one by one (a new one every DROP_MS, each falling for
+ * FALL_MS), the camera flashes and they grin, the teeth go yellow, then a crown hovers over the
+ * tower, hopping from pierogi to pierogi, before it drops onto the winner.
+ */
+export const DROP_MS = 650;
+export const FALL_MS = 550;
+export const GRIN_MS = 2200;
+export const SUSPENSE_MS = 3400;
+export const REVEAL_MS = 4000;
+
+/** When each part of the finale happens, in ms after it starts, for a tower of `n`. */
+export function finaleTimes(n: number) {
+  const landed = Math.max(0, n - 1) * DROP_MS + FALL_MS;
+  const flash = landed + 600;
+  const suspense = flash + GRIN_MS;
+  const reveal = suspense + SUSPENSE_MS;
+  return { landed, flash, suspense, reveal, end: reveal + REVEAL_MS };
+}
+export type FinaleTimes = ReturnType<typeof finaleTimes>;
+
+/**
+ * Where the crown hovers during the suspense: tower floors and when it gets there (ms after the
+ * suspense starts). It hops quickly at first and slows down, like a wheel of fortune, and the last
+ * hop is onto `winner` (or anyone, with no winner). Never the same floor twice in a row.
+ */
+export function crownHops(floors: number, winner: number | null, total: number, rnd: () => number): { at: number; floor: number }[] {
+  const hops: { at: number; floor: number }[] = [];
+  let at = 0;
+  let dwell = 170;
+  while (at + dwell < total) {
+    hops.push({ at, floor: 0 });
+    at += dwell;
+    dwell *= 1.24;
+  }
+  if (hops.length === 0) hops.push({ at: 0, floor: 0 });
+  const last = winner ?? Math.floor(rnd() * floors);
+  for (let k = hops.length - 1; k >= 0; k--) {
+    if (k === hops.length - 1) hops[k].floor = last;
+    else if (floors < 2) hops[k].floor = 0;
+    else {
+      // Anything but the floor it hops to next.
+      const next = hops[k + 1].floor;
+      const f = Math.floor(rnd() * (floors - 1));
+      hops[k].floor = f >= next ? f + 1 : f;
+    }
+  }
+  return hops;
+}
 
 /** The pull: from touch to the bottom of the track. Inside this window it's perfect (ms). */
 export const PULL_IDEAL: readonly [number, number] = [480, 1050];

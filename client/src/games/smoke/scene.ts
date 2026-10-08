@@ -1,27 +1,35 @@
 /**
- * Fajki's three.js scene: a smoky back room, seen from above. A round table with a lace doily and a
- * lazy Susan of cigarettes in the players' colours; the pierogi sit around it and reach in with
- * their arms. At the end they stack into a tower on the table and grin, teeth as yellow as they smoked.
+ * Fajki's three.js scene: a smoky karczma (a Polish country inn), seen from above. A round table with a
+ * lace doily and a lazy Susan of cigarettes in the players' colours; the pierogi sit around it and reach
+ * in with their arms, and the room slowly fills with smoke. At the end they fall into a tower on the
+ * table and grin, teeth as yellow as they smoked, and a crown keeps everyone guessing before it drops.
  */
 import {
+  BoxGeometry,
+  CanvasTexture,
   CircleGeometry,
   Color,
+  ConeGeometry,
   CylinderGeometry,
   Group,
   IcosahedronGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
+  NearestFilter,
+  Object3D,
+  PointLight,
   Quaternion,
   RingGeometry,
   SphereGeometry,
+  SRGBColorSpace,
+  TorusGeometry,
   Vector3,
   type Fog,
   type Material,
 } from 'three';
 import { ArenaStage, blobShadow, box, buildPierogi, flat, groundTexture, nameTag, pixelTexture, type PierogiModel } from '../arena/kit';
-import { mulberry32 } from '../rng';
-import { CIG_LENGTH, CROWN_AFTER_MS, DROP_MS, REACH_MS, RETURN_MS, teethColor, yellowness } from './logic';
+import { CIG_LENGTH, DROP_MS, FALL_MS, REACH_MS, RETURN_MS, teethColor, yellowness, type FinaleTimes } from './logic';
 
 const TAU = Math.PI * 2;
 const TABLE_R = 4.2;
@@ -44,6 +52,15 @@ const CIG_W = 0.12;
 /** The tower: each pierogi this big, standing on the one below. */
 const TOWER_S = 1.5;
 const TOWER_STEP = 1.1 * TOWER_S * 0.82;
+/** How far up each pierogi starts its fall, and the camera's angle on the tower. */
+const DROP_HEIGHT = 9;
+const TOWER_TILT = 0.12;
+/** At the reveal the winner steps this far out of the tower, and grows by this much. */
+const WIN_OUT = 0.9;
+const WIN_GROW = 0.1;
+/** The room: back wall and side walls. */
+const WALL_Z = -11;
+const WALL_X = 16.5;
 const SMOKE = '#e9e5dd';
 const COUGH = '#a8b496';
 const UP = new Vector3(0, 1, 0);
@@ -68,7 +85,10 @@ export interface SmokeState {
   removed: ReadonlySet<number>;
   tower: readonly number[];
   finaleAt: number;
-  readonly flashAfter: number;
+  finale: { times: FinaleTimes; winners: number[]; hops: readonly { at: number; floor: number }[] } | null;
+  /** When smoking starts and stops (Date.now() ms): the room gets smokier in between. */
+  goAt: number;
+  endsAt: number;
   trayAt(t: number): number;
 }
 
@@ -161,11 +181,16 @@ interface TowerFloor {
   seat: number;
   model: PierogiModel;
   mouth: Mesh;
-  teeth: Mesh;
+  teeth: Group;
   teethMat: MeshBasicMaterial;
   teethTo: Color;
   y: number;
-  crown: Group | null;
+}
+
+/** Where the camera looks, and from how far, to show the bottom `m` floors of the tower. */
+function towerFraming(m: number) {
+  const h = (Math.max(1, m) - 1) * TOWER_STEP + 1.1 * TOWER_S;
+  return { y: TABLE_Y + h / 2 + 0.3, dist: Math.max(10, (h + 2.2) / 0.62) };
 }
 
 export class SmokeScene {
@@ -188,7 +213,16 @@ export class SmokeScene {
   private readonly hazeColor = new Color('#9b958d');
   private haze = 0;
   private tower: TowerFloor[] | null = null;
-  private towerTop = 0;
+  private crown: Group | null = null;
+  private extraCrowns: Group[] = [];
+  private crownY = 0;
+  private sparkled = false;
+  private camY = 0;
+  private camDist = 0;
+  /** Big slow clouds hanging over the table: the room's smoke. */
+  private clouds: { mesh: Mesh; mat: MeshBasicMaterial; a: number; r: number; y: number; s: number; sp: number }[] = [];
+  private fire!: MeshBasicMaterial;
+  private fireLight!: PointLight;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -211,7 +245,7 @@ export class SmokeScene {
     rug.rotation.x = -Math.PI / 2;
     rug.position.y = 0.02;
     stage.add(floor, rug);
-    this.buildProps(keep);
+    this.buildKarczma(keep);
 
     // ---- the table ------------------------------------------------------------------
     const wood = keep(new MeshLambertMaterial({ map: keep(groundTexture('wood', 7, 5)), color: '#dba571', flatShading: true }));
@@ -334,10 +368,18 @@ export class SmokeScene {
 
     // ---- smoke ----------------------------------------------------------------------
     this.puffGeo = keep(new IcosahedronGeometry(0.5, 1));
+    for (let k = 0; k < 14; k++) {
+      const mat = keep(new MeshBasicMaterial({ color: '#d4cec4', transparent: true, opacity: 0, depthWrite: false }));
+      const mesh = new Mesh(this.puffGeo, mat);
+      mesh.renderOrder = 4;
+      mesh.rotation.set(Math.random() * TAU, Math.random() * TAU, 0);
+      stage.add(mesh);
+      this.clouds.push({ mesh, mat, a: (k / 14) * TAU, r: 1.5 + (k % 4) * 1.7, y: 2.6 + (k % 3) * 0.7, s: 4 + (k % 5) * 0.8, sp: 0.04 + (k % 3) * 0.03 });
+    }
   }
 
   private topView() {
-    this.stage.lookAt(new Vector3(0, 0.4, 0.6), 21.5, 1.13);
+    this.stage.lookAt(new Vector3(0, 0.4, -0.5), 21.5, 1.02);
   }
 
   private matFor(color: string) {
@@ -353,54 +395,220 @@ export class SmokeScene {
     return new CigModel(this.geos, this.matFor(color), this.filterMat, this.emberMat, this.ashMat, len);
   }
 
-  private buildProps(keep: <T extends { dispose(): void }>(x: T) => T) {
-    const rnd = mulberry32(31);
+  /** The karczma around the table: log walls, a tiled stove with a fire, shelves, long tables and benches, barrels. */
+  private buildKarczma(keep: <T extends { dispose(): void }>(x: T) => T) {
+    const add = (...o: Object3D[]) => this.stage.add(...o);
+    const logMat = keep(new MeshLambertMaterial({ map: keep(logTexture()), color: '#c08a58', flatShading: true }));
+    const dark = keep(flat('#4a2a14'));
+    const plank = keep(new MeshLambertMaterial({ map: keep(groundTexture('wood', 2, 17)), color: '#b5814f', flatShading: true }));
+    const plankLong = keep(new MeshLambertMaterial({ map: keep(groundTexture('wood', 4, 19)), color: '#c08a58', flatShading: true }));
+
+    // Log walls behind and to the sides (the front is left open for the camera).
+    const backLog = keep(new CylinderGeometry(0.4, 0.4, 34, 8));
+    backLog.rotateZ(Math.PI / 2);
+    const sideLog = keep(new CylinderGeometry(0.4, 0.4, 26, 8));
+    sideLog.rotateX(Math.PI / 2);
+    for (let j = 0; j < 15; j++) {
+      const y = 0.4 + j * 0.74;
+      const b = new Mesh(backLog, logMat);
+      b.position.set(0, y, WALL_Z);
+      add(b);
+      for (const x of [-WALL_X, WALL_X]) {
+        const s = new Mesh(sideLog, logMat);
+        s.position.set(x, y, WALL_Z + 13);
+        add(s);
+      }
+    }
+
+    // The tiled stove (piec kaflowy) with a fire in it.
+    const stove = new Group();
+    stove.position.set(-8.2, 0, WALL_Z + 1.5);
+    const tiles = keep(new MeshLambertMaterial({ map: keep(tileTexture()), flatShading: true }));
+    const plinth = box(4.0, 0.45, 2.3, dark);
+    const body = box(3.5, 4.4, 1.9, tiles);
+    body.position.y += 0.45;
+    const cornice = box(4.0, 0.4, 2.3, keep(flat('#e9dcc0')));
+    cornice.position.y += 4.85;
+    const hood = box(3.0, 0.9, 1.5, tiles);
+    hood.position.y += 5.25;
+    this.fire = new MeshBasicMaterial({ color: '#ff8a2a' });
+    keep(this.fire);
+    const mouth = new Mesh(keep(new BoxGeometry(1.2, 0.85, 0.08)), keep(new MeshBasicMaterial({ color: '#1a0c08' })));
+    mouth.position.set(0, 1.15, 0.96);
+    const flame = new Mesh(keep(new BoxGeometry(0.95, 0.55, 0.06)), this.fire);
+    flame.position.set(0, 1.05, 1.0);
+    stove.add(plinth, body, cornice, hood, mouth, flame, blobShadow(2.4, 0.35));
+    // Firewood stacked beside it.
+    const woodGeo = keep(new CylinderGeometry(0.16, 0.16, 1.4, 6));
+    woodGeo.rotateX(Math.PI / 2);
+    const woodMat = keep(flat('#8a5a32'));
+    for (let k = 0; k < 6; k++) {
+      const l = new Mesh(woodGeo, woodMat);
+      l.position.set(2.5 + (k % 3) * 0.34 + (k >= 3 ? 0.17 : 0), 0.16 + (k >= 3 ? 0.3 : 0), 0.2);
+      stove.add(l);
+    }
+    add(stove);
+    this.fireLight = new PointLight('#ff9a4a', 30, 18, 1.4);
+    this.fireLight.position.set(-8.2, 1.6, WALL_Z + 3.6);
+    add(this.fireLight);
+
+    // On the back wall: the inn's sign, folk plates, shelves of jugs, garlic and peppers.
+    const sign = new Mesh(keep(new BoxGeometry(5.6, 1.3, 0.16)), [plank, plank, plank, plank, keep(new MeshLambertMaterial({ map: keep(signTexture('KARCZMA')) })), plank]);
+    sign.position.set(8.2, 5.2, WALL_Z + 0.5);
+    add(sign);
+    const plateMat = keep(new MeshLambertMaterial({ map: keep(plateTexture()) }));
+    const plateGeo = keep(new CircleGeometry(0.5, 14));
+    for (const [x, y] of [
+      [-4.2, 3.9],
+      [-3.0, 4.3],
+      [3.0, 4.3],
+      [4.2, 3.9],
+      [-3.6, 2.8],
+      [3.6, 2.8],
+    ]) {
+      const p = new Mesh(plateGeo, plateMat);
+      p.position.set(x, y, WALL_Z + 0.45);
+      add(p);
+    }
+    const shelfX = 8.2;
+    for (const y of [2.4, 3.7]) {
+      const s = box(5.2, 0.12, 0.6, plank);
+      s.position.set(shelfX, y, WALL_Z + 0.65);
+      add(s);
+    }
+    const jugCols = ['#e9dcc0', '#3d6db5', '#8a4a2a', '#e9dcc0', '#a51c3d', '#3d6db5', '#c9ccd3', '#8a4a2a'];
+    jugCols.forEach((c, k) => {
+      const m = keep(flat(c));
+      const g = new Group();
+      const tall = k % 3 !== 1;
+      const b = new Mesh(keep(new CylinderGeometry(tall ? 0.2 : 0.26, tall ? 0.26 : 0.22, tall ? 0.6 : 0.36, 8)), m);
+      b.position.y = tall ? 0.3 : 0.18;
+      g.add(b);
+      if (tall) {
+        const neck = new Mesh(keep(new CylinderGeometry(0.1, 0.16, 0.2, 7)), m);
+        neck.position.y = 0.7;
+        g.add(neck);
+      }
+      g.position.set(shelfX - 2.1 + (k % 4) * 1.4, k < 4 ? 2.46 : 3.76, WALL_Z + 0.7);
+      add(g);
+    });
+    const strand = keep(flat('#c9a46a'));
+    const garlic = keep(flat('#f4ecd8'));
+    const pepper = keep(flat('#c8202a'));
+    const bulb = keep(new SphereGeometry(0.17, 6, 4));
+    const cone = keep(new ConeGeometry(0.09, 0.42, 5));
+    for (const [x, kind] of [
+      [11.6, 0],
+      [12.4, 1],
+      [-4.9, 1],
+    ] as const) {
+      const rope = new Mesh(keep(new CylinderGeometry(0.03, 0.03, 2.6, 4)), strand);
+      rope.position.set(x, 4.2, WALL_Z + 0.55);
+      add(rope);
+      for (let k = 0; k < 7; k++) {
+        const m = kind === 0 ? new Mesh(bulb, garlic) : new Mesh(cone, pepper);
+        m.position.set(x + (k % 2 ? 0.14 : -0.14), 3.1 + k * 0.3, WALL_Z + 0.6);
+        if (kind === 1) m.rotation.z = Math.PI + (k % 2 ? 0.4 : -0.4);
+        add(m);
+      }
+    }
+
+    // Long tables with benches down both sides, laid with mugs, plates, bread and candles.
+    const mugMat = keep(flat('#8a5a32'));
+    const mugGeo = keep(new CylinderGeometry(0.17, 0.15, 0.36, 8));
+    const handleGeo = keep(new TorusGeometry(0.1, 0.035, 4, 8));
+    const dishMat = keep(flat('#f4ecd8'));
+    const dishGeo = keep(new CylinderGeometry(0.34, 0.28, 0.06, 12));
+    const breadMat = keep(flat('#c58a3e'));
+    const breadGeo = keep(new SphereGeometry(0.4, 8, 5));
+    const candleMat = keep(flat('#f4ecd8'));
+    const candleGeo = keep(new CylinderGeometry(0.08, 0.08, 0.4, 6));
+    const flameGeo = keep(new ConeGeometry(0.07, 0.2, 5));
+    for (const side of [-1, 1]) {
+      const x = side * 11.9;
+      const top = box(2.2, 0.16, 9.5, plankLong);
+      top.position.set(x, 1.02, -0.6);
+      add(top);
+      for (const z of [-4.6, 3.4]) {
+        const leg = box(1.6, 0.94, 0.22, dark);
+        leg.position.set(x, 0.47, z);
+        add(leg);
+      }
+      for (const bx of [x - 1.75, x + 1.75]) {
+        const bench = box(0.7, 0.14, 9.2, plank);
+        bench.position.set(bx, 0.55, -0.6);
+        const l1 = box(0.6, 0.48, 0.16, dark);
+        l1.position.set(bx, 0.24, -4.4);
+        const l2 = l1.clone();
+        l2.position.z = 3.2;
+        add(bench, l1, l2);
+      }
+      const shadow = blobShadow(1.0, 0.3);
+      shadow.scale.set(1.6, 5, 1);
+      shadow.position.set(x, 0.03, -0.6);
+      add(shadow);
+      const ty = 1.1;
+      for (const [dz, what] of [
+        [-4.2, 'mug'],
+        [-3.3, 'dish'],
+        [-2.2, 'candle'],
+        [-1.0, 'bread'],
+        [0.3, 'mug'],
+        [1.1, 'dish'],
+        [2.4, 'mug'],
+        [3.3, 'candle'],
+      ] as const) {
+        const ox = side * ((dz * 7) % 2 > 1 ? 0.35 : -0.35);
+        if (what === 'mug') {
+          const m = new Mesh(mugGeo, mugMat);
+          m.position.set(x + ox, ty + 0.18, dz);
+          const h = new Mesh(handleGeo, mugMat);
+          h.position.set(x + ox + 0.19, ty + 0.2, dz);
+          h.rotation.y = Math.PI / 2;
+          add(m, h);
+        } else if (what === 'dish') {
+          const d = new Mesh(dishGeo, dishMat);
+          d.position.set(x + ox, ty + 0.03, dz);
+          add(d);
+        } else if (what === 'bread') {
+          const b = new Mesh(breadGeo, breadMat);
+          b.scale.set(1.3, 0.6, 0.8);
+          b.position.set(x, ty + 0.2, dz);
+          add(b);
+        } else {
+          const c = new Mesh(candleGeo, candleMat);
+          c.position.set(x, ty + 0.2, dz);
+          const f = new Mesh(flameGeo, this.fire);
+          f.position.set(x, ty + 0.5, dz);
+          add(c, f);
+        }
+      }
+    }
+
+    // Barrels in the back corners and a couple at the front.
     const barrelMat = keep(new MeshLambertMaterial({ map: keep(groundTexture('wood', 2, 11)), color: '#9a6236', flatShading: true }));
     const hoop = keep(flat('#3a3330'));
-    const bottle = keep(new MeshLambertMaterial({ color: '#3d7a4a', flatShading: true, transparent: true, opacity: 0.85 }));
-    const clear = keep(new MeshLambertMaterial({ color: '#d9eef2', flatShading: true, transparent: true, opacity: 0.7 }));
-    const crate = keep(new MeshLambertMaterial({ map: keep(groundTexture('wood', 1, 13)), color: '#b07a48', flatShading: true }));
-    const barrel = (x: number, z: number) => {
+    const barrelGeo = keep(new CylinderGeometry(0.85, 0.85, 1.7, 10));
+    const hoopGeo = keep(new CylinderGeometry(0.88, 0.88, 0.1, 10));
+    const barrel = (x: number, y: number, z: number) => {
       const g = new Group();
-      const b = new Mesh(keep(new CylinderGeometry(0.85, 0.85, 1.7, 10)), barrelMat);
+      const b = new Mesh(barrelGeo, barrelMat);
       b.position.y = 0.85;
       g.add(b);
-      for (const y of [0.35, 1.35]) {
-        const h = new Mesh(keep(new CylinderGeometry(0.88, 0.88, 0.1, 10)), hoop);
-        h.position.y = y;
+      for (const hy of [0.35, 1.35]) {
+        const h = new Mesh(hoopGeo, hoop);
+        h.position.y = hy;
         g.add(h);
       }
-      g.add(blobShadow(1.0, 0.35));
-      g.position.set(x, 0, z);
-      this.stage.add(g);
+      if (y === 0) g.add(blobShadow(1.0, 0.35));
+      g.position.set(x, y, z);
+      add(g);
     };
-    const bottleAt = (x: number, z: number, mat: Material) => {
-      const g = new Group();
-      const b = new Mesh(keep(new CylinderGeometry(0.2, 0.2, 0.7, 7)), mat);
-      b.position.y = 0.35;
-      const neck = new Mesh(keep(new CylinderGeometry(0.07, 0.1, 0.35, 6)), mat);
-      neck.position.y = 0.85;
-      g.add(b, neck, blobShadow(0.26, 0.3));
-      g.position.set(x, 0, z);
-      this.stage.add(g);
-    };
-    barrel(-11.5, -3.5);
-    barrel(-12.6, -1.4);
-    barrel(11.8, -4.2);
-    const c1 = box(1.8, 1.1, 1.4, crate);
-    c1.position.set(12.4, 0.55, 2.2);
-    c1.rotation.y = 0.3;
-    const c2 = box(1.3, 0.9, 1.1, crate);
-    c2.position.set(12.1, 1.55, 2.1);
-    c2.rotation.y = -0.2;
-    const c3 = box(1.6, 1.0, 1.3, crate);
-    c3.position.set(-12.2, 0.5, 3.4);
-    c3.rotation.y = -0.4;
-    this.stage.add(c1, c2, c3);
-    for (let k = 0; k < 9; k++) {
-      const side = k % 2 ? 1 : -1;
-      bottleAt(side * (9.6 + rnd() * 3), -6 + rnd() * 12, rnd() < 0.5 ? bottle : clear);
-    }
+    barrel(13.6, 0, WALL_Z + 1.6);
+    barrel(14.6, 0, WALL_Z + 3.4);
+    barrel(14.0, 1.7, WALL_Z + 2.4);
+    barrel(-14.4, 0, 7.4);
+    barrel(14.4, 0, 7.6);
   }
 
   // ---- smoke -----------------------------------------------------------------------
@@ -452,16 +660,35 @@ export class SmokeScene {
   render(dt: number) {
     this.time += dt;
     const g = this.game;
-    if (g.phase === 'over') this.renderTower();
+    if (g.phase === 'over') this.renderTower(dt);
     else this.renderTable(dt);
     this.updatePuffs(dt);
-    // The room fills with smoke as everyone smokes: the fog closes in and goes grey.
-    const total = g.seats.reduce((s, x) => s + x.smoked, 0);
-    const target = Math.min(0.75, total / (g.seats.length * 450 + 300));
-    this.haze += (target - this.haze) * Math.min(1, dt * 0.8);
-    this.fog.color.copy(this.sky).lerp(this.hazeColor, this.haze * 0.9);
-    this.fog.near = 34 - 24 * this.haze;
-    this.fog.far = 80 - 30 * this.haze;
+    // The room fills with smoke as the game goes on (faster the more everyone smokes): the fog
+    // closes in and goes grey, and clouds hang over the table, until the colours are hard to tell apart.
+    const now = Date.now();
+    let target = 0;
+    if (g.phase === 'play') {
+      const progress = Math.max(0, Math.min(1, (now - g.goAt) / Math.max(1, g.endsAt - g.goAt)));
+      const total = g.seats.reduce((s, x) => s + x.smoked, 0);
+      target = Math.min(1, 0.8 * progress + 0.35 * Math.min(1, total / (g.seats.length * 300 + 200)));
+    } else if (g.phase === 'over') target = 0.12;
+    this.haze += (target - this.haze) * Math.min(1, dt * (g.phase === 'over' ? 1.5 : 0.6));
+    const h = this.haze;
+    this.fog.color.copy(this.sky).lerp(this.hazeColor, h);
+    this.fog.near = 34 - 28 * h;
+    this.fog.far = 80 - 44 * h;
+    for (const c of this.clouds) {
+      c.a += dt * c.sp;
+      c.mesh.position.set(Math.cos(c.a) * c.r, c.y + Math.sin(this.time * 0.4 + c.a * 3) * 0.3, Math.sin(c.a) * c.r);
+      c.mesh.scale.setScalar(c.s * (0.7 + 0.3 * h));
+      c.mesh.rotation.y += dt * 0.05;
+      c.mat.opacity = g.phase === 'over' ? 0 : 0.36 * h * h;
+      c.mesh.visible = c.mat.opacity > 0.005;
+    }
+    // The stove's fire flickers.
+    const fl = 0.75 + 0.25 * Math.sin(this.time * 13) * Math.sin(this.time * 7.3 + 1);
+    this.fire.color.setRGB(1, 0.45 + 0.35 * fl, 0.12 * fl);
+    this.fireLight.intensity = 22 + 14 * fl;
     this.stage.render();
   }
 
@@ -577,15 +804,43 @@ export class SmokeScene {
 
   // ---- the tower -------------------------------------------------------------------
 
-  /** Builds the tower and points the camera at it (idempotent). Returns where each floor's labels go on the stage. */
-  towerLayout(): { y: number; left: { x: number; y: number }; right: { x: number; y: number } }[] {
+  /** Builds the tower (once). Returns where each floor's name goes on the stage, seen from the final camera. */
+  towerLayout(): { x: number; y: number }[] {
     if (!this.tower) this.buildTower();
-    return this.tower!.map((f) => {
-      const mid = f.y + 0.55 * TOWER_S;
-      const l = this.stage.toStage(new Vector3(-1.45 * TOWER_S, mid, 0));
-      const r = this.stage.toStage(new Vector3(1.45 * TOWER_S, mid, 0));
-      return { y: f.y, left: l, right: r };
+    const n = this.tower!.length;
+    const cam = this.stage.camera.clone();
+    const f = towerFraming(n);
+    cam.position.set(0, f.y + Math.sin(TOWER_TILT) * f.dist, Math.cos(TOWER_TILT) * f.dist);
+    cam.lookAt(0, f.y, 0);
+    cam.updateMatrixWorld();
+    return this.tower!.map((fl) => {
+      const v = new Vector3(-1.45 * TOWER_S, fl.y + 0.5 * TOWER_S, 0).project(cam);
+      return { x: ((v.x + 1) / 2) * 1920, y: ((1 - v.y) / 2) * 1080 };
     });
+  }
+
+  private makeCrown(keep: <T extends { dispose(): void }>(x: T) => T) {
+    const gold = keep(flat('#ffc93c', { emissive: '#6a4a00' }));
+    const gem = keep(new MeshBasicMaterial({ color: '#ff3d6e' }));
+    const crown = new Group();
+    const ring = new Mesh(keep(new CylinderGeometry(0.5, 0.44, 0.32, 8, 1, true)), gold);
+    ring.position.y = 0.16;
+    crown.add(ring);
+    for (let j = 0; j < 5; j++) {
+      const a = (j / 5) * TAU;
+      const spike = new Mesh(keep(new CylinderGeometry(0, 0.13, 0.38, 4)), gold);
+      spike.position.set(Math.cos(a) * 0.44, 0.5, Math.sin(a) * 0.44);
+      crown.add(spike);
+      const ball = new Mesh(keep(new SphereGeometry(0.06, 5, 3)), gold);
+      ball.position.set(Math.cos(a) * 0.44, 0.7, Math.sin(a) * 0.44);
+      crown.add(ball);
+    }
+    const jewel = new Mesh(keep(new SphereGeometry(0.09, 5, 3)), gem);
+    jewel.position.set(0, 0.17, 0.49);
+    crown.add(jewel);
+    crown.visible = false;
+    this.stage.add(crown);
+    return crown;
   }
 
   private buildTower() {
@@ -595,12 +850,9 @@ export class SmokeScene {
     this.tray.visible = false;
     for (const v of this.seats) v.model.root.visible = v.tag.visible = v.arm.visible = v.hand.visible = false;
     const yellow = yellowness(g.seats.map((s) => s.smoked));
-    const top = Math.max(...g.tower.map((i) => g.seats[i].smoked));
     const mouthGeo = keep(new CircleGeometry(0.34, 12, Math.PI, Math.PI));
-    const teethGeo = keep(new CylinderGeometry(0.03, 0.03, 0.56, 4));
+    const toothGeo = keep(new BoxGeometry(0.078, 0.1, 0.03));
     const mouthMat = keep(new MeshBasicMaterial({ color: '#5a1020' }));
-    const gold = keep(flat('#ffc93c', { emissive: '#6a4a00' }));
-    const gem = keep(new MeshBasicMaterial({ color: '#ff3d6e' }));
     this.tower = g.tower.map((seat, k) => {
       const model = buildPierogi(this.info[seat].color);
       model.mats.forEach((m) => keep(m));
@@ -608,77 +860,139 @@ export class SmokeScene {
       model.shadow.visible = k === 0;
       const y = TABLE_Y + k * TOWER_STEP;
       model.root.position.set(0, y, 0);
-      // A big open grin, teeth along the top.
+      model.root.visible = false;
+      // A big open grin with a row of separate teeth along the top.
       const mouth = new Mesh(mouthGeo, mouthMat);
       mouth.position.set(0, 0.27, 0.42);
       const teethMat = keep(new MeshBasicMaterial({ color: '#fbf8ee' }));
-      const teeth = new Mesh(teethGeo, teethMat);
-      teeth.rotation.z = Math.PI / 2;
-      teeth.scale.set(2.6, 1, 1);
-      teeth.position.set(0, 0.235, 0.435);
-      model.body.add(mouth, teeth);
-      let crown: Group | null = null;
-      if (g.seats[seat].smoked === top && top > 0) {
-        crown = new Group();
-        const ring = new Mesh(keep(new CylinderGeometry(0.34, 0.3, 0.22, 8, 1, true)), gold);
-        ring.position.y = 0.11;
-        crown.add(ring);
-        for (let j = 0; j < 5; j++) {
-          const a = (j / 5) * TAU;
-          const spike = new Mesh(keep(new CylinderGeometry(0, 0.09, 0.26, 4)), gold);
-          spike.position.set(Math.cos(a) * 0.3, 0.33, Math.sin(a) * 0.3);
-          crown.add(spike);
-        }
-        const jewel = new Mesh(keep(new SphereGeometry(0.06, 5, 3)), gem);
-        jewel.position.set(0, 0.12, 0.33);
-        crown.add(jewel);
-        crown.position.set(0.15, 0.95, 0.1);
-        crown.rotation.z = -0.25;
-        crown.visible = false;
-        model.body.add(crown);
+      const teeth = new Group();
+      for (let j = 0; j < 6; j++) {
+        const tooth = new Mesh(toothGeo, teethMat);
+        tooth.position.set(-0.235 + j * 0.094, 0.215, 0);
+        teeth.add(tooth);
       }
+      teeth.position.z = 0.435;
+      model.body.add(mouth, teeth);
       this.stage.add(model.root);
-      return { seat, model, mouth, teeth, teethMat, teethTo: new Color(teethColor(yellow[seat])), y, crown };
+      return { seat, model, mouth, teeth, teethMat, teethTo: new Color(teethColor(yellow[seat])), y };
     });
-    this.towerTop = TABLE_Y + (g.tower.length - 1) * TOWER_STEP + 1.1 * TOWER_S;
-    const h = this.towerTop - TABLE_Y;
-    const mid = TABLE_Y + h / 2;
-    this.stage.lookAt(new Vector3(0, mid, 0), Math.max(9, (h + 1.6) / 0.62), 0.12);
-    // Labels are placed from the camera before it first renders from here.
-    this.stage.camera.updateMatrixWorld();
+    this.crown = this.makeCrown(keep);
+    // Tied winners get a crown each; the first one is the crown that hovered.
+    this.extraCrowns = (g.finale?.winners ?? []).slice(1).map(() => this.makeCrown(keep));
+    const f = towerFraming(1);
+    this.camY = f.y;
+    this.camDist = f.dist;
   }
 
-  private renderTower() {
+  private renderTower(dt: number) {
     this.towerLayout();
     const g = this.game;
+    const fin = g.finale;
+    if (!fin) return;
+    const T = fin.times;
     const el = Date.now() - g.finaleAt;
-    const flash = g.flashAfter;
-    this.tower!.forEach((f, k) => {
-      const t = el - k * DROP_MS;
+    const n = this.tower!.length;
+    const winners = fin.winners;
+
+    // The camera rises with the tower as the pierogi land.
+    const landed = Math.max(1, Math.min(n, (el - FALL_MS) / DROP_MS + 1));
+    const want = towerFraming(Math.ceil(landed - 0.05));
+    const k = Math.min(1, dt * 3);
+    this.camY += (want.y - this.camY) * k;
+    this.camDist += (want.dist - this.camDist) * k;
+    this.stage.lookAt(new Vector3(0, this.camY, 0), this.camDist, TOWER_TILT);
+
+    // Which floor the crown hovers by during the suspense.
+    let hop = -1;
+    if (el >= T.suspense && el < T.reveal) {
+      const s = el - T.suspense;
+      for (const h of fin.hops) if (h.at <= s) hop = h.floor;
+    }
+
+    this.tower!.forEach((f, i) => {
       const m = f.model;
+      const t = el - i * DROP_MS;
       m.root.visible = t > 0;
-      // Fall in from above with a little squash on landing.
-      const fall = Math.max(0, 1 - t / 420);
-      m.root.position.y = f.y + fall * fall * 14;
-      const land = t > 420 ? Math.max(0, 1 - (t - 420) / 260) : 0;
-      m.body.scale.set(1 + 0.18 * land, 1 - 0.22 * land, 1 + 0.18 * land);
+      // Falling in from above, then landing with a squash; every landing above jolts the ones below.
+      const fall = Math.max(0, Math.min(1, t / FALL_MS));
+      // At the reveal the floors above each winner lift, so the crown lands clearly on the winner's head.
+      const lift = Math.max(0, Math.min(1, (el - T.reveal) / 350)) * 1.1 * winners.filter((w) => w < i).length;
+      m.root.position.y = f.y + (1 - fall * fall) * DROP_HEIGHT + lift;
+      let squash = t > FALL_MS ? Math.max(0, 1 - (t - FALL_MS) / 260) : 0;
+      for (let j = i + 1; j < n; j++) {
+        const tj = el - (j * DROP_MS + FALL_MS);
+        if (tj > 0 && tj < 220) squash = Math.max(squash, 0.35 * (1 - tj / 220));
+      }
+      const pick = hop === i ? 1 : 0;
+      m.body.scale.set(1 + 0.18 * squash + 0.06 * pick, 1 - 0.22 * squash + 0.04 * pick, 1 + 0.18 * squash);
+      m.body.rotation.z = pick ? Math.sin(this.time * 18) * 0.06 : 0;
       // Closed mouth until the flash, then the grin; teeth go yellow after.
-      const open = el >= flash;
+      const open = el >= T.flash;
       f.mouth.scale.y = open ? 1 : 0.12;
       f.teeth.visible = open;
-      const yf = Math.max(0, Math.min(1, (el - flash - 350) / 1600));
+      const yf = Math.max(0, Math.min(1, (el - T.flash - 350) / 1600));
       f.teethMat.color.set('#fbf8ee').lerp(f.teethTo, yf);
-      if (f.crown) {
-        const c = el - flash - CROWN_AFTER_MS;
-        f.crown.visible = c > 0;
-        f.crown.scale.setScalar(c > 0 ? Math.min(1.15, (c / 250) * 1.15) - Math.max(0, Math.min(0.15, (c - 250) / 600)) : 0);
-        m.body.rotation.z = c > 0 ? Math.sin(this.time * 6) * 0.05 : 0;
-        // The winner steps out of the tower, so the crown isn't hidden under the next one up.
-        const out = Math.max(0, Math.min(1, (el - flash - CROWN_AFTER_MS + 300) / 300));
-        m.root.position.z = out * 1.1;
-        m.root.scale.setScalar(TOWER_S * (1 + 0.12 * out));
-      }
+      // The winners step out of the tower to be crowned.
+      const out = winners.includes(i) ? Math.max(0, Math.min(1, (el - T.reveal) / 350)) : 0;
+      m.root.position.z = out * WIN_OUT;
+      m.root.scale.setScalar(TOWER_S * (1 + WIN_GROW * out));
+      if (out > 0 && el > T.reveal + 900) m.body.rotation.z = Math.sin(this.time * 6) * 0.05;
     });
+
+    const crown = this.crown!;
+    const opened = Math.max(0, Math.min(1, (el - T.reveal) / 350)) * 1.1;
+    const head = (i: number) => this.tower![i].y + opened * winners.filter((w) => w < i).length + 1.03 * TOWER_S * (1 + WIN_GROW);
+    if (el < T.suspense) crown.visible = false;
+    else if (el < T.reveal) {
+      // Hovering beside the tower, hopping from floor to floor.
+      crown.visible = true;
+      const ty = this.tower![Math.max(0, hop)].y + 0.75 * TOWER_S;
+      const enter = Math.min(1, (el - T.suspense) / 400);
+      this.crownY = enter < 1 ? ty + (1 - enter) * 6 : this.crownY + (ty - this.crownY) * Math.min(1, dt * 16);
+      crown.position.set(2.3, this.crownY + Math.sin(this.time * 5) * 0.08, 0.6);
+      crown.scale.setScalar(1.25);
+      crown.rotation.set(0, this.time * 2.5, 0.35);
+    } else if (winners.length) {
+      // Up over the winner, then down onto their head.
+      const w = winners[0];
+      const r = el - T.reveal;
+      const hx = 0;
+      const hz = WIN_OUT + 0.12;
+      const hy = head(w);
+      if (r < 450) {
+        const f = r / 450;
+        crown.position.set(2.3 + (hx - 2.3) * f, this.crownY + (hy + 2.6 - this.crownY) * f + Math.sin(f * Math.PI) * 1.2, 0.6 + (hz - 0.6) * f);
+      } else {
+        const f = Math.min(1, (r - 450) / 320);
+        const bounce = f >= 1 ? Math.max(0, Math.sin((r - 770) / 90) * 0.12 * Math.max(0, 1 - (r - 770) / 500)) : 0;
+        crown.position.set(hx, hy + 2.6 * (1 - f * f) + bounce, hz);
+        if (f >= 1 && !this.sparkled) {
+          this.sparkled = true;
+          this.sparkle(new Vector3(hx, hy + 0.4, hz));
+        }
+      }
+      crown.rotation.set(0, Math.max(0, 1 - r / 700) * this.time * 2.5, -0.15);
+      crown.scale.setScalar(1.25 - 0.25 * Math.min(1, r / 450));
+      this.extraCrowns.forEach((c, j) => {
+        const wi = winners[j + 1];
+        const f = Math.max(0, Math.min(1, (r - 450) / 320));
+        c.visible = r > 300;
+        c.position.set(0, head(wi) + 4 * (1 - f * f), hz);
+        c.rotation.set(0, 0, -0.15);
+      });
+    } else {
+      // Nobody smoked a thing: the crown gives up and floats away.
+      crown.position.y += dt * 4;
+      crown.rotation.y += dt * 3;
+    }
+  }
+
+  /** A burst of gold sparks. */
+  private sparkle(at: Vector3) {
+    for (let k = 0; k < 18; k++) {
+      const a = (k / 18) * TAU;
+      this.puff(at.clone(), new Vector3(Math.cos(a) * 4, 2 + Math.random() * 3, Math.sin(a) * 2 + 1), 0.2, 0.9, k % 2 ? '#ffd23f' : '#fff4dc');
+    }
   }
 
   dispose() {
@@ -741,4 +1055,103 @@ function doilyTexture() {
     1,
     1,
   );
+}
+
+/** Logs: brown with grain along their length and darker rings. */
+function logTexture() {
+  return pixelTexture(
+    16,
+    (ctx, rnd) => {
+      for (let y = 0; y < 16; y++)
+        for (let x = 0; x < 16; x++) {
+          const v = (rnd() - 0.5) * 24 + (y % 5 === 0 ? -26 : 0);
+          ctx.fillStyle = `rgb(${150 + v},${100 + v * 0.8},${60 + v * 0.5})`;
+          ctx.fillRect(x, y, 1, 1);
+        }
+    },
+    23,
+    3,
+  );
+}
+
+/** Stove tiles: cream with a blue folk flower, in a grid. */
+function tileTexture() {
+  return pixelTexture(
+    32,
+    (ctx, rnd) => {
+      for (let y = 0; y < 32; y++)
+        for (let x = 0; x < 32; x++) {
+          const v = (rnd() - 0.5) * 10;
+          ctx.fillStyle = x % 16 === 0 || y % 16 === 0 ? '#b7a98c' : `rgb(${240 + v},${232 + v},${214 + v})`;
+          ctx.fillRect(x, y, 1, 1);
+        }
+      for (const [ox, oy] of [
+        [0, 0],
+        [16, 0],
+        [0, 16],
+        [16, 16],
+      ]) {
+        ctx.fillStyle = '#2f5fa8';
+        for (const [dx, dy] of [
+          [7, 4],
+          [7, 10],
+          [4, 7],
+          [10, 7],
+        ])
+          ctx.fillRect(ox + dx, oy + dy, 2, 2);
+        ctx.fillStyle = '#c8202a';
+        ctx.fillRect(ox + 7, oy + 7, 2, 2);
+      }
+    },
+    29,
+    2,
+  );
+}
+
+/** A painted folk plate: rings and a rosette. */
+function plateTexture() {
+  return pixelTexture(
+    32,
+    (ctx) => {
+      for (let y = 0; y < 32; y++)
+        for (let x = 0; x < 32; x++) {
+          const d = Math.hypot(x - 15.5, y - 15.5);
+          const a = Math.atan2(y - 15.5, x - 15.5);
+          let c = '#f4ecd8';
+          if (d > 13.5) c = '#2f5fa8';
+          else if (d > 12) c = '#f4ecd8';
+          else if (d > 10.8) c = '#c8202a';
+          else if (d < 7 && Math.cos(a * 8) > 0.2 - d * 0.05) c = d < 2.5 ? '#ffd23f' : '#c8202a';
+          else if (d < 9.5 && d > 8 && Math.cos(a * 12) > 0.5) c = '#3f8a4a';
+          ctx.fillStyle = c;
+          ctx.fillRect(x, y, 1, 1);
+        }
+    },
+    31,
+    1,
+  );
+}
+
+/** The inn's sign: carved, cream letters on dark wood. */
+function signTexture(text: string) {
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 32;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = '#5a3418';
+  ctx.fillRect(0, 0, 128, 32);
+  ctx.fillStyle = '#3a200c';
+  ctx.fillRect(0, 0, 128, 2);
+  ctx.fillRect(0, 30, 128, 2);
+  ctx.font = '900 22px "Fraunces Variable", Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#2a1408';
+  ctx.fillText(text, 65, 18);
+  ctx.fillStyle = '#f4dca4';
+  ctx.fillText(text, 64, 17);
+  const t = new CanvasTexture(c);
+  t.magFilter = t.minFilter = NearestFilter;
+  t.colorSpace = SRGBColorSpace;
+  return t;
 }

@@ -4,10 +4,12 @@ import type { Game, GameHost } from '../types';
 import {
   CIG_LENGTH,
   COUGH_MS,
-  CROWN_AFTER_MS,
   DROP_MS,
-  FINALE_TAIL_MS,
-  FLASH_AFTER_MS,
+  FALL_MS,
+  SUSPENSE_MS,
+  crownHops,
+  finaleTimes,
+  type FinaleTimes,
   MIN_PUFF_GAP_MS,
   REACH_MS,
   REFILL_MS,
@@ -22,7 +24,6 @@ import {
   slotInFront,
   traySpeed,
 } from './logic';
-import { Cig } from './art';
 import { SmokeScene } from './scene';
 import { ARENA_SCALE } from '../arena/kit';
 import { BigCountdown, TimerRing } from '../../host/components';
@@ -89,6 +90,8 @@ export class SmokeGame implements Game {
   readonly removed = new Set<number>();
   /** Bottom to top, in the tower at the end. */
   tower: number[] = [];
+  /** The finale's timeline, the winners (tower floors) and the crown's hops before it settles on one. */
+  finale: { times: FinaleTimes; winners: number[]; hops: { at: number; floor: number }[] } | null = null;
   private readonly length: number;
   private timers: number[] = [];
   private tick: number | undefined;
@@ -243,17 +246,19 @@ export class SmokeGame implements Game {
     const live = this.ids.map((_, i) => i).filter((i) => !this.removed.has(i));
     // A random order keeps the suspense until the teeth come out.
     this.tower = live.sort(() => Math.random() - 0.5);
-    this.tower.forEach((_, k) => this.later(k * DROP_MS, () => sound.plop()));
-    const flash = this.tower.length * DROP_MS + FLASH_AFTER_MS;
-    this.later(flash, () => sound.shutter());
-    this.later(flash + CROWN_AFTER_MS, () => sound.fanfare());
-    this.later(flash + CROWN_AFTER_MS + FINALE_TAIL_MS, () => this.finish());
+    const smoked = this.tower.map((i) => this.seats[i].smoked);
+    const top = Math.max(0, ...smoked);
+    const winners = top > 0 ? this.tower.map((_, k) => k).filter((k) => smoked[k] === top) : [];
+    const times = finaleTimes(this.tower.length);
+    const hops = crownHops(this.tower.length, winners[0] ?? null, SUSPENSE_MS, Math.random);
+    this.finale = { times, winners, hops };
+    this.tower.forEach((_, k) => this.later(k * DROP_MS + FALL_MS, () => sound.plop()));
+    this.later(times.flash, () => sound.shutter());
+    this.later(times.suspense, () => sound.drumroll(SUSPENSE_MS / 1000));
+    for (const h of hops) this.later(times.suspense + h.at, () => sound.tick());
+    this.later(times.reveal, () => (winners.length ? sound.fanfare() : sound.wrong()));
+    this.later(times.end, () => this.finish());
     this.update();
-  }
-
-  /** When the camera flashes in the finale (ms after it starts). */
-  get flashAfter() {
-    return this.tower.length * DROP_MS + FLASH_AFTER_MS;
   }
 
   private finish() {
@@ -413,29 +418,19 @@ function SmokeView({ game }: { game: SmokeGame }) {
   );
 }
 
-/** Names beside the tower, and how many cigarettes each one smoked once the teeth are out. */
+/** Names beside the tower once everyone has landed, and the camera flash. */
 function TowerLabels({ game }: { game: SmokeGame }) {
   const layout = game.scene?.towerLayout() ?? [];
-  const smoked = game.seats.map((s) => s.smoked);
-  const top = Math.max(...game.tower.map((i) => smoked[i]));
-  const flash = game.flashAfter;
+  const t = game.finale?.times;
+  if (!t) return null;
   return (
-    <div class="smoke-tower" style={{ '--flash': `${flash}ms`, '--crown': `${flash + CROWN_AFTER_MS}ms` }}>
+    <div class="smoke-tower" style={{ '--flash': `${t.flash}ms` }}>
       {layout.map((l, k) => {
         const i = game.tower[k];
-        const win = smoked[i] === top && top > 0;
         return (
-          <>
-            <div class="smoke-floor-name" style={{ left: `${l.left.x}px`, top: `${l.left.y}px`, color: game.colorOf(i), animationDelay: `${k * DROP_MS + 400}ms` }}>
-              {game.nameOf(i)}
-            </div>
-            <div class={`smoke-floor-score ${win ? 'win' : ''}`} style={{ left: `${l.right.x}px`, top: `${l.right.y}px` }}>
-              <svg width="84" height="26" viewBox="-16 -10 102 20" aria-hidden="true">
-                <Cig color={game.colorOf(i)} len={80} w={14} lit />
-              </svg>
-              {(smoked[i] / CIG_LENGTH).toFixed(1)}
-            </div>
-          </>
+          <div class="smoke-floor-name" style={{ left: `${l.x}px`, top: `${l.y}px`, color: game.colorOf(i), animationDelay: `${t.landed + k * 90}ms` }}>
+            {game.nameOf(i)}
+          </div>
         );
       })}
       <div class="smoke-flash" />

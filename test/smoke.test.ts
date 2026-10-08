@@ -6,7 +6,10 @@ import {
   HOLD_MIN_MS,
   PUFF_MAX,
   Verdict,
+  SUSPENSE_MS,
   angleDiff,
+  crownHops,
+  finaleTimes,
   puffAmount,
   ratePuff,
   refillColor,
@@ -84,5 +87,31 @@ describe('Fajki', () => {
     expect(y[1]).toBeLessThan(1);
     // A puff or two doesn't make anyone fully yellow.
     expect(yellowness([20])[0]).toBeLessThan(0.2);
+  });
+
+  it('runs the finale in order: landings, flash, suspense, the crown', () => {
+    const t = finaleTimes(5);
+    expect(t.landed).toBeLessThan(t.flash);
+    expect(t.flash).toBeLessThan(t.suspense);
+    expect(t.reveal - t.suspense).toBe(SUSPENSE_MS);
+    expect(t.end).toBeGreaterThan(t.reveal);
+    expect(finaleTimes(8).landed).toBeGreaterThan(finaleTimes(2).landed);
+  });
+
+  it('hops the crown about, slowing down, and lands it on the winner', () => {
+    for (let seed = 1; seed < 30; seed++) {
+      const hops = crownHops(6, 4, SUSPENSE_MS, mulberry32(seed));
+      expect(hops.length).toBeGreaterThan(5);
+      expect(hops[hops.length - 1].floor).toBe(4);
+      for (let k = 1; k < hops.length; k++) {
+        expect(hops[k].floor).not.toBe(hops[k - 1].floor);
+        expect(hops[k].at).toBeGreaterThan(hops[k - 1].at);
+        if (k > 1) expect(hops[k].at - hops[k - 1].at).toBeGreaterThan(hops[k - 1].at - hops[k - 2].at);
+      }
+      expect(hops[hops.length - 1].at).toBeLessThan(SUSPENSE_MS);
+    }
+    expect(crownHops(1, 0, SUSPENSE_MS, mulberry32(1)).every((h) => h.floor === 0)).toBe(true);
+    const nobody = crownHops(3, null, SUSPENSE_MS, mulberry32(2));
+    expect(nobody[nobody.length - 1].floor).toBeLessThan(3);
   });
 });

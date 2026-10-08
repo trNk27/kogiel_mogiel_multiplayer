@@ -33,7 +33,7 @@ export class Sound {
     osc.stop(t0 + dur + 0.05);
   }
 
-  private noise(dur: number, vol = 0.25) {
+  private noise(dur: number, vol = 0.25, delay = 0) {
     if (this.muted || !this.ctx || this.ctx.state !== 'running') return;
     const ctx = this.ctx;
     const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
@@ -47,7 +47,7 @@ export class Sound {
     gain.gain.value = vol;
     src.buffer = buf;
     src.connect(filter).connect(gain).connect(ctx.destination);
-    src.start();
+    src.start(ctx.currentTime + delay);
   }
 
   join() {
@@ -120,6 +120,12 @@ export class Sound {
       this.tone(170 - i * 15, 0.16, { type: 'sawtooth', vol: 0.07, delay: d, slide: 95 });
       this.later(d, () => this.noise(0.18, 0.3));
     });
+  }
+  /** A snare roll that swells for `sec` seconds and ends on a hit. */
+  drumroll(sec: number) {
+    const step = 0.045;
+    for (let t = 0; t < sec; t += step) this.noise(0.05, 0.05 + 0.2 * (t / sec) ** 1.5, t);
+    this.noise(0.3, 0.4, sec);
   }
   /** A camera shutter. */
   shutter() {

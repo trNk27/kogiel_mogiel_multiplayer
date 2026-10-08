@@ -18,9 +18,6 @@
   font-weight: 750;
   font-size: 40px;
 }
-.cig-ember {
-  fill: #ff7a2a;
-}
 
 /* The tower of grins at the end: labels sit beside each floor (placed from the 3D camera). */
 .smoke-tower {
@@ -28,8 +25,7 @@
   inset: 0;
   pointer-events: none;
 }
-.smoke-floor-name,
-.smoke-floor-score {
+.smoke-floor-name {
   position: absolute;
   font-family: var(--font-display);
   font-weight: 850;
@@ -38,23 +34,8 @@
   text-shadow:
     0 3px 0 #2a120a,
     0 0 12px rgba(0, 0, 0, 0.6);
-}
-.smoke-floor-name {
   translate: calc(-100% - 24px) -50%;
   animation: fade-in 0.3s both;
-}
-.smoke-floor-score {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  translate: 24px -50%;
-  color: var(--cream);
-  animation: fade-in 0.4s both;
-  animation-delay: calc(var(--flash) + 1.6s);
-}
-.smoke-floor-score.win {
-  color: var(--yolk);
-  font-size: 56px;
 }
 .smoke-flash {
   position: absolute;
