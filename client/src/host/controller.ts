@@ -90,6 +90,7 @@ interface SavedSession {
   selected: Selection;
   options: LobbyOptions;
   gamesPlayed: number;
+  vip?: string | null;
   history?: PartyEntry[];
   savedAt: number;
   noTv?: boolean;
@@ -120,6 +121,8 @@ export class HostController implements GameHost {
   /** The tournament being played, if any. */
   tournament: Tournament | null = null;
   gamesPlayed = 0;
+  /** Who's VIP now: it passes to the next player (in joining order) after every game. */
+  private vip: string | null = null;
   /** Party points per finished game, oldest first – for the standings chart. */
   history: PartyEntry[] = [];
   status: SocketStatus = 'closed';
@@ -181,6 +184,7 @@ export class HostController implements GameHost {
       this.hostKey = hostKey;
       this.players.clear();
       this.gamesPlayed = 0;
+      this.vip = null;
       this.history = [];
       this.connect();
       this.screen = { s: 'lobby' };
@@ -206,6 +210,7 @@ export class HostController implements GameHost {
     if (this.selectable(saved.selected)) this.selected = saved.selected;
     this.options = { ...DEFAULT_OPTIONS, ...saved.options };
     this.gamesPlayed = saved.gamesPlayed;
+    this.vip = saved.vip ?? null;
     this.history = saved.history ?? [];
     sound.muted = this.noTv || !this.options.sound;
     const now = Date.now();
@@ -262,6 +267,7 @@ export class HostController implements GameHost {
       selected: this.selected,
       options: this.options,
       gamesPlayed: this.gamesPlayed,
+      vip: this.vip,
       history: this.history,
       savedAt: Date.now(),
       noTv: this.noTv,
@@ -649,6 +655,7 @@ export class HostController implements GameHost {
       this.gamesPlayed++;
     }
     this.endGame();
+    this.passVip();
     this.screen = { s: 'results', game, standings: entries, ...(coop ? { coop } : {}) };
     sound.fanfare();
     this.refresh();
@@ -658,10 +665,26 @@ export class HostController implements GameHost {
 
   // ---- views ------------------------------------------------------------------
 
+  /** The VIP: whoever's turn it is, or the first to join if that player has left. */
   vipId(): string | null {
+    if (this.vip && this.players.has(this.vip)) return this.vip;
     let best: Player | null = null;
     for (const p of this.players.values()) if (!best || p.joinedAt < best.joinedAt) best = p;
     return best?.id ?? null;
+  }
+
+  /** After a game the VIP passes to the next player in joining order (skipping anyone who's away). */
+  private passVip() {
+    const order = [...this.players.values()].sort((a, b) => a.joinedAt - b.joinedAt);
+    if (order.length === 0) return;
+    const at = order.findIndex((p) => p.id === this.vipId());
+    for (let k = 1; k <= order.length; k++) {
+      const p = order[(at + k) % order.length];
+      if (p.connected || k === order.length) {
+        this.vip = p.id;
+        return;
+      }
+    }
   }
 
   connectedCount() {
