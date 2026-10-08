@@ -35,7 +35,7 @@ import {
   type Object3D,
 } from 'three';
 import { mulberry32 } from '../rng';
-import { StylePass } from './styles';
+import { StylePass, pickStyle } from './styles';
 
 /** Internal resolution as a fraction of the 1920×1080 stage (same as Maluch Rally). */
 export const ARENA_SCALE = 0.45;
@@ -220,13 +220,15 @@ export class ArenaStage {
   readonly world = new Group();
   readonly sun: DirectionalLight;
   /** The look: original, Vaporwave or Papercraft at random, or forced with `?style=`. */
-  readonly style = new StylePass();
+  readonly style: StylePass;
   private disposables: { dispose(): void }[] = [];
 
   constructor(
     canvas: HTMLCanvasElement,
-    opts: { sky?: string; fog?: [number, number]; fov?: number } = {},
+    /** `styles`: the looks this game may roll (default: all of RANDOM_STYLES). */
+    opts: { sky?: string; fog?: [number, number]; fov?: number; styles?: readonly string[] } = {},
   ) {
+    this.style = new StylePass(pickStyle(Math.random, opts.styles));
     this.renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(Math.round(STAGE_W * ARENA_SCALE), Math.round(STAGE_H * ARENA_SCALE), false);

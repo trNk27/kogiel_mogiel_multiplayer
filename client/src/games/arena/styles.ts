@@ -280,9 +280,9 @@ export function styleFromUrl(): StyleDef | undefined {
   return STYLES.find((s) => s.id === id);
 }
 
-/** The URL's style, or a random one of RANDOM_STYLES. */
-export function pickStyle(rng: () => number = Math.random): StyleDef {
-  const id = RANDOM_STYLES[Math.floor(rng() * RANDOM_STYLES.length)];
+/** The URL's style, or a random one of `from` (RANDOM_STYLES unless a game needs its colours kept). */
+export function pickStyle(rng: () => number = Math.random, from: readonly string[] = RANDOM_STYLES): StyleDef {
+  const id = from[Math.floor(rng() * from.length)];
   return styleFromUrl() ?? STYLES.find((s) => s.id === id) ?? STYLES[0];
 }
 

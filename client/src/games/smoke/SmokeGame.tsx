@@ -1,9 +1,13 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { PLAYER_COLORS, colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import {
   CIG_LENGTH,
   COUGH_MS,
+  CROWN_AFTER_MS,
+  DROP_MS,
+  FINALE_TAIL_MS,
+  FLASH_AFTER_MS,
   MIN_PUFF_GAP_MS,
   REACH_MS,
   REFILL_MS,
@@ -16,13 +20,12 @@ import {
   refillColor,
   slotCount,
   slotInFront,
-  teethColor,
   traySpeed,
-  yellowness,
 } from './logic';
-import { Cig, Cloud, GrinPierogi } from './art';
+import { Cig } from './art';
+import { SmokeScene } from './scene';
+import { ARENA_SCALE } from '../arena/kit';
 import { BigCountdown, TimerRing } from '../../host/components';
-import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 import './smoke.css';
 
@@ -64,16 +67,6 @@ interface Spin {
 }
 
 const TICK_MS = 50;
-/** The tower at the end: the pierogi land one by one, the camera flashes, the winner gets the crown. */
-const DROP_MS = 380;
-const FLASH_AFTER_MS = 700;
-const CROWN_AFTER_MS = 2400;
-const FINALE_TAIL_MS = 4200;
-/** Table geometry on the TV (SVG units around the table's centre). */
-const SEAT_R = 385;
-const REST_R = 326;
-const TRAY_R = 178;
-const MOUTH_R = 368;
 
 export class SmokeGame implements Game {
   readonly id = 'smoke' as const;
@@ -99,6 +92,10 @@ export class SmokeGame implements Game {
   private readonly length: number;
   private timers: number[] = [];
   private tick: number | undefined;
+  scene: SmokeScene | null = null;
+  glError = false;
+  private raf = 0;
+  private last = 0;
 
   constructor(
     private host: GameHost,
@@ -142,12 +139,44 @@ export class SmokeGame implements Game {
       this.update();
     });
     this.tick = window.setInterval(() => this.step(), TICK_MS);
+    this.last = performance.now();
+    this.raf = requestAnimationFrame(this.frame);
     this.update();
   }
 
   dispose() {
     clearInterval(this.tick);
+    cancelAnimationFrame(this.raf);
     for (const t of this.timers) clearTimeout(t);
+    this.detach();
+  }
+
+  private frame = (now: number) => {
+    this.raf = requestAnimationFrame(this.frame);
+    const dt = Math.min(0.1, (now - this.last) / 1000);
+    this.last = now;
+    this.scene?.render(dt);
+  };
+
+  // ---- 3D view -----------------------------------------------------------------------
+
+  attach(canvas: HTMLCanvasElement) {
+    try {
+      this.scene = new SmokeScene(
+        canvas,
+        this.ids.map((_, i) => ({ name: this.nameOf(i), color: this.colorOf(i) })),
+        this,
+      );
+    } catch (err) {
+      console.error(err);
+      this.glError = true;
+      this.host.changed();
+    }
+  }
+
+  detach() {
+    this.scene?.dispose();
+    this.scene = null;
   }
 
   private later(ms: number, fn: () => void) {
@@ -347,7 +376,7 @@ export class SmokeGame implements Game {
   }
 
   render() {
-    return this.phase === 'over' ? <Tower game={this} /> : <TableView game={this} />;
+    return <SmokeView game={this} />;
   }
 
   colorOf(i: number) {
@@ -361,211 +390,54 @@ export class SmokeGame implements Game {
   }
 }
 
-const deg = (a: number) => (a * 180) / Math.PI;
-
-function TableView({ game }: { game: SmokeGame }) {
-  const tray = useRef<SVGGElement>(null);
-  const svg = useRef<SVGSVGElement>(null);
-
-  // The tray turns and the arms reach every frame, without re-rendering.
+function SmokeView({ game }: { game: SmokeGame }) {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const [, force] = useState(0);
   useEffect(() => {
-    let raf = 0;
-    const reach = new Map<number, number>();
-    const loop = () => {
-      const now = Date.now();
-      tray.current?.setAttribute('transform', `rotate(${deg(game.trayAt(now))})`);
-      const arms = new Map<number, SVGLineElement[]>();
-      for (const el of Array.from(svg.current?.querySelectorAll<SVGLineElement>('[data-arm]') ?? [])) {
-        const i = Number(el.dataset.arm);
-        arms.set(i, [...(arms.get(i) ?? []), el]);
-      }
-      for (const el of Array.from(svg.current?.querySelectorAll<SVGGElement>('[data-hand]') ?? [])) {
-        const i = Number(el.dataset.hand);
-        const s = game.seats[i];
-        let r = REST_R;
-        const t = now - s.reachAt;
-        if (s.reachAt && t < REACH_MS) r = REST_R + (TRAY_R - REST_R) * Math.sin(((t / REACH_MS) * Math.PI) / 2);
-        else if (s.reachAt && t < REACH_MS + RETURN_MS) r = TRAY_R + (REST_R - TRAY_R) * ((t - REACH_MS) / RETURN_MS);
-        else if (s.pullAt) r = (reach.get(i) ?? REST_R) + (MOUTH_R - (reach.get(i) ?? REST_R)) * 0.25;
-        else if (reach.get(i) !== undefined && reach.get(i)! > REST_R) r = reach.get(i)! + (REST_R - reach.get(i)!) * 0.2;
-        reach.set(i, r);
-        el.setAttribute('transform', `rotate(${deg(game.angles[i])}) translate(${r.toFixed(1)} 0)`);
-        arms.get(i)?.forEach((arm) => arm.setAttribute('x2', r.toFixed(1)));
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    game.attach(canvas.current!);
+    force(1);
+    return () => game.detach();
   }, [game]);
-
-  const n = game.slots.length;
-  const now = Date.now();
-  const total = game.seats.reduce((a, s) => a + s.smoked, 0);
-  const haze = Math.min(0.4, total / (game.seats.length * 900 + 600));
   return (
-    <div class="screen smoke">
-      <svg ref={svg} class="smoke-table" viewBox="-864 -486 1728 972" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <radialGradient id="smoke-wood">
-            <stop offset="0" stop-color="#9a6434" />
-            <stop offset=".85" stop-color="#7d4b25" />
-            <stop offset="1" stop-color="#5e3418" />
-          </radialGradient>
-          <radialGradient id="smoke-haze">
-            <stop offset="0" stop-color="#d9d4ca" stop-opacity=".9" />
-            <stop offset=".6" stop-color="#bdb7ad" stop-opacity=".55" />
-            <stop offset="1" stop-color="#bdb7ad" stop-opacity="0" />
-          </radialGradient>
-        </defs>
-        <circle r="330" fill="#3c2010" />
-        <circle r="318" fill="url(#smoke-wood)" />
-        {[260, 200, 140].map((r) => (
-          <circle r={r} fill="none" stroke="rgba(60,30,10,.18)" stroke-width="3" />
-        ))}
-        <circle r="214" fill="#fbf0d9" opacity=".92" />
-        <circle r="214" fill="none" stroke="#fbf0d9" stroke-width="10" stroke-dasharray="4 14" stroke-linecap="round" opacity=".92" />
-        <circle r="202" fill="none" stroke="#e8335a" stroke-width="3" stroke-dasharray="12 10" opacity=".55" />
-        {/* Where each player grabs from. */}
-        {game.angles.map((a, i) => (
-          <path d="M 236 0 l 22 -16 v 32 Z" fill={game.colorOf(i)} stroke="#2a120a" stroke-width="3" stroke-linejoin="round" transform={`rotate(${deg(a)})`} opacity={game.removed.has(i) ? 0.2 : 1} />
-        ))}
-        <g ref={tray} transform={`rotate(${deg(game.trayAt(now))})`}>
-          <circle r={TRAY_R + 4} fill="#2a120a" opacity=".35" transform="translate(0 8)" />
-          <circle r={TRAY_R} fill="#a46a3a" stroke="#2a120a" stroke-width="4" />
-          <circle r={TRAY_R - 16} fill="none" stroke="rgba(42,18,10,.25)" stroke-width="3" />
-          {game.slots.map((c, k) =>
-            c ? (
-              <g transform={`rotate(${(k * 360) / n}) translate(52 0)`} key={`${k}-${c}`} class="smoke-slot">
-                <Cig color={c} len={112} w={17} />
-              </g>
-            ) : null,
-          )}
-          <circle r="40" fill="#7a4a26" stroke="#2a120a" stroke-width="4" />
-          <circle r="16" fill="#c9ccd3" stroke="#2a120a" stroke-width="3" />
-        </g>
-        {/* Ashtrays with everyone's butts. */}
-        {game.angles.map((a, i) => {
-          const b = game.seats[i].butts;
-          const x = 286 * Math.cos(a + 0.36);
-          const y = 286 * Math.sin(a + 0.36);
-          return (
-            <g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`} opacity={game.removed.has(i) ? 0.2 : 1}>
-              <circle r="27" fill="#3a4148" stroke="#2a120a" stroke-width="3" />
-              <circle r="18" fill="#5b636b" />
-              {Array.from({ length: Math.min(6, b) }, (_, j) => (
-                <rect x="-3" y="-13" width="20" height="7" rx="2" fill="#e0a256" stroke="#2a120a" stroke-width="1.5" transform={`rotate(${j * 61 + 20})`} />
-              ))}
-            </g>
-          );
-        })}
-        {/* Arms (under the pierogi) and hands. */}
-        {game.angles.map((a, i) =>
-          game.removed.has(i) ? null : (
-            <g transform={`rotate(${deg(a)})`}>
-              <line data-arm={i} x1={SEAT_R} y1="0" x2={REST_R} y2="0" stroke="#2a120a" stroke-width="26" stroke-linecap="round" />
-              <line data-arm={i} x1={SEAT_R} y1="0" x2={REST_R} y2="0" stroke={game.colorOf(i)} stroke-width="18" stroke-linecap="round" />
-            </g>
-          ),
-        )}
-        {game.angles.map((a, i) => {
-          const s = game.seats[i];
-          const color = game.colorOf(i);
-          const coughing = s.hand === 'cough';
-          const x = SEAT_R * Math.cos(a);
-          const y = SEAT_R * Math.sin(a);
-          return (
-            <g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`} opacity={game.removed.has(i) ? 0.2 : game.online(i) ? 1 : 0.5}>
-              <g class={coughing ? 'smoke-cough' : s.pullAt ? 'smoke-pull' : ''}>
-                <g transform="translate(-82 -66)">
-                  <Pierogi color={color} size={164} mood={coughing ? 'dead' : s.pullAt ? 'sleep' : 'happy'} />
-                </g>
-              </g>
-              {coughing &&
-                [0, 1, 2].map((k) => (
-                  <g class="smoke-khe" style={{ animationDelay: `${k * 0.45}s` }}>
-                    <Cloud r={16} fill="rgba(150,160,140,.85)" />
-                  </g>
-                ))}
-            </g>
-          );
-        })}
-        {game.angles.map((a, i) => {
-          const s = game.seats[i];
-          if (game.removed.has(i)) return null;
-          const color = game.colorOf(i);
-          const held = s.holding && (s.hand === 'cig' || s.hand === 'cough');
-          // The hand group is moved by the animation loop; the arm line before it follows.
-          return (
-            <g data-hand={i} transform={`rotate(${deg(a)}) translate(${REST_R} 0)`}>
-                {held && (
-                  <g transform="rotate(90) translate(-40 0)">
-                    <g class={s.hand === 'cough' && s.after === 'empty' ? 'smoke-wrong' : ''}>
-                      <Cig color={s.holding!} len={110} w={18} frac={s.hand === 'cig' ? s.left / CIG_LENGTH : 1} lit={s.hand === 'cig' || s.after === 'cig'} glow={!!s.pullAt} />
-                    </g>
-                  </g>
-                )}
-                <circle r="19" fill={color} stroke="#2a120a" stroke-width="4" />
-                <path d="M -4 -12 q 10 0 12 6 M -4 12 q 10 0 12 -6" fill="none" stroke="rgba(42,18,10,.4)" stroke-width="3" stroke-linecap="round" />
-            </g>
-          );
-        })}
-        {/* Exhaled smoke drifts over the table. */}
-        {game.puffs.map((p) => (
-          <g transform={`rotate(${deg(game.angles[p.seat])}) translate(${MOUTH_R - 30} 0)`} key={p.id}>
-            <g class="smoke-cloud" style={{ '--sz': String(0.8 + (p.amt / 25) * 2.2) }}>
-              <Cloud r={34} />
-            </g>
-          </g>
-        ))}
-        <circle r="760" fill="url(#smoke-haze)" opacity={haze} pointer-events="none" />
-      </svg>
+    <div class="rally smoke">
+      <canvas ref={canvas} class="rally-canvas" width={Math.round(1920 * ARENA_SCALE)} height={Math.round(1080 * ARENA_SCALE)} />
       {game.phase === 'play' && (
         <div class="smoke-timer">
           <TimerRing endsAt={game.endsAt} total={game.endsAt - game.goAt} size={130} />
         </div>
       )}
       {game.phase === 'ready' && <BigCountdown endsAt={game.goAt} />}
+      {game.phase === 'over' && <TowerLabels game={game} />}
+      {game.glError && <div class="smoke-notice">This screen can’t show 3D graphics (WebGL is off).</div>}
     </div>
   );
 }
 
-function Tower({ game }: { game: SmokeGame }) {
-  const rows = game.tower;
+/** Names beside the tower, and how many cigarettes each one smoked once the teeth are out. */
+function TowerLabels({ game }: { game: SmokeGame }) {
+  const layout = game.scene?.towerLayout() ?? [];
   const smoked = game.seats.map((s) => s.smoked);
-  const yellow = yellowness(smoked);
-  const top = Math.max(...rows.map((i) => smoked[i]));
-  // The pierogi sit on each other's heads.
-  const h = Math.min(170, 860 / (0.8 * Math.max(0, rows.length - 1) + 1));
-  const w = h / 0.8;
-  const stepY = h * 0.8;
+  const top = Math.max(...game.tower.map((i) => smoked[i]));
   const flash = game.flashAfter;
-  const crown = flash + CROWN_AFTER_MS;
   return (
-    <div class="screen smoke-tower" style={{ '--flash': `${flash}ms`, '--crown': `${crown}ms` }}>
-      <div class="smoke-stack" style={{ height: `${stepY * (rows.length - 1) + h}px` }}>
-        {rows.map((i, k) => {
-          const win = smoked[i] === top && top > 0;
-          return (
-            <div
-              class={`smoke-floor ${win ? 'win' : ''}`}
-              style={{ bottom: `${k * stepY}px`, zIndex: win ? 99 : rows.length - k, animationDelay: `${k * DROP_MS}ms`, '--pc': game.colorOf(i) }}
-              key={game.ids[i]}
-            >
-              <div class="smoke-floor-name">{game.nameOf(i)}</div>
-              <div class="smoke-floor-pierogi" style={{ width: `${w}px` }}>
-                {win && <div class="smoke-crown">👑</div>}
-                <GrinPierogi color={game.colorOf(i)} teeth={teethColor(yellow[i])} size={w} />
-              </div>
-              <div class="smoke-floor-score">
-                <svg width="84" height="26" viewBox="-16 -10 102 20" aria-hidden="true">
-                  <Cig color={game.colorOf(i)} len={80} w={14} lit />
-                </svg>
-                {(smoked[i] / CIG_LENGTH).toFixed(1)}
-              </div>
+    <div class="smoke-tower" style={{ '--flash': `${flash}ms`, '--crown': `${flash + CROWN_AFTER_MS}ms` }}>
+      {layout.map((l, k) => {
+        const i = game.tower[k];
+        const win = smoked[i] === top && top > 0;
+        return (
+          <>
+            <div class="smoke-floor-name" style={{ left: `${l.left.x}px`, top: `${l.left.y}px`, color: game.colorOf(i), animationDelay: `${k * DROP_MS + 400}ms` }}>
+              {game.nameOf(i)}
             </div>
-          );
-        })}
-      </div>
+            <div class={`smoke-floor-score ${win ? 'win' : ''}`} style={{ left: `${l.right.x}px`, top: `${l.right.y}px` }}>
+              <svg width="84" height="26" viewBox="-16 -10 102 20" aria-hidden="true">
+                <Cig color={game.colorOf(i)} len={80} w={14} lit />
+              </svg>
+              {(smoked[i] / CIG_LENGTH).toFixed(1)}
+            </div>
+          </>
+        );
+      })}
       <div class="smoke-flash" />
     </div>
   );

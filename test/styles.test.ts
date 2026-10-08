@@ -13,4 +13,8 @@ describe('pickStyle', () => {
     }
     expect(counts).toEqual({ psx: 1000, vaporwave: 1000, paper: 1000 });
   });
+
+  it('only rolls the looks a game allows', () => {
+    for (let i = 0; i < 100; i++) expect(['psx', 'paper']).toContain(pickStyle(() => i / 100, ['psx', 'paper']).id);
+  });
 });

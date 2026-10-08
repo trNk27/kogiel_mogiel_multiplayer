@@ -20,6 +20,12 @@ export const MIN_PUFF_GAP_MS = 700;
 /** An empty slot on the tray is refilled after this long (ms, random in between). */
 export const REFILL_MS: readonly [number, number] = [900, 2200];
 
+/** The tower at the end: the pierogi land one by one, the camera flashes, the winner gets the crown (ms). */
+export const DROP_MS = 380;
+export const FLASH_AFTER_MS = 700;
+export const CROWN_AFTER_MS = 2400;
+export const FINALE_TAIL_MS = 4200;
+
 /** The pull: from touch to the bottom of the track. Inside this window it's perfect (ms). */
 export const PULL_IDEAL: readonly [number, number] = [480, 1050];
 /** The ghost on the phone shows this pace. */

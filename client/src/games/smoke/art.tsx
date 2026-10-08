@@ -50,15 +50,3 @@ export function GrinPierogi({ color, teeth, size }: { color: string; teeth: stri
     </svg>
   );
 }
-
-/** A soft smoke cloud, drawn around (0, 0). */
-export function Cloud({ r = 30, fill = 'rgba(232,228,220,.85)' }: { r?: number; fill?: string }) {
-  return (
-    <g fill={fill}>
-      <circle cx={-r * 0.55} cy={r * 0.1} r={r * 0.6} />
-      <circle cx={r * 0.1} cy={-r * 0.25} r={r * 0.72} />
-      <circle cx={r * 0.65} cy={r * 0.15} r={r * 0.55} />
-      <circle cx={0} cy={r * 0.35} r={r * 0.55} />
-    </g>
-  );
-}

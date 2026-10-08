@@ -35,7 +35,7 @@ the notch) are added around controls, never taken out of them.
 | **Strzelnica** | Our take on Boo-ting Gallery: a fairground shooting gallery: steer a crosshair with the joystick, Fire corks and Reload. Ghosts 1, bats 2, golden ghost 5 – but shoot a babcia cut-out and you lose 3. | 1–8 |
 | **Babcia’s Cookbook** | Our take on Booksquirm: a giant page slams down on the book: stand in one of the holes cut in it to survive, and shove rivals out of it. Holes get smaller and pages faster. | 1–8 |
 | **Kafelki** | Inspired by Tiles and Tribulations: paint the kitchen floor your colour: walk, roll-dash and splat paint bombs while tiles crack and Babcia's mop sweeps. Most tiles wins. | 2–8 |
-| **Fajki** | Polish slang for smokes. A tray of cigarettes in everyone's colours spins in the middle of the table (top view). Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. After 60 s everyone stacks into a tower and says cheese: yellowest teeth win. | 1–8 |
+| **Fajki** | Polish slang for smokes. A tray of cigarettes in everyone's colours spins in the middle of a table in a smoky back room (top view, in the arena games' low-poly 3D look; never Vaporwave, which would hide the colours). Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. After 60 s everyone stacks into a tower and says cheese: yellowest teeth win. | 1–8 |
 
 The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. They need a TV for now.
 
@@ -180,7 +180,7 @@ client/src/phone/arenaPad.tsx    the arena games' phone pad: a joystick and up t
 client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts) and pad input (input.ts)
 client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki, Pushy Pierogi, Strzelnica,
                             Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
-client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the table and the tower (SmokeGame.tsx)
+client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
 client/src/host/tournament.ts    picking the tournament's games and its points table
 data/trivia.json            100 quiz questions
