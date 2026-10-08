@@ -103,7 +103,7 @@ export class VoteScene {
     players: { name: string; color: string }[],
     public sim: VoteSim,
   ) {
-    const stage = (this.stage = new ArenaStage(canvas, { sky: '#f0a27e', fog: [40, 95], fov: 40, styles: ['psx'] }));
+    const stage = (this.stage = new ArenaStage(canvas, { sky: '#f0a27e', fog: [40, 95], fov: 40 }));
     stage.sun.color.set('#ffc890');
     stage.sun.intensity = 1.8;
     stage.sun.position.set(-0.6, 0.7, 0.45);

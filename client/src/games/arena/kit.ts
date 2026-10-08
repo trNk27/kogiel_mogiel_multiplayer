@@ -219,16 +219,16 @@ export class ArenaStage {
   /** Everything a game adds goes here, so `clear()` can remove it. */
   readonly world = new Group();
   readonly sun: DirectionalLight;
-  /** The look: original, Vaporwave or Papercraft at random, or forced with `?style=`. */
+  /** The look: always the original one (only Maluch Rally rolls random looks), unless forced with `?style=`. */
   readonly style: StylePass;
   private disposables: { dispose(): void }[] = [];
 
   constructor(
     canvas: HTMLCanvasElement,
-    /** `styles`: the looks this game may roll (default: all of RANDOM_STYLES). */
+    /** `styles`: the looks this game may roll. Default: only the original look (random looks are Maluch Rally's). */
     opts: { sky?: string; fog?: [number, number]; fov?: number; styles?: readonly string[] } = {},
   ) {
-    this.style = new StylePass(pickStyle(Math.random, opts.styles));
+    this.style = new StylePass(pickStyle(Math.random, opts.styles ?? ['psx']));
     this.renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(Math.round(STAGE_W * ARENA_SCALE), Math.round(STAGE_H * ARENA_SCALE), false);
