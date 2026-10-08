@@ -104,10 +104,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
         }
         if (m.r !== view.race) return;
         client.current?.onEvent(m);
-        if (m.use) {
-          say(RALLY_ITEMS[m.use].name);
-          sfx.whoosh();
-        }
+        if (m.use) sfx.whoosh();
         if (m.hit) {
           say(hitLabel(m.hit, !!m.blocked));
           if (m.blocked) sfx.tick();

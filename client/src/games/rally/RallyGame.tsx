@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { RALLY_FX_BITS, RALLY_ITEMS, colorHex, type HostToPhone, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
+import { RALLY_FX_BITS, colorHex, type HostToPhone, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { DT, HAZARDS, LAPS, RallySim, driftCode, driftLevel, racePoints } from './sim';
 import { generateTrack, type Track } from './track';
@@ -240,7 +240,6 @@ export class RallyGame implements Game {
     }
     for (const u of ev.used) {
       sound.whoosh();
-      this.say(u.idx, RALLY_ITEMS[u.item].name, 1400);
       this.tell(u.idx, { use: u.item });
       this.host.refresh(this.ids[u.idx]);
     }
