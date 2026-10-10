@@ -80,9 +80,9 @@ describe('scoreBallpark', () => {
 });
 
 describe('ballpark data', () => {
-  it('has 40 questions with numeric answers and unique ids', () => {
-    expect(questions).toHaveLength(40);
-    expect(new Set(questions.map((q) => q.id)).size).toBe(40);
+  it('has 140 questions with numeric answers and unique ids', () => {
+    expect(questions).toHaveLength(140);
+    expect(new Set(questions.map((q) => q.id)).size).toBe(140);
     for (const q of questions) {
       expect(typeof q.answer).toBe('number');
       expect(Number.isFinite(q.answer)).toBe(true);

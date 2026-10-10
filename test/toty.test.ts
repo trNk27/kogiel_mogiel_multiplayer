@@ -104,9 +104,9 @@ describe('pickPlan', () => {
 describe('to ty data', () => {
   it('has unique ids, questions and drawing prompts with the name in them', () => {
     expect(new Set(questions.map((q) => q.id)).size).toBe(questions.length);
-    expect(questions.length).toBeGreaterThanOrEqual(50);
+    expect(questions.length).toBeGreaterThanOrEqual(150);
     const drawable = questions.filter((q) => 'draw' in q);
-    expect(drawable.length).toBeGreaterThanOrEqual(20);
+    expect(drawable.length).toBeGreaterThanOrEqual(60);
     for (const q of questions) {
       expect(q.question.endsWith('?')).toBe(true);
       expect(q.question.length).toBeLessThanOrEqual(80);
