@@ -35,6 +35,7 @@ import { sound } from '../lib/sound';
 import { placesFor } from './standings';
 import { awardGame, cleanTourOff, hasNext, newTournament, nextGame, nextVote, setVoted, tournamentPlaces, type Tournament } from './tournament';
 import { VoteRoom } from './vote/VoteRoom';
+import { MirrorHost } from './mirror';
 
 export interface Player {
   id: string;
@@ -131,6 +132,11 @@ export class HostController implements GameHost {
   /** Party points per finished game, oldest first – for the standings chart. */
   history: PartyEntry[] = [];
   status: SocketStatus = 'closed';
+  /** Second screens: TVs elsewhere that show this one, streamed over WebRTC. */
+  readonly mirror = new MirrorHost(
+    (id, m) => this.socket?.send({ t: 'screen', id, m }),
+    () => this.changed(),
+  );
 
   private socket: ReconnectingSocket<ServerToHost, HostToServer> | null = null;
   private lastSent = new Map<string, string>();
@@ -229,6 +235,7 @@ export class HostController implements GameHost {
 
   /** Close the room from this side for good (a phone that stops hosting). */
   stop() {
+    this.mirror.stop();
     this.endGame();
     clearInterval(this.sweepTimer);
     this.socket?.close();
@@ -251,6 +258,7 @@ export class HostController implements GameHost {
       },
       fatalCodes: [CLOSE.replaced, CLOSE.expired],
       onFatal: (code) => {
+        this.mirror.stop();
         this.endGame();
         sessionStorage.removeItem(this.sessionKey);
         this.screen = {
@@ -308,9 +316,19 @@ export class HostController implements GameHost {
           if (this.players.has(id)) this.sendView(id, true);
           else this.greet(id);
         }
+        this.mirror.sync(msg.screens ?? []);
         this.changed();
         break;
       }
+      case 'sconn':
+        this.mirror.connected(msg.id);
+        break;
+      case 'sdisc':
+        this.mirror.gone(msg.id);
+        break;
+      case 'smsg':
+        this.mirror.signal(msg.id, msg.m);
+        break;
       case 'conn':
         this.onConnect(msg.id);
         break;

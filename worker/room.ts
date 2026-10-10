@@ -1,24 +1,29 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   CLOSE,
+  MAX_SCREENS,
   PING,
   PLAYER_ID_RE,
   PONG,
   ROOM_IDLE_MS,
   type HostToServer,
+  type MirrorSignal,
   type PhoneMsg,
   type ServerToHost,
   type ServerToPhone,
+  type ServerToScreen,
 } from '../shared/protocol';
 import type { Env } from './index';
 
-type Attachment = { role: 'host' } | { role: 'player'; id: string };
+type Attachment = { role: 'host' } | { role: 'player'; id: string } | { role: 'screen'; id: string };
 
 const ALARM_EVERY_MS = 10 * 60_000;
 const PERSIST_ACTIVITY_EVERY_MS = 5 * 60_000;
 /** Large enough for a To Ty! selfie (MAX_PHOTO_CHARS) or doodle; everything else is tiny. */
 const MAX_PHONE_MESSAGE = 64 * 1024;
 const MAX_HOST_MESSAGE = 96 * 1024;
+/** A second screen only sends WebRTC signalling (an SDP answer is a few KB). */
+const MAX_SCREEN_MESSAGE = 32 * 1024;
 const OPEN = 1;
 
 /**
@@ -86,7 +91,12 @@ export class RoomDO extends DurableObject<Env> {
       this.ctx.acceptWebSocket(server, ['host']);
       server.serializeAttachment({ role: 'host' } satisfies Attachment);
       this.touch();
-      this.sendTo(server, { t: 'room', code: this.code ?? '', players: this.connectedPlayerIds() } satisfies ServerToHost);
+      this.sendTo(server, {
+        t: 'room',
+        code: this.code ?? '',
+        players: this.connectedIds('player'),
+        screens: this.connectedIds('screen'),
+      } satisfies ServerToHost);
       this.broadcastPlayers({ t: 'host', online: true });
       return new Response(null, { status: 101, webSocket: client });
     }
@@ -115,6 +125,36 @@ export class RoomDO extends DurableObject<Env> {
       return new Response(null, { status: 101, webSocket: client });
     }
 
+    if (role === 'screen') {
+      // A second screen: a TV somewhere else that shows what the host TV shows.
+      const id = url.searchParams.get('id') ?? '';
+      this.ctx.acceptWebSocket(server, ['screen', `s:${id}`]);
+      if (!PLAYER_ID_RE.test(id)) {
+        this.sendTo(server, { t: 'err', code: 'bad_request' } satisfies ServerToScreen);
+        this.safeClose(server, CLOSE.forbidden, 'Bad screen id');
+        return new Response(null, { status: 101, webSocket: client });
+      }
+      if (!this.hostKey || this.isIdle()) {
+        this.sendTo(server, { t: 'err', code: 'no_room' } satisfies ServerToScreen);
+        this.safeClose(server, CLOSE.noRoom, 'No such room');
+        return new Response(null, { status: 101, webSocket: client });
+      }
+      for (const old of this.ctx.getWebSockets(`s:${id}`)) {
+        if (old !== server) this.safeClose(old, CLOSE.replaced, 'Replaced');
+      }
+      const others = this.connectedIds('screen').filter((s) => s !== id);
+      if (others.length >= MAX_SCREENS) {
+        this.sendTo(server, { t: 'err', code: 'full' } satisfies ServerToScreen);
+        this.safeClose(server, CLOSE.full, 'Too many screens');
+        return new Response(null, { status: 101, webSocket: client });
+      }
+      server.serializeAttachment({ role: 'screen', id } satisfies Attachment);
+      this.touch();
+      this.sendTo(server, { t: 'host', online: this.hostSocket() !== null } satisfies ServerToScreen);
+      this.sendHost({ t: 'sconn', id });
+      return new Response(null, { status: 101, webSocket: client });
+    }
+
     return new Response('Unknown role', { status: 400 });
   }
 
@@ -139,6 +179,19 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
 
+    if (att.role === 'screen') {
+      if (message.length > MAX_SCREEN_MESSAGE) return;
+      let m: MirrorSignal;
+      try {
+        m = JSON.parse(message);
+      } catch {
+        return;
+      }
+      if (!m || typeof m !== 'object' || typeof (m as { t?: unknown }).t !== 'string') return;
+      this.sendHost({ t: 'smsg', id: att.id, m });
+      return;
+    }
+
     if (message.length > MAX_HOST_MESSAGE) return;
     let m: HostToServer;
     try {
@@ -160,6 +213,11 @@ export class RoomDO extends DurableObject<Env> {
       case 'drop':
         for (const s of this.ctx.getWebSockets(`p:${m.id}`)) this.safeClose(s, CLOSE.kicked, 'Removed by the VIP');
         break;
+      case 'screen': {
+        const payload = JSON.stringify(m.m);
+        for (const s of this.ctx.getWebSockets(`s:${m.id}`)) this.sendRaw(s, payload);
+        break;
+      }
     }
   }
 
@@ -191,6 +249,9 @@ export class RoomDO extends DurableObject<Env> {
     if (att.role === 'player') {
       const stillThere = this.ctx.getWebSockets(`p:${att.id}`).some((s) => s !== ws && s.readyState === OPEN);
       if (!stillThere) this.sendHost({ t: 'disc', id: att.id });
+    } else if (att.role === 'screen') {
+      const stillThere = this.ctx.getWebSockets(`s:${att.id}`).some((s) => s !== ws && s.readyState === OPEN);
+      if (!stillThere) this.sendHost({ t: 'sdisc', id: att.id });
     } else if (this.hostSocket(ws) === null) {
       this.broadcastPlayers({ t: 'host', online: false });
     }
@@ -213,11 +274,11 @@ export class RoomDO extends DurableObject<Env> {
     return this.ctx.getWebSockets('host').find((s) => s !== except && s.readyState === OPEN) ?? null;
   }
 
-  private connectedPlayerIds(): string[] {
+  private connectedIds(role: 'player' | 'screen'): string[] {
     const ids = new Set<string>();
-    for (const s of this.ctx.getWebSockets('player')) {
+    for (const s of this.ctx.getWebSockets(role)) {
       const att = s.deserializeAttachment() as Attachment | null;
-      if (att?.role === 'player' && s.readyState === OPEN) ids.add(att.id);
+      if (att && att.role === role && s.readyState === OPEN) ids.add(att.id);
     }
     return [...ids];
   }
@@ -227,9 +288,11 @@ export class RoomDO extends DurableObject<Env> {
     if (host) this.sendTo(host, msg);
   }
 
-  private broadcastPlayers(msg: ServerToPhone) {
+  /** Tell phones and second screens something (whether the host is online). */
+  private broadcastPlayers(msg: ServerToPhone & ServerToScreen) {
     const payload = JSON.stringify(msg);
     for (const s of this.ctx.getWebSockets('player')) this.sendRaw(s, payload);
+    for (const s of this.ctx.getWebSockets('screen')) this.sendRaw(s, payload);
   }
 
   private sendTo(ws: WebSocket, msg: unknown) {

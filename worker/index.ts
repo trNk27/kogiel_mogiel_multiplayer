@@ -1,4 +1,4 @@
-import { CODE_ALPHABET, CODE_LENGTH, CODE_RE, type CreateRoomResponse, type RoomInfoResponse } from '../shared/protocol';
+import { CODE_ALPHABET, CODE_LENGTH, CODE_RE, type CreateRoomResponse, type IceServersResponse, type RoomInfoResponse } from '../shared/protocol';
 import { RoomDO } from './room';
 
 export { RoomDO };
@@ -6,6 +6,38 @@ export { RoomDO };
 export interface Env {
   ROOMS: DurableObjectNamespace<RoomDO>;
   ASSETS: Fetcher;
+  /**
+   * Optional Cloudflare TURN key (Realtime → TURN Server in the dashboard). Without it, second
+   * screens connect with STUN only, which works on most home networks but not behind every NAT.
+   */
+  TURN_KEY_ID?: string;
+  TURN_KEY_API_TOKEN?: string;
+}
+
+const STUN_ONLY: IceServersResponse = {
+  iceServers: [{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] }],
+};
+
+/** ICE servers for a second screen's video: Cloudflare TURN when a key is set, STUN otherwise. */
+async function iceServers(env: Env): Promise<IceServersResponse> {
+  if (!env.TURN_KEY_ID || !env.TURN_KEY_API_TOKEN) return STUN_ONLY;
+  try {
+    const res = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${env.TURN_KEY_ID}/credentials/generate-ice-servers`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${env.TURN_KEY_API_TOKEN}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ ttl: 12 * 3600 }),
+    });
+    if (!res.ok) return STUN_ONLY;
+    const data = (await res.json()) as { iceServers?: IceServersResponse['iceServers'] | IceServersResponse['iceServers'][number] };
+    const list = Array.isArray(data.iceServers) ? data.iceServers : data.iceServers ? [data.iceServers] : [];
+    // Browsers time out on port 53, which Cloudflare also lists: leave it out.
+    const servers = list
+      .map((s) => ({ ...s, urls: (Array.isArray(s.urls) ? s.urls : [s.urls]).filter((u) => !/:53(\?|$)/.test(u)) }))
+      .filter((s) => s.urls.length > 0);
+    return servers.length ? { iceServers: servers } : STUN_ONLY;
+  } catch {
+    return STUN_ONLY;
+  }
 }
 
 /** Codes we'd rather not show on a family TV. */
@@ -60,7 +92,12 @@ export default {
       return json({ exists } satisfies RoomInfoResponse);
     }
 
-    // WebSocket into a room: /ws/ABCD?role=host&key=… or /ws/ABCD?role=player&id=…
+    // STUN/TURN servers for the second screens' video.
+    if (path === '/api/ice' && request.method === 'GET') {
+      return json(await iceServers(env));
+    }
+
+    // WebSocket into a room: /ws/ABCD?role=host&key=…, ?role=player&id=… or ?role=screen&id=…
     const ws = path.match(/^\/ws\/([A-Za-z]{4})$/);
     if (ws) {
       if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') {
