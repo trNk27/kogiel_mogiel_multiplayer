@@ -262,12 +262,6 @@ body.tv {
 .lobby-heading h2 {
   font-size: 56px;
 }
-.party-mini {
-  display: flex;
-  gap: 18px;
-  font-size: 24px;
-  font-family: var(--font-display);
-}
 .player-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
