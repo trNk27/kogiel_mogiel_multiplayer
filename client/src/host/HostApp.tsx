@@ -6,6 +6,7 @@ import { sound } from '../lib/sound';
 import { music } from '../lib/music';
 import { trackForGame, type TrackId } from '../lib/tracks';
 import { HostController, type Standing } from './controller';
+import type { ScreenState } from './mirror';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
@@ -54,6 +55,7 @@ function useController() {
 export function HostApp() {
   const c = useController();
   const scale = useStageScale();
+  const [mirrorOpen, setMirrorOpen] = useState(false);
 
   useEffect(() => {
     // The /dev page asks us to host straight away; a refreshed TV resumes its room.
@@ -111,23 +113,33 @@ export function HostApp() {
     <div class="viewport">
       <div class="stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
         <div class="safe">{body}</div>
-        {c.code && s.s !== 'landing' && s.s !== 'creating' && <CornerInfo />}
+        {c.code && s.s !== 'landing' && s.s !== 'creating' && <CornerInfo onMirror={() => setMirrorOpen(!mirrorOpen)} />}
+        {mirrorOpen && c.code && s.s !== 'landing' && s.s !== 'creating' && <MirrorPanel onClose={() => setMirrorOpen(false)} />}
         {c.status === 'connecting' && c.code && <div class="reconnecting">Reconnecting to the server…</div>}
       </div>
     </div>
   );
 }
 
-function CornerInfo() {
+function CornerInfo({ onMirror }: { onMirror: () => void }) {
   const c = controller;
   const [muted, setMuted] = useState(sound.muted);
   const inLobby = c.screen.s === 'lobby';
+  const screens = c.mirror.screens();
+  const live = screens.filter((x) => x.state === 'live').length;
+  // A screen is waiting for this TV to share: nudge the host.
+  const waiting = !c.mirror.sharing && screens.length > 0;
   return (
     <div class="corner">
       {!inLobby && (
         <span class="corner-code">
           {location.host}/join · <b>{c.code}</b>
         </span>
+      )}
+      {!c.noTv && (
+        <button class={`mute mirror-btn ${c.mirror.sharing ? 'on' : ''} ${waiting ? 'nudge' : ''}`} onClick={onMirror} title="Second screen">
+          📡{c.mirror.sharing && live > 0 && <span class="mirror-count">{live}</span>}
+        </button>
       )}
       <button
         class="mute"
@@ -140,6 +152,69 @@ function CornerInfo() {
       >
         {muted ? '🔇' : '🔊'}
       </button>
+    </div>
+  );
+}
+
+const SCREEN_STATE: Record<ScreenState, string> = {
+  waiting: 'waiting for you to share',
+  connecting: 'connecting…',
+  live: 'watching',
+  failed: 'can’t connect, retrying…',
+};
+
+/** Share this TV with second screens elsewhere, so another group can play in the same room. */
+function MirrorPanel({ onClose }: { onClose: () => void }) {
+  const m = controller.mirror;
+  const screens = m.screens();
+  return (
+    <div class="mirror-scrim" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div class="mirror-panel card-paper">
+        <h2>📡 Play with another room</h2>
+        <ol class="mirror-steps">
+          <li>
+            On the other TV or laptop, open <b>{location.host}/screen</b> and type <b class="mirror-code">{controller.code}</b>
+          </li>
+          <li>Press <b>Share this screen</b> below and pick this tab, with its sound</li>
+          <li>Players there join on their phones with the same code</li>
+        </ol>
+        {screens.length > 0 && (
+          <ul class="mirror-screens">
+            {screens.map((x, i) => (
+              <li class={`mirror-screen ${x.state}`} key={x.id}>
+                Screen {i + 1}: <b>{SCREEN_STATE[x.state]}</b>
+              </li>
+            ))}
+          </ul>
+        )}
+        {!m.supported ? (
+          <p class="mirror-error">This browser can’t share its screen. Host on a laptop with Chrome, Edge or Firefox.</p>
+        ) : m.error ? (
+          <p class="mirror-error">{m.error}</p>
+        ) : null}
+        <div class="mirror-actions">
+          {m.sharing ? (
+            <button class="btn btn-big btn-beet" onClick={() => m.stop()}>
+              Stop sharing
+            </button>
+          ) : (
+            <button
+              class="btn btn-big btn-yolk"
+              autofocus
+              disabled={!m.supported || m.starting}
+              onClick={async () => {
+                await m.start();
+                if (controller.mirror.sharing) onClose();
+              }}
+            >
+              {m.starting ? 'Pick this tab…' : 'Share this screen'}
+            </button>
+          )}
+          <button class="btn btn-ghost" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -163,7 +238,10 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
       </div>
       {error && <p class="landing-error">{error}</p>}
       <p class="landing-notv">
-        No TV? Open <b>{location.host}</b> on a phone → <b>Play without a TV</b>
+        No TV? Open <b>{location.host}</b> on a phone → <b>Play without a TV</b> · Far away?{' '}
+        <a class="landing-link" href="/screen">
+          Show another room’s party on this screen
+        </a>
       </p>
       <div class="landing-games">
         {GAMES.map((g) => (

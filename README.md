@@ -139,6 +139,35 @@ keeps their slot and score for **60 seconds**, so reopening the page puts them s
 they were. If the TV reloads, it resumes the same room. During games, phones keep the screen awake
 (Wake Lock API) and vibrate on events where the phone supports it.
 
+### Two rooms, one party: second screens
+
+Two groups far apart can play in the same room. The host TV streams its picture and sound to a
+**second screen** (another TV, laptop or tablet), and players there join on their phones with
+the same room code, just as they would in the host's room. Up to 8 players in total, as always.
+
+1. On the second screen, open `/screen` (or **Show another room's party on this screen** on the
+   landing page) and type the room code.
+2. On the host TV, press **📡** (top right; it pulses while a screen is waiting) → **Share this
+   screen**, and pick this tab with its sound. The host has to be a browser that can share a tab:
+   Chrome or Edge on a computer (Firefox and Safari can share the window). The Xbox browser can't,
+   but it can be a second screen.
+3. Players by the second screen scan the QR code they see in the stream, or go to `/join`.
+
+Under the hood the host TV captures its own tab (`getDisplayMedia`) and sends it to every second
+screen over WebRTC: one peer connection per screen, up to 4 screens, at most 4 Mbit/s and 30 fps
+each. The Durable Object only relays the signalling (offer, answer, ICE candidates) on a third
+socket role, `screen`; the video itself goes straight from TV to TV. Expect a delay of a few
+hundred milliseconds on top of the phones' own, which is fine for most games but noticeable in the
+fastest ones (Fork Fight, Maluch Rally). Second screens reconnect by themselves after a reload or a
+network blip. If the host TV reloads, it has to press **📡 → Share this screen** again (browsers only
+start a screen share from a click).
+
+**If a second screen never connects**: WebRTC needs a route between the two networks. STUN
+(always on) is enough for most home networks; behind stricter NATs (some mobile hotspots, office
+networks) add a Cloudflare TURN server (the first 1,000 GB a month are free): in the dashboard open **Realtime → TURN Server**,
+create a key, then set the Worker secrets `TURN_KEY_ID` and `TURN_KEY_API_TOKEN`
+(`npx wrangler secret put TURN_KEY_ID`, …). `/api/ice` then hands out short-lived TURN credentials.
+
 ## Architecture
 
 ```
@@ -163,7 +192,7 @@ they were. If the TV reloads, it resumes the same room. During games, phones kee
   the phones and the Worker.
 - **No database.** The Durable Object stores only the room's code, the host key and a
   last-activity timestamp. An alarm deletes rooms after **30 minutes of inactivity**.
-- **Frontend:** Preact + Vite with three pages: `/` (TV), `/join` (phone) and `/dev` (test bench).
+- **Frontend:** Preact + Vite with four pages: `/` (TV), `/join` (phone), `/screen` (second screen) and `/dev` (test bench).
   Trails renders on a Canvas 2D at a fixed 60 Hz timestep with an occupancy grid for collisions.
   Sound effects are synthesized with WebAudio, so there are no audio files, and there's a mute
   toggle on the TV and in the VIP's lobby options. The music is synthesized too: tracks written out
@@ -176,11 +205,13 @@ they were. If the TV reloads, it resumes the same room. During games, phones kee
 
 ```
 shared/protocol.ts          typed messages, colours, constants
-worker/index.ts             HTTP routes: POST /api/rooms, GET /api/rooms/:code, /ws/:code
+worker/index.ts             HTTP routes: POST /api/rooms, GET /api/rooms/:code, GET /api/ice, /ws/:code
 worker/room.ts              RoomDO – the relay Durable Object
 client/index.html           TV (host) entry   → client/src/host
 client/join.html            phone entry       → client/src/phone
 client/dev.html             /dev test bench   → client/src/dev
+client/screen.html          second screen     → client/src/screen (receiver.ts: the WebRTC side)
+client/src/host/mirror.ts   the host TV's side of second screens: tab capture, one peer connection per screen
 client/src/games/*          quiz, trails, ballpark, kitchen (pure logic + TV views)
 client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigames
 client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js renderer, no-TV race client

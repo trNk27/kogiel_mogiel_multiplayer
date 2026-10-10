@@ -743,14 +743,59 @@ export type HostToServer =
   | { t: 'to'; ids: string[]; m: HostToPhone }
   | { t: 'all'; m: HostToPhone }
   /** Close a player's connection (after kicking them). */
-  | { t: 'drop'; id: string };
+  | { t: 'drop'; id: string }
+  /** WebRTC signalling for one second screen. */
+  | { t: 'screen'; id: string; m: MirrorSignal };
 
 export type ServerToHost =
-  /** Sent right after the host (re)connects: ids of phones currently connected. */
-  | { t: 'room'; code: string; players: string[] }
+  /** Sent right after the host (re)connects: ids of phones (and second screens) currently connected. */
+  | { t: 'room'; code: string; players: string[]; screens?: string[] }
   | { t: 'conn'; id: string }
   | { t: 'disc'; id: string }
-  | { t: 'msg'; id: string; m: PhoneMsg };
+  | { t: 'msg'; id: string; m: PhoneMsg }
+  /** A second screen connected / went away / sent a signalling message. */
+  | { t: 'sconn'; id: string }
+  | { t: 'sdisc'; id: string }
+  | { t: 'smsg'; id: string; m: MirrorSignal };
+
+// ---------------------------------------------------------------------------
+// Second screens: a TV somewhere else that mirrors the host TV
+// ---------------------------------------------------------------------------
+//
+// The host TV shares its own tab (getDisplayMedia) and streams it over WebRTC to every
+// second screen in the room; the Durable Object only relays the signalling. Players by the
+// second screen join with their phones as usual, so two groups far apart play in one room.
+
+/** Second screens a room takes at once (the host encodes one video stream per screen). */
+export const MAX_SCREENS = 4;
+
+/** An ICE candidate as JSON (RTCIceCandidateInit, which the Worker's types don't have). */
+export interface IceJson {
+  candidate?: string;
+  sdpMid?: string | null;
+  sdpMLineIndex?: number | null;
+  usernameFragment?: string | null;
+}
+
+export type MirrorSignal =
+  /** Screen → host, whenever its socket opens: is its video still running? */
+  | { t: 'hello'; live: boolean }
+  /** Host → screen: the host isn't sharing right now. */
+  | { t: 'idle' }
+  /** Host → screen: start (or restart) the stream. */
+  | { t: 'offer'; sdp: string }
+  /** Screen → host. */
+  | { t: 'answer'; sdp: string }
+  | { t: 'ice'; c: IceJson };
+
+export type ServerToScreen =
+  | MirrorSignal
+  | { t: 'host'; online: boolean }
+  | { t: 'err'; code: 'no_room' | 'bad_request' | 'full' };
+
+export interface IceServersResponse {
+  iceServers: { urls: string | string[]; username?: string; credential?: string }[];
+}
 
 // ---------------------------------------------------------------------------
 // HTTP API
@@ -772,4 +817,6 @@ export const CLOSE = {
   expired: 4004,
   noRoom: 4404,
   forbidden: 4403,
+  /** A room already has MAX_SCREENS second screens. */
+  full: 4409,
 } as const;
