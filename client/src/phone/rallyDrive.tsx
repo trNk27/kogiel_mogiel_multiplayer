@@ -108,7 +108,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
         if (m.hit) {
           say(hitLabel(m.hit, !!m.blocked));
           if (m.blocked) sfx.tick();
-          else if (m.hit === 'beet' || m.hit === 'spray') sfx.plop();
+          else if (m.hit === 'beet' || m.hit === 'lasso') sfx.plop();
           else sfx.crash();
         }
         if (m.lost) {
@@ -449,6 +449,8 @@ const FX: Record<string, string> = {
   slow: 'Caught in the storm!',
   ink: 'Barszcz on the windscreen!',
   ghost: 'Ghost – nothing can touch you',
+  tow: 'Lassoed on – slingshot coming!',
+  towed: 'Lassoed! You’re dragging someone',
 };
 
 function Standings({ view, net }: { view: Props<'rally'>['view']; net: RallyNet }) {

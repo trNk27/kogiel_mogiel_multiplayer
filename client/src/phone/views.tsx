@@ -34,6 +34,7 @@ import { Stars } from '../lib/stars';
 import { SwapPad } from './swap';
 import { TimeBar } from './timebar';
 import { RallyPad } from './rally';
+import { PremiumPad } from './premium';
 import { TyDraw, TyPick, TyResult, TySelfie, TyVote } from './toty';
 import { BzDraw, BzGuess, BzLie, BzResult } from './bazgroly';
 import { ForkPad, ParadePad, PedalPad } from './minigames';
@@ -69,6 +70,8 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <KitchenPad view={view} me={me} send={send} />;
     case 'rally':
       return <RallyPad view={view} me={me} send={send} offset={offset} />;
+    case 'premium':
+      return <PremiumPad view={view} me={me} send={send} offset={offset} />;
     case 'tySelfie':
       return <TySelfie view={view} me={me} send={send} offset={offset} />;
     case 'tyVote':
@@ -145,7 +148,18 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
             <b>Tournament</b>
           </button>
         )}
-        {gamesFor(noTv).map((g) => (
+        {gamesFor(noTv)
+          .filter((g) => g.standalone)
+          .map((g) => (
+            <button class={`pgame pgame-premium ${g.id === view.selected ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
+              <GameIcon game={g.id} size={54} />
+              <span>
+                <b>{g.title}</b>
+                <small>A game of its own: Grand Prix, four cars</small>
+              </span>
+            </button>
+          ))}
+        {gamesFor(noTv).filter((g) => !g.standalone).map((g) => (
           <button class={`pgame ${g.id === view.selected ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
             <GameIcon game={g.id} size={46} />
             <b>{g.title}</b>
@@ -163,7 +177,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
           <Toggle label={tour ? 'Trails power-ups' : 'Power-ups'} on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
         {view.selected === 'rally' && <TrackPicker value={view.options.track} onChange={(v) => send({ t: 'option', key: 'track', value: v })} />}
-        {(view.selected === 'rally' || tour) && (
+        {(view.selected === 'rally' || view.selected === 'premium' || tour) && (
           <Toggle
             label={tour ? 'Maluch Rally items' : 'Items'}
             on={view.options.items}

@@ -12,7 +12,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
-  CircleGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
@@ -40,9 +39,11 @@ import {
   type Material,
 } from 'three';
 import { mulberry32 } from '../rng';
-import { BRIDGE_WALL, ROAD_HALF, TUNNEL_HEIGHT, TUNNEL_WALL, WALL, inRange, riverCoords, waterLevel, type Track } from './track';
+import { BRIDGE_WALL, ROAD_HALF, TUNNEL_HEIGHT, TUNNEL_WALL, WALL, inRange, pointAt, riverCoords, waterLevel, type Track } from './track';
 import { ITUNING, driftLevel, type Blast, type Bomb, type Car, type ItemBox, type Pickle, type Slick } from './sim';
 import { buildTown, type Obstacle } from './town3d';
+import { buildKart } from './karts3d';
+import type { KartId } from '../../../../shared/protocol';
 import { StylePass, pickStyle } from '../arena/styles';
 
 /** What the renderer needs from the simulation each frame. */
@@ -144,75 +145,11 @@ function labelTexture(text: string, color: string) {
   return t;
 }
 
-/** A Fiat 126p ("Maluch"), about as many polygons as a PS2 would spend on a background car. */
-function buildMaluch(color: string): { car: Group; wheels: Mesh[]; mats: Material[] } {
-  const car = new Group();
-  const paint = new MeshLambertMaterial({ color, flatShading: true });
-  const dark = new MeshLambertMaterial({ color: '#1d1a22', flatShading: true });
-  const glass = new MeshLambertMaterial({ color: '#2b3d55', flatShading: true });
-  const chrome = new MeshLambertMaterial({ color: '#c9ccd3', flatShading: true });
-  const lamp = new MeshBasicMaterial({ color: '#fff4c8' });
-
-  const body = new Mesh(new BoxGeometry(1.7, 0.7, 3.2), paint);
-  body.position.y = 0.65;
-  car.add(body);
-  // Sloped nose and tail: squash the top front/back edges.
-  const pos = body.geometry.attributes.position as BufferAttribute;
-  for (let i = 0; i < pos.count; i++) if (pos.getY(i) > 0) pos.setZ(i, pos.getZ(i) * 0.86);
-
-  const cabinGeo = new BoxGeometry(1.5, 0.62, 1.75);
-  const cp = cabinGeo.attributes.position as BufferAttribute;
-  for (let i = 0; i < cp.count; i++)
-    if (cp.getY(i) > 0) {
-      cp.setX(i, cp.getX(i) * 0.86);
-      cp.setZ(i, cp.getZ(i) * 0.72 - 0.1);
-    }
-  const cabin = new Mesh(cabinGeo, glass);
-  cabin.position.set(0, 1.3, -0.15);
-  car.add(cabin);
-  const roof = new Mesh(new BoxGeometry(1.3, 0.1, 1.22), paint);
-  roof.position.set(0, 1.64, -0.22);
-  car.add(roof);
-
-  for (const z of [1.62, -1.62]) {
-    const bumper = new Mesh(new BoxGeometry(1.8, 0.16, 0.14), chrome);
-    bumper.position.set(0, 0.42, z);
-    car.add(bumper);
-  }
-  for (const x of [-0.55, 0.55]) {
-    const l = new Mesh(new BoxGeometry(0.32, 0.2, 0.06), lamp);
-    l.position.set(x, 0.72, 1.61);
-    car.add(l);
-    const t = new Mesh(new BoxGeometry(0.3, 0.18, 0.06), new MeshBasicMaterial({ color: '#d0213a' }));
-    t.position.set(x, 0.72, -1.61);
-    car.add(t);
-  }
-  const wheels: Mesh[] = [];
-  const wheelGeo = new CylinderGeometry(0.36, 0.36, 0.3, 7);
-  wheelGeo.rotateZ(Math.PI / 2);
-  for (const [x, z] of [
-    [-0.82, 1.05],
-    [0.82, 1.05],
-    [-0.82, -1.05],
-    [0.82, -1.05],
-  ]) {
-    const w = new Mesh(wheelGeo, dark);
-    w.position.set(x, 0.36, z);
-    car.add(w);
-    wheels.push(w);
-  }
-  // Blob shadow.
-  const shadow = new Mesh(new CircleGeometry(1.6, 10), new MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.35, depthWrite: false }));
-  shadow.rotation.x = -Math.PI / 2;
-  shadow.scale.set(0.75, 1.25, 1);
-  shadow.position.y = 0.05;
-  car.add(shadow);
-  return { car, wheels, mats: [paint, dark, glass, chrome] };
-}
-
 export interface CarLook {
   name: string;
   color: string;
+  /** Maluch Rallye Premium: which car (default the Maluch). */
+  kart?: KartId;
 }
 
 export class RallyScene {
@@ -222,7 +159,13 @@ export class RallyScene {
   private scene = new Scene();
   private world = new Group();
   private cams: PerspectiveCamera[] = [];
-  private cars: { root: Group; body: Group; wheels: Mesh[]; tag: Sprite; spin: number; fx: CarFx; mats: Material[]; ghost: boolean }[] = [];
+  private cars: { root: Group; body: Group; wheels: Mesh[]; tag: Sprite; spin: number; fx: CarFx; mats: Material[]; ghost: boolean; rope: Mesh }[] = [];
+  /** Title screens: a camera that flies over the track instead of chasing a car. */
+  private flyCam = new PerspectiveCamera(60, 16 / 9, 0.3, 1400);
+  private flyPos = new Vector3();
+  private flyLook = new Vector3();
+  private ropeGeo = new BoxGeometry(0.22, 0.22, 1);
+  private ropeMat = new MeshLambertMaterial({ color: '#b5523a', flatShading: true });
   private view: Viewport;
   private lights: { light: HemisphereLight | AmbientLight | DirectionalLight; base: number }[] = [];
   private dark: number[] = [];
@@ -232,21 +175,20 @@ export class RallyScene {
   private bombMat = new MeshLambertMaterial({ color: '#9fcf5a', flatShading: true });
   private blastGeo = new IcosahedronGeometry(1, 1);
   private blastMat = new MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.6, depthWrite: false });
-  private hayParts = {
-    bale: new CylinderGeometry(1.3, 1.3, 2.6, 8),
-    mat: new MeshLambertMaterial({ color: '#e9c25a', flatShading: true }),
-    band: new CylinderGeometry(1.34, 1.34, 0.25, 8),
-    bandMat: new MeshLambertMaterial({ color: '#a5462e', flatShading: true }),
-  };
   private water: CanvasTexture | null = null;
   private sparkGeo = new OctahedronGeometry(0.35, 0);
-  private sprayParts = {
-    puff: new IcosahedronGeometry(1, 0),
-    mat: new MeshLambertMaterial({ color: '#c2185b', emissive: '#6d0d2e', transparent: true, opacity: 0.55, depthWrite: false, flatShading: true }),
-  };
   private boxMeshes: Mesh[] = [];
   private slickMeshes: Group[] = [];
-  private pickleMeshes: Mesh[] = [];
+  private pickleMeshes: Group[] = [];
+  private slipperParts = {
+    sole: new BoxGeometry(1.5, 0.3, 3.4),
+    top: new CylinderGeometry(0.85, 0.85, 1.5, 7, 1, false, Math.PI / 2, Math.PI),
+    pom: new IcosahedronGeometry(0.45, 0),
+    soleMat: new MeshLambertMaterial({ color: '#6b4428', flatShading: true }),
+    mat: new MeshLambertMaterial({ color: '#ff7ad1', flatShading: true }),
+    pomMat: new MeshLambertMaterial({ color: '#fff4dc', flatShading: true }),
+  };
+  private slipperBlastMat = new MeshBasicMaterial({ color: '#ff7ad1', transparent: true, opacity: 0.4, depthWrite: false });
   private boxMat: MeshBasicMaterial;
   private boxGeo = new BoxGeometry(1.6, 1.6, 1.6);
   private slickParts = {
@@ -298,7 +240,7 @@ export class RallyScene {
     this.boxMat = new MeshBasicMaterial({ map: qTex, transparent: true, opacity: 0.88 });
 
     looks.forEach((look, i) => {
-      const { car, wheels, mats } = buildMaluch(look.color);
+      const { car, wheels, mats } = buildKart(look.kart, look.color);
       const root = new Group();
       root.add(car);
       const tag = new Sprite(new SpriteMaterial({ map: labelTexture(look.name, look.color), depthTest: false, fog: false }));
@@ -342,7 +284,11 @@ export class RallyScene {
         return m;
       });
       root.add(shield, flame, cloud, ...sparks);
-      this.cars.push({ root, body: car, wheels, tag, spin: 0, fx: { shield, flame, cloud, sparks }, mats, ghost: false });
+      // Kiełbasa Lasso: a sausage rope from this car to the one it caught (placed each frame).
+      const rope = new Mesh(this.ropeGeo, this.ropeMat);
+      rope.visible = false;
+      this.scene.add(rope);
+      this.cars.push({ root, body: car, wheels, tag, spin: 0, fx: { shield, flame, cloud, sparks }, mats, ghost: false, rope });
       this.dark.push(0);
       const cam = new PerspectiveCamera(68, 16 / 9, 0.3, 900);
       cam.layers.enableAll();
@@ -1012,41 +958,12 @@ export class RallyScene {
     });
     while (this.slickMeshes.length < st.slicks.length) {
       const g = new Group();
-      const butter = new Group();
-      butter.name = 'butter';
       const puddle = new Mesh(this.slickParts.puddle, this.slickParts.puddleMat);
       puddle.scale.set(1, 1, 0.75);
       const pat = new Mesh(this.slickParts.pat, this.slickParts.patMat);
       pat.position.set(0.4, 0.25, 0.2);
       pat.rotation.y = 0.6;
-      butter.add(puddle, pat);
-      const hay = new Group();
-      hay.name = 'hay';
-      const bale = new Mesh(this.hayParts.bale, this.hayParts.mat);
-      bale.rotation.z = Math.PI / 2;
-      bale.position.y = 1.2;
-      hay.add(bale);
-      for (const x of [-0.7, 0.7]) {
-        const band = new Mesh(this.hayParts.band, this.hayParts.bandMat);
-        band.rotation.z = Math.PI / 2;
-        band.position.set(x, 1.2, 0);
-        hay.add(band);
-      }
-      const spray = new Group();
-      spray.name = 'spray';
-      for (const [x, y, z, r] of [
-        [0, 1.6, 0, 2.6],
-        [1.9, 1.1, 0.8, 1.9],
-        [-1.8, 1.3, -0.6, 2.1],
-        [0.6, 3, -0.9, 1.7],
-        [-0.7, 2.6, 1.3, 1.6],
-      ]) {
-        const puff = new Mesh(this.sprayParts.puff, this.sprayParts.mat);
-        puff.position.set(x, y, z);
-        puff.scale.setScalar(r);
-        spray.add(puff);
-      }
-      g.add(butter, hay, spray);
+      g.add(puddle, pat);
       this.scene.add(g);
       this.slickMeshes.push(g);
     }
@@ -1056,11 +973,6 @@ export class RallyScene {
       if (!s) return;
       g.position.set(s.x, s.h + 0.18, s.z);
       g.rotation.y = Math.PI / 2 - s.heading;
-      g.getObjectByName('butter')!.visible = s.kind === 'butter';
-      g.getObjectByName('hay')!.visible = s.kind === 'hay';
-      const spray = g.getObjectByName('spray')!;
-      spray.visible = s.kind === 'spray';
-      if (spray.visible) spray.rotation.y = now / 1400 + i;
     });
     while (this.bombMeshes.length < st.bombs.length) {
       const m = new Mesh(this.bombGeo, this.bombMat);
@@ -1086,28 +998,160 @@ export class RallyScene {
       m.visible = !!b;
       if (!b) return;
       const age = Math.max(0, st.time - b.at);
-      const r = 2 + (age / 0.6) * ITUNING.bombRadius;
+      const r = 2 + (age / 0.6) * b.r;
+      m.material = b.r === ITUNING.slipperRadius ? this.slipperBlastMat : this.blastMat;
       m.position.set(b.x, b.h + 1, b.z);
       m.scale.set(r, r * 0.6, r);
     });
     this.blastMat.opacity = 0.65;
     if (this.water) this.water.offset.y = -now / 2600;
     while (this.pickleMeshes.length < st.pickles.length) {
-      const m = new Mesh(this.pickleGeo, this.pickleMat);
-      this.scene.add(m);
-      this.pickleMeshes.push(m);
+      const g = new Group();
+      const pickle = new Mesh(this.pickleGeo, this.pickleMat);
+      pickle.name = 'pickle';
+      // Capsules stand along y: lay it down along the road.
+      pickle.rotation.x = Math.PI / 2;
+      const slipper = new Group();
+      slipper.name = 'slipper';
+      const P = this.slipperParts;
+      const sole = new Mesh(P.sole, P.soleMat);
+      const top = new Mesh(P.top, P.mat);
+      // Lie the half-tube along the sole, open side down: the toe of the slipper.
+      top.rotation.x = Math.PI / 2;
+      top.position.set(0, 0.15, 0.7);
+      const pom = new Mesh(P.pom, P.pomMat);
+      pom.position.set(0, 1, 1.1);
+      slipper.add(sole, top, pom);
+      g.add(pickle, slipper);
+      this.scene.add(g);
+      this.pickleMeshes.push(g);
     }
-    this.pickleMeshes.forEach((m, i) => {
+    this.pickleMeshes.forEach((g, i) => {
       const p = st.pickles[i];
-      m.visible = !!p;
+      g.visible = !!p;
       if (!p) return;
-      m.position.set(p.x, p.h + 1 + Math.sin(now / 60) * 0.15, p.z);
-      // Capsules stand along y: lay it down along the road and give it a wobble.
-      m.rotation.set(Math.PI / 2, 0, 0);
-      m.rotation.order = 'YXZ';
-      m.rotation.y = Math.PI / 2 - p.heading;
-      m.rotation.z = now / 90;
+      const flying = p.kind === 'slipper';
+      g.getObjectByName('pickle')!.visible = !flying;
+      const slipper = g.getObjectByName('slipper')!;
+      slipper.visible = flying;
+      g.rotation.set(0, Math.PI / 2 - p.heading, 0);
+      if (flying) {
+        // Babcia's slipper sails high over the road, flipping end over end.
+        g.position.set(p.x, p.h + 7 + Math.sin(now / 160) * 0.8, p.z);
+        slipper.rotation.set(now / 110, 0, 0);
+      } else {
+        g.position.set(p.x, p.h + 1 + Math.sin(now / 60) * 0.15, p.z);
+        g.getObjectByName('pickle')!.rotation.y = now / 90;
+      }
     });
+  }
+
+  /** Place the sausage rope between a car towing on a Kiełbasa Lasso and the car it caught. */
+  private placeRopes(cars: Car[]) {
+    cars.forEach((c, i) => {
+      const rope = this.cars[i]?.rope;
+      if (!rope) return;
+      const t = c.tow > 0 ? cars[c.towTarget] : undefined;
+      rope.visible = !!t;
+      if (!t) return;
+      const a = new Vector3(c.x, c.h + 1, c.z);
+      const b = new Vector3(t.x, t.h + 1, t.z);
+      rope.position.copy(a).add(b).multiplyScalar(0.5);
+      rope.position.y += 0.4;
+      rope.scale.set(1, 1, Math.max(0.1, a.distanceTo(b)));
+      rope.lookAt(b.x, b.y + 0.4, b.z);
+    });
+  }
+
+  /**
+   * Title screens: no chase cameras, one camera flying over the track across the whole canvas.
+   * Every few seconds it cuts to another shot: sweeping along the road, circling high above, or
+   * swooping along beside one of the cars. `time` is seconds since the flyover started.
+   */
+  renderFly(st: RaceState, time: number, dt: number) {
+    const t = this.track;
+    if (!t) return;
+    const now = performance.now();
+    this.updateItems(st, now);
+    this.placeRopes(st.cars);
+    st.cars.forEach((c, i) => {
+      const car = this.cars[i];
+      if (!car) return;
+      car.root.position.set(c.x, c.h + 0.12, c.z);
+      car.root.rotation.set(0, Math.PI / 2 - c.heading, 0);
+      car.body.rotation.set(0, c.spinAngle, 0);
+      car.tag.visible = false;
+      car.fx.shield.visible = c.shield > 0;
+      car.fx.flame.visible = c.boost > 0 || c.rocket > 0;
+      car.fx.cloud.visible = c.slow > 0;
+      for (const sp of car.fx.sparks) sp.visible = false;
+      car.spin += (c.speed * dt) / 0.36;
+      for (const w of car.wheels) w.rotation.x = car.spin;
+    });
+    for (const l of this.lights) l.light.intensity = l.base;
+
+    const SHOT = 7;
+    const shot = Math.floor(time / SHOT) % 3;
+    const u = time % SHOT;
+    let cx = 0;
+    let cz = 0;
+    let span = 0;
+    for (let i = 0; i < t.n; i += 8) {
+      cx += t.xs[i];
+      cz += t.zs[i];
+    }
+    const m = Math.ceil(t.n / 8);
+    cx /= m;
+    cz /= m;
+    for (let i = 0; i < t.n; i += 8) span = Math.max(span, Math.hypot(t.xs[i] - cx, t.zs[i] - cz));
+    const pos = new Vector3();
+    const look = new Vector3();
+    if (shot === 1) {
+      // High above, circling the whole track.
+      const a = time * 0.09;
+      const r = span * 0.95;
+      pos.set(cx + Math.cos(a) * r, 120 + span * 0.25, cz + Math.sin(a) * r);
+      look.set(cx, 0, cz);
+    } else if (shot === 2 && st.cars.length) {
+      // Swooping along beside a car.
+      const c = st.cars[Math.floor(time / (SHOT * 3)) % st.cars.length];
+      const side = pointAt(t, c.along - 6 + u * 1.5, 14 - u * 1.2);
+      pos.set(side.x, side.h + 3 + u * 0.6, side.z);
+      look.set(c.x, c.h + 1, c.z);
+    } else {
+      // A drone sweeping down the road, a little to one side.
+      const d = Math.floor(time / SHOT) * 211 + u * 30;
+      const p = pointAt(t, d, 20);
+      const ahead = pointAt(t, d + 50, 0);
+      pos.set(p.x, p.h + 16, p.z);
+      look.set(ahead.x, ahead.h + 2, ahead.z);
+    }
+    // Cut on a new shot; otherwise glide.
+    const cut = u < dt * 1.5 || this.flyPos.lengthSq() === 0;
+    const k = cut ? 1 : 1 - Math.exp(-dt * 3);
+    this.flyPos.lerp(pos, k);
+    this.flyLook.lerp(look, k);
+    const cam = this.flyCam;
+    cam.layers.enableAll();
+    cam.position.copy(this.flyPos);
+    cam.lookAt(this.flyLook);
+    cam.aspect = this.view.width / this.view.height;
+    cam.updateProjectionMatrix();
+
+    // Thinner fog up high, so the whole track shows from above.
+    const fog = this.scene.fog as Fog;
+    const high = Math.max(0, this.flyPos.y - 40);
+    fog.near = FOG_NEAR + high * 2;
+    fog.far = FOG_FAR + high * 6;
+    const sk = this.style.begin(this.renderer, this.scene);
+    const W = Math.round(this.view.width * this.view.scale);
+    const H = Math.round(this.view.height * this.view.scale);
+    this.renderer.setViewport(0, 0, W * sk, H * sk);
+    this.renderer.setScissor(0, 0, W * sk, H * sk);
+    this.renderer.render(this.scene, cam);
+    this.style.end(this.renderer, cam, true);
+    fog.near = FOG_NEAR;
+    fog.far = FOG_FAR;
   }
 
   /**
@@ -1120,6 +1164,7 @@ export class RallyScene {
     const cars = st.cars;
     const now = performance.now();
     this.updateItems(st, now);
+    this.placeRopes(cars);
     const k = this.view.scale;
     const H = Math.round(this.view.height * k);
     const follow = 1 - Math.exp(-dt * 5);

@@ -338,6 +338,7 @@ export function trackForGame(game: string): TrackId {
     case 'kitchen':
       return 'polka';
     case 'rally':
+    case 'premium':
     case 'trails':
       return 'race';
     case 'smoke':

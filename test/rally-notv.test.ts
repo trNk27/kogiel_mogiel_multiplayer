@@ -156,54 +156,106 @@ describe('new items', () => {
     expect(sim.slicks).toHaveLength(1);
   });
 
-  it('drops a hay bale that stops the next car dead', () => {
+  it('lassoes the car ahead: it drags, you get towed, then slingshot past', () => {
+    const sim = new RallySim(track, 3, LAPS, false);
+    const [a, b, far] = sim.cars;
+    place(sim, a, 100, 0, 30);
+    place(sim, b, 160, 2, 30);
+    place(sim, far, 600, 0, 0);
+    a.item = 'lasso';
+    sim.useItem(0);
+    const ev = sim.step();
+    expect(ev.used).toEqual([{ idx: 0, item: 'lasso', tow: 1 }]);
+    expect(ev.hits).toEqual([{ idx: 1, by: 0, kind: 'lasso', blocked: false }]);
+    expect(a.tow).toBeGreaterThan(0);
+    expect(a.towTarget).toBe(1);
+    expect(b.towed).toBeGreaterThan(0);
+    expect(sim.effect(a)).toBe('tow');
+    expect(sim.effect(b)).toBe('towed');
+    let slung = false;
+    for (let k = 0; k < 4 / DT; k++) {
+      b.input = sim.autopilot(b, 40);
+      sim.step();
+      if (a.tow === 0 && a.boost > 0) slung = true;
+      if (slung) break;
+    }
+    // Reeled in close behind, then let go with a boost.
+    expect(slung).toBe(true);
+    expect(b.progress - a.progress).toBeLessThan(25);
+  });
+
+  it('works like a quick boost when there is nobody close enough to rope', () => {
+    const sim = new RallySim(track, 2, LAPS, false);
+    const [a, b] = sim.cars;
+    place(sim, a, 100, 0, 20);
+    place(sim, b, 500);
+    a.item = 'lasso';
+    sim.useItem(0);
+    expect(a.tow).toBe(0);
+    expect(a.boost).toBeGreaterThan(0);
+    expect(b.towed).toBe(0);
+  });
+
+  it('flies Babcia’s slipper over everyone to the leader, and whacks whoever is next to them', () => {
+    const sim = new RallySim(track, 4, LAPS, false);
+    const [a, b, lead, buddy] = sim.cars;
+    place(sim, a, 100, 0, 0);
+    place(sim, b, 130, 0, 0);
+    place(sim, lead, 403, 0, 0);
+    place(sim, buddy, 400, 3, 0);
+    a.item = 'slipper';
+    sim.useItem(0);
+    expect(sim.pickles[0].kind).toBe('slipper');
+    expect(sim.pickles[0].target).toBe(2);
+    let hits: ReturnType<typeof steps> = [];
+    for (let k = 0; k < 5 / DT && !hits.length; k++) hits = sim.step().hits;
+    expect(hits.map((h) => [h.idx, h.kind]).sort()).toEqual([
+      [2, 'slipper'],
+      [3, 'slipper'],
+    ]);
+    // It flew right over car b.
+    expect(b.spin).toBe(0);
+    expect(lead.spin).toBeGreaterThan(0);
+    expect(sim.pickles).toHaveLength(0);
+  });
+
+  it('spins whoever you ram with your pot lid up, and the lid is spent', () => {
     const sim = new RallySim(track, 2, LAPS, false);
     const [a, b] = sim.cars;
     place(sim, a, 200, 0, 0);
-    place(sim, b, 150, 0, 40);
-    a.item = 'hay';
-    sim.useItem(0);
-    expect(sim.slicks[0].kind).toBe('hay');
-    place(sim, a, 600);
-    let stopped = false;
-    for (let k = 0; k < 120; k++) {
-      const ahead = pointAt(sim.track, b.along + 8, 0);
-      const d = Math.atan2(ahead.z - b.z, ahead.x - b.x) - b.heading;
-      b.input = { x: Math.max(-100, Math.min(100, Math.atan2(Math.sin(d), Math.cos(d)) * 200)), y: -100 };
-      if (sim.step().hits.some((h) => h.idx === 1 && h.kind === 'hay')) stopped = b.speed <= 5;
-    }
-    expect(stopped).toBe(true);
-    expect(sim.slicks).toHaveLength(0);
+    place(sim, b, 203.2, 0, 0);
+    a.shield = 5;
+    const hits = steps(sim, 1);
+    expect(hits).toEqual([{ idx: 1, by: 0, kind: 'lid', blocked: false }]);
+    expect(b.spin).toBeGreaterThan(0);
+    expect(a.shield).toBe(0);
   });
 
-  it('sprays a barszcz cloud behind you that blinds everyone driving through, once each', () => {
-    const sim = new RallySim(track, 4, LAPS, false);
-    const [a, b, c, d] = sim.cars;
-    place(sim, a, 300, 0, 0);
-    place(sim, b, 287, 0, 0);
-    place(sim, c, 280, 1, 0);
-    place(sim, d, 500, 0, 0);
-    c.shield = 5;
-    a.item = 'spray';
+  it('knocks the item out of your hands with a pickle or a thunderstorm', () => {
+    for (const kind of ['pickle', 'storm'] as const) {
+      const sim = new RallySim(track, 1, LAPS, false);
+      const c = sim.cars[0];
+      c.item = 'rocket';
+      hitEffect(c, kind);
+      expect(c.item).toBeNull();
+    }
+  });
+
+  it('washes off barszcz and keeps full speed on the grass with Kompot', () => {
+    const sim = new RallySim(track, 1, LAPS, false);
+    const c = sim.cars[0];
+    place(sim, c, 200, 11, 30);
+    c.ink = 3;
+    c.item = 'boost';
     sim.useItem(0);
-    expect(sim.slicks.filter((s) => s.kind === 'spray')).toHaveLength(3);
-    const hits = steps(sim, 2);
-    expect(hits.map((h) => [h.idx, h.kind, h.blocked])).toEqual([
-      [1, 'spray', false],
-      [2, 'spray', true],
-    ]);
-    expect(b.ink).toBeGreaterThan(3);
-    expect(b.spin).toBe(0);
     expect(c.ink).toBe(0);
-    expect(a.ink).toBe(0);
-    expect(d.ink).toBe(0);
-    // The cloud stays, but doesn't get the same car twice.
-    b.ink = 0;
-    expect(steps(sim, 30)).toEqual([]);
-    expect(sim.slicks).toHaveLength(3);
-    // Until it blows away.
-    steps(sim, 12 / DT);
-    expect(sim.slicks).toHaveLength(0);
+    let top = 0;
+    for (let k = 0; k < 60; k++) {
+      c.input = { x: 0, y: -100 };
+      sim.step();
+      if (!c.onRoad) top = Math.max(top, c.speed);
+    }
+    expect(top).toBeGreaterThan(40);
   });
 
   it('hands the new items out by position', () => {
@@ -211,8 +263,12 @@ describe('new items', () => {
     const last = itemWeights(1, 6);
     expect(lead.beet).toBe(0);
     expect(last.beet).toBeGreaterThan(0);
-    expect(lead.hay).toBeGreaterThan(last.hay);
+    expect(lead.butter).toBeGreaterThan(last.butter);
     expect(last.ghost).toBeGreaterThan(lead.ghost);
+    expect(lead.slipper).toBe(0);
+    expect(last.slipper).toBeGreaterThan(0);
+    expect(lead.lasso).toBe(0);
+    expect(last.lasso).toBeGreaterThan(0);
   });
 });
 
@@ -274,11 +330,13 @@ describe('no-TV races', () => {
       selfEffect(a, item);
       selfEffect(b, item);
     }
-    for (const kind of ['butter', 'beet', 'storm', 'hay', 'bomb'] as const) {
+    for (const kind of ['butter', 'beet', 'storm', 'lasso', 'slipper', 'bomb'] as const) {
       hitEffect(a, kind);
       hitEffect(b, kind);
     }
-    const pick = (c: Car) => [c.boost, c.rocket, c.shield, c.ghost, c.spin, c.slow, c.ink, c.speed];
+    selfEffect(a, 'lasso', 1);
+    selfEffect(b, 'lasso', 1);
+    const pick = (c: Car) => [c.boost, c.rocket, c.shield, c.ghost, c.spin, c.slow, c.ink, c.speed, c.tow, c.towTarget, c.towed, c.item];
     expect(pick(a)).toEqual(pick(b));
   });
 

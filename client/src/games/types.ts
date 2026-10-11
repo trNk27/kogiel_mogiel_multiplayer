@@ -19,6 +19,8 @@ export interface GameHost {
   readonly short: boolean;
   /** No TV in this room: phones show the game themselves, and `render()` is never shown. */
   readonly noTv: boolean;
+  /** The VIP's player id (games with their own menus let the VIP drive them). */
+  vipId?(): string | null;
 }
 
 export interface CoopLevel {

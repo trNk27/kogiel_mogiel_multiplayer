@@ -76,24 +76,23 @@ export function ItemIcon({ item, size = 64 }: { item: RallyItem; size?: number }
         <ellipse cx="50" cy="68" rx="6" ry="8" fill={INK} />
       </>
     ),
-    spray: (
+    lasso: (
       <>
-        <path d="M30 40 H62 V86 Q62 92 56 92 H36 Q30 92 30 86 Z" fill="#c2185b" stroke={INK} stroke-width="4" stroke-linejoin="round" />
-        <rect x="36" y="26" width="20" height="14" rx="3" fill="#fff4dc" stroke={INK} stroke-width="4" />
-        <path d="M56 30 H70 L74 24" fill="none" stroke={INK} stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M36 54 H56" stroke="#f06292" stroke-width="4" stroke-linecap="round" />
-        <circle cx="82" cy="18" r="5" fill="#c2185b" />
-        <circle cx="90" cy="30" r="4" fill="#c2185b" />
-        <circle cx="80" cy="34" r="3.5" fill="#c2185b" />
-        <circle cx="92" cy="12" r="3" fill="#c2185b" />
+        <path d="M50 18 Q84 18 84 40 Q84 62 50 62 Q16 62 16 40 Q16 18 50 18 Z" fill="none" stroke="#b5523a" stroke-width="9" stroke-linecap="round" />
+        <path d="M50 18 Q84 18 84 40 Q84 62 50 62 Q16 62 16 40 Q16 18 50 18 Z" fill="none" stroke={INK} stroke-width="2" stroke-dasharray="3 9" />
+        <path d="M30 58 Q24 76 34 90" fill="none" stroke="#b5523a" stroke-width="9" stroke-linecap="round" />
+        <path d="M27 58 Q20 76 30 90 M33 58 Q28 76 38 90" fill="none" stroke={INK} stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="34" cy="91" r="5" fill="#f3cf6b" stroke={INK} stroke-width="3" />
+        <path d="M44 30 l4 4 M58 28 l4 4 M70 36 l4 4" stroke="#fff4dc" stroke-width="3" stroke-linecap="round" />
       </>
     ),
-    hay: (
+    slipper: (
       <>
-        <rect x="12" y="34" width="76" height="48" rx="10" fill="#e9c25a" stroke={INK} stroke-width="4" />
-        <path d="M20 46 H80 M20 58 H80 M20 70 H80" stroke="#b8902c" stroke-width="3" stroke-linecap="round" />
-        <path d="M34 34 V82 M66 34 V82" stroke="#a5462e" stroke-width="5" />
-        <path d="M14 34 l-6 -8 M22 34 l-2 -10 M86 34 l6 -8 M78 34 l2 -10" stroke="#e9c25a" stroke-width="3" stroke-linecap="round" />
+        <path d="M14 70 Q10 50 30 44 Q56 38 78 46 Q94 52 90 66 Q86 80 60 80 H26 Q14 80 14 70 Z" fill="#ff7ad1" stroke={INK} stroke-width="4" stroke-linejoin="round" />
+        <path d="M44 42 Q60 24 82 34 Q90 40 86 52 Q66 44 44 50 Z" fill="#ffb3e3" stroke={INK} stroke-width="4" stroke-linejoin="round" />
+        <path d="M18 78 H86" stroke="#6b4428" stroke-width="6" stroke-linecap="round" />
+        <circle cx="64" cy="38" r="6" fill="#fff4dc" stroke={INK} stroke-width="3" />
+        <path d="M8 34 l10 6 M12 22 l10 10 M24 14 l6 12" stroke="#ff8a2a" stroke-width="4" stroke-linecap="round" />
       </>
     ),
   }[item];
@@ -116,10 +115,14 @@ export function hitLabel(kind: RallyItem, blocked: boolean) {
       return 'KA-BOOM!';
     case 'beet':
       return 'BARSZCZ!';
-    case 'hay':
+    case 'lid':
       return 'BONK!';
-    case 'spray':
-      return 'SPRAYED!';
+    case 'lasso':
+      return 'LASSOED!';
+    case 'slipper':
+      return 'KAPEĆ!';
+    case 'storm':
+      return 'ZAP!';
     default:
       return 'ZAP!';
   }

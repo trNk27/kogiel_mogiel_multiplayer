@@ -1,0 +1,460 @@
+/* Maluch Rallye Premium on the TV: title flyover, Grand Prix and track menus, car select.
+   Full bleed like Maluch Rally: the 1920 × 1080 stage minus its safe-area margin. */
+
+.prem {
+  position: absolute;
+  inset: -54px -96px;
+  overflow: hidden;
+  background: #000;
+  animation: fade-in 0.4s both;
+  --gold: #ffc93c;
+  --gold-deep: #b5780a;
+}
+.prem-fly {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.prem-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(21, 9, 16, 0.55), transparent 28%, transparent 62%, rgba(21, 9, 16, 0.8)),
+    radial-gradient(ellipse at center, transparent 55%, rgba(21, 9, 16, 0.5));
+}
+.prem.is-title .prem-vignette {
+  background:
+    linear-gradient(to bottom, rgba(21, 9, 16, 0.35), transparent 40%, transparent 55%, rgba(21, 9, 16, 0.85)),
+    radial-gradient(ellipse at center, transparent 50%, rgba(21, 9, 16, 0.55));
+}
+
+/* ---- Logo ---------------------------------------------------------------- */
+
+.prem-logo {
+  position: absolute;
+  left: 50%;
+  top: 90px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.82;
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: prem-logo-in 0.8s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.prem-logo-top {
+  font-size: 92px;
+  letter-spacing: 0.18em;
+  color: var(--cream);
+  text-shadow: 0 6px 0 var(--beet-deep);
+}
+.prem-logo-main {
+  font-size: 230px;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  background: linear-gradient(to bottom, #fff7d6 0%, #ffd23f 42%, #f29b05 58%, #ffe48a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 10px 0 var(--beet-deep)) drop-shadow(0 0 2px #2a120a);
+  padding: 0 0.12em;
+}
+.prem-ribbon {
+  margin-top: 6px;
+  font-size: 54px;
+  letter-spacing: 0.5em;
+  padding: 10px 26px 10px 52px;
+  color: var(--ink);
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold) 20%, #fff1b0 50%, var(--gold) 80%, var(--gold-deep));
+  clip-path: polygon(0 0, 100% 0, 96% 50%, 100% 100%, 0 100%, 4% 50%);
+  box-shadow: var(--drop);
+}
+.prem-logo.small {
+  top: 34px;
+  left: 70px;
+  translate: none;
+  align-items: flex-start;
+  scale: 0.36;
+  transform-origin: top left;
+  animation: none;
+}
+@keyframes prem-logo-in {
+  from {
+    scale: 0.4;
+    opacity: 0;
+  }
+}
+
+/* ---- Title menu ------------------------------------------------------------ */
+
+.prem-menu {
+  position: absolute;
+  left: 50%;
+  bottom: 170px;
+  translate: -50% 0;
+  display: flex;
+  gap: 60px;
+}
+.prem-option {
+  width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 26px 20px 30px;
+  border-radius: 30px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: var(--drop-lg), inset 0 0 0 6px var(--gold);
+  font-family: var(--font-display);
+  animation: pop-in 0.5s both;
+}
+.prem-option:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.prem-option b {
+  font-size: 58px;
+  font-weight: 900;
+  line-height: 1;
+}
+.prem-option small {
+  font-family: var(--font-body);
+  font-size: 26px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.prem-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 70px;
+  translate: -50% 0;
+  padding: 14px 34px;
+  border-radius: 999px;
+  background: var(--scrim);
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--edge);
+}
+.prem-hint.go {
+  background: var(--dill);
+  color: var(--ink);
+  animation: pop-in 0.4s both;
+}
+.prem-now {
+  position: absolute;
+  right: 80px;
+  bottom: 70px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  background: var(--scrim);
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  animation: fade-in 0.6s both;
+}
+.prem-head {
+  position: absolute;
+  left: 50%;
+  top: 60px;
+  translate: -50% 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 84px;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 7px 0 var(--beet-deep);
+}
+
+/* ---- Grand Prix ------------------------------------------------------------- */
+
+.prem-cups {
+  position: absolute;
+  left: 110px;
+  right: 110px;
+  top: 230px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+.prem-cup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px 26px;
+  border-radius: 28px;
+  background: var(--scrim);
+  box-shadow: var(--edge);
+  font-family: var(--font-display);
+  transition: translate 0.25s;
+}
+.prem-cup > b {
+  font-size: 40px;
+  font-weight: 900;
+  margin: 6px 0 14px;
+  color: var(--cup);
+}
+.prem-cup.on {
+  background: var(--cream);
+  color: var(--ink);
+  translate: 0 -24px;
+  box-shadow: var(--drop-lg), inset 0 0 0 7px var(--cup);
+}
+.prem-cup.on > b {
+  color: var(--ink);
+}
+.prem-cup ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.prem-cup li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 25px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 14px;
+}
+.prem-cup li.now {
+  background: color-mix(in srgb, var(--cup) 45%, transparent);
+}
+.prem-map {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 12px;
+  background: rgba(42, 21, 32, 0.85);
+}
+
+/* ---- Tracks ------------------------------------------------------------------ */
+
+.prem-tracks {
+  position: absolute;
+  left: 110px;
+  right: 110px;
+  top: 210px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px 26px;
+}
+.prem-track {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: var(--scrim);
+  box-shadow: var(--edge), inset 6px 0 0 var(--cup);
+  font-family: var(--font-display);
+  transition: scale 0.2s;
+}
+.prem-track .prem-map {
+  width: 96px;
+  height: 96px;
+}
+.prem-track b {
+  display: block;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+.prem-track small {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.prem-track.on {
+  background: var(--cream);
+  color: var(--ink);
+  scale: 1.07;
+  box-shadow: var(--drop-lg), inset 0 0 0 6px var(--cup);
+}
+.prem-hard {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--beet);
+  color: var(--cream);
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Car select ----------------------------------------------------------------- */
+
+.prem-room-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, #3a1e2b, #150910 70%);
+}
+.prem-room {
+  position: absolute;
+  left: 0;
+  top: 150px;
+  width: 1920px;
+  height: 470px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.prem-karts-head .prem-head {
+  top: 34px;
+  left: 110px;
+  translate: none;
+  font-size: 76px;
+}
+.prem-event {
+  position: absolute;
+  right: 110px;
+  top: 96px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 26px 10px 14px;
+  border-radius: 24px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  font-family: var(--font-display);
+}
+.prem-event b {
+  display: block;
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--gold);
+}
+.prem-event small {
+  font-family: var(--font-body);
+  font-size: 21px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+.prem-karts {
+  position: absolute;
+  left: 70px;
+  right: 70px;
+  top: 470px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+.prem-kart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.prem-pickers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  min-height: 58px;
+  margin-bottom: 10px;
+}
+.prem-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 16px 4px 6px;
+  border-radius: 999px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 4px var(--pc);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  animation: pop-in 0.3s both;
+}
+.prem-chip.ready {
+  background: var(--pc);
+  color: var(--ink);
+}
+.prem-chip i {
+  font-style: normal;
+  font-weight: 900;
+}
+.prem-kart-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 22px 22px;
+  font-family: var(--font-display);
+  text-align: center;
+  box-shadow: var(--drop-lg), inset 0 0 0 0 var(--paint);
+  transition:
+    translate 0.2s,
+    box-shadow 0.2s;
+}
+.prem-kart.picked .prem-kart-card {
+  translate: 0 -10px;
+  box-shadow: var(--drop-lg), inset 0 0 0 7px var(--paint);
+}
+.prem-kart-art {
+  height: 80px;
+  display: flex;
+  align-items: flex-end;
+}
+.prem-kart-card b {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.prem-kart-card small {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 700;
+  opacity: 0.7;
+  min-height: 2.6em;
+  margin: 2px 0 10px;
+}
+.prem-karts ~ .prem-hint {
+  bottom: 40px;
+}
+
+/* ---- Stat bars (TV and phone) ------------------------------------------------------- */
+
+.kart-stats {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kart-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+}
+.kart-pips {
+  display: flex;
+  gap: 5px;
+}
+.kart-pips i {
+  width: 30px;
+  height: 16px;
+  border-radius: 4px;
+  background: rgba(36, 16, 21, 0.15);
+}
+.kart-pips i.on {
+  background: var(--paint, var(--yolk));
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.22);
+}

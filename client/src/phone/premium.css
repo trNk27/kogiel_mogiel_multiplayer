@@ -1,0 +1,274 @@
+/* Maluch Rallye Premium: phone menus and car select. */
+
+.pv-prem {
+  gap: 12px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pv-prem.pv-center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.pp-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.pp-logo {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: 22px;
+  color: #ffd23f;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.pp-logo i {
+  font-style: normal;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  padding: 2px 6px 2px 9px;
+  margin-left: 4px;
+  vertical-align: 3px;
+  border-radius: 4px;
+  color: var(--ink);
+  background: linear-gradient(90deg, #c98a00, #ffc93c 30%, #fff1b0 50%, #ffc93c 70%, #c98a00);
+}
+.pp-head small {
+  color: var(--muted);
+  font-weight: 700;
+}
+.pp-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pp-bar .pp-head {
+  flex: 1;
+  align-items: flex-start;
+}
+.pp-back {
+  min-width: 48px;
+  padding: 0 14px;
+  font-size: 22px;
+}
+
+/* ---- Title: two big buttons ---- */
+
+.pp-modes {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+.pp-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 22px 16px;
+  border-radius: 26px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 6px 0 var(--yolk-deep), inset 0 0 0 4px #ffc93c;
+  font-family: var(--font-display);
+}
+.pp-mode:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 var(--yolk-deep), inset 0 0 0 4px #ffc93c;
+}
+.pp-mode-icon {
+  font-size: 46px;
+  line-height: 1;
+}
+.pp-mode b {
+  font-size: 30px;
+  font-weight: 900;
+}
+.pp-mode small {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+/* ---- Cup and track lists ---- */
+
+.pp-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px;
+}
+.pp-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  color: var(--cream);
+  text-align: left;
+}
+.pp-item b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 18px;
+}
+.pp-item small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.25;
+}
+.pp-item.on {
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.38), inset 0 0 0 3px var(--cup);
+}
+.pp-item.on small {
+  color: rgba(36, 16, 21, 0.65);
+}
+.pp-dot {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--cup);
+}
+.pp-hard {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--beet);
+  color: var(--cream);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.pp-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pp-ready {
+  width: 100%;
+}
+.pp-vip-row {
+  display: flex;
+  gap: 8px;
+}
+.pp-vip-row .btn {
+  flex: 1;
+}
+
+/* ---- Car select ---- */
+
+.pp-kart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.pp-kart-art {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  animation: pp-drive-in 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.pp-kart-art svg {
+  max-width: 100%;
+  height: auto;
+}
+@keyframes pp-drive-in {
+  from {
+    translate: -40px 0;
+    opacity: 0;
+  }
+}
+.pp-arrow {
+  width: 48px;
+  height: 64px;
+  flex: none;
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  color: var(--cream);
+  font-size: 22px;
+}
+.pp-arrow:disabled,
+.pp-thumb:disabled {
+  opacity: 0.35;
+}
+.pp-kart-name {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--me);
+}
+.pp-kart-blurb {
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  min-height: 2.6em;
+}
+.pp-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.pp-thumb {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+}
+.pp-thumb.on {
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 3px var(--me);
+}
+.pp-stats {
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+}
+.pp-stats .kart-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+}
+.pp-stats.kart-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pp-stats .kart-pips {
+  display: flex;
+  gap: 4px;
+}
+.pp-stats .kart-pips i {
+  width: 26px;
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(251, 240, 217, 0.12);
+}
+.pp-stats .kart-pips i.on {
+  background: var(--me);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+}

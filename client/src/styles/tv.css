@@ -491,6 +491,16 @@ body.tv {
   box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--yolk) 55%, transparent);
   color: var(--cream);
 }
+.game-card.premium {
+  background: linear-gradient(160deg, #3a2a10, #1d1a22 70%);
+  box-shadow: inset 0 0 0 3px #ffc93c;
+  color: #ffd23f;
+}
+.game-card.premium.selected {
+  background: linear-gradient(160deg, #ffe48a, #ffc93c);
+  color: var(--ink);
+  box-shadow: 0 8px 0 var(--yolk-deep), inset 0 0 0 4px #fff1b0;
+}
 .game-card.tour.selected {
   background: var(--yolk);
   color: var(--ink);

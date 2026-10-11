@@ -22,7 +22,7 @@ the notch) are added around controls, never taken out of them.
 | **Quiz** | 10 questions from a pool of 200. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 140. | 1–8 |
 | **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
-| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup (different tracks, mostly hard ones; a tournament's single race is always on a hard track), a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid shield, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Hay Bale and the Barszcz Sprayer. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
+| **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup (different tracks, mostly hard ones; a tournament's single race is always on a hard track), a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Kiełbasa Lasso and Babcia’s Kapeć. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 | **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 200 prompts. | 3–8 |
 | **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
@@ -35,6 +35,7 @@ the notch) are added around controls, never taken out of them.
 | **Strzelnica** | Our take on Boo-ting Gallery: a fairground shooting gallery: steer a crosshair with the joystick, Fire corks and Reload. Ghosts 1, bats 2, golden ghost 5 – but shoot a babcia cut-out and you lose 3. | 1–8 |
 | **Babcia’s Cookbook** | Our take on Booksquirm: a giant page slams down on the book: stand in one of the holes cut in it to survive, and shove rivals out of it. Holes get smaller and pages faster. | 1–8 |
 | **Kafelki** | Inspired by Tiles and Tribulations: paint the kitchen floor your colour: walk, roll-dash and splat paint bombs while tiles crack and Babcia's mop sweeps. Most tiles wins. | 2–8 |
+| **Maluch Rallye Premium** | Maluch Rally's big brother, a game of its own (the gold button at the top of the VIP's game list). It opens on a title screen where the camera flies over the tracks while four demo cars race and throw items. The VIP picks **Grand Prix** (Pierogi, Kompot, Barszcz or Babcia Cup: three named tracks in a row, 15/12/10/8 cup points per race) or **Tracks** (one race on any of the 12 named tracks, which are the same every time). Then everyone picks one of four cars, Mario Kart–style, each with its own **speed, acceleration, handling and off-road** stats, and says they're ready. The races play like Maluch Rally (same thumb pad, drifts and items). Never part of a tournament. | 1–4 (TV) |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
 The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
@@ -66,7 +67,7 @@ Pick **Tournament** at the top of the game list. The VIP's phone then shows the 
   current number of players are faded. A tournament needs at least two games it can play.
 
 The TV draws that many different games at random from
-the competitive ones that suit the room (never Pierogi Panic, which is co-op; Maluch Rally only with
+the competitive ones that suit the room (never Pierogi Panic, which is co-op, or Maluch Rallye Premium, a game of its own; Maluch Rally only with
 up to 4 players; To Ty! and Bazgroły only with 3 or more) and switched on, and shows the line-up. Each game
 is played in its **short version** unless the VIP switched that off:
 
@@ -211,7 +212,7 @@ create a key, then set the Worker secrets `TURN_KEY_ID` and `TURN_KEY_API_TOKEN`
   The waiting room has its own tune (a lazy accordion mazurka), and games that feel alike share a track:
   *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły), *Polka Pierogi* (Tour de Pierogi,
   Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games), *Maluch Turbo*
-  (Maluch Rally, Trails) and *Smoke Rings* (Fajki).
+  (Maluch Rally, Maluch Rallye Premium, Trails) and *Smoke Rings* (Fajki).
 - The TV is a fixed **1920×1080 stage with a 5 % safe-area margin**, scaled to fit any screen.
 
 ```
@@ -229,6 +230,8 @@ client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigame
 client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js renderer, no-TV race client
 client/src/phone/rally.tsx  Maluch Rally thumb pad (with a TV)
 client/src/phone/rallyDrive.tsx  Maluch Rally on the phone (no TV): 3D view, tilt/drag steering, minimap
+client/src/games/premium/*  Maluch Rallye Premium: menus, title flyover and car select (PremiumGame.tsx), car art, showroom
+client/src/phone/premium.tsx     Maluch Rallye Premium menus and car select on the phone
 client/src/phone/notvHost.ts     a phone hosting a party without a TV
 client/src/phone/arenaScreen.tsx Grzybki and Pushy Pierogi on the phone (no TV): the arena above the pad
 client/src/phone/toty.tsx   To Ty! selfie camera and voting
@@ -451,22 +454,30 @@ changes.
 - **Items** (`sim.ts`, `ITUNING`): three rows of four ? boxes per lap, which come back 3 s after
   being taken. You hold one item at a time. Lifting your thumb off the pad (without a TV: tapping the item button) sends `act`, which fires
   it (Space does the same on the dev bench). Leaders are more likely to get defence items, and the
-  back of the field gets catch-up items: no Rocket or Thunderstorm for the leader.
+  back of the field gets catch-up items: no Rocket, Thunderstorm, Lasso or Kapeć for the leader.
 
   | Item | Effect |
   | --- | --- |
-  | Kompot Boost | 2.2 s at up to 56 m/s |
-  | Butter Slick | dropped behind you; whoever drives over it spins out for 1.1 s |
-  | Pickle Missile | follows the road and homes in on the car directly ahead |
-  | Pot Lid | a shield that blocks the next hit (10 s) |
-  | Thunderstorm | everyone ahead of you is slowed to 55 % for 3 s |
+  Every item does one thing no other item does:
+
+  | Item | Effect |
+  | --- | --- |
+  | Kompot Boost | 2.2 s at up to 56 m/s, **at full speed even on the grass**, and it washes barszcz off your windscreen and shakes off a storm |
+  | Butter Slick | the one trap: dropped behind you; whoever drives over it spins out for 1.1 s |
+  | Pickle Missile | follows the road, homes in on the car directly ahead and **knocks its item out of its hands** |
+  | Pot Lid | a shield that blocks the next hit (10 s), or **ram somebody with it** to spin them (the lid is spent) |
+  | Thunderstorm | everyone ahead of you is slowed to 55 % for 3 s **and drops their item** |
   | Maluch Rocket | 3.5 s of autopilot at 62 m/s, immune to everything, shoving cars aside |
   | Cabbage Bomb | lobbed down the road; after 0.8 s it goes off and spins everyone within 8 m (you too) |
   | Beet Splash | barszcz on the windscreen of everyone ahead: their view is blotted for 4 s |
   | Babcia’s Ghost | 4.5 s see-through and untouchable (no bumps, no hits), and you steal the item of the nearest car ahead |
-  | Hay Bale | dropped behind you; whoever drives into it stops dead |
-  | Barszcz Sprayer | three red clouds of barszcz along the road behind you, for 12 s; driving through one covers your windscreen for 3.5 s (each cloud gets each car once) |
-- **Physics** (`sim.ts`, `RTUNING`): top speed 42 m/s (≈150 km/h), 20 on the grass verge.
+  | Kiełbasa Lasso | ropes the nearest car up to 140 m ahead with a sausage: for up to 2.6 s it tows you along its line (it's slowed to 68 %), and when you're reeled in close (or time's up) you let go with a slingshot boost. Nobody in reach: a quick tug forward |
+  | Babcia’s Kapeć | Babcia's slipper flies high over everyone, straight for the leader, and whacks them (1.7 s spin, down to 12 m/s) and anyone within 7 m of them. Only for the back half of the field |
+
+  The Hay Bale (a second dropped trap, like the butter) and the Barszcz Sprayer (a second way of
+  blinding people, like the beet) are gone; the Lasso and the Kapeć took their places.
+- **Physics** (`sim.ts`, `RTUNING`): top speed 42 m/s (≈150 km/h), 20 on the grass verge
+  (each car's numbers live in its `spec`; Maluch Rallye Premium's cars change them, see below).
   Steering needs some speed and calms down near top speed. Barriers 13 m from the centre line slow
   you down and let you slide along them. Cars bump each other. Progress is measured along the track,
   so driving backwards over the line never counts as a lap.
@@ -490,6 +501,44 @@ changes.
   120 ms in the past, interpolated between snapshots. Every phone builds the same track from the
   seed in its view. A 3-race cup with 4 phones is about 1,500 billed Durable Object requests, well
   within the free plan.
+
+### Maluch Rallye Premium
+
+`client/src/games/premium/` (TV), `client/src/phone/premium.tsx` (phone). A game of its own in the
+game list (`standalone` in `GAMES`, so tournaments never draw it), for 1–4 players with a TV.
+
+- **Flow** (`PremiumGame.tsx`): title → (VIP) Grand Prix or Tracks → (VIP) which cup or track →
+  (everyone) car select → the races. The menus are driven with `prem` messages; only the VIP's count
+  (if the VIP isn't racing, the first player who is). The VIP highlights an entry with one tap
+  (the TV follows) and races it with a second tap or the big button, can go back from any menu, and
+  can start the car select without waiting for stragglers. Once everyone is ready the race starts
+  1.6 s later. The races are Maluch Rally's own `RallyGame`, given a `RaceConfig`: the named
+  courses in order, everyone's car, and what the cup is called. It always uses the original look.
+- **Title flyover**: `RallyScene.renderFly` swaps the chase cameras for one camera that cuts
+  between three 7 s shots (a drone sweeping down the road, a high orbit with thinner fog, a swoop
+  past a car) while four demo cars, one of each kind, race on autopilot and use items. The title
+  shows a new track every 21 s; the Grand Prix menu flies over the highlighted cup's three tracks,
+  the track menu over the highlighted track. Tracks are built once and cached (a few a second in the
+  background, so the menus' little maps are ready).
+- **Tracks and cups** (`PREMIUM_TRACKS`, `PREMIUM_CUPS` in `shared/protocol.ts`): 12 named tracks,
+  each a seed plus a shape, so the layout is the same every time; four Grand Prix of three, getting
+  harder from the Pierogi Cup to the Babcia Cup (Tatra Pass, Babcia’s Crown, Nowa Huta Eight).
+- **Cars** (`KARTS` in `shared/protocol.ts`, `kartSpec` in `sim.ts`, models in `rally/karts3d.ts`,
+  phone/TV art in `premium/karts.tsx`, the TV's turntables in `premium/showroom.ts`). Stats run 1–5
+  and add up to 13:
+
+  | Car | Speed | Accel | Handling | Off-road | |
+  | --- | --- | --- | --- | --- | --- |
+  | Maluch 126p | 4 | 3 | 3 | 3 | the all-rounder |
+  | Syrenka 105 | 2 | 5 | 5 | 1 | light, quick off the line, turns tightest |
+  | Polonez Caro | 5 | 2 | 3 | 3 | heavy, slow to wind up, fastest flat out |
+  | Tarpan 4×4 | 3 | 3 | 2 | 5 | barely slows on the grass, heavy in a bump |
+
+  Speed sets the top speed (37 + 2 × stat m/s, so 41–47), acceleration the pull (13 + 2.6 × stat),
+  handling the turn rate at full lock (1.85 + 0.16 × stat rad/s), off-road the top speed on the
+  grass (12 + 3.6 × stat m/s: the Syrenka crawls at 16, the Tarpan does 30). Heavier cars (speed and
+  off-road add weight, acceleration takes it away) shove lighter ones aside in a bump. Boosts add the
+  same amount on top of each car's own top speed.
 
 ### To Ty!
 

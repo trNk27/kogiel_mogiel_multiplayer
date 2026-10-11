@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { RALLY_FX_BITS, colorHex, type HostToPhone, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
+import { RALLY_FX_BITS, RALLY_TOW_SHIFT, colorHex, kartInfo, type GameId, type HostToPhone, type KartId, type PhoneMsg, type PhoneView, type RallyNet } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
-import { DT, HAZARDS, LAPS, RallySim, driftCode, driftLevel, racePoints } from './sim';
+import { DT, HAZARDS, LAPS, MISSILES, RallySim, driftCode, driftLevel, kartSpec, racePoints } from './sim';
 import { generateTrack, type Track } from './track';
 import { RENDER_SCALE, RallyScene, splitLayout, type Slot } from './render3d';
 import { ItemIcon, hitLabel } from './items';
@@ -27,6 +27,20 @@ const round = (v: number, k = 100) => Math.round(v * k) / k;
 
 type Phase = 'countdown' | 'race' | 'results';
 
+/**
+ * Maluch Rallye Premium races on named tracks (the same layout every time) in the cars the
+ * players picked. Plain Maluch Rally leaves this out and races random tracks in Maluchs.
+ */
+export interface RaceConfig {
+  id: GameId;
+  /** One race per course, in order. */
+  courses: { seed: number; shape: Shape; name: string }[];
+  /** Each player's car, by player index. */
+  karts: KartId[];
+  /** What the standings between races are called ("Pierogi Cup"). */
+  cup: string;
+}
+
 export function ordinal(n: number) {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
@@ -34,7 +48,7 @@ export function ordinal(n: number) {
 }
 
 export class RallyGame implements Game {
-  readonly id = 'rally' as const;
+  readonly id: GameId;
   private readonly races: number;
   private race = 0;
   private phase: Phase = 'countdown';
@@ -72,13 +86,15 @@ export class RallyGame implements Game {
   constructor(
     private host: GameHost,
     public ids: string[],
+    private cfg?: RaceConfig,
   ) {
+    this.id = cfg?.id ?? 'rally';
     this.cup = ids.map(() => 0);
     this.lastPoints = ids.map(() => 0);
     this.lastBump = ids.map(() => 0);
     this.layout = splitLayout(ids.length);
-    this.races = host.short ? RACES_SHORT : RACES;
-    this.shapes = cupShapes(host.options.track, this.races, shuffle);
+    this.races = cfg ? cfg.courses.length : host.short ? RACES_SHORT : RACES;
+    this.shapes = cfg ? cfg.courses.map((c) => c.shape) : cupShapes(host.options.track, this.races, shuffle);
     this.flash = ids.map(() => ({ text: '', until: 0 }));
     this.net = host.noTv;
   }
@@ -114,8 +130,11 @@ export class RallyGame implements Game {
         canvas,
         this.ids.map((id) => {
           const p = this.host.player(id);
-          return { name: p?.name ?? '?', color: colorHex(p?.color ?? 'sourcream') };
+          return { name: p?.name ?? '?', color: colorHex(p?.color ?? 'sourcream'), kart: this.cfg?.karts[this.ids.indexOf(id)] };
         }),
+        undefined,
+        // Premium always races in the original look.
+        this.cfg ? ['psx'] : undefined,
       );
       this.scene.setTrack(this.track);
       this.scene.resetCameras(this.sim.cars);
@@ -136,8 +155,13 @@ export class RallyGame implements Game {
 
   private newRace() {
     this.race++;
-    this.track = generateTrack((Math.random() * 2 ** 31) | 0, this.shapes[(this.race - 1) % this.shapes.length]);
-    this.sim = new RallySim(this.track, this.ids.length, LAPS, this.host.options.items, Math.random, { remote: this.net ? () => true : undefined });
+    const course = this.cfg?.courses[this.race - 1];
+    this.track = course ? generateTrack(course.seed, course.shape) : generateTrack((Math.random() * 2 ** 31) | 0, this.shapes[(this.race - 1) % this.shapes.length]);
+    if (course) this.track.name = course.name;
+    this.sim = new RallySim(this.track, this.ids.length, LAPS, this.host.options.items, Math.random, {
+      remote: this.net ? () => true : undefined,
+      specs: this.cfg?.karts.map((k) => kartSpec(kartInfo(k).stats)),
+    });
     this.sim.cars.forEach((c, i) => (c.parked = this.removed.has(i) || !this.host.player(this.ids[i])?.connected));
     this.firstFinish = null;
     this.firstFinishAt = null;
@@ -240,7 +264,8 @@ export class RallyGame implements Game {
     }
     for (const u of ev.used) {
       sound.whoosh();
-      this.tell(u.idx, { use: u.item });
+      this.tell(u.idx, { use: u.item, ...(u.tow !== undefined ? { tow: u.tow } : {}) });
+      if (u.item === 'lasso' && u.tow !== undefined && u.tow >= 0) this.say(u.idx, 'Yee-haw!', 1000);
       this.host.refresh(this.ids[u.idx]);
     }
     for (const h of ev.hits) {
@@ -253,7 +278,7 @@ export class RallyGame implements Game {
       }
       if (h.by !== h.idx && !h.blocked) {
         this.say(h.by, 'Got one!', 1200);
-        this.tell(h.by, { got: this.name(h.idx) });
+        this.tell(h.by, { got: this.name(h.idx), ...(h.kind === 'lid' ? { spent: true } : {}) });
       }
     }
     for (const t of ev.turbos) {
@@ -306,7 +331,9 @@ export class RallyGame implements Game {
         (car.ghost > 0 ? B.ghost : 0) |
         (car.parked || this.removed.has(car.idx) ? B.parked : 0) |
         (car.drift ? B.drift : 0) |
-        (driftLevel(car) === 1 ? B.sparks : driftLevel(car) === 2 ? B.superSparks : 0);
+        (driftLevel(car) === 1 ? B.sparks : driftLevel(car) === 2 ? B.superSparks : 0) |
+        (car.ink > 0 ? B.ink : 0) |
+        (car.tow > 0 && car.towTarget >= 0 ? (car.towTarget + 1) << RALLY_TOW_SHIFT : 0);
       c.push(round(car.x), round(car.z), round(car.heading, 1000), round(car.speed, 10), bits);
     }
     const b: number[] = [];
@@ -314,11 +341,11 @@ export class RallyGame implements Game {
     const sl: number[] = [];
     for (const x of sim.slicks) sl.push(round(x.x), round(x.z), round(x.h), round(x.heading, 100), HAZARDS.indexOf(x.kind));
     const p: number[] = [];
-    for (const x of sim.pickles) p.push(round(x.d), round(x.lateral));
+    for (const x of sim.pickles) p.push(round(x.d), round(x.lateral), MISSILES.indexOf(x.kind));
     const k: number[] = [];
     for (const x of sim.bombs) k.push(round(x.d), round(x.lateral), round(x.speed, 10), round(x.age, 1000));
     const bl: number[] = [];
-    for (const x of sim.blasts) bl.push(round(x.x), round(x.z), round(x.h), round(sim.time - x.at, 1000));
+    for (const x of sim.blasts) bl.push(round(x.x), round(x.z), round(x.h), round(sim.time - x.at, 1000), x.r);
     const ids = this.ids.filter((id, i) => !this.removed.has(i) && this.host.player(id)?.connected);
     this.host.message(ids, { t: 'rs', r: this.race, c, b, s: sl, p, k, x: bl });
   }
@@ -560,7 +587,7 @@ export class RallyGame implements Game {
             </ol>
             {this.ids.length > 1 && (
               <div class="rally-cup">
-                <div class="rally-cup-title">Cup standings</div>
+                <div class="rally-cup-title">{this.cfg ? this.cfg.cup : 'Cup standings'}</div>
                 {cupOrder.map((idx) => {
                   const p = players[idx];
                   return p ? (

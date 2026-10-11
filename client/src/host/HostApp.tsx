@@ -341,7 +341,7 @@ function Lobby() {
 
         <div class="game-picker">
           {(['tournament', ...GAMES.map((g) => g.id)] as Selection[]).map((id) => (
-            <div class={`game-card ${id === 'tournament' ? 'tour' : ''} ${id === c.selected ? 'selected' : ''}`} key={id}>
+            <div class={`game-card ${id === 'tournament' ? 'tour' : id === 'premium' ? 'premium' : ''} ${id === c.selected ? 'selected' : ''}`} key={id}>
               <GameIcon game={id} size={64} />
               <div class="game-card-title">{id === 'tournament' ? 'Tournament' : gameInfo(id).title}</div>
             </div>
@@ -384,6 +384,7 @@ function SelectedGame({ sel }: { sel: Selection }) {
   if (g.maxPlayers) flags.push(`Up to ${g.maxPlayers} players`);
   if (g.coop) flags.push('Co-op');
   if (sel === 'rally') flags.push(`${rallyTrack(o.track).name} · ${o.items ? 'items' : 'no items'}`);
+  if (sel === 'premium') flags.push(`Grand Prix or single tracks · ${o.items ? 'items' : 'no items'}`);
   if (sel === 'trails' && o.powerups) flags.push('Power-ups');
   if (sel === 'kitchen') flags.push(`${difficultyName(o.difficulty)} · level ${o.level}`);
   return (
@@ -439,6 +440,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return tilesHowTo(short);
     case 'smoke':
       return smokeHowTo();
+    case 'premium':
+      return ['Pick a Grand Prix of three tracks – or one track', 'Choose your car: speed, accel, handling, off-road', `Thumb pad, drifts, turbos and new items · ${LAPS} laps a race`];
   }
 }
 
