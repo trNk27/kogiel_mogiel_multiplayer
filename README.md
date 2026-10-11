@@ -154,11 +154,20 @@ the same room code, just as they would in the host's room. Up to 8 players in to
 3. Players by the second screen scan the QR code they see in the stream, or go to `/join`.
 
 Under the hood the host TV captures its own tab (`getDisplayMedia`) and sends it to every second
-screen over WebRTC: one peer connection per screen, up to 4 screens, at most 4 Mbit/s and 30 fps
-each. The Durable Object only relays the signalling (offer, answer, ICE candidates) on a third
-socket role, `screen`; the video itself goes straight from TV to TV. Expect a delay of a few
-hundred milliseconds on top of the phones' own, which is fine for most games but noticeable in the
-fastest ones (Fork Fight, Maluch Rally). Second screens reconnect by themselves after a reload or a
+screen over WebRTC: one peer connection per screen, up to 4 screens, at most 720p, 3 Mbit/s and
+30 fps each. The Durable Object only relays the signalling (offer, answer, ICE candidates) on a third
+socket role, `screen`; the video itself goes straight from TV to TV. It's tuned for low delay rather
+than a perfect picture: H.264 is offered first (usually hardware-encoded on the host and
+hardware-decoded on the TV), the encoder drops resolution rather than frames when it can't keep up,
+and the second screen asks for no safety buffer (`jitterBufferTarget = 0`), so a stutter shows up
+as a dropped frame instead of a picture that stays behind. The video still adds some delay on top of
+the phones' own, most noticeable in the fastest games (Fork Fight, Maluch Rally).
+
+**How far behind is it?** Press **📊** on the second screen (or open `/screen?stats`) for its
+estimate: half the round trip, the jitter buffer and decoding, with the resolution, frame rate,
+codec and whether the video goes through TURN. The host's **📡** panel shows its side for each
+screen, including the time to encode a frame and whether the CPU or the network holds the picture
+back. Capturing the tab on the host adds a frame or two that neither side can measure. Second screens reconnect by themselves after a reload or a
 network blip. If the host TV reloads, it has to press **📡 → Share this screen** again (browsers only
 start a screen share from a click).
 
@@ -212,6 +221,7 @@ client/join.html            phone entry       → client/src/phone
 client/dev.html             /dev test bench   → client/src/dev
 client/screen.html          second screen     → client/src/screen (receiver.ts: the WebRTC side)
 client/src/host/mirror.ts   the host TV's side of second screens: tab capture, one peer connection per screen
+client/src/lib/rtcStats.ts  second-screen video: low-latency tuning (H.264 first, no jitter buffer) and the live numbers
 client/src/games/*          quiz, trails, ballpark, kitchen (pure logic + TV views)
 client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigames
 client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js renderer, no-TV race client

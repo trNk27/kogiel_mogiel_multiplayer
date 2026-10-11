@@ -146,3 +146,27 @@ body.tv {
   opacity: 0;
   pointer-events: none;
 }
+.mirror-bar .btn.on {
+  background: var(--dill);
+}
+.mirror-stats-box {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  max-width: calc(100% - 32px);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--scrim);
+  color: var(--cream);
+  font-size: 15px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.mirror-stats-delay {
+  font-size: 20px;
+  font-weight: 800;
+}
+.mirror-stats-note {
+  opacity: 0.7;
+}

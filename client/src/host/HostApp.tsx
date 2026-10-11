@@ -7,6 +7,7 @@ import { music } from '../lib/music';
 import { trackForGame, type TrackId } from '../lib/tracks';
 import { HostController, type Standing } from './controller';
 import type { ScreenState } from './mirror';
+import { describe, type MirrorStats } from '../lib/rtcStats';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
@@ -156,6 +157,19 @@ function CornerInfo({ onMirror }: { onMirror: () => void }) {
   );
 }
 
+const LIMIT: Record<string, string> = {
+  cpu: 'held back by this computer’s CPU',
+  bandwidth: 'held back by the network',
+};
+
+/** The host's own numbers for one second screen: picture, encoding and network. */
+function screenStats(s: MirrorStats): string {
+  const parts = [describe(s)];
+  if (s.encodeMs !== null) parts.push(`encode ${s.encodeMs.toFixed(1)} ms`);
+  if (s.limit && LIMIT[s.limit]) parts.push(LIMIT[s.limit]!);
+  return parts.join(' · ');
+}
+
 const SCREEN_STATE: Record<ScreenState, string> = {
   waiting: 'waiting for you to share',
   connecting: 'connecting…',
@@ -167,6 +181,18 @@ const SCREEN_STATE: Record<ScreenState, string> = {
 function MirrorPanel({ onClose }: { onClose: () => void }) {
   const m = controller.mirror;
   const screens = m.screens();
+  const [stats, setStats] = useState<Map<string, MirrorStats>>(new Map());
+  // Live numbers while the panel is open (only then: nothing re-renders the TV every second).
+  useEffect(() => {
+    let alive = true;
+    const poll = () => void m.stats().then((s) => alive && setStats(s));
+    poll();
+    const t = window.setInterval(poll, 1000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, []);
   return (
     <div class="mirror-scrim" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div class="mirror-panel card-paper">
@@ -183,6 +209,7 @@ function MirrorPanel({ onClose }: { onClose: () => void }) {
             {screens.map((x, i) => (
               <li class={`mirror-screen ${x.state}`} key={x.id}>
                 Screen {i + 1}: <b>{SCREEN_STATE[x.state]}</b>
+                {x.state === 'live' && stats.get(x.id) && <small class="mirror-stats">{screenStats(stats.get(x.id)!)}</small>}
               </li>
             ))}
           </ul>
