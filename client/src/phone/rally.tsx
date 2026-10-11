@@ -28,6 +28,8 @@ const FX_TEXT: Record<RallyEffect, string> = {
   slow: 'Caught in the storm!',
   ink: 'Beet juice on your windscreen!',
   ghost: 'Ghost mode – nothing can touch you',
+  tow: 'Lassoed on! Hang on for the slingshot',
+  towed: 'Someone lassoed you – you’re dragging them!',
 };
 
 function ordinal(n: number) {

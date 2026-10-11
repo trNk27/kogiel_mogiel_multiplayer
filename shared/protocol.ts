@@ -97,7 +97,8 @@ export type GameId =
   | 'cookbook'
   | 'tiles'
   | 'swap'
-  | 'smoke';
+  | 'smoke'
+  | 'premium';
 
 export interface GameInfo {
   id: GameId;
@@ -113,6 +114,8 @@ export interface GameInfo {
   noTv?: string;
   /** Co-op games (everybody wins or loses together) are left out of tournaments. */
   coop?: boolean;
+  /** A game of its own with its own menus (Maluch Rallye Premium): left out of tournaments too. */
+  standalone?: boolean;
 }
 
 export const GAMES: readonly GameInfo[] = [
@@ -152,6 +155,14 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
   { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
+  {
+    id: 'premium',
+    title: 'Maluch Rallye Premium',
+    tagline: 'Grand Prix, four cars, a garage full of items. Up to 4.',
+    minPlayers: 1,
+    maxPlayers: 4,
+    standalone: true,
+  },
 ];
 
 export function gameInfo(id: GameId): GameInfo {
@@ -173,7 +184,7 @@ export const TOURNAMENT_MIN_GAMES = 2;
 export const TOURNAMENT_MAX_GAMES = 10;
 export const TOURNAMENT_MIN_PLAYERS = 2;
 /** Games that can ever be in a tournament (the competitive ones). */
-export const TOURNAMENT_CANDIDATES: readonly GameId[] = GAMES.filter((g) => !g.coop).map((g) => g.id);
+export const TOURNAMENT_CANDIDATES: readonly GameId[] = GAMES.filter((g) => !g.coop && !g.standalone).map((g) => g.id);
 /** Tournament points for 1st, 2nd, 3rd… place in each game (ties share a place). */
 export const TOURNAMENT_POINTS = [10, 7, 5, 3, 2, 1, 0, 0] as const;
 
@@ -183,7 +194,7 @@ export function tournamentPoints(place: number): number {
 
 /** Games a tournament can pick from with these players: competitive ones that can start and aren't switched off. */
 export function tournamentPool(connected: number, inRoom: number, off: readonly GameId[] = []): GameId[] {
-  return GAMES.filter((g) => !g.coop && !off.includes(g.id) && playerCountProblem(g, connected, inRoom) === null).map((g) => g.id);
+  return GAMES.filter((g) => !g.coop && !g.standalone && !off.includes(g.id) && playerCountProblem(g, connected, inRoom) === null).map((g) => g.id);
 }
 
 /** How many games a tournament will play: what the VIP asked for, or fewer if not enough games are on. */
@@ -287,24 +298,94 @@ export const KITCHEN_LEVELS = [
 ] as const;
 
 /** Maluch Rally items. You pick one up from a ? box and fire it by lifting your thumb. */
-export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket' | 'bomb' | 'beet' | 'ghost' | 'hay' | 'spray';
+export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket' | 'bomb' | 'beet' | 'ghost' | 'lasso' | 'slipper';
+
+export const RALLY_ITEM_IDS: readonly RallyItem[] = ['boost', 'butter', 'pickle', 'lid', 'storm', 'rocket', 'bomb', 'beet', 'ghost', 'lasso', 'slipper'];
 
 export const RALLY_ITEMS: Record<RallyItem, { name: string; does: string }> = {
-  boost: { name: 'Kompot Boost', does: 'A burst of speed' },
-  butter: { name: 'Butter Slick', does: 'Dropped behind you – anyone who drives over it spins' },
-  pickle: { name: 'Pickle Missile', does: 'Chases the car in front of you' },
-  lid: { name: 'Pot Lid', does: 'Blocks the next hit' },
-  storm: { name: 'Thunderstorm', does: 'Slows down everyone ahead of you' },
+  boost: { name: 'Kompot Boost', does: 'A burst of speed – full speed on the grass, and it washes off barszcz' },
+  butter: { name: 'Butter Slick', does: 'Dropped behind you – anyone who drives over it spins out' },
+  pickle: { name: 'Pickle Missile', does: 'Chases the car in front of you and knocks its item away' },
+  lid: { name: 'Pot Lid', does: 'Blocks the next hit – or bash into someone to spin them' },
+  storm: { name: 'Thunderstorm', does: 'Slows everyone ahead of you and makes them drop their items' },
   rocket: { name: 'Maluch Rocket', does: 'Drives itself, very fast, and nothing can stop it' },
   bomb: { name: 'Cabbage Bomb', does: 'Lobbed down the road – it goes off and spins everyone near it' },
   beet: { name: 'Beet Splash', does: 'Barszcz on the windscreen of everyone ahead of you' },
   ghost: { name: 'Babcia’s Ghost', does: 'Go see-through and untouchable, and steal an item from someone ahead' },
-  hay: { name: 'Hay Bale', does: 'Dropped behind you – anyone who drives into it stops dead' },
-  spray: { name: 'Barszcz Sprayer', does: 'Sprays a red cloud behind you – anyone who drives through it can’t see a thing' },
+  lasso: { name: 'Kiełbasa Lasso', does: 'Lasso the car ahead: it tows you, slows down, then you slingshot past' },
+  slipper: { name: 'Babcia’s Kapeć', does: 'Babcia’s slipper flies straight for the leader – and whacks anyone near them' },
 };
 
 /** What's happening to a car right now (for the phone). */
-export type RallyEffect = 'spin' | 'rocket' | 'boost' | 'shield' | 'slow' | 'ink' | 'ghost';
+export type RallyEffect = 'spin' | 'rocket' | 'boost' | 'shield' | 'slow' | 'ink' | 'ghost' | 'tow' | 'towed';
+
+// ---------------------------------------------------------------------------
+// Maluch Rallye Premium: its own game with named tracks, Grand Prix and four cars
+// ---------------------------------------------------------------------------
+
+export type KartId = 'maluch' | 'syrenka' | 'polonez' | 'tarpan';
+
+/** Stats run from 1 to 5. Every car has 13 points in all. */
+export interface KartStats {
+  speed: number;
+  accel: number;
+  handling: number;
+  offroad: number;
+}
+
+export const KARTS: readonly { id: KartId; name: string; blurb: string; paint: string; stats: KartStats }[] = [
+  { id: 'maluch', name: 'Maluch 126p', blurb: 'The all-rounder. Good at everything, best at nothing.', paint: '#e8335a', stats: { speed: 4, accel: 3, handling: 3, offroad: 3 } },
+  { id: 'syrenka', name: 'Syrenka 105', blurb: 'Light and nimble. Off the line in a blink, turns on a złoty.', paint: '#2fd6a8', stats: { speed: 2, accel: 5, handling: 5, offroad: 1 } },
+  { id: 'polonez', name: 'Polonez Caro', blurb: 'Heavy and fast. Slow to wind up, unbeatable flat out.', paint: '#f2b705', stats: { speed: 5, accel: 2, handling: 3, offroad: 3 } },
+  { id: 'tarpan', name: 'Tarpan 4×4', blurb: 'The farm truck. Grass, mud, verges – all road to it.', paint: '#7a8f3a', stats: { speed: 3, accel: 3, handling: 2, offroad: 5 } },
+];
+
+export function kartInfo(id: string) {
+  return KARTS.find((k) => k.id === id) ?? KARTS[0];
+}
+
+export function isKartId(x: unknown): x is KartId {
+  return typeof x === 'string' && KARTS.some((k) => k.id === x);
+}
+
+/** A named track: the same layout every time (built from `seed` and `shape`, a track shape id). */
+export interface PremiumTrack {
+  id: string;
+  name: string;
+  shape: string;
+  seed: number;
+  hint: string;
+}
+
+export const PREMIUM_TRACKS: readonly PremiumTrack[] = [
+  { id: 'garden', name: 'Babcia’s Garden', shape: 'ring', seed: 1101, hint: 'Sweeping bends past the vegetable patch' },
+  { id: 'kielbasa', name: 'Kiełbasa Speedway', shape: 'speedway', seed: 2207, hint: 'Flat out, then one wiggle' },
+  { id: 'rynek', name: 'Market Square', shape: 'town', seed: 3313, hint: 'Right angles round the town hall' },
+  { id: 'mazury', name: 'Mazury Lakes', shape: 'kidney', seed: 4409, hint: 'One long hook round the lake' },
+  { id: 'meadow', name: 'Clover Meadow', shape: 'clover', seed: 5501, hint: 'Lobes and long sweepers' },
+  { id: 'crossroads', name: 'Crossroads Eight', shape: 'figure8', seed: 6607, hint: 'Over the bridge and under it' },
+  { id: 'krakow', name: 'Kraków Old Town', shape: 'town', seed: 7703, hint: 'Tight streets, tighter corners' },
+  { id: 'vistula', name: 'Vistula Snake', shape: 'snake', seed: 8819, hint: 'S-bend after S-bend along the river' },
+  { id: 'bieszczady', name: 'Bieszczady Woods', shape: 'ring', seed: 9901, hint: 'Deep in the forest, fast and narrow' },
+  { id: 'tatra', name: 'Tatra Pass', shape: 'pass', seed: 10007, hint: 'Hairpins all the way up' },
+  { id: 'crown', name: 'Babcia’s Crown', shape: 'crown', seed: 11113, hint: 'Six lobes, tight at every tip' },
+  { id: 'nowahuta', name: 'Nowa Huta Eight', shape: 'figure8', seed: 12211, hint: 'Steelworks, a bridge and no mercy' },
+];
+
+export function premiumTrack(id: string) {
+  return PREMIUM_TRACKS.find((t) => t.id === id) ?? PREMIUM_TRACKS[0];
+}
+
+/** Grand Prix: three tracks each, raced in order. */
+export const PREMIUM_CUPS: readonly { id: string; name: string; color: string; tracks: readonly string[] }[] = [
+  { id: 'pierogi', name: 'Pierogi Cup', color: '#f3cf6b', tracks: ['garden', 'kielbasa', 'rynek'] },
+  { id: 'kompot', name: 'Kompot Cup', color: '#ff7ad1', tracks: ['mazury', 'meadow', 'crossroads'] },
+  { id: 'barszcz', name: 'Barszcz Cup', color: '#e8335a', tracks: ['krakow', 'vistula', 'bieszczady'] },
+  { id: 'babcia', name: 'Babcia Cup', color: '#b27bff', tracks: ['tatra', 'crown', 'nowahuta'] },
+];
+
+/** Maluch Rallye Premium before the race: the title screen, picking a Grand Prix or a track, then picking cars. */
+export type PremiumPhase = 'title' | 'cups' | 'tracks' | 'karts';
 
 /** No-TV Maluch Rally: what each phone needs to build the race locally. */
 export interface RallyNet {
@@ -476,6 +557,23 @@ export type PhoneView =
       drift?: number;
       /** Only in rooms without a TV: the phone shows the race itself. */
       net?: RallyNet;
+    }
+  /**
+   * Maluch Rallye Premium menus. The VIP drives the title screen and picks a Grand Prix (`cursor` is
+   * the highlighted cup or track); then everyone picks a car and says they're ready.
+   */
+  | {
+      v: 'premium';
+      phase: PremiumPhase;
+      vip: boolean;
+      vipName: string;
+      cursor: number;
+      kart: KartId;
+      ready: boolean;
+      readyCount: number;
+      total: number;
+      /** What's being raced (Grand Prix or track name), once chosen. */
+      event?: string;
     }
   /** To Ty! Take a selfie. `rev` is the host's version of your photo (null = none yet). */
   | { v: 'tySelfie'; id: string; endsAt: number; rev: number | null; done: boolean }
@@ -718,6 +816,11 @@ export type PhoneMsg =
   | { t: 'grab' }
   /** Fajki: started pulling on the cigarette (`pull`), or let go: puff quality `q` (0–1) and how it went (`v`, see Verdict). */
   | { t: 'puff'; ev: 'pull' | 'blow'; q?: number; v?: number }
+  /**
+   * Maluch Rallye Premium menus. VIP: `mode` (i 0 = Grand Prix, 1 = tracks), `hover` a cup or track,
+   * `go` (race what's highlighted), `back`. Everybody: `kart` (i is the index in KARTS) and `ready` (on).
+   */
+  | { t: 'prem'; a: 'mode' | 'hover' | 'go' | 'back' | 'kart' | 'ready'; i?: number; on?: boolean }
   /** Bazgroły: a fake title for the drawing on the TV, or `auto` to have the game make one up. */
   | { t: 'lie'; text: string; auto?: boolean }
   // VIP-only actions (the host ignores them from anybody else)
@@ -745,12 +848,12 @@ export type HostToPhone =
   /**
    * No-TV Maluch Rally, ~15 times a second: where everything is. `r` is the race number.
    * c: per car [x, z, heading, speed, effect bits (RALLY_FX_BITS)]; b: indices of boxes that are gone;
-   * s: per slick/bale/cloud [x, z, h, heading, kind (index in HAZARDS: butter, hay, spray)]; p: per pickle [d, lateral];
-   * k: per cabbage [d, lateral, speed, age]; x: per blast [x, z, h, age].
+   * s: per butter slick [x, z, h, heading, kind (index in HAZARDS)]; p: per missile [d, lateral, kind (0 pickle, 1 slipper)];
+   * k: per cabbage [d, lateral, speed, age]; x: per blast [x, z, h, age, radius].
    */
   | { t: 'rs'; r: number; c: number[]; b: number[]; s: number[]; p: number[]; k: number[]; x: number[] }
   /** No-TV Maluch Rally: something happened to your car (you used an item, or got hit). */
-  | { t: 'rfx'; r: number; use?: RallyItem; hit?: RallyItem; blocked?: boolean; by?: string; lost?: RallyItem; got?: string }
+  | { t: 'rfx'; r: number; use?: RallyItem; hit?: RallyItem; blocked?: boolean; by?: string; lost?: RallyItem; got?: string; tow?: number; spent?: boolean }
   /**
    * No-TV arena games, ~15 times a second: the arena's state (`s`, a flat list of numbers laid out
    * by each game's `net.ts`) at host time `at` in round `r`, and the game's events since the last one (`e`).
@@ -759,7 +862,9 @@ export type HostToPhone =
   | { t: 'kicked' };
 
 /** Effect bits in a no-TV rally snapshot. */
-export const RALLY_FX_BITS = { spin: 1, rocket: 2, boost: 4, shield: 8, slow: 16, ghost: 32, parked: 64, drift: 128, sparks: 256, superSparks: 512 } as const;
+export const RALLY_FX_BITS = { spin: 1, rocket: 2, boost: 4, shield: 8, slow: 16, ghost: 32, parked: 64, drift: 128, sparks: 256, superSparks: 512, ink: 1024 } as const;
+/** A car towing another on a Kiełbasa Lasso has (index of the towed car + 1) << RALLY_TOW_SHIFT in its effect bits. */
+export const RALLY_TOW_SHIFT = 12;
 /** Numbers per car in the snapshot's `c` array. */
 export const RALLY_CAR_STRIDE = 5;
 

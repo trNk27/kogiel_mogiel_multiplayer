@@ -1,4 +1,4 @@
-import type { RallyEffect, RallyItem } from '../../../../shared/protocol';
+import type { KartStats, RallyEffect, RallyItem } from '../../../../shared/protocol';
 import type { Rng } from '../rng';
 import { ROAD_HALF, pointAt, project, type Track } from './track';
 
@@ -19,6 +19,31 @@ export const RTUNING = {
   steerAtTop: 0.55,
   carRadius: 1.7,
 };
+
+/** How a car drives. Plain Maluch Rally cars all get DEFAULT_SPEC; Maluch Rallye Premium's karts differ. */
+export interface CarSpec {
+  maxSpeed: number;
+  accel: number;
+  /** Turning rate at full lock (rad/s). */
+  steer: number;
+  /** Top speed off the road. */
+  grassSpeed: number;
+  /** Heavier cars shove lighter ones in a bump. */
+  weight: number;
+}
+
+export const DEFAULT_SPEC: CarSpec = { maxSpeed: RTUNING.maxSpeed, accel: RTUNING.accel, steer: RTUNING.steer, grassSpeed: RTUNING.grassSpeed, weight: 1 };
+
+/** Turn 1–5 kart stats into driving numbers. A 3 in everything is about the plain Maluch. */
+export function kartSpec(s: KartStats): CarSpec {
+  return {
+    maxSpeed: 37 + 2 * s.speed,
+    accel: 13 + 2.6 * s.accel,
+    steer: 1.85 + 0.16 * s.handling,
+    grassSpeed: 12 + 3.6 * s.offroad,
+    weight: 0.7 + 0.12 * (s.speed + s.offroad) - 0.06 * s.accel,
+  };
+}
 
 /**
  * Drifting: hold the brake while turning at speed. The car slides with its nose into the corner,
@@ -61,6 +86,7 @@ export function driftLevel(c: Car) {
 /** Item timings and strengths. */
 export const ITUNING = {
   boostTime: 2.2,
+  /** Boost top speed, on top of the car's own top speed. */
   boostSpeed: 56,
   rocketTime: 3.5,
   rocketSpeed: 62,
@@ -71,17 +97,21 @@ export const ITUNING = {
   pickleSpeed: 72,
   pickleLife: 7,
   slickLife: 30,
-  hayLife: 25,
+  /** Babcia's Kapeć: flies over everything to the leader, then whacks everyone this close. */
+  slipperSpeed: 105,
+  slipperLife: 14,
+  slipperRadius: 7,
+  slipperSpin: 1.7,
+  /** Kiełbasa Lasso: how long you're towed, how far ahead it reaches, how much the towed car slows, the slingshot. */
+  towTime: 2.6,
+  towReach: 140,
+  towDrag: 0.68,
+  towBoost: 1.3,
   /** Cabbage bombs fly this long before they go off, and hit everything this close. */
   bombFuse: 0.8,
   bombRadius: 8,
   bombSpin: 1.4,
   inkTime: 4,
-  /** Barszcz Sprayer: clouds along the road behind you, how big, how long they hang there, how long they blind you. */
-  sprayBack: [6, 13, 20],
-  sprayRadius: 6,
-  sprayLife: 12,
-  sprayInk: 3.5,
   ghostTime: 4.5,
   boxRespawn: 3,
   /** Box rows along the lap (fractions of its length) and their lateral offsets. */
@@ -133,6 +163,12 @@ export interface Car {
   ink: number;
   /** See-through and untouchable. */
   ghost: number;
+  /** Kiełbasa Lasso: seconds left of being towed towards `towTarget` (yours), or of being dragged back (theirs). */
+  tow: number;
+  towTarget: number;
+  towed: number;
+  /** How this car drives. */
+  spec: CarSpec;
   /** Extra yaw while spinning out (just for show). */
   spinAngle: number;
   /** Drifting: -1 to the left, 1 to the right, 0 not drifting. */
@@ -151,15 +187,13 @@ export interface ItemBox {
   back: number;
 }
 
-export type HazardKind = 'butter' | 'hay' | 'spray';
+export type HazardKind = 'butter';
 /** Hazard kinds by their number in a no-TV snapshot. */
-export const HAZARDS: readonly HazardKind[] = ['butter', 'hay', 'spray'];
+export const HAZARDS: readonly HazardKind[] = ['butter'];
 
-/** Something left on the road: a butter slick, a hay bale or a cloud of barszcz. */
+/** Something left on the road: a butter slick. */
 export interface Slick {
   kind: HazardKind;
-  /** Spray clouds stay put and get each car once: the cars they already got. */
-  touched?: number[];
   x: number;
   z: number;
   h: number;
@@ -181,15 +215,22 @@ export interface Bomb {
   owner: number;
 }
 
-/** A cabbage going off (for show). */
+/** A cabbage (or a slipper) going off (for show). */
 export interface Blast {
   x: number;
   z: number;
   h: number;
   at: number;
+  /** How far it reaches. */
+  r: number;
 }
 
+/** Things that fly along the road after a car: pickle missiles and Babcia's slipper. */
+export type MissileKind = 'pickle' | 'slipper';
+export const MISSILES: readonly MissileKind[] = ['pickle', 'slipper'];
+
 export interface Pickle {
+  kind: MissileKind;
   /** Distance along the track. */
   d: number;
   lateral: number;
@@ -214,7 +255,8 @@ export interface StepEvents {
   finished: number[];
   bumps: number[];
   pickups: { idx: number; item: RallyItem }[];
-  used: { idx: number; item: RallyItem }[];
+  /** Items fired. A lasso says which car it caught (`tow`, -1 for none). */
+  used: { idx: number; item: RallyItem; tow?: number }[];
   hits: Hit[];
   /** A ghost took someone's item. */
   steals: { idx: number; from: number; item: RallyItem }[];
@@ -234,19 +276,19 @@ export function gridSlot(track: Track, k: number) {
  * Leaders mostly get defence; the back of the field gets the catch-up items.
  */
 export function itemWeights(f: number, cars: number): Record<RallyItem, number> {
-  if (cars <= 1) return { boost: 3, butter: 0, pickle: 0, lid: 0, storm: 0, rocket: 1, bomb: 0, beet: 0, ghost: 0.5, hay: 0, spray: 0 };
+  if (cars <= 1) return { boost: 3, butter: 0, pickle: 0, lid: 0, storm: 0, rocket: 1, bomb: 0, beet: 0, ghost: 0.5, lasso: 0, slipper: 0 };
   return {
     boost: 2 + 2 * f,
-    butter: 2.4 - 1.6 * f,
+    butter: 2.6 - 1.6 * f,
     pickle: 1.5 + 1.5 * f,
-    lid: 2 - 1.4 * f,
-    storm: f < 0.3 ? 0 : 2 * f,
+    lid: 2.2 - 1.4 * f,
+    storm: f < 0.3 ? 0 : 1.6 * f,
     rocket: f < 0.6 ? 0 : 3 * f,
     bomb: 1.2 + 0.6 * f,
     beet: f < 0.2 ? 0 : 1.8 * f,
     ghost: 0.5 + 1.2 * f,
-    hay: 2 - 1.6 * f,
-    spray: 2 - 1.2 * f,
+    lasso: f < 0.15 ? 0 : 0.6 + 1.6 * f,
+    slipper: f < 0.4 ? 0 : 1.4 * f,
   };
 }
 
@@ -261,18 +303,25 @@ export function rollItem(f: number, cars: number, rng: Rng): RallyItem {
   return 'boost';
 }
 
-/** What using an item does to your own car (the rest happens out on the track). */
-export function selfEffect(c: Car, item: RallyItem) {
+/**
+ * What using an item does to your own car (the rest happens out on the track).
+ * `tow` is the car a Kiełbasa Lasso caught (-1 or missing: it caught nobody, and works like a boost).
+ */
+export function selfEffect(c: Car, item: RallyItem, tow = -1) {
   const I = ITUNING;
   switch (item) {
     case 'boost':
+      // Kompot washes the barszcz off and shakes off the storm.
       c.boost = I.boostTime;
       c.speed = Math.max(c.speed, 46);
+      c.ink = 0;
+      c.slow = 0;
       break;
     case 'rocket':
       c.rocket = I.rocketTime;
       c.spin = 0;
       c.slow = 0;
+      c.tow = 0;
       break;
     case 'lid':
       c.shield = I.shieldTime;
@@ -281,24 +330,54 @@ export function selfEffect(c: Car, item: RallyItem) {
       c.ghost = I.ghostTime;
       c.spin = 0;
       break;
+    case 'lasso':
+      if (tow >= 0) {
+        c.tow = I.towTime;
+        c.towTarget = tow;
+        c.spin = 0;
+      } else {
+        // Nobody to catch: just a quick tug forward.
+        c.boost = Math.max(c.boost, I.towBoost);
+        c.speed = Math.max(c.speed, 42);
+      }
+      break;
   }
+}
+
+/** A lasso tow ends (caught up, or out of time): let go and slingshot. */
+export function endTow(c: Car) {
+  if (c.tow <= 0) return;
+  c.tow = 0;
+  c.boost = Math.max(c.boost, ITUNING.towBoost);
+  c.speed = Math.max(c.speed, 46);
 }
 
 /** What being hit does to a car (shields, rockets and ghosts are dealt with by the caller). */
 export function hitEffect(c: Car, kind: RallyItem) {
   const I = ITUNING;
-  if (kind === 'beet' || kind === 'spray') {
-    c.ink = Math.max(c.ink, kind === 'beet' ? I.inkTime : I.sprayInk);
+  if (kind === 'beet') {
+    c.ink = Math.max(c.ink, I.inkTime);
+    return;
+  }
+  if (kind === 'lasso') {
+    c.towed = I.towTime;
     return;
   }
   if (kind === 'storm') {
+    // Struck by lightning: slowed, a wobble, and whatever you were holding is gone.
     c.slow = I.slowTime;
     c.spin = Math.max(c.spin, 0.5);
-  } else if (kind === 'hay') {
-    c.speed = Math.min(c.speed, 5);
-    c.spin = Math.max(c.spin, 0.45);
+    c.item = null;
+  } else if (kind === 'pickle') {
+    // A pickle knocks the item out of your hands.
+    c.spin = I.spinTime;
+    c.item = null;
+  } else if (kind === 'slipper') {
+    c.spin = I.slipperSpin;
+    c.speed = Math.min(c.speed, 12);
   } else c.spin = kind === 'bomb' ? I.bombSpin : I.spinTime;
   c.boost = 0;
+  c.tow = 0;
 }
 
 /** Are a car's item effects protecting it from hits? */
@@ -314,6 +393,8 @@ export interface SimOptions {
   authority?: boolean;
   /** Indices of the cars driven elsewhere (see Car.remote). */
   remote?: (idx: number) => boolean;
+  /** How each car drives (default: all the same). */
+  specs?: CarSpec[];
 }
 
 export class RallySim {
@@ -369,6 +450,10 @@ export class RallySim {
         slow: 0,
         ink: 0,
         ghost: 0,
+        tow: 0,
+        towTarget: -1,
+        towed: 0,
+        spec: opts.specs?.[idx] ?? DEFAULT_SPEC,
         spinAngle: 0,
         drift: 0,
         driftCharge: 0,
@@ -403,9 +488,11 @@ export class RallySim {
   effect(c: Car): RallyEffect | null {
     if (c.spin > 0) return 'spin';
     if (c.rocket > 0) return 'rocket';
+    if (c.tow > 0) return 'tow';
     if (c.ghost > 0) return 'ghost';
     if (c.boost > 0) return 'boost';
     if (c.slow > 0) return 'slow';
+    if (c.towed > 0) return 'towed';
     if (c.ink > 0) return 'ink';
     if (c.shield > 0) return 'shield';
     return null;
@@ -419,20 +506,30 @@ export class RallySim {
     return { x: Math.max(-100, Math.min(100, d * 160)), y: c.speed > cruise ? 0 : -100 };
   }
 
+  /** Towed on a lasso: follow the road, drifting over to the lane of the car pulling you. */
+  private towPilot(c: Car, t: Car): { x: number; y: number } {
+    const gap = Math.max(4, Math.min(30, t.progress - c.progress));
+    const ahead = pointAt(this.track, c.along + gap, t.lateral);
+    let d = Math.atan2(ahead.z - c.z, ahead.x - c.x) - c.heading;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    return { x: Math.max(-100, Math.min(100, d * 160)), y: -100 };
+  }
+
   private sameLevel(a: { h: number }, b: { h: number }) {
     return Math.abs(a.h - b.h) < ITUNING.sameLevel;
   }
 
-  /** Something hit car `c`. Shields, rockets and ghosts protect. */
-  private hit(c: Car, by: number, kind: RallyItem) {
-    if (immune(c)) return;
+  /** Something hit car `c`. Shields, rockets and ghosts protect. Returns whether it got through. */
+  private hit(c: Car, by: number, kind: RallyItem): boolean {
+    if (immune(c)) return false;
     if (c.shield > 0) {
       c.shield = 0;
       this.pendingHits.push({ idx: c.idx, by, kind, blocked: true });
-      return;
+      return false;
     }
     hitEffect(c, kind);
     this.pendingHits.push({ idx: c.idx, by, kind, blocked: false });
+    return true;
   }
 
   /** The nearest car ahead of `c` (by distance driven) that `ok` accepts. */
@@ -469,35 +566,39 @@ export class RallySim {
     const item = c.item;
     c.item = null;
     const I = ITUNING;
-    selfEffect(c, item);
+    let tow = -1;
+    if (item === 'lasso') {
+      // Rope the nearest car ahead, if it's close enough and can be caught.
+      const t = this.ahead(c, (o) => o.progress - c.progress < I.towReach && this.sameLevel(o, c));
+      if (t && this.hit(t, idx, 'lasso')) tow = t.idx;
+    }
+    selfEffect(c, item, tow);
     switch (item) {
       case 'butter':
-      case 'hay': {
-        const back = item === 'hay' ? 4.2 : 3.6;
         this.slicks.push({
-          kind: item,
-          x: c.x - Math.cos(c.heading) * back,
-          z: c.z - Math.sin(c.heading) * back,
+          kind: 'butter',
+          x: c.x - Math.cos(c.heading) * 3.6,
+          z: c.z - Math.sin(c.heading) * 3.6,
           h: c.h,
           heading: c.heading,
-          until: this.time + (item === 'hay' ? I.hayLife : I.slickLife),
+          until: this.time + I.slickLife,
           owner: idx,
           safeUntil: this.time + 1,
         });
-        break;
-      }
-      case 'spray':
-        // A trail of barszcz mist along the road behind you.
-        for (const back of I.sprayBack) {
-          const p = pointAt(this.track, c.along - back, c.lateral * 0.6);
-          this.slicks.push({ kind: 'spray', touched: [idx], x: p.x, z: p.z, h: p.h, heading: p.heading, until: this.time + I.sprayLife, owner: idx, safeUntil: 0 });
-        }
         break;
       case 'pickle': {
         // Aim at the nearest car ahead (by distance driven).
         const target = this.ahead(c)?.idx ?? null;
         const p = pointAt(this.track, c.along + 3, c.lateral);
-        this.pickles.push({ d: c.along + 3, lateral: c.lateral, x: p.x, z: p.z, h: p.h, heading: p.heading, owner: idx, target, until: this.time + I.pickleLife });
+        this.pickles.push({ kind: 'pickle', d: c.along + 3, lateral: c.lateral, x: p.x, z: p.z, h: p.h, heading: p.heading, owner: idx, target, until: this.time + I.pickleLife });
+        break;
+      }
+      case 'slipper': {
+        // Straight for whoever is leading (if that's you, for the car ahead of you on the road – a backmarker).
+        const lead = this.order().map((k) => this.cars[k]).find((o) => o.idx !== idx && !o.finished && !o.parked && o.progress > c.progress);
+        const target = lead?.idx ?? this.ahead(c)?.idx ?? null;
+        const p = pointAt(this.track, c.along + 2, 0);
+        this.pickles.push({ kind: 'slipper', d: c.along + 2, lateral: 0, x: p.x, z: p.z, h: p.h, heading: p.heading, owner: idx, target, until: this.time + I.slipperLife });
         break;
       }
       case 'bomb': {
@@ -520,7 +621,7 @@ export class RallySim {
         break;
       }
     }
-    this.pending.push({ idx, item });
+    this.pending.push({ idx, item, ...(item === 'lasso' ? { tow } : {}) });
     return true;
   }
 
@@ -541,6 +642,13 @@ export class RallySim {
       c.slow = Math.max(0, c.slow - DT);
       c.ink = Math.max(0, c.ink - DT);
       c.ghost = Math.max(0, c.ghost - DT);
+      c.towed = Math.max(0, c.towed - DT);
+      if (c.tow > 0) {
+        const t = this.cars[c.towTarget];
+        // Reeled in, out of time or the rope broke: let go and slingshot past.
+        if (!c.remote && (c.tow <= DT || !t || t.parked || t.finished || t.progress - c.progress < 5 || c.spin > 0)) endTow(c);
+        else c.tow = Math.max(0, c.tow - DT);
+      }
       if (c.remote) {
         // Keep moving between reports (briefly), but the driving happens elsewhere.
         c.spin = Math.max(0, c.spin - DT);
@@ -551,7 +659,14 @@ export class RallySim {
         continue;
       }
       // The player's own input stays in c.input; finished cars and rockets drive themselves.
-      const input: Car['input'] = c.finished ? this.autopilot(c, 18) : c.rocket > 0 ? this.autopilot(c, I.rocketSpeed) : c.input;
+      const towing = c.tow > 0 ? this.cars[c.towTarget] : undefined;
+      const input: Car['input'] = c.finished
+        ? this.autopilot(c, 18)
+        : c.rocket > 0
+          ? this.autopilot(c, I.rocketSpeed)
+          : towing
+            ? this.towPilot(c, towing)
+            : c.input;
       const parked = c.parked && !c.finished;
       let steer = parked ? 0 : Math.max(-1, Math.min(1, input.x / 100));
       let gas = parked ? 0 : Math.max(-1, Math.min(1, -input.y / 100));
@@ -562,13 +677,13 @@ export class RallySim {
         gas = 0;
         c.speed *= 1 - 2.2 * DT;
       } else c.spinAngle = 0;
-      if (c.boost > 0 || c.rocket > 0) gas = 1;
+      if (c.boost > 0 || c.rocket > 0 || towing) gas = 1;
 
       // Drifting: the brake button doubles as drift. Hold it while turning at speed and the car
       // slides instead of slowing down; let go to end the drift (and maybe get a turbo).
       const brakeHeld = input.y >= 50;
       const D = DRIFT;
-      const canDrift = !parked && c.spin === 0 && c.rocket === 0 && !c.finished && c.speed > D.minSpeed * (c.drift ? 0.6 : 1);
+      const canDrift = !parked && c.spin === 0 && c.rocket === 0 && !towing && !c.finished && c.speed > D.minSpeed * (c.drift ? 0.6 : 1);
       if (!c.drift && brakeHeld && canDrift && Math.abs(steer) > 0.25) {
         c.drift = Math.sign(steer);
         c.driftCharge = 0;
@@ -586,12 +701,15 @@ export class RallySim {
       // Drifting keeps the power on, whatever the pedals say.
       if (c.drift) gas = 1;
 
-      // Speed.
-      let top = c.onRoad || c.rocket > 0 ? T.maxSpeed : T.grassSpeed;
+      // Speed. A boost (Kompot, a turbo) keeps full speed on the grass.
+      const S = c.spec;
+      let top = c.onRoad || c.rocket > 0 || c.boost > 0 ? S.maxSpeed : S.grassSpeed;
       if (c.rocket > 0) top = I.rocketSpeed;
-      else if (c.boost > 0) top = I.boostSpeed;
+      else if (towing) top = Math.max(S.maxSpeed, Math.min(I.boostSpeed + 6, towing.speed + 16));
+      else if (c.boost > 0) top = I.boostSpeed + (S.maxSpeed - T.maxSpeed);
       if (c.slow > 0) top *= I.slowFactor;
-      const accel = c.rocket > 0 || c.boost > 0 ? T.accel * 3 : T.accel;
+      if (c.towed > 0) top *= I.towDrag;
+      const accel = c.rocket > 0 || c.boost > 0 || towing ? S.accel * 3 : S.accel;
       if (gas > 0) c.speed += accel * gas * (1 - Math.max(0, c.speed) / (top * 1.08)) * DT * 1.6;
       else if (gas < 0) c.speed += (c.speed > 0.5 ? T.brake : T.accel * 0.6) * gas * DT;
       c.speed -= c.speed * T.drag * DT * (gas === 0 ? 1 : 0.35);
@@ -605,12 +723,12 @@ export class RallySim {
         // Always turning into the drift; the stick only says how hard.
         const into = steer * c.drift;
         const turn = D.turnOut + ((D.turnIn - D.turnOut) * (into + 1)) / 2;
-        c.heading += c.drift * turn * T.steer * DT;
+        c.heading += c.drift * turn * S.steer * DT;
         c.driftCharge += DT * (0.6 + 0.6 * Math.max(0, into));
         c.speed *= 1 - D.scrub * DT;
       } else {
-        const k = Math.min(1, v / 6) * (1 - (1 - T.steerAtTop) * Math.min(1, v / T.maxSpeed));
-        c.heading += steer * T.steer * k * Math.sign(c.speed) * DT;
+        const k = Math.min(1, v / 6) * (1 - (1 - T.steerAtTop) * Math.min(1, v / S.maxSpeed));
+        c.heading += steer * S.steer * k * Math.sign(c.speed) * DT;
       }
       // The car goes where it pointed a moment ago: the slip angle is the drift.
       c.slip += ((c.drift ? c.drift * D.slip : 0) - c.slip) * Math.min(1, DT * (c.drift ? 5 : 8));
@@ -633,8 +751,9 @@ export class RallySim {
         if (d2 >= r2 || d2 === 0) continue;
         const d = Math.sqrt(d2);
         const push = (T.carRadius * 2 - d) / 2;
-        // A rocket shoves the other car out of the way; a car driven elsewhere doesn't budge here.
-        const wa = b.remote ? 2 : a.remote ? 0 : a.rocket > 0 ? 0.2 : b.rocket > 0 ? 1.8 : 1;
+        // A rocket shoves the other car out of the way; a car driven elsewhere doesn't budge here;
+        // otherwise the heavier car moves less.
+        const wa = b.remote ? 2 : a.remote ? 0 : a.rocket > 0 ? 0.2 : b.rocket > 0 ? 1.8 : (2 * b.spec.weight) / (a.spec.weight + b.spec.weight);
         a.x -= (dx / d) * push * wa;
         a.z -= (dz / d) * push * wa;
         b.x += (dx / d) * push * (2 - wa);
@@ -708,29 +827,31 @@ export class RallySim {
       }
     }
 
-    // Butter slicks and hay bales.
+    // Butter slicks.
     this.slicks = this.slicks.filter((s) => {
       if (s.until < this.time) return false;
-      if (s.kind === 'spray') {
-        // Barszcz clouds hang around and get everybody who drives through them, once.
-        for (const c of this.cars) {
-          if (c.parked || immune(c) || s.touched!.includes(c.idx) || !this.sameLevel(c, s)) continue;
-          if ((c.x - s.x) ** 2 + (c.z - s.z) ** 2 < I.sprayRadius ** 2) {
-            s.touched!.push(c.idx);
-            this.hit(c, s.owner, 'spray');
-          }
-        }
-        return true;
-      }
       for (const c of this.cars) {
         if (c.parked || immune(c) || (c.idx === s.owner && this.time < s.safeUntil) || !this.sameLevel(c, s)) continue;
-        if ((c.x - s.x) ** 2 + (c.z - s.z) ** 2 < r2 * (s.kind === 'hay' ? 1.3 : 1)) {
+        if ((c.x - s.x) ** 2 + (c.z - s.z) ** 2 < r2) {
           this.hit(c, s.owner, s.kind);
           return false;
         }
       }
       return true;
     });
+
+    // A car with its pot lid up that rams another spins it (and the lid is spent).
+    const bash = (RTUNING.carRadius * 2 + 0.5) ** 2;
+    for (const a of this.cars) {
+      if (a.shield <= 0 || a.parked || a.finished) continue;
+      for (const b of this.cars) {
+        if (b === a || b.parked || immune(b) || b.spin > 0 || !this.sameLevel(a, b)) continue;
+        if ((a.x - b.x) ** 2 + (a.z - b.z) ** 2 > bash) continue;
+        a.shield = 0;
+        this.hit(b, a.idx, 'lid');
+        break;
+      }
+    }
 
     // Cabbage bombs roll down the road and go off.
     this.blasts = this.blasts.filter((b) => this.time - b.at < 0.6);
@@ -742,7 +863,7 @@ export class RallySim {
       b.z = p.z;
       b.h = p.h;
       if (b.age < I.bombFuse) return true;
-      this.blasts.push({ x: b.x, z: b.z, h: b.h, at: this.time });
+      this.blasts.push({ x: b.x, z: b.z, h: b.h, at: this.time, r: I.bombRadius });
       for (const c of this.cars) {
         if (c.parked || !this.sameLevel(c, b)) continue;
         if ((c.x - b.x) ** 2 + (c.z - b.z) ** 2 < I.bombRadius ** 2) this.hit(c, b.owner, 'bomb');
@@ -750,11 +871,27 @@ export class RallySim {
       return false;
     });
 
-    // Pickle missiles follow the road and home in on their target's lane.
+    // Pickle missiles follow the road and home in on their target's lane. Babcia's slipper flies
+    // high over everything until it reaches its target, then comes down hard.
     this.pickles = this.pickles.filter((m) => {
       if (m.until < this.time) return false;
-      m.d += I.pickleSpeed * DT;
       const t = m.target !== null ? this.cars[m.target] : null;
+      if (m.kind === 'slipper') {
+        if (!t || t.parked || t.finished) return false;
+        m.d += I.slipperSpeed * DT;
+        m.lateral += (t.lateral - m.lateral) * Math.min(1, 3 * DT);
+        const p = pointAt(this.track, m.d, m.lateral);
+        Object.assign(m, { x: p.x, z: p.z, h: p.h, heading: p.heading });
+        if ((t.x - m.x) ** 2 + (t.z - m.z) ** 2 > 5 ** 2 || !this.sameLevel(t, m)) return true;
+        this.blasts.push({ x: t.x, z: t.z, h: t.h, at: this.time, r: I.slipperRadius });
+        this.hit(t, m.owner, 'slipper');
+        for (const c of this.cars) {
+          if (c === t || c.idx === m.owner || c.parked || !this.sameLevel(c, t)) continue;
+          if ((c.x - t.x) ** 2 + (c.z - t.z) ** 2 < I.slipperRadius ** 2) this.hit(c, m.owner, 'slipper');
+        }
+        return false;
+      }
+      m.d += I.pickleSpeed * DT;
       if (t) m.lateral += (t.lateral - m.lateral) * Math.min(1, 5 * DT);
       const p = pointAt(this.track, m.d, m.lateral);
       m.x = p.x;

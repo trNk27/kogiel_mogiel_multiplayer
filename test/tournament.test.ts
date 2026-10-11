@@ -111,7 +111,7 @@ describe('short versions', () => {
   it('every competitive game is in the pool somewhere', () => {
     const all = new Set<GameId>();
     for (let n = 1; n <= 8; n++) for (const g of tournamentPool(n, n)) all.add(g);
-    expect([...all].sort()).toEqual(GAMES.filter((g) => !g.coop).map((g) => g.id).sort());
+    expect([...all].sort()).toEqual(GAMES.filter((g) => !g.coop && !g.standalone).map((g) => g.id).sort());
   });
 });
 

@@ -7,8 +7,8 @@
  * cars and items. Other cars are drawn a little in the past, smoothly interpolated between
  * snapshots.
  */
-import { RALLY_CAR_STRIDE, RALLY_FX_BITS, colorHex, type HostToPhone, type PhoneMsg, type RallyNet } from '../../../../shared/protocol';
-import { DT, HAZARDS, ITUNING, LAPS, RallySim, driftCode, setDriftLook, hitEffect, selfEffect, type Blast, type Bomb, type Pickle, type Slick } from './sim';
+import { RALLY_CAR_STRIDE, RALLY_FX_BITS, RALLY_TOW_SHIFT, colorHex, type HostToPhone, type PhoneMsg, type RallyNet } from '../../../../shared/protocol';
+import { DT, HAZARDS, ITUNING, LAPS, MISSILES, RallySim, driftCode, setDriftLook, hitEffect, selfEffect, type Blast, type Bomb, type Pickle, type Slick } from './sim';
 import { generateTrack, pointAt, project, type Shape, type Track } from './track';
 import { RallyScene, type RaceState } from './render3d';
 import { Minimap } from './minimap';
@@ -145,11 +145,13 @@ export class RallyClient {
   onEvent(e: RallyEvent) {
     if (e.r !== this.race) return;
     const me = this.sim.cars[this.idx];
-    if (e.use) selfEffect(me, e.use);
+    if (e.use) selfEffect(me, e.use, e.tow ?? -1);
     if (e.hit) {
       if (e.blocked) me.shield = 0;
       else hitEffect(me, e.hit);
     }
+    // Rammed somebody with the pot lid up: the lid is spent.
+    if (e.spent) me.shield = 0;
   }
 
   // ---- loop -------------------------------------------------------------------
@@ -244,6 +246,10 @@ export class RallyClient {
       c.shield = bits & B.shield ? 3 : 0;
       c.slow = bits & B.slow ? 1 : 0;
       c.ghost = bits & B.ghost ? 1 : 0;
+      c.ink = bits & B.ink ? 1 : 0;
+      const tow = (bits >> RALLY_TOW_SHIFT) - 1;
+      c.tow = tow >= 0 ? 1 : 0;
+      c.towTarget = tow;
       this.remoteSpin[c.idx] = c.spin ? this.remoteSpin[c.idx] + 0.25 : 0;
       c.spinAngle = this.remoteSpin[c.idx];
       setDriftLook(c, bits & B.superSparks ? 3 : bits & B.sparks ? 2 : bits & B.drift ? 1 : 0);
@@ -260,10 +266,11 @@ export class RallyClient {
     for (let k = 0; k + 4 < m.s.length; k += 5)
       slicks.push({ x: m.s[k], z: m.s[k + 1], h: m.s[k + 2], heading: m.s[k + 3], kind: HAZARDS[m.s[k + 4]] ?? 'butter', until: Infinity, owner: -1, safeUntil: 0 });
     const pickles: Pickle[] = [];
-    for (let k = 0; k + 1 < m.p.length; k += 2) {
-      const d = m.p[k] + ITUNING.pickleSpeed * Math.min(0.3, since);
+    for (let k = 0; k + 2 < m.p.length; k += 3) {
+      const kind = MISSILES[m.p[k + 2]] ?? 'pickle';
+      const d = m.p[k] + (kind === 'slipper' ? ITUNING.slipperSpeed : ITUNING.pickleSpeed) * Math.min(0.3, since);
       const p = pointAt(this.track, d, m.p[k + 1]);
-      pickles.push({ d, lateral: m.p[k + 1], x: p.x, z: p.z, h: p.h, heading: p.heading, owner: -1, target: null, until: Infinity });
+      pickles.push({ kind, d, lateral: m.p[k + 1], x: p.x, z: p.z, h: p.h, heading: p.heading, owner: -1, target: null, until: Infinity });
     }
     const bombs: Bomb[] = [];
     for (let k = 0; k + 3 < m.k.length; k += 4) {
@@ -273,7 +280,7 @@ export class RallyClient {
       bombs.push({ d, lateral: m.k[k + 1], speed: m.k[k + 2], x: p.x, z: p.z, h: p.h, age, owner: -1 });
     }
     const blasts: Blast[] = [];
-    for (let k = 0; k + 3 < m.x.length; k += 4) blasts.push({ x: m.x[k], z: m.x[k + 1], h: m.x[k + 2], at: this.sim.time - m.x[k + 3] - since });
+    for (let k = 0; k + 4 < m.x.length; k += 5) blasts.push({ x: m.x[k], z: m.x[k + 1], h: m.x[k + 2], at: this.sim.time - m.x[k + 3] - since, r: m.x[k + 4] });
     this.state.slicks = slicks;
     this.state.pickles = pickles;
     this.state.bombs = bombs;
