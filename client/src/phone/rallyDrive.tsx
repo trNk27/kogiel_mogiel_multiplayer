@@ -11,7 +11,6 @@ import { Pierogi } from '../lib/art';
 import { Sound } from '../lib/sound';
 import { rallyBus } from './rallyBus';
 import type { Props } from './views';
-import { VipMenu } from './vipMenu';
 import { DragPad, PedalButton, SteeringWheel, vibrate } from './steer';
 import { fullscreenSupported, standalone, toggleFullscreen, useFullscreen } from './fullscreen';
 import { SHAPE_NAMES, type Shape } from '../games/rally/track';
@@ -60,6 +59,7 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
   const racing = view.phase === 'race' || view.phase === 'finished';
   const fullscreen = useFullscreen();
   const [canFullscreen] = useState(fullscreenSupported);
+  const [menu, setMenu] = useState(false);
 
   const say = (text: string) => setFlash({ text, key: performance.now() });
 
@@ -316,7 +316,9 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
             <FullscreenIcon exit={fullscreen} />
           </button>
         )}
-        {me.vip && <VipMenu send={send} />}
+        <button class="vip-menu-btn" onClick={() => setMenu(true)} aria-label="Settings">
+          {me.vip ? '⋯' : '⚙'}
+        </button>
         <canvas ref={mapRef} class="drive-map" width={MAP_PX} height={MAP_PX} />
       </div>
 
@@ -404,6 +406,38 @@ export function RallyDrive({ view, me, send, offset }: Props<'rally'> & { view: 
       )}
       {view.phase === 'standings' && <Standings view={view} net={net} />}
       {glError && <div class="drive-overlay">This phone can’t show 3D graphics (WebGL is off).</div>}
+      {menu && (
+        // Outside .drive-top, which lets taps through to the road.
+        <div class="sheet-backdrop" onClick={() => setMenu(false)}>
+          <div class="sheet" onClick={(e) => e.stopPropagation()}>
+            <div class="sheet-title">{me.vip ? 'VIP menu' : 'Settings'}</div>
+            <div class="section-label">Steering</div>
+            <div class="drive-modes">
+              <button class={`chip ${mode === 'touch' ? 'on' : ''}`} onClick={() => chooseMode('touch')}>
+                👆 Dragging
+              </button>
+              <button class={`chip ${mode === 'tilt' ? 'on' : ''}`} onClick={() => chooseMode('tilt')}>
+                📱 Tilting
+              </button>
+            </div>
+            {tiltProblem && <div class="form-error">{tiltProblem}</div>}
+            {me.vip && (
+              <button
+                class="btn btn-big btn-beet"
+                onClick={() => {
+                  setMenu(false);
+                  send({ t: 'lobby' });
+                }}
+              >
+                End game & back to lobby
+              </button>
+            )}
+            <button class="btn btn-big btn-ghost" onClick={() => setMenu(false)}>
+              Keep playing
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

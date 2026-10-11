@@ -93,6 +93,8 @@ export class RallyClient {
       canvas,
       net.cars.map((c, i) => ({ name: c.name, color: this.colors[i] })),
       this.vp,
+      // Without a TV, always the original look.
+      ['psx'],
     );
     this.scene.setTrack(this.track);
     this.scene.resetCameras(this.sim.cars);

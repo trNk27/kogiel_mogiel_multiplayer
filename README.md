@@ -125,7 +125,7 @@ where every phone renders the race itself:
   lap, speed and a **minimap** (with the river, bridges and tunnel) in the corner.
 - **Steering made for a phone you're looking at.** The car speeds up by itself, and BRAKE · DRIFT
   sits under your right thumb (or your left thumb when tilting). Choose during the
-  countdown: **tilt** (hold the phone like a steering wheel and turn it; works in portrait and
+  countdown, or any time from the ⚙ menu (top right; ⋯ for the VIP, who can also end the game there): **tilt** (hold the phone like a steering wheel and turn it; works in portrait and
   landscape) or **drag** (put a thumb anywhere on the steering pad and slide it sideways; a wheel
   under your thumb shows how far you're turning). BRAKE slows you down or reverses, and the item
   button fires your item. The speed sits on the right, out of the way of the road.
