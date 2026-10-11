@@ -1,5 +1,6 @@
 import type { MirrorSignal } from '../../../shared/protocol';
 import { canShareScreen, iceJson, iceServers, serial } from '../lib/rtc';
+import { preferH264, snapshot, summarize, type MirrorStats, type StatsEntry } from '../lib/rtcStats';
 
 /** How a second screen is doing, as the host TV shows it. */
 export type ScreenState = 'waiting' | 'connecting' | 'live' | 'failed';
@@ -14,10 +15,18 @@ interface Peer {
   gen: number;
   retry: number | undefined;
   run: ReturnType<typeof serial>;
+  /** The last stats sample, so the next one can work out rates. */
+  lastStats: StatsEntry[] | null;
 }
 
-/** Video bitrate per second screen: plenty for 1080p30 of a game, fine on home broadband. */
-const MAX_BITRATE = 4_000_000;
+/**
+ * 720p rather than 1080p: half the pixels to capture and encode, so frames leave sooner and the
+ * host's own game keeps its frame rate. Still sharp on a TV for these games.
+ */
+const MAX_WIDTH = 1280;
+const MAX_HEIGHT = 720;
+/** Video bitrate per second screen: plenty for 720p30 of a game, fine on home broadband. */
+const MAX_BITRATE = 3_000_000;
 const MAX_FPS = 30;
 
 /**
@@ -47,6 +56,22 @@ export class MirrorHost {
     return [...this.peers.values()].map((p) => ({ id: p.id, state: p.state }));
   }
 
+  /** Live numbers for every connected screen (rates cover the time since the last call). */
+  async stats(): Promise<Map<string, MirrorStats>> {
+    const out = new Map<string, MirrorStats>();
+    await Promise.all(
+      [...this.peers.values()].map(async (p) => {
+        const pc = p.pc;
+        if (!pc || p.state !== 'live') return;
+        const cur = await snapshot(pc).catch(() => null);
+        if (!cur || p.pc !== pc) return;
+        out.set(p.id, summarize(cur, p.lastStats, 'send'));
+        p.lastStats = cur;
+      }),
+    );
+    return out;
+  }
+
   /** Ask the browser to share this tab. Must run from a click. */
   async start() {
     if (this.stream || this.starting || !this.supported) return;
@@ -55,7 +80,7 @@ export class MirrorHost {
     this.changed();
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { frameRate: { ideal: MAX_FPS, max: MAX_FPS }, width: { max: 1920 }, height: { max: 1080 } },
+        video: { frameRate: { ideal: MAX_FPS, max: MAX_FPS }, width: { max: MAX_WIDTH }, height: { max: MAX_HEIGHT } },
         audio: true,
         // Chrome / Edge: offer this tab first, and don't let the share wander to another one.
         preferCurrentTab: true,
@@ -107,7 +132,7 @@ export class MirrorHost {
   connected(id: string) {
     let p = this.peers.get(id);
     if (!p) {
-      p = { id, pc: null, state: 'waiting', fails: 0, gen: 0, retry: undefined, run: serial() };
+      p = { id, pc: null, state: 'waiting', fails: 0, gen: 0, retry: undefined, run: serial(), lastStats: null };
       this.peers.set(id, p);
       this.changed();
     }
@@ -165,6 +190,7 @@ export class MirrorHost {
       const pc = new RTCPeerConnection({ iceServers: servers });
       p.pc = pc;
       for (const track of stream.getTracks()) pc.addTrack(track, stream);
+      preferH264(pc);
       pc.onicecandidate = (e) => {
         if (e.candidate && p.pc === pc) this.send(p.id, { t: 'ice', c: iceJson(e.candidate) });
       };
@@ -188,7 +214,10 @@ export class MirrorHost {
         if (!params.encodings?.length) continue;
         params.encodings[0].maxBitrate = MAX_BITRATE;
         params.encodings[0].maxFramerate = MAX_FPS;
-        await sender.setParameters(params).catch(() => {});
+        // When the CPU or network can't keep up, drop resolution rather than frames: a skipped
+        // frame is felt as lag in a fast game, a softer picture much less.
+        const withPref = { ...params, degradationPreference: 'maintain-framerate' } as RTCRtpSendParameters;
+        await sender.setParameters(withPref).catch(() => sender.setParameters(params).catch(() => {}));
       }
       this.send(p.id, { t: 'offer', sdp: pc.localDescription!.sdp });
     });
@@ -206,6 +235,7 @@ export class MirrorHost {
 
   private closePeer(p: Peer) {
     p.gen++;
+    p.lastStats = null;
     clearTimeout(p.retry);
     p.retry = undefined;
     if (p.pc) {

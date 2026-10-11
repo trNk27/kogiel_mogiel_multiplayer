@@ -184,6 +184,11 @@ body.tv {
 .mirror-screen.live {
   background: var(--dill);
 }
+.mirror-stats {
+  display: block;
+  font-size: 22px;
+  opacity: 0.8;
+}
 .mirror-screen.failed {
   background: var(--beet);
   color: var(--cream);

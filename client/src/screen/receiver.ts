@@ -1,6 +1,7 @@
 import { CLOSE, type MirrorSignal, type ServerToScreen } from '../../../shared/protocol';
 import { ReconnectingSocket, wsUrl } from '../lib/socket';
 import { iceJson, iceServers, serial } from '../lib/rtc';
+import { lowLatency, snapshot, summarize, type MirrorStats, type StatsEntry } from '../lib/rtcStats';
 
 export type ReceiverState =
   /** Connecting to the room. */
@@ -30,6 +31,7 @@ export class Receiver {
   /** Bumped whenever the connection is replaced or dropped, so a step still setting one up gives up. */
   private gen = 0;
   private askTimer: number | undefined;
+  private lastStats: StatsEntry[] | null = null;
 
   constructor(
     readonly code: string,
@@ -67,6 +69,17 @@ export class Receiver {
     clearTimeout(this.askTimer);
     this.socket.close();
     this.closePeer();
+  }
+
+  /** Live numbers for the video, or null when there's none (rates cover the time since the last call). */
+  async stats(): Promise<MirrorStats | null> {
+    const pc = this.pc;
+    if (!pc || this.state !== 'live') return null;
+    const cur = await snapshot(pc).catch(() => null);
+    if (!cur || this.pc !== pc) return null;
+    const s = summarize(cur, this.lastStats, 'receive');
+    this.lastStats = cur;
+    return s;
   }
 
   private set(state: ReceiverState) {
@@ -112,6 +125,7 @@ export class Receiver {
       this.pc = pc;
       pc.ontrack = (e) => {
         if (this.pc !== pc) return;
+        lowLatency(e.receiver);
         this.stream = e.streams[0] ?? new MediaStream([e.track]);
         this.onChange();
       };
@@ -144,6 +158,7 @@ export class Receiver {
 
   private closePeer() {
     this.gen++;
+    this.lastStats = null;
     clearTimeout(this.askTimer);
     if (this.pc) {
       this.pc.ontrack = this.pc.onicecandidate = this.pc.onconnectionstatechange = null;

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { normalizeCode } from '../../../shared/protocol';
 import { FolkBorder, Logo } from '../lib/art';
 import { Receiver } from './receiver';
+import { describe, estimateDelayMs, type MirrorStats } from '../lib/rtcStats';
 
 /**
  * /screen: a second screen. A TV or laptop in another place that shows exactly what the host TV
@@ -127,6 +128,7 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
   const video = useRef<HTMLVideoElement>(null);
   const [needsTap, setNeedsTap] = useState(false);
   const [idle, setIdle] = useState(false);
+  const [showStats, setShowStats] = useState(params.has('stats'));
   const live = r.state === 'live' && r.stream;
 
   useEffect(() => {
@@ -205,6 +207,7 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
           </div>
         </div>
       )}
+      {showStats && live && <StatsBox receiver={r} />}
       <div class="mirror-bar">
         {needsTap && live && (
           <button class="btn btn-yolk" onClick={unmute}>
@@ -214,6 +217,16 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
         <span class="pill">
           {location.host}/join · <b>{r.code}</b>
         </span>
+        <button
+          class={`btn btn-ghost ${showStats ? 'on' : ''}`}
+          title="Show how far behind the host this screen is"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowStats(!showStats);
+          }}
+        >
+          📊
+        </button>
         {document.fullscreenEnabled && (
           <button
             class="btn btn-ghost"
@@ -236,6 +249,35 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
           Leave
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Live numbers for the video: how far behind the host this screen is, and why. */
+function StatsBox({ receiver: r }: { receiver: Receiver }) {
+  const [s, setS] = useState<MirrorStats | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const poll = () => void r.stats().then((x) => alive && x && setS(x));
+    poll();
+    const t = window.setInterval(poll, 1000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [r]);
+  if (!s) return null;
+  const delay = estimateDelayMs(s);
+  const ms = (v: number | null) => (v === null ? '–' : `${Math.round(v)} ms`);
+  return (
+    <div class="mirror-stats-box">
+      <div class="mirror-stats-delay">≈ {ms(delay)} behind the host</div>
+      <div>
+        network {ms(s.rttMs === null ? null : s.rttMs / 2)} · buffer {ms(s.bufferMs)} · decode {ms(s.decodeMs)}
+        {s.dropped ? ` · ${s.dropped} dropped` : ''}
+      </div>
+      <div>{describe(s)}</div>
+      <div class="mirror-stats-note">plus the host’s capture and encoding (see 📡 on the host)</div>
     </div>
   );
 }
