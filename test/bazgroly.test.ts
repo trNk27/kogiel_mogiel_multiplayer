@@ -109,8 +109,8 @@ describe('rounds and prompts', () => {
 });
 
 describe('bazgroły data', () => {
-  it('has 100 distinct, short prompts', () => {
-    expect(prompts.length).toBeGreaterThanOrEqual(100);
+  it('has 200 distinct, short prompts', () => {
+    expect(prompts.length).toBeGreaterThanOrEqual(200);
     expect(new Set(prompts.map((p) => p.id)).size).toBe(prompts.length);
     expect(new Set(prompts.map((p) => titleKey(p.prompt))).size).toBe(prompts.length);
     for (const p of prompts) {

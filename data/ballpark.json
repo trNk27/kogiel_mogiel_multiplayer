@@ -238,5 +238,605 @@
   "question": "What is a perfect score in ten-pin bowling?",
   "answer": 300,
   "unit": "points"
+ },
+ {
+  "id": "b41",
+  "question": "How many eyes does a honeybee have?",
+  "answer": 5,
+  "unit": "eyes"
+ },
+ {
+  "id": "b42",
+  "question": "How many hearts does an earthworm have?",
+  "answer": 5,
+  "unit": "hearts"
+ },
+ {
+  "id": "b43",
+  "question": "How many legs does a lobster have?",
+  "answer": 10,
+  "unit": "legs"
+ },
+ {
+  "id": "b44",
+  "question": "How many legs did the leggiest millipede ever found (in Australia, in 2020) have?",
+  "answer": 1306,
+  "unit": "legs"
+ },
+ {
+  "id": "b45",
+  "question": "How many eyes can a scallop have, at most?",
+  "answer": 200,
+  "unit": "eyes"
+ },
+ {
+  "id": "b46",
+  "question": "How many neck bones (vertebrae) does a giraffe have?",
+  "answer": 7,
+  "unit": "bones"
+ },
+ {
+  "id": "b47",
+  "question": "How many teeth does an adult dog have?",
+  "answer": 42,
+  "unit": "teeth"
+ },
+ {
+  "id": "b48",
+  "question": "How many chromosomes does a potato have?",
+  "answer": 48,
+  "unit": "chromosomes"
+ },
+ {
+  "id": "b49",
+  "question": "How many chromosomes does a dog have?",
+  "answer": 78,
+  "unit": "chromosomes"
+ },
+ {
+  "id": "b50",
+  "question": "About how many bones is a newborn baby born with?",
+  "answer": 300,
+  "unit": "bones"
+ },
+ {
+  "id": "b51",
+  "question": "About how many litres of blood are there in an adult human?",
+  "answer": 5,
+  "unit": "litres"
+ },
+ {
+  "id": "b52",
+  "question": "About how many times does a human heart beat in one day?",
+  "answer": 100000,
+  "unit": "beats"
+ },
+ {
+  "id": "b53",
+  "question": "About how many hairs are there on a human head?",
+  "answer": 100000,
+  "unit": "hairs"
+ },
+ {
+  "id": "b54",
+  "question": "About how many hours a day does a koala sleep?",
+  "answer": 20,
+  "unit": "hours"
+ },
+ {
+  "id": "b55",
+  "question": "About how many chicken eggs would it take to match one ostrich egg?",
+  "answer": 24,
+  "unit": "eggs"
+ },
+ {
+  "id": "b56",
+  "question": "About how long is a giraffe's tongue, in centimetres?",
+  "answer": 50,
+  "unit": "cm"
+ },
+ {
+  "id": "b57",
+  "question": "About how many kilograms of food does an adult elephant eat in a day?",
+  "answer": 150,
+  "unit": "kg"
+ },
+ {
+  "id": "b58",
+  "question": "For how many years did Charles Osborne have the hiccups?",
+  "answer": 68,
+  "unit": "years"
+ },
+ {
+  "id": "b59",
+  "question": "How old was Jeanne Calment, the oldest person ever verified, when she died?",
+  "answer": 122,
+  "unit": "years"
+ },
+ {
+  "id": "b60",
+  "question": "How many of his own teeth did George Washington have left when he became president?",
+  "answer": 1,
+  "unit": "teeth"
+ },
+ {
+  "id": "b61",
+  "question": "How tall was Napoleon, in centimetres (he was average, not short)?",
+  "answer": 169,
+  "unit": "cm"
+ },
+ {
+  "id": "b62",
+  "question": "For how many years did Queen Elizabeth II reign?",
+  "answer": 70,
+  "unit": "years"
+ },
+ {
+  "id": "b63",
+  "question": "How many paintings is Vincent van Gogh traditionally said to have sold in his lifetime?",
+  "answer": 1,
+  "unit": "paintings"
+ },
+ {
+  "id": "b64",
+  "question": "About how many years did Michelangelo spend painting the Sistine Chapel ceiling?",
+  "answer": 4,
+  "unit": "years"
+ },
+ {
+  "id": "b65",
+  "question": "How many people walked on the Moon during the Apollo missions?",
+  "answer": 12,
+  "unit": "people"
+ },
+ {
+  "id": "b66",
+  "question": "How many seconds did Usain Bolt take to run 100 m in his 2009 world record?",
+  "answer": 9.58,
+  "unit": "seconds"
+ },
+ {
+  "id": "b67",
+  "question": "How many years did the Hundred Years' War actually last?",
+  "answer": 116,
+  "unit": "years"
+ },
+ {
+  "id": "b68",
+  "question": "In what year was the Mona Lisa stolen from the Louvre?",
+  "answer": 1911,
+  "unit": "year"
+ },
+ {
+  "id": "b69",
+  "question": "In what year did the first Fiat 126p \"Maluch\" roll off a Polish production line?",
+  "answer": 1973,
+  "unit": "year"
+ },
+ {
+  "id": "b70",
+  "question": "About how many million Fiat 126p \"Maluch\" cars were built in Poland?",
+  "answer": 3.3,
+  "unit": "million"
+ },
+ {
+  "id": "b71",
+  "question": "In what year was bubble wrap invented (as a textured wallpaper)?",
+  "answer": 1957,
+  "unit": "year"
+ },
+ {
+  "id": "b72",
+  "question": "In what year was sliced bread first sold?",
+  "answer": 1928,
+  "unit": "year"
+ },
+ {
+  "id": "b73",
+  "question": "In what year was Coca-Cola invented?",
+  "answer": 1886,
+  "unit": "year"
+ },
+ {
+  "id": "b74",
+  "question": "In what year was the first Eurovision Song Contest held?",
+  "answer": 1956,
+  "unit": "year"
+ },
+ {
+  "id": "b75",
+  "question": "In what year was the first Harry Potter book published?",
+  "answer": 1997,
+  "unit": "year"
+ },
+ {
+  "id": "b76",
+  "question": "In what year was the first email sent?",
+  "answer": 1971,
+  "unit": "year"
+ },
+ {
+  "id": "b77",
+  "question": "In what year was the Rubik's Cube invented?",
+  "answer": 1974,
+  "unit": "year"
+ },
+ {
+  "id": "b78",
+  "question": "In what year did Poland join the European Union?",
+  "answer": 2004,
+  "unit": "year"
+ },
+ {
+  "id": "b79",
+  "question": "In what year was Pluto demoted to a dwarf planet?",
+  "answer": 2006,
+  "unit": "year"
+ },
+ {
+  "id": "b80",
+  "question": "In what year did Marie Skłodowska-Curie win her first Nobel Prize?",
+  "answer": 1903,
+  "unit": "year"
+ },
+ {
+  "id": "b81",
+  "question": "In what year was Nicolaus Copernicus born?",
+  "answer": 1473,
+  "unit": "year"
+ },
+ {
+  "id": "b82",
+  "question": "In what year was Adam Mickiewicz's \"Pan Tadeusz\" first published?",
+  "answer": 1834,
+  "unit": "year"
+ },
+ {
+  "id": "b83",
+  "question": "In what year did work begin on the Sagrada Família in Barcelona?",
+  "answer": 1882,
+  "unit": "year"
+ },
+ {
+  "id": "b84",
+  "question": "In what year was the first \"Star Wars\" film released?",
+  "answer": 1977,
+  "unit": "year"
+ },
+ {
+  "id": "b85",
+  "question": "In what year did The Beatles release their first single, \"Love Me Do\"?",
+  "answer": 1962,
+  "unit": "year"
+ },
+ {
+  "id": "b86",
+  "question": "In what year was Tetris created?",
+  "answer": 1984,
+  "unit": "year"
+ },
+ {
+  "id": "b87",
+  "question": "In what year did Pac-Man first appear in arcades?",
+  "answer": 1980,
+  "unit": "year"
+ },
+ {
+  "id": "b88",
+  "question": "In what year was the Nintendo Game Boy released?",
+  "answer": 1989,
+  "unit": "year"
+ },
+ {
+  "id": "b89",
+  "question": "In what year was the first iPhone released?",
+  "answer": 2007,
+  "unit": "year"
+ },
+ {
+  "id": "b90",
+  "question": "How many squares are there on a Scrabble board?",
+  "answer": 225,
+  "unit": "squares"
+ },
+ {
+  "id": "b91",
+  "question": "How many letter tiles are in a standard English Scrabble set?",
+  "answer": 100,
+  "unit": "tiles"
+ },
+ {
+  "id": "b92",
+  "question": "How many spaces are there around a Monopoly board?",
+  "answer": 40,
+  "unit": "spaces"
+ },
+ {
+  "id": "b93",
+  "question": "How many holes are there in a Connect Four grid?",
+  "answer": 42,
+  "unit": "holes"
+ },
+ {
+  "id": "b94",
+  "question": "How many tiles are in a standard double-six dominoes set?",
+  "answer": 28,
+  "unit": "tiles"
+ },
+ {
+  "id": "b95",
+  "question": "How many points (intersections) are there on a full-size Go board?",
+  "answer": 361,
+  "unit": "points"
+ },
+ {
+  "id": "b96",
+  "question": "How many different first moves can White make in chess?",
+  "answer": 20,
+  "unit": "moves"
+ },
+ {
+  "id": "b97",
+  "question": "How many Pokémon were there in the very first Pokémon games?",
+  "answer": 151,
+  "unit": "Pokémon"
+ },
+ {
+  "id": "b98",
+  "question": "How many different block shapes are there in Tetris?",
+  "answer": 7,
+  "unit": "shapes"
+ },
+ {
+  "id": "b99",
+  "question": "How many grooves are there on one side of a vinyl record?",
+  "answer": 1,
+  "unit": "grooves"
+ },
+ {
+  "id": "b100",
+  "question": "How many ridges are there on the edge of a US quarter coin?",
+  "answer": 119,
+  "unit": "ridges"
+ },
+ {
+  "id": "b101",
+  "question": "How many sides does a British 50p coin have?",
+  "answer": 7,
+  "unit": "sides"
+ },
+ {
+  "id": "b102",
+  "question": "How many feathers are there on a badminton shuttlecock?",
+  "answer": 16,
+  "unit": "feathers"
+ },
+ {
+  "id": "b103",
+  "question": "How many panels did the classic black-and-white football have?",
+  "answer": 32,
+  "unit": "panels"
+ },
+ {
+  "id": "b104",
+  "question": "How many seconds does an NBA basketball team have to take a shot?",
+  "answer": 24,
+  "unit": "seconds"
+ },
+ {
+  "id": "b105",
+  "question": "How many hurdles are there in a 110 m hurdles race?",
+  "answer": 10,
+  "unit": "hurdles"
+ },
+ {
+  "id": "b106",
+  "question": "About how many litres of water are in an Olympic swimming pool?",
+  "answer": 2500000,
+  "unit": "litres"
+ },
+ {
+  "id": "b107",
+  "question": "How many seats does Wembley Stadium have?",
+  "answer": 90000,
+  "unit": "seats"
+ },
+ {
+  "id": "b108",
+  "question": "How tall is Mount Everest, in metres?",
+  "answer": 8849,
+  "unit": "m"
+ },
+ {
+  "id": "b109",
+  "question": "How high is Rysy, the highest peak in Poland, in metres?",
+  "answer": 2499,
+  "unit": "m"
+ },
+ {
+  "id": "b110",
+  "question": "How long is the Vistula, Poland's longest river, in kilometres?",
+  "answer": 1047,
+  "unit": "km"
+ },
+ {
+  "id": "b111",
+  "question": "How tall is the Burj Khalifa, in metres?",
+  "answer": 828,
+  "unit": "m"
+ },
+ {
+  "id": "b112",
+  "question": "How tall is Warsaw's Palace of Culture and Science, spire included, in metres?",
+  "answer": 237,
+  "unit": "m"
+ },
+ {
+  "id": "b113",
+  "question": "How tall is the Empire State Building, antenna included, in metres?",
+  "answer": 443,
+  "unit": "m"
+ },
+ {
+  "id": "b114",
+  "question": "About how many degrees does the Leaning Tower of Pisa lean today?",
+  "answer": 4,
+  "unit": "degrees"
+ },
+ {
+  "id": "b115",
+  "question": "How many rooms are there in Buckingham Palace?",
+  "answer": 775,
+  "unit": "rooms"
+ },
+ {
+  "id": "b116",
+  "question": "How many countries share a land border with Poland?",
+  "answer": 7,
+  "unit": "countries"
+ },
+ {
+  "id": "b117",
+  "question": "How many voivodeships (provinces) does Poland have?",
+  "answer": 16,
+  "unit": "voivodeships"
+ },
+ {
+  "id": "b118",
+  "question": "How many time zones does Russia span?",
+  "answer": 11,
+  "unit": "time zones"
+ },
+ {
+  "id": "b119",
+  "question": "How long is the Trans-Siberian Railway from Moscow to Vladivostok, in kilometres?",
+  "answer": 9289,
+  "unit": "km"
+ },
+ {
+  "id": "b120",
+  "question": "About how long is the Channel Tunnel, in kilometres?",
+  "answer": 50,
+  "unit": "km"
+ },
+ {
+  "id": "b121",
+  "question": "How long is the Earth's equator, in kilometres?",
+  "answer": 40075,
+  "unit": "km"
+ },
+ {
+  "id": "b122",
+  "question": "What is the hottest air temperature ever recorded on Earth, in °C?",
+  "answer": 56.7,
+  "unit": "°C"
+ },
+ {
+  "id": "b123",
+  "question": "How old is the universe, in billions of years?",
+  "answer": 13.8,
+  "unit": "billion years"
+ },
+ {
+  "id": "b124",
+  "question": "How old is the Earth, in billions of years?",
+  "answer": 4.54,
+  "unit": "billion years"
+ },
+ {
+  "id": "b125",
+  "question": "How many Earth days does it take Mercury to go once around the Sun?",
+  "answer": 88,
+  "unit": "days"
+ },
+ {
+  "id": "b126",
+  "question": "How many Earth years does it take Neptune to go once around the Sun?",
+  "answer": 165,
+  "unit": "years"
+ },
+ {
+  "id": "b127",
+  "question": "How tall is Olympus Mons, the Solar System's tallest volcano, in kilometres?",
+  "answer": 22,
+  "unit": "km"
+ },
+ {
+  "id": "b128",
+  "question": "About how many times a day does the International Space Station circle the Earth?",
+  "answer": 16,
+  "unit": "orbits"
+ },
+ {
+  "id": "b129",
+  "question": "How many constellations are officially recognised by astronomers?",
+  "answer": 88,
+  "unit": "constellations"
+ },
+ {
+  "id": "b130",
+  "question": "How many pleats is a classic chef's hat said to have (one for each way to cook an egg)?",
+  "answer": 100,
+  "unit": "pleats"
+ },
+ {
+  "id": "b131",
+  "question": "About how many litres of milk does it take to make 1 kg of cheese?",
+  "answer": 10,
+  "unit": "litres"
+ },
+ {
+  "id": "b132",
+  "question": "How many kilocalories are there in one gram of fat?",
+  "answer": 9,
+  "unit": "kcal"
+ },
+ {
+  "id": "b133",
+  "question": "How many grams of sugar are in a 330 ml can of Coca-Cola?",
+  "answer": 35,
+  "unit": "g"
+ },
+ {
+  "id": "b134",
+  "question": "How hot was the record-setting Carolina Reaper chilli on average, in Scoville units?",
+  "answer": 1641183,
+  "unit": "Scoville units"
+ },
+ {
+  "id": "b135",
+  "question": "How many letters are there in the Polish alphabet?",
+  "answer": 32,
+  "unit": "letters"
+ },
+ {
+  "id": "b136",
+  "question": "How many letters are there in the Polish word \"Konstantynopolitańczykowianeczka\"?",
+  "answer": 32,
+  "unit": "letters"
+ },
+ {
+  "id": "b137",
+  "question": "How many ghosts visit Scrooge in \"A Christmas Carol\", counting Marley?",
+  "answer": 4,
+  "unit": "ghosts"
+ },
+ {
+  "id": "b138",
+  "question": "How many Oscars did the 1997 film \"Titanic\" win?",
+  "answer": 11,
+  "unit": "Oscars"
+ },
+ {
+  "id": "b139",
+  "question": "How long is Queen's \"Bohemian Rhapsody\" on the album, in seconds?",
+  "answer": 355,
+  "unit": "seconds"
+ },
+ {
+  "id": "b140",
+  "question": "How many strings does a balalaika usually have?",
+  "answer": 3,
+  "unit": "strings"
  }
 ]

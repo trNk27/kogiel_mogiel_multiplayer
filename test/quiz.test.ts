@@ -28,13 +28,13 @@ describe('pickQuestions', () => {
     const used = new Set<string>();
     const rng = mulberry32(7);
     const seen = new Set<string>();
-    for (let round = 0; round < 10; round++) {
+    for (let round = 0; round < 20; round++) {
       for (const q of pickQuestions(pool, used, 10, rng)) {
         expect(seen.has(q.id)).toBe(false);
         seen.add(q.id);
       }
     }
-    expect(seen.size).toBe(100);
+    expect(seen.size).toBe(200);
     // Pool is now exhausted: the next round starts over.
     expect(pickQuestions(pool, used, 10, rng)).toHaveLength(10);
   });
@@ -53,9 +53,9 @@ describe('shuffleOptions', () => {
 
 describe('trivia data', () => {
   const qs = trivia as TriviaQuestion[];
-  it('has 100 well-formed questions with unique ids', () => {
-    expect(qs).toHaveLength(100);
-    expect(new Set(qs.map((q) => q.id)).size).toBe(100);
+  it('has 200 well-formed questions with unique ids', () => {
+    expect(qs).toHaveLength(200);
+    expect(new Set(qs.map((q) => q.id)).size).toBe(200);
     for (const q of qs) {
       expect(q.options).toHaveLength(4);
       expect(new Set(q.options).size).toBe(4);
@@ -67,6 +67,6 @@ describe('trivia data', () => {
   it('covers all seven categories and is mostly medium', () => {
     const cats = new Set(qs.map((q) => q.category));
     expect(cats).toEqual(new Set(['General Knowledge', 'Science', 'Geography', 'History', 'Film & Music', 'Sport', 'Food']));
-    expect(qs.filter((q) => q.difficulty === 'medium').length).toBeGreaterThan(50);
+    expect(qs.filter((q) => q.difficulty === 'medium').length).toBeGreaterThan(100);
   });
 });

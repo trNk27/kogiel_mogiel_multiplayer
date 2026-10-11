@@ -272,5 +272,445 @@
   {
     "id": "ty062",
     "question": "Who would be the best person to be stuck on a desert island with?"
+  },
+  {
+    "id": "ty063",
+    "question": "Who is most likely to be three raccoons in a trench coat?",
+    "draw": "Reveal the raccoons hiding under {name}’s coat"
+  },
+  {
+    "id": "ty064",
+    "question": "Who is most likely to marry a ghost?",
+    "draw": "Dress {name} for a spooky wedding"
+  },
+  {
+    "id": "ty065",
+    "question": "Who is most likely to be crowned king of the pigeons?",
+    "draw": "Crown {name} ruler of all pigeons"
+  },
+  {
+    "id": "ty066",
+    "question": "Who is most likely to run away and become a mermaid?",
+    "draw": "Give {name} a tail, shells and seaweed hair"
+  },
+  {
+    "id": "ty067",
+    "question": "Who is most likely to start a religion around a potato?",
+    "draw": "Make {name} the high priest of the Holy Potato"
+  },
+  {
+    "id": "ty068",
+    "question": "Who is most likely to have been raised by wolves?",
+    "draw": "Show {name} after years with the wolf pack"
+  },
+  {
+    "id": "ty069",
+    "question": "Who is most likely to be a garden gnome at night?",
+    "draw": "Turn {name} into a garden gnome"
+  },
+  {
+    "id": "ty070",
+    "question": "Who is most likely to get abducted by aliens?",
+    "draw": "Beam {name} up into a flying saucer"
+  },
+  {
+    "id": "ty071",
+    "question": "Who would make the creepiest antique doll?",
+    "draw": "Turn {name} into a cursed Victorian doll"
+  },
+  {
+    "id": "ty072",
+    "question": "Who is most likely to become a babcia before they turn 30?",
+    "draw": "Turn {name} into a babcia, headscarf and all"
+  },
+  {
+    "id": "ty073",
+    "question": "Who is most likely to win a beard-growing contest?",
+    "draw": "Give {name} a beard down to the floor"
+  },
+  {
+    "id": "ty074",
+    "question": "Who is most likely to get stuck in the Middle Ages with a time machine?",
+    "draw": "Dress {name} for life in a medieval village"
+  },
+  {
+    "id": "ty075",
+    "question": "Who is most likely to be a werewolf?",
+    "draw": "Show {name} on the night of a full moon"
+  },
+  {
+    "id": "ty076",
+    "question": "Who would make the best mad scientist?",
+    "draw": "Give {name} wild hair, goggles and potions"
+  },
+  {
+    "id": "ty077",
+    "question": "Who is most likely to end up on the front of a cereal box?",
+    "draw": "Put {name} on the front of a cereal box"
+  },
+  {
+    "id": "ty078",
+    "question": "Who is most likely to become a famous opera singer?",
+    "draw": "Give {name} a horned opera helmet"
+  },
+  {
+    "id": "ty079",
+    "question": "Who is most likely to be a sea monster in disguise?",
+    "draw": "Give {name} tentacles and a ship to snack on"
+  },
+  {
+    "id": "ty080",
+    "question": "Who is most likely to become a sumo wrestler?",
+    "draw": "Bulk {name} up for the sumo ring"
+  },
+  {
+    "id": "ty081",
+    "question": "Who is most likely to marry a houseplant?",
+    "draw": "Draw {name} at their wedding to a fern"
+  },
+  {
+    "id": "ty082",
+    "question": "Who was a knight in a past life?",
+    "draw": "Put {name} in shining armour"
+  },
+  {
+    "id": "ty083",
+    "question": "Who is most likely to keep a pet dragon?",
+    "draw": "Give {name} a dragon on their shoulder"
+  },
+  {
+    "id": "ty084",
+    "question": "Who is most likely to run away with the circus as a clown?",
+    "draw": "Turn {name} into a clown"
+  },
+  {
+    "id": "ty085",
+    "question": "Who would make the best film villain?",
+    "draw": "Give {name} an evil villain makeover"
+  },
+  {
+    "id": "ty086",
+    "question": "Who is most likely to be mistaken for a statue?",
+    "draw": "Turn {name} into a marble statue"
+  },
+  {
+    "id": "ty087",
+    "question": "Who is most likely to come back as a cat in their next life?",
+    "draw": "Give {name} ears, whiskers and a tail"
+  },
+  {
+    "id": "ty088",
+    "question": "Who should have been an 80s pop star?",
+    "draw": "Give {name} huge 80s hair and neon everything"
+  },
+  {
+    "id": "ty089",
+    "question": "Who is most likely to get folded inside a giant pierogi?",
+    "draw": "Fold {name} into a giant pierogi"
+  },
+  {
+    "id": "ty090",
+    "question": "Who would make the best ghost to haunt a castle?",
+    "draw": "Turn {name} into a castle ghost"
+  },
+  {
+    "id": "ty091",
+    "question": "Who is most likely to become a bodybuilder?",
+    "draw": "Give {name} enormous muscles"
+  },
+  {
+    "id": "ty092",
+    "question": "Who is most likely to be a goblin in disguise?",
+    "draw": "Reveal {name}’s true goblin form"
+  },
+  {
+    "id": "ty093",
+    "question": "Who is most likely to wake up half robot?",
+    "draw": "Give {name} robot parts"
+  },
+  {
+    "id": "ty094",
+    "question": "Who is most likely to become a mime?",
+    "draw": "Trap {name} inside an invisible box"
+  },
+  {
+    "id": "ty095",
+    "question": "Who would make the best Egyptian mummy?",
+    "draw": "Wrap {name} up like a mummy"
+  },
+  {
+    "id": "ty096",
+    "question": "Who is most likely to win Eurovision?",
+    "draw": "Give {name} a Eurovision stage costume"
+  },
+  {
+    "id": "ty097",
+    "question": "Who is most likely to move to the woods and become a lumberjack?",
+    "draw": "Give {name} flannel, an axe and a beard"
+  },
+  {
+    "id": "ty098",
+    "question": "Who is most likely to be a ninja by night?",
+    "draw": "Turn {name} into a ninja"
+  },
+  {
+    "id": "ty099",
+    "question": "Who is most likely to be struck by lightning twice?",
+    "draw": "Show {name} after the second lightning strike"
+  },
+  {
+    "id": "ty100",
+    "question": "Who would last longest as a cave person?",
+    "draw": "Turn {name} into a cave person"
+  },
+  {
+    "id": "ty101",
+    "question": "Who is most likely to be built by Dr Frankenstein?",
+    "draw": "Give {name} bolts, stitches and green skin"
+  },
+  {
+    "id": "ty102",
+    "question": "Who is most likely to become a professional ghost hunter?",
+    "draw": "Give {name} their ghost-hunting gear"
+  },
+  {
+    "id": "ty103",
+    "question": "Who is most likely to give their car a name?"
+  },
+  {
+    "id": "ty104",
+    "question": "Who is most likely to talk to pigeons as equals?"
+  },
+  {
+    "id": "ty105",
+    "question": "Who is most likely to eat cereal with a fork?"
+  },
+  {
+    "id": "ty106",
+    "question": "Who is most likely to apologise to a door after walking into it?"
+  },
+  {
+    "id": "ty107",
+    "question": "Who is most likely to fight a goose and lose?"
+  },
+  {
+    "id": "ty108",
+    "question": "Who is most likely to put ketchup on pierogi?"
+  },
+  {
+    "id": "ty109",
+    "question": "Who is most likely to get banned from an all-you-can-eat buffet?"
+  },
+  {
+    "id": "ty110",
+    "question": "Who is most likely to make friends with a ghost?"
+  },
+  {
+    "id": "ty111",
+    "question": "Who is most likely to waste a genie’s wish on a sandwich?"
+  },
+  {
+    "id": "ty112",
+    "question": "Who is most likely to sell their soul for the perfect pierogi?"
+  },
+  {
+    "id": "ty113",
+    "question": "Who is most likely to sneeze in the middle of a magic trick?"
+  },
+  {
+    "id": "ty114",
+    "question": "Who is most likely to join a cult by accident?"
+  },
+  {
+    "id": "ty115",
+    "question": "Who is most likely to hide snacks in their sock drawer?"
+  },
+  {
+    "id": "ty116",
+    "question": "Who is most likely to have a conspiracy theory about pigeons?"
+  },
+  {
+    "id": "ty117",
+    "question": "Who is most likely to get lost in IKEA for a whole day?"
+  },
+  {
+    "id": "ty118",
+    "question": "Who is most likely to follow the five-second rule after ten seconds?"
+  },
+  {
+    "id": "ty119",
+    "question": "Who is most likely to start a fight with a seagull over chips?"
+  },
+  {
+    "id": "ty120",
+    "question": "Who is most likely to laugh at their own joke before the punchline?"
+  },
+  {
+    "id": "ty121",
+    "question": "Who is most likely to adopt a pet rock and give it a name?"
+  },
+  {
+    "id": "ty122",
+    "question": "Who is most likely to sleepwalk straight to the fridge?"
+  },
+  {
+    "id": "ty123",
+    "question": "Who is most likely to wave back at someone who wasn’t waving at them?"
+  },
+  {
+    "id": "ty124",
+    "question": "Who is most likely to say “you too” when a waiter says “enjoy your meal”?"
+  },
+  {
+    "id": "ty125",
+    "question": "Who is most likely to get stuck in a revolving door?"
+  },
+  {
+    "id": "ty126",
+    "question": "Who is most likely to hide from a neighbour in the supermarket?"
+  },
+  {
+    "id": "ty127",
+    "question": "Who is most likely to whisper sweet nothings to their sourdough?"
+  },
+  {
+    "id": "ty128",
+    "question": "Who could live on nothing but pierogi for a month?"
+  },
+  {
+    "id": "ty129",
+    "question": "Who is most likely to be the main character in a soap opera?"
+  },
+  {
+    "id": "ty130",
+    "question": "Who is most likely to break a world record for something useless?"
+  },
+  {
+    "id": "ty131",
+    "question": "Who is most likely to smuggle a whole meal into the cinema?"
+  },
+  {
+    "id": "ty132",
+    "question": "Who is most likely to reply to a message two years late?"
+  },
+  {
+    "id": "ty133",
+    "question": "Who is most likely to own forty identical T-shirts?"
+  },
+  {
+    "id": "ty134",
+    "question": "Who is most likely to stay in pyjamas all weekend?"
+  },
+  {
+    "id": "ty135",
+    "question": "Who is most likely to have a recurring dream about vegetables?"
+  },
+  {
+    "id": "ty136",
+    "question": "Who is most likely to fall in love with a voice assistant?"
+  },
+  {
+    "id": "ty137",
+    "question": "Who is most likely to start a heavy metal band with their babcia?"
+  },
+  {
+    "id": "ty138",
+    "question": "Who is most likely to argue with the satnav?"
+  },
+  {
+    "id": "ty139",
+    "question": "Who is most likely to win hide-and-seek by falling asleep?"
+  },
+  {
+    "id": "ty140",
+    "question": "Who is most likely to survive a horror film?"
+  },
+  {
+    "id": "ty141",
+    "question": "Who would be the first to go in a horror film?"
+  },
+  {
+    "id": "ty142",
+    "question": "Who is most likely to sing to their food before eating it?"
+  },
+  {
+    "id": "ty143",
+    "question": "Who is most likely to keep a mystery key “just in case”?"
+  },
+  {
+    "id": "ty144",
+    "question": "Who is most likely to go out for milk and come back with a canoe?"
+  },
+  {
+    "id": "ty145",
+    "question": "Who is most likely to clap when the plane lands?"
+  },
+  {
+    "id": "ty146",
+    "question": "Who is most likely to make a life decision based on a fortune cookie?"
+  },
+  {
+    "id": "ty147",
+    "question": "Who is most likely to have a sworn enemy at the gym?"
+  },
+  {
+    "id": "ty148",
+    "question": "Who is most likely to put pineapple in pierogi?"
+  },
+  {
+    "id": "ty149",
+    "question": "Who would last longest in a room full of clowns?"
+  },
+  {
+    "id": "ty150",
+    "question": "Who would be the worst person to share a tent with?"
+  },
+  {
+    "id": "ty151",
+    "question": "Who is most likely to make friends with a phone scammer?"
+  },
+  {
+    "id": "ty152",
+    "question": "Who is most likely to be voted out of their own birthday party?"
+  },
+  {
+    "id": "ty153",
+    "question": "Who is most likely to eat a whole jar of pickles in one go?"
+  },
+  {
+    "id": "ty154",
+    "question": "Who is most likely to have a secret account with a million followers?"
+  },
+  {
+    "id": "ty155",
+    "question": "Who is most likely to become a legend in a small village?"
+  },
+  {
+    "id": "ty156",
+    "question": "Who is most likely to get a tattoo of their pet?"
+  },
+  {
+    "id": "ty157",
+    "question": "Who is most likely to fall asleep standing up?"
+  },
+  {
+    "id": "ty158",
+    "question": "Who is most likely to name a pet after a cheese?"
+  },
+  {
+    "id": "ty159",
+    "question": "Who is most likely to set the kitchen on fire boiling water?"
+  },
+  {
+    "id": "ty160",
+    "question": "Who is most likely to win a dance-off against a robot?"
+  },
+  {
+    "id": "ty161",
+    "question": "Who is most likely to cry at an advert for toilet paper?"
+  },
+  {
+    "id": "ty162",
+    "question": "Who is most likely to secretly be a pigeon’s therapist?"
   }
 ]
