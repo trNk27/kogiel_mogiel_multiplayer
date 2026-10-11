@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { colorHex, type PadView, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
+import { colorHex, type ArenaNet, type PadView, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { ARENA_SCALE } from '../arena/kit';
 import { ArenaInput } from '../arena/input';
+import { SNAPSHOT_MS, slim } from '../arena/net';
 import { BigCountdown } from '../../host/components';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 import { DT, MUSH_ROUNDS, MUSH_ROUNDS_SHORT, MushroomSim, OVER_S, READY_S, SHOVE_COOL, SPECIES, capsFor, type MEvent } from './logic';
+import { encode } from './net';
 import { MushroomScene } from './scene';
 import './mushroom.css';
 
@@ -42,6 +44,12 @@ export class MushroomGame implements Game {
   private last = 0;
   private lastHud = 0;
   private lastTick = -1;
+  /** No TV: every phone draws the arena from snapshots, and the loop runs on a timer (nothing is drawn here). */
+  private readonly net: boolean;
+  private loop: number | undefined;
+  private lastSnapshot = 0;
+  /** No TV: events since the last snapshot. */
+  private pending: MEvent[] = [];
 
   constructor(
     private host: GameHost,
@@ -54,17 +62,20 @@ export class MushroomGame implements Game {
     this.input = new ArenaInput(ids);
     this.caps = capsFor(ids.length);
     this.sim = new MushroomSim(ids.length, Math.random, ids.map(() => true), undefined, this.caps);
+    this.net = host.noTv;
   }
 
   start() {
-    if (new URLSearchParams(location.search).has('debug')) (window as unknown as Record<string, MushroomGame>).mushroom = this;
+    if (new URLSearchParams(location.search).has('debug')) (window as unknown as Record<string, MushroomGame>)[this.net ? 'mushroomHost' : 'mushroom'] = this;
     this.newRound();
     this.last = performance.now();
-    this.raf = requestAnimationFrame(this.frame);
+    if (this.net) this.loop = window.setInterval(() => this.frame(performance.now()), 16);
+    else this.raf = requestAnimationFrame(this.frame);
   }
 
   dispose() {
     cancelAnimationFrame(this.raf);
+    clearInterval(this.loop);
     clearTimeout(this.timer);
     this.detach();
   }
@@ -112,6 +123,7 @@ export class MushroomGame implements Game {
     this.readyEndsAt = Date.now() + READY_S * 1000;
     this.acc = 0;
     this.lastTick = -1;
+    this.pending = [];
     [0, 1, 2].forEach((k) => window.setTimeout(() => this.sim.phase === 'ready' && sound.count(), (READY_S - 3 + k) * 1000));
     this.update();
   }
@@ -148,7 +160,7 @@ export class MushroomGame implements Game {
   // ---- loop ----------------------------------------------------------------------------
 
   private frame = (now: number) => {
-    this.raf = requestAnimationFrame(this.frame);
+    if (!this.net) this.raf = requestAnimationFrame(this.frame);
     const elapsed = Math.min(0.25, (now - this.last) / 1000);
     this.last = now;
     this.acc += elapsed;
@@ -157,6 +169,10 @@ export class MushroomGame implements Game {
       this.tick();
     }
     this.scene?.render(elapsed);
+    if (this.net && now - this.lastSnapshot >= SNAPSHOT_MS) {
+      this.lastSnapshot = now;
+      this.snapshot();
+    }
     if (now - this.lastHud > HUD_MS) {
       this.lastHud = now;
       this.host.changed();
@@ -189,6 +205,7 @@ export class MushroomGame implements Game {
 
   private events(evs: MEvent[]) {
     let refresh = false;
+    if (this.net) this.pending.push(...evs.map(slim));
     for (const e of evs) {
       this.scene?.onEvent(e);
       switch (e.t) {
@@ -255,6 +272,13 @@ export class MushroomGame implements Game {
     return all.length > 0 ? `Splash! ${all.join(', ')}` : '';
   }
 
+  /** No TV: send every phone the arena. */
+  private snapshot() {
+    const ids = this.ids.filter((id, i) => !this.removed.has(i) && this.host.player(id)?.connected);
+    this.host.message(ids, { t: 'as', g: 'mushroom', r: this.round, at: Date.now(), s: encode(this.sim), e: this.pending });
+    this.pending = [];
+  }
+
   // ---- phones --------------------------------------------------------------------------
 
   onMessage(id: string, m: PhoneMsg) {
@@ -293,7 +317,14 @@ export class MushroomGame implements Game {
       ...(sim.callNo > 0 ? [{ k: 'Call', v: String(sim.callNo) }] : []),
       { k: 'Left', v: String(alive) },
     ];
-    const base = { v: 'pad' as const, game: 'mushroom' as const, round, rounds: this.rounds, score: this.cup[i] ?? 0 };
+    const base = {
+      v: 'pad' as const,
+      game: 'mushroom' as const,
+      round,
+      rounds: this.rounds,
+      score: this.cup[i] ?? 0,
+      ...(this.net ? { net: this.netView(i) } : {}),
+    };
     let view: PadView;
     if (!p || !p.present) {
       view = { ...base, phase: 'over', title: 'Removed', buttons: [], noStick: true };
@@ -322,6 +353,19 @@ export class MushroomGame implements Game {
       view = { ...base, phase: 'play', title: 'Get ready…', text: 'Next call coming up', buttons, stats };
     }
     return view;
+  }
+
+  /** No TV: what a phone needs to build the arena. */
+  private netView(i: number): ArenaNet {
+    return {
+      players: this.ids.map((id) => {
+        const p = this.host.player(id);
+        return { name: p?.name ?? '?', color: p?.color ?? 'sourcream' };
+      }),
+      idx: i,
+      seed: this.caps,
+      goAt: this.readyEndsAt,
+    };
   }
 
   // ---- TV ------------------------------------------------------------------------------

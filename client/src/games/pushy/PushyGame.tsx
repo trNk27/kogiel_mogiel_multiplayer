@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { colorHex, type PadButton, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
+import { colorHex, type ArenaNet, type PadButton, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { ArenaInput } from '../arena/input';
+import { SNAPSHOT_MS, slim } from '../arena/net';
+import { mulberry32 } from '../rng';
 import { BigCountdown } from '../../host/components';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 import { BIG_BUMP, BRACE_COOL_MS, DT, PUSHY_ROUNDS, PUSHY_ROUNDS_SHORT, PushySim, SHOVE_COOL_MS, type PushyEvent } from './logic';
+import { encode, forwardEvent } from './net';
 import { ARENA_SCALE, PushyScene } from './scene';
 import './pushy.css';
 
@@ -52,6 +55,14 @@ export class PushyGame implements Game {
   private notice: { text: string; until: number } | null = null;
   private lastBump = 0;
   private winners: number[] = [];
+  /** No TV: every phone draws the pond from snapshots, and the loop runs on a timer (nothing is drawn here). */
+  private readonly net: boolean;
+  private loop: number | undefined;
+  private lastSnapshot = 0;
+  /** No TV: events since the last snapshot. */
+  private pending: PushyEvent[] = [];
+  /** The round's floe is cut from this seed, so phones without a TV can build the same one. */
+  private seed = 0;
 
   constructor(
     private host: GameHost,
@@ -63,20 +74,23 @@ export class PushyGame implements Game {
     this.lastPts = ids.map(() => 0);
     this.shoveUntil = ids.map(() => 0);
     this.braceUntil = ids.map(() => 0);
+    this.net = host.noTv;
   }
 
   start() {
     // For automated tests: /?debug exposes the running game.
-    if (new URLSearchParams(location.search).has('debug')) (window as unknown as Record<string, PushyGame>).pushy = this;
+    if (new URLSearchParams(location.search).has('debug')) (window as unknown as Record<string, PushyGame>)[this.net ? 'pushyHost' : 'pushy'] = this;
     this.newRound();
     this.lastFrame = performance.now();
-    this.raf = requestAnimationFrame(this.frame);
+    if (this.net) this.loop = window.setInterval(() => this.frame(performance.now()), 16);
+    else this.raf = requestAnimationFrame(this.frame);
   }
 
   dispose() {
     this.timers.forEach((t) => clearTimeout(t));
     this.timers = [];
     cancelAnimationFrame(this.raf);
+    clearInterval(this.loop);
     this.detach();
   }
 
@@ -110,11 +124,13 @@ export class PushyGame implements Game {
 
   private newRound() {
     this.round++;
+    this.seed = Math.floor(Math.random() * 2 ** 31);
     this.sim = new PushySim(
       this.ids.length,
-      Math.random,
+      mulberry32(this.seed),
       this.ids.map((_, i) => this.removed.has(i)),
     );
+    this.pending = [];
     this.input.release();
     this.scene?.setup(this.sim);
     this.phase = 'ready';
@@ -169,7 +185,7 @@ export class PushyGame implements Game {
   // ---- loop ---------------------------------------------------------------------------------------
 
   private frame = (now: number) => {
-    this.raf = requestAnimationFrame(this.frame);
+    if (!this.net) this.raf = requestAnimationFrame(this.frame);
     const elapsed = Math.min(0.25, (now - this.lastFrame) / 1000);
     this.lastFrame = now;
     this.acc += elapsed;
@@ -178,6 +194,10 @@ export class PushyGame implements Game {
       this.tick();
     }
     this.scene?.render(this.sim, elapsed);
+    if (this.net && now - this.lastSnapshot >= SNAPSHOT_MS) {
+      this.lastSnapshot = now;
+      this.snapshot();
+    }
     if (now - this.lastHud > HUD_MS) {
       this.lastHud = now;
       this.host.changed();
@@ -205,6 +225,7 @@ export class PushyGame implements Game {
     });
     evs.push(...sim.step());
     if (evs.length) {
+      if (this.net) for (const e of evs) if (forwardEvent(e)) this.pending.push(slim(e));
       this.react(evs);
       this.scene?.handle(evs, sim);
     }
@@ -272,6 +293,26 @@ export class PushyGame implements Game {
     this.notice = { text, until: performance.now() + ms };
   }
 
+  /** No TV: send every phone the pond. */
+  private snapshot() {
+    const ids = this.ids.filter((id, i) => !this.removed.has(i) && this.host.player(id)?.connected);
+    this.host.message(ids, { t: 'as', g: 'pushy', r: this.round, at: Date.now(), s: encode(this.sim), e: this.pending });
+    this.pending = [];
+  }
+
+  /** No TV: what a phone needs to build the pond. */
+  private netView(i: number): ArenaNet {
+    return {
+      players: this.ids.map((id) => {
+        const p = this.host.player(id);
+        return { name: p?.name ?? '?', color: p?.color ?? 'sourcream' };
+      }),
+      idx: i,
+      seed: this.seed,
+      goAt: this.goAt,
+    };
+  }
+
   // ---- phones ----------------------------------------------------------------------------------------
 
   onMessage(id: string, m: PhoneMsg) {
@@ -300,7 +341,14 @@ export class PushyGame implements Game {
     const i = this.ids.indexOf(id);
     const p = this.sim?.players[i];
     const now = Date.now();
-    const base = { v: 'pad' as const, game: 'pushy' as const, round: this.round, rounds: this.rounds, score: this.scores[i] ?? 0 };
+    const base = {
+      v: 'pad' as const,
+      game: 'pushy' as const,
+      round: this.round,
+      rounds: this.rounds,
+      score: this.scores[i] ?? 0,
+      ...(this.net ? { net: this.netView(i) } : {}),
+    };
     const cd = (until: number, cool: number): Pick<PadButton, 'readyAt' | 'cool'> => (until > now ? { readyAt: until, cool } : { cool });
     const buttons = (off: boolean): PadButton[] => [
       { label: 'Shove', ...cd(this.shoveUntil[i] ?? 0, SHOVE_COOL_MS), ...(off ? { off: true } : {}) },

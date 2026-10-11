@@ -17,7 +17,7 @@ import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { forgetRoom, loadStored, saveStored, type Stored } from './storage';
 import { setWakeLock } from './wakelock';
 import { ViewRouter } from './views';
-import { rallyBus, savedHostCode } from './rallyBus';
+import { arenaBus, rallyBus, savedHostCode } from './rallyBus';
 import { VipMenu } from './vipMenu';
 import { putPhoto } from './photos';
 
@@ -139,6 +139,9 @@ export function PhoneApp() {
           case 'rs':
           case 'rfx':
             rallyBus.emit(m);
+            break;
+          case 'as':
+            arenaBus.emit(m);
             break;
           case 'photo':
             putPhoto(m.id, m.rev, m.data);

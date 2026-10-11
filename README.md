@@ -30,14 +30,14 @@ the notch) are added around controls, never taken out of them.
 | **Pierogi Parade** | Pierogi of five colours march down a busy market street on the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Lamp posts, trees, market stalls, barrels and trams hide them for a moment, some march in tight groups, and balloons, pierogi kites, pigeons, fireworks and the neighbours in the windows try to distract you. Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
 | **Podmianka** | “The swap”: eight things from a Polish kitchen stand on two shelves. Remember them, then a red curtain closes, and when it opens one of them has been swapped for something new. Tap the new one on your phone; right answers score 1000, dropping to 500 as the 15 s run out. Eight rounds: the look time shrinks from 9 to 5 s, from round 4 the shelves get rearranged too, and from round 5 the swap is a lookalike (jam for pickles, radishes for cabbage). 56 painted objects. | 1–8 |
 | **Czołgi** | Our take on Shell Shocked: little tanks in a farmyard: a shell that bounces once, a cabbage mortar that flies over walls, three armour. Last tank rolling wins. | 2–8 |
-| **Grzybki** | Our take on Mushroom Mixup. Babcia calls a colour; run to the giant mushroom of that colour before the timer runs out, then everything else sinks into the pond. Shove rivals off, ride the spinning ring, and watch for colour swaps. Last one dry wins the round. | 2–8 |
-| **Pushy Pierogi** | Our take on Pushy Penguins: sumo on a frozen pond: glide, Shove and Brace to knock everyone into the water while the ice cracks and curling stones slide through. | 2–8 |
+| **Grzybki** | Our take on Mushroom Mixup. Babcia calls a colour; run to the giant mushroom of that colour before the timer runs out, then everything else sinks into the pond. Shove rivals off, ride the spinning ring, and watch for colour swaps. Last one dry wins the round. **Also plays without a TV**: the pond is drawn on every phone, above the joystick. | 2–8 |
+| **Pushy Pierogi** | Our take on Pushy Penguins: sumo on a frozen pond: glide, Shove and Brace to knock everyone into the water while the ice cracks and curling stones slide through. **Also plays without a TV**: the pond is drawn on every phone, above the joystick. | 2–8 |
 | **Strzelnica** | Our take on Boo-ting Gallery: a fairground shooting gallery: steer a crosshair with the joystick, Fire corks and Reload. Ghosts 1, bats 2, golden ghost 5 – but shoot a babcia cut-out and you lose 3. | 1–8 |
 | **Babcia’s Cookbook** | Our take on Booksquirm: a giant page slams down on the book: stand in one of the holes cut in it to survive, and shove rivals out of it. Holes get smaller and pages faster. | 1–8 |
 | **Kafelki** | Inspired by Tiles and Tribulations: paint the kitchen floor your colour: walk, roll-dash and splat paint bombs while tiles crack and Babcia's mop sweeps. Most tiles wins. | 2–8 |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
-The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. They need a TV for now.
+The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
@@ -118,8 +118,10 @@ After each game the VIP's button reads **Vote for the next game**. The vote's ru
 On the join page, enter your name and tap **Play without a TV**. Your phone starts the party: it
 runs the host in the background (the same code the TV would run) and joins as the first player, so
 you're the VIP. Your lobby shows the room code (tap it for a QR code), and friends join at `/join`
-as usual. Only games that don't need a shared screen are offered. So far that's **Maluch Rally**,
-where every phone renders the race itself:
+as usual. Only games that don't need a shared screen are offered. So far that's **Grzybki** and
+**Pushy Pierogi**, where every phone shows the whole arena in 3D above its joystick and buttons (with
+the countdown, the call, the clock and the splashes), and **Maluch Rally**, where every phone renders
+the race itself:
 
 - **Your phone is the screen.** A full-screen 3D chase view of your own car, with your position,
   lap, speed and a **minimap** (with the river, bridges and tunnel) in the corner.
@@ -218,6 +220,7 @@ client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js
 client/src/phone/rally.tsx  Maluch Rally thumb pad (with a TV)
 client/src/phone/rallyDrive.tsx  Maluch Rally on the phone (no TV): 3D view, tilt/drag steering, minimap
 client/src/phone/notvHost.ts     a phone hosting a party without a TV
+client/src/phone/arenaScreen.tsx Grzybki and Pushy Pierogi on the phone (no TV): the arena above the pad
 client/src/phone/toty.tsx   To Ty! selfie camera and voting
 client/src/phone/doodlePad.tsx  the drawing canvas (To Ty! and Bazgroły)
 client/src/games/bazgroly/* Bazgroły: prompts, lies, scoring (logic.ts) and the TV views
@@ -225,7 +228,7 @@ client/src/phone/bazgroly.tsx  Bazgroły drawing, fake titles and guessing on th
 client/src/games/pedal|fork|parade/*  Tour de Pierogi, Fork Fight, Pierogi Parade (pure logic + TV views)
 client/src/phone/minigames.tsx   their phone controllers (pedals, the plate, the tap counter)
 client/src/phone/arenaPad.tsx    the arena games' phone pad: a joystick and up to two buttons
-client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts) and pad input (input.ts)
+client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts), pad input (input.ts) and no-TV snapshot playback (net.ts, mirror.ts)
 client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki, Pushy Pierogi, Strzelnica,
                             Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
@@ -552,6 +555,18 @@ unit-tested `logic.ts` and draws it with the shared kit in `client/src/games/are
 three.js camera over the whole arena, rendered at 45 % of 1080p and scaled up pixelated, flat-shaded
 low-poly meshes, pixel textures, blob shadows and low-poly pierogi characters, like Maluch Rally.
 `/?debug` on the TV exposes the running game as `window.tanks`, `window.mushroom` and so on.
+
+**Without a TV** (Grzybki and Pushy Pierogi), the host phone runs the same game on a 16 ms timer and,
+~15 times a second, sends every player a snapshot of the arena (`as`: a flat list of numbers laid out
+in the game's `net.ts`, about 250 bytes for 4 players and 350 for 8, plus the game's events since the last one).
+The `pad` view carries what a phone needs to build the arena itself (`net`: the players, the round's
+seed and the countdown). Each phone builds the game's own 3D scene (`mirror.ts`) on a 16:9 canvas
+above the pad and plays the snapshots back 120 ms behind the host clock, interpolating between them
+and firing each snapshot's events (splashes, shoves, calls, with sounds and a line of text) when
+playback reaches it. Pushy Pierogi's floe is cut from the round's seed and cracks on a fixed
+schedule, so phones crack and sink the ice by themselves as the clock passes. `/join?debug` exposes
+the phone's arena as `window.arena`, and the host phone's game as `window.mushroomHost` /
+`window.pushyHost`.
 
 ### Czołgi
 Little toy tanks in a walled farmyard (44 × 26 m) with stone walls, hay stacks, wells, a shed and wooden crates. The whole arena is on the TV; each phone is a joystick plus two buttons. Push the stick to drive and aim at once: the hull turns towards it (it turns on the spot first if you point more than about 100° away) and the turret snaps to it. Let go and the tank stops, with the turret left where it was.
