@@ -310,6 +310,8 @@ body.phone-body input {
 .sheet-backdrop {
   position: fixed;
   inset: 0;
+  /* Menus can sit inside HUD layers that let taps through. */
+  pointer-events: auto;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: flex-end;
@@ -1961,6 +1963,12 @@ body.phone-body input {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.sheet .drive-modes {
+  justify-content: center;
+}
+.sheet .section-label {
+  text-align: center;
 }
 .chip {
   min-height: 48px;
