@@ -29,3 +29,18 @@ export function tiltSteer(gx: number, gy: number, angle: number, ios: boolean) {
   if (a < TILT_DEAD) return 0;
   return Math.sign(deg) * Math.min(1, (a - TILT_DEAD) / (TILT_FULL - TILT_DEAD));
 }
+
+/**
+ * Get the tilt sensor ready (iPhones ask for permission, which needs a tap).
+ * Resolves to null when tilting can be used, or to why it can't.
+ */
+export async function requestTilt(): Promise<string | null> {
+  const DM = (window as unknown as { DeviceMotionEvent?: { requestPermission?: () => Promise<string> } }).DeviceMotionEvent;
+  if (!DM) return 'This phone has no tilt sensor.';
+  if (typeof DM.requestPermission !== 'function') return null;
+  try {
+    return (await DM.requestPermission()) === 'granted' ? null : 'Motion access was declined.';
+  } catch {
+    return 'Motion access needs a tap first – try again.';
+  }
+}
