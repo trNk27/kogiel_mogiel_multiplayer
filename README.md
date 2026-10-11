@@ -493,6 +493,13 @@ changes.
   you pull past halfway while turning; the brake half glows with the sparks). It sends the stick
   (−100…100 on both axes, in steps of 5) at most 20 times a second, only when it changes, and zero
   when the thumb lifts, which also fires your item.
+- **Tilt with a TV** (Maluch Rally and Maluch Rallye Premium): during the countdown, or any time
+  from the 📱/👆 chip in the phone's top bar, a player can switch from the thumb pad to tilting.
+  Hold the phone like a steering wheel (portrait or landscape) and turn it; the gas is always on,
+  BRAKE · DRIFT brakes or drifts (and glows with the sparks), and the item button fires your item.
+  It sends the same `stick` messages as the pad, and the choice is remembered on the phone. On
+  iPhones the tap on the chip asks for motion access; with no sensor (or no readings) it falls back
+  to the pad.
 - `/?debug&shape=figure8` on the TV forces the first track shape and exposes the running game as
   `window.rally`, for testing.
 - **Without a TV** (`client.ts`), each phone runs the car physics for its **own** car (so steering
