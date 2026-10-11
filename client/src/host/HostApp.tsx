@@ -288,7 +288,6 @@ function Lobby() {
   const players = c.summaries();
   const joinUrl = `${location.origin}/join?code=${c.code}`;
   const vip = players.find((p) => p.vip);
-  const party = [...c.players.values()].filter((p) => p.party > 0).sort((a, b) => b.party - a.party);
   const enough = c.canStart();
   return (
     <div class="screen lobby">
@@ -318,17 +317,6 @@ function Lobby() {
           <h2>
             Players <span class="muted">{players.length}/{MAX_PLAYERS}</span>
           </h2>
-          {party.length > 0 && (
-            <div class="party-mini">
-              <span class="eyebrow">Standings</span>
-              {party.slice(0, 4).map((p, i) => (
-                <span class="party-mini-item" style={{ color: colorHex(p.color) }}>
-                  {i === 0 ? '👑 ' : ''}
-                  {p.name} {p.party}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
         <div class="player-grid">
           {Array.from({ length: MAX_PLAYERS }, (_, i) => {

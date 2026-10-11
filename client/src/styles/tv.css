@@ -383,17 +383,6 @@ body.tv {
 .lobby-heading h2 {
   font-size: 58px;
 }
-.party-mini {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  font-size: 26px;
-  font-family: var(--font-display);
-  font-weight: 800;
-}
-.party-mini .eyebrow {
-  font-size: 18px;
-}
 .player-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
