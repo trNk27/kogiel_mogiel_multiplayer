@@ -68,7 +68,7 @@ export function noise(ctx: CanvasRenderingContext2D, rnd: () => number, size: nu
 }
 
 /** Ready-made ground textures. `repeat` tiles it that many times across a mesh. */
-export function groundTexture(kind: 'grass' | 'ice' | 'wood' | 'stone' | 'sand' | 'water' | 'paper', repeat = 8, seed = 3) {
+export function groundTexture(kind: 'grass' | 'ice' | 'wood' | 'stone' | 'sand' | 'water', repeat = 8, seed = 3) {
   return pixelTexture(
     16,
     (ctx, rnd) => {
@@ -104,9 +104,6 @@ export function groundTexture(kind: 'grass' | 'ice' | 'wood' | 'stone' | 'sand' 
           ctx.fillStyle = 'rgba(255,255,255,.35)';
           ctx.fillRect(1, 4, 4, 1);
           ctx.fillRect(9, 12, 5, 1);
-          break;
-        case 'paper':
-          noise(ctx, rnd, 16, [244, 232, 205], 10);
           break;
       }
     },
