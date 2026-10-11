@@ -43,7 +43,7 @@ import { mulberry32 } from '../rng';
 import { BRIDGE_WALL, ROAD_HALF, TUNNEL_HEIGHT, TUNNEL_WALL, WALL, inRange, riverCoords, waterLevel, type Track } from './track';
 import { ITUNING, driftLevel, type Blast, type Bomb, type Car, type ItemBox, type Pickle, type Slick } from './sim';
 import { buildTown, type Obstacle } from './town3d';
-import { StylePass } from '../arena/styles';
+import { StylePass, pickStyle } from '../arena/styles';
 
 /** What the renderer needs from the simulation each frame. */
 export interface RaceState {
@@ -216,8 +216,8 @@ export interface CarLook {
 }
 
 export class RallyScene {
-  /** The look: original, Vaporwave or Papercraft at random, or forced with `?style=`. */
-  readonly style = new StylePass();
+  /** The look: one of `styles` at random (original, Vaporwave or Papercraft by default), or forced with `?style=`. */
+  readonly style: StylePass;
   readonly renderer: WebGLRenderer;
   private scene = new Scene();
   private world = new Group();
@@ -265,7 +265,9 @@ export class RallyScene {
     canvas: HTMLCanvasElement,
     looks: CarLook[],
     view: Viewport = { width: 1920, height: 1080, scale: RENDER_SCALE },
+    styles?: readonly string[],
   ) {
+    this.style = new StylePass(pickStyle(Math.random, styles));
     this.view = view;
     this.renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(1);
