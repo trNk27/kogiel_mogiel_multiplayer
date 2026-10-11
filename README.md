@@ -479,7 +479,10 @@ changes.
 - **Physics** (`sim.ts`, `RTUNING`): top speed 42 m/s (≈150 km/h), 20 on the grass verge
   (each car's numbers live in its `spec`; Maluch Rallye Premium's cars change them, see below).
   Steering needs some speed and calms down near top speed. Barriers 13 m from the centre line slow
-  you down and let you slide along them. Cars bump each other. Progress is measured along the track,
+  you down and let you slide along them. Cars bump each other. **Rubber-banding** (`RUBBER`): cars
+  behind the leader get a steady boost to top speed and acceleration, nothing for the first 15 m,
+  then +1.1 % per 10 m back, up to +16 % (about 135 m back), so the back of the field can catch up.
+  Rockets and finished cars don't get it. Progress is measured along the track,
   so driving backwards over the line never counts as a lap.
 - **Rendering** (`render3d.ts`): one three.js canvas with a viewport per player (1 full screen, 2
   stacked, 3–4 in a 2×2 grid; with 3 players the spare slot shows the map and standings). The game
