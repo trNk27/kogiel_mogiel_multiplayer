@@ -216,7 +216,7 @@ export interface CarLook {
 }
 
 export class RallyScene {
-  /** The look: one of `styles` at random (original, Vaporwave or Papercraft by default), or forced with `?style=`. */
+  /** The look: one of `styles` at random (original or Vaporwave by default), or forced with `?style=`. */
   readonly style: StylePass;
   readonly renderer: WebGLRenderer;
   private scene = new Scene();

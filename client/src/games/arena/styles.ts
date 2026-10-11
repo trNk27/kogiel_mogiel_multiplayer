@@ -8,8 +8,8 @@
  *    compiles (cel-banded lighting, PS1 vertex wobble). Patching keeps the material objects, so
  *    game code that tweaks colours or emissive later still works.
  *
- * Each 3D game rolls its look when its scene is built: original, Vaporwave or Papercraft, a third
- * each. `?style=<id>` on the page URL forces one (`psx` is the original).
+ * Each 3D game rolls its look when its scene is built: original or Vaporwave, half each.
+ * `?style=<id>` on the page URL forces one (`psx` is the original).
  */
 import {
   DepthTexture,
@@ -214,26 +214,6 @@ vec4 effect(vec2 uv) {
   return vec4(c, 1.0);
 }`;
 
-/** Papercraft: flat posterized colour, brown pen lines with a hand wobble, paper grain. */
-const paper = /* glsl */ `
-vec4 effect(vec2 uv) {
-  vec2 w = (vec2(hash(floor(uv * 70.0)), hash(floor(uv * 70.0) + 7.0)) - 0.5) * 2.0 / uRes;
-  vec3 c = smoothTex(uv, 1.6);
-  // Fewer, flatter colours, pulled towards a warm paper palette.
-  c = floor(c * 5.0 + 0.5) / 5.0;
-  c = mix(c, c * vec3(1.04, 0.97, 0.84) + vec3(0.06, 0.045, 0.02), 0.75);
-  // Paper fibre: fine grain plus larger blotches.
-  float grain = hash(floor(gl_FragCoord.xy)) * 0.06 + hash(floor(gl_FragCoord.xy / 5.0)) * 0.05;
-  c *= 0.94 + grain;
-  float sky = step(0.9999, rawDepth(uv + w));
-  float e = smoothstep(0.04, 0.09, depthEdge(uv + w, 1.5));
-  // Cut edges: a dark pen line with a soft drop shadow just below it.
-  float sh = smoothstep(0.04, 0.09, depthEdge(uv + w + vec2(0.0, 4.0) / uRes, 1.5));
-  c *= 1.0 - sh * 0.25 * (1.0 - sky);
-  c = mix(c, vec3(0.24, 0.12, 0.07), e * 0.9 * (1.0 - sky));
-  return vec4(c, 1.0);
-}`;
-
 /** Noir: hard black and white with film grain, only reds and player colours survive. */
 const noir = /* glsl */ `
 vec4 effect(vec2 uv) {
@@ -267,12 +247,11 @@ export const STYLES: StyleDef[] = [
   { id: 'comic', name: 'Comic book', frag: comic, scale: 1.4, patch: patchWith(toonCompile, ['MeshLambertMaterial']) },
   { id: 'gameboy', name: 'Game Boy', frag: gameboy, scale: 0.5 },
   { id: 'crt', name: 'Arcade CRT', frag: crt },
-  { id: 'paper', name: 'Papercraft', frag: paper, scale: 1.4, patch: patchWith(toonCompile, ['MeshLambertMaterial']) },
   { id: 'noir', name: 'Noir', frag: noir },
 ];
 
 /** The looks a game can roll, equally likely. */
-export const RANDOM_STYLES = ['psx', 'vaporwave', 'paper'];
+export const RANDOM_STYLES = ['psx', 'vaporwave'];
 
 /** The style forced by `?style=<id>`, if any. */
 export function styleFromUrl(): StyleDef | undefined {
