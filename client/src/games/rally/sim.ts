@@ -122,6 +122,18 @@ export const ITUNING = {
   sameLevel: 3,
 };
 
+/**
+ * Rubber-banding: cars behind the leader get a small, steady boost to top speed and acceleration,
+ * growing with how far back they are, so the back of the field can catch up. Nothing in the first
+ * `free` metres, then `perMetre` more per metre, up to `max`.
+ */
+export const RUBBER = { free: 15, perMetre: 0.0011, max: 0.16 };
+
+/** Speed bonus (a fraction, 0 … RUBBER.max) for a car `gap` metres behind the leader. */
+export function catchUp(gap: number) {
+  return Math.max(0, Math.min(RUBBER.max, (gap - RUBBER.free) * RUBBER.perMetre));
+}
+
 export const LAPS = 3;
 
 export interface Car {
@@ -634,6 +646,9 @@ export class RallySim {
     this.pendingSteals = [];
     this.time += DT;
     const L = this.track.length;
+    // The leader's distance, for rubber-banding (finishers count as being on the line).
+    let lead = -Infinity;
+    for (const c of this.cars) if (!c.parked) lead = Math.max(lead, c.finished ? this.laps * L : c.progress);
 
     for (const c of this.cars) {
       c.boost = Math.max(0, c.boost - DT);
@@ -709,7 +724,10 @@ export class RallySim {
       else if (c.boost > 0) top = I.boostSpeed + (S.maxSpeed - T.maxSpeed);
       if (c.slow > 0) top *= I.slowFactor;
       if (c.towed > 0) top *= I.towDrag;
-      const accel = c.rocket > 0 || c.boost > 0 || towing ? S.accel * 3 : S.accel;
+      // Rubber-banding: the further behind the leader, the faster.
+      const bonus = c.rocket > 0 || c.finished ? 1 : 1 + catchUp(lead - c.progress);
+      top *= bonus;
+      const accel = (c.rocket > 0 || c.boost > 0 || towing ? S.accel * 3 : S.accel) * bonus;
       if (gas > 0) c.speed += accel * gas * (1 - Math.max(0, c.speed) / (top * 1.08)) * DT * 1.6;
       else if (gas < 0) c.speed += (c.speed > 0.5 ? T.brake : T.accel * 0.6) * gas * DT;
       c.speed -= c.speed * T.drag * DT * (gas === 0 ? 1 : 0.35);

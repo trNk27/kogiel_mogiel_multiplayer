@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BRIDGE_HEIGHT, SHAPES, WALL, crossings, generateTrack, pointAt, project, validTrack } from '../client/src/games/rally/track';
-import { DT, ITUNING, LAPS, RallySim, itemWeights, racePoints, rollItem, type Car } from '../client/src/games/rally/sim';
+import { DT, ITUNING, LAPS, RUBBER, RallySim, catchUp, itemWeights, racePoints, rollItem, type Car } from '../client/src/games/rally/sim';
 import { gameInfo, playerCountProblem } from '../shared/protocol';
 import { mulberry32 } from '../client/src/games/rng';
 
@@ -234,6 +234,40 @@ describe('items', () => {
     const rng = mulberry32(3);
     const seen = new Set(Array.from({ length: 400 }, () => rollItem(Math.random(), 4, rng)));
     expect(seen.size).toBe(11);
+  });
+});
+
+describe('rubber-banding', () => {
+  it('gives nothing up front, and more the further back you are, up to a cap', () => {
+    expect(catchUp(0)).toBe(0);
+    expect(catchUp(RUBBER.free)).toBe(0);
+    expect(catchUp(60)).toBeGreaterThan(catchUp(30));
+    expect(catchUp(5000)).toBe(RUBBER.max);
+  });
+
+  it('lets a car far behind close the gap on the leader', () => {
+    const track = generateTrack(21, 'speedway');
+    const sim = new RallySim(track, 2, LAPS, false);
+    const [lead, back] = sim.cars;
+    const at = (c: Car, d: number) => {
+      const p = pointAt(track, d, 0);
+      const pr = project(track, p.x, p.z);
+      Object.assign(c, { x: p.x, z: p.z, h: pr.h, heading: p.heading, hint: pr.i, along: pr.along, lateral: pr.lateral, progress: d, speed: 0 });
+    };
+    at(lead, 400);
+    at(back, 250);
+    for (let k = 0; k < 20 / DT; k++) {
+      for (const c of sim.cars) c.input = sim.autopilot(c, 99);
+      sim.step();
+    }
+    expect(lead.progress - back.progress).toBeLessThan(150 - 20);
+    // A lone car races at its normal pace.
+    const solo = new RallySim(track, 1, LAPS, false);
+    for (let k = 0; k < 10 / DT; k++) {
+      solo.cars[0].input = solo.autopilot(solo.cars[0], 99);
+      solo.step();
+    }
+    expect(solo.cars[0].speed).toBeLessThan(43);
   });
 });
 
