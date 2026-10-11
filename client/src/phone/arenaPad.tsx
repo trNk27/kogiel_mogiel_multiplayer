@@ -2,12 +2,14 @@
  * The arena pad, shared by Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook and Kafelki:
  * a floating joystick that fills most of the screen and up to two buttons under it.
  * The game itself is on the TV; the host says what the buttons are called and when they cool down.
+ * Without a TV (Grzybki, Pushy Pierogi), the arena is drawn above the joystick (see arenaScreen.tsx).
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { colorHex, type PadButton, type PadView } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
 import type { Me, Send } from './PhoneApp';
 import { keepStickInSync } from './stickSync';
+import { ArenaScreen } from './arenaScreen';
 
 function vibrate(p: number | number[]) {
   try {
@@ -200,8 +202,9 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
   }, [view.noStick]);
 
   const out = view.phase === 'out';
+  const net = view.net;
   return (
-    <div class={`pv ar-pad ${out ? 'is-out' : ''}`} style={{ '--me': colorHex(me.color) }}>
+    <div class={`pv ar-pad ${out ? 'is-out' : ''} ${net ? 'has-net' : ''}`} style={{ '--me': colorHex(me.color) }}>
       <div class="ar-top">
         <span class="ar-score">
           <b>{view.score}</b> pts
@@ -211,8 +214,9 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
             <small>{s.k}</small> {s.v}
           </span>
         ))}
-        <span class="muted">{view.rounds > 1 ? `Round ${view.round}/${view.rounds}` : '📺'}</span>
+        <span class="muted">{view.rounds > 1 ? `Round ${view.round}/${view.rounds}` : net ? '' : '📺'}</span>
       </div>
+      {net && <ArenaScreen view={view} net={net} offset={offset} />}
       {(view.title || view.text) && (
         <div class="ar-msg" key={view.title}>
           {view.title && (
@@ -225,7 +229,7 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
       )}
       {view.noStick ? (
         <div class="ar-idle" key="idle">
-          <Pierogi color={colorHex(me.color)} size={150} mood={out ? 'sleep' : 'happy'} class="bob" />
+          <Pierogi color={colorHex(me.color)} size={net ? 90 : 150} mood={out ? 'sleep' : 'happy'} class="bob" />
         </div>
       ) : (
         // Keyed, so the zone survives the message above it appearing or going away (Kafelki drops its

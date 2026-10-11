@@ -283,7 +283,7 @@ describe('no-TV races', () => {
   });
 
   it('offers only games that work without a TV, for up to 8', () => {
-    expect(gamesFor(true).map((g) => g.id)).toEqual(['rally']);
+    expect(gamesFor(true).map((g) => g.id)).toEqual(['rally', 'mushroom', 'pushy']);
     expect(gamesFor(false).length).toBeGreaterThan(1);
     const rally = gameInfo('rally');
     expect(playerCountProblem(rally, 8, 8, true)).toBeNull();

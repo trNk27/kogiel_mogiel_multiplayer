@@ -17,6 +17,23 @@ export const rallyBus = {
   },
 };
 
+/** No-TV arena snapshots (Grzybki, Pushy Pierogi), passed from the socket to the arena view. */
+export type ArenaMsg = Extract<HostToPhone, { t: 'as' }>;
+
+let arenaListener: ((m: ArenaMsg) => void) | null = null;
+
+export const arenaBus = {
+  listen(fn: (m: ArenaMsg) => void) {
+    arenaListener = fn;
+    return () => {
+      if (arenaListener === fn) arenaListener = null;
+    };
+  },
+  emit(m: ArenaMsg) {
+    arenaListener?.(m);
+  },
+};
+
 /** Does this tab have a no-TV room to resume hosting? (Checked without loading the host code.) */
 export function savedHostCode(dev: string | null): string | null {
   try {

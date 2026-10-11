@@ -134,8 +134,20 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1 },
   { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
-  { id: 'mushroom', title: 'Grzybki', tagline: 'Run to the mushroom Babcia calls.', minPlayers: 2 },
-  { id: 'pushy', title: 'Pushy Pierogi', tagline: 'Shove everyone off the ice.', minPlayers: 2 },
+  {
+    id: 'mushroom',
+    title: 'Grzybki',
+    tagline: 'Run to the mushroom Babcia calls.',
+    minPlayers: 2,
+    noTv: 'Run to the mushroom Babcia calls. The pond is on every phone.',
+  },
+  {
+    id: 'pushy',
+    title: 'Pushy Pierogi',
+    tagline: 'Shove everyone off the ice.',
+    minPlayers: 2,
+    noTv: 'Shove everyone off the ice. The pond is on every phone.',
+  },
   { id: 'gallery', title: 'Strzelnica', tagline: 'Pop the ghosts. Spare the babcias.', minPlayers: 1 },
   { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
   { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
@@ -646,7 +658,24 @@ export interface PadView {
   /** Little stats in the top bar, e.g. [{ k: 'Armour', v: '♥♥♡' }]. */
   stats?: { k: string; v: string }[];
   score: number;
+  /** Only in rooms without a TV: the phone shows the arena itself (Grzybki, Pushy Pierogi). */
+  net?: ArenaNet;
 }
+
+/** No-TV arena games: what each phone needs to build the arena locally. */
+export interface ArenaNet {
+  /** Everybody in the arena, in player-index order. */
+  players: { name: string; color: ColorId }[];
+  /** You. */
+  idx: number;
+  /** Builds the same arena on every phone (Grzybki: the number of mushrooms; Pushy Pierogi: how the ice is cut). */
+  seed: number;
+  /** When the round's countdown ends (host clock ms). */
+  goAt: number;
+}
+
+/** No-TV arena games that stream their arena to the phones. */
+export type ArenaNetGame = 'mushroom' | 'pushy';
 
 // ---------------------------------------------------------------------------
 // Phone -> host (relayed by the Durable Object)
@@ -722,6 +751,11 @@ export type HostToPhone =
   | { t: 'rs'; r: number; c: number[]; b: number[]; s: number[]; p: number[]; k: number[]; x: number[] }
   /** No-TV Maluch Rally: something happened to your car (you used an item, or got hit). */
   | { t: 'rfx'; r: number; use?: RallyItem; hit?: RallyItem; blocked?: boolean; by?: string; lost?: RallyItem; got?: string }
+  /**
+   * No-TV arena games, ~15 times a second: the arena's state (`s`, a flat list of numbers laid out
+   * by each game's `net.ts`) at host time `at` in round `r`, and the game's events since the last one (`e`).
+   */
+  | { t: 'as'; g: ArenaNetGame; r: number; at: number; s: number[]; e?: unknown[] }
   | { t: 'kicked' };
 
 /** Effect bits in a no-TV rally snapshot. */
