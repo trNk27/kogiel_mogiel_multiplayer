@@ -22,7 +22,7 @@ const PERSIST_ACTIVITY_EVERY_MS = 5 * 60_000;
 /** Large enough for a To Ty! selfie (MAX_PHOTO_CHARS) or doodle; everything else is tiny. */
 const MAX_PHONE_MESSAGE = 64 * 1024;
 const MAX_HOST_MESSAGE = 96 * 1024;
-/** A second screen only sends WebRTC signalling (an SDP answer is a few KB). */
+/** A second screen only says hello and sends WebRTC signalling (an SDP answer is a few KB). */
 const MAX_SCREEN_MESSAGE = 32 * 1024;
 const OPEN = 1;
 

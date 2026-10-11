@@ -36,6 +36,7 @@ import { placesFor } from './standings';
 import { awardGame, cleanTourOff, hasNext, newTournament, nextGame, nextVote, setVoted, tournamentPlaces, type Tournament } from './tournament';
 import { VoteRoom } from './vote/VoteRoom';
 import { MirrorHost } from './mirror';
+import { TvCaster } from './caster';
 
 export interface Player {
   id: string;
@@ -111,6 +112,13 @@ export interface HostOptions {
  * Owns the roster, VIP rules, reconnection grace periods and the running game.
  */
 export class HostController implements GameHost {
+  /** Not copied to second screens: connections, timers and the room's secret key. */
+  static readonly replicaSkip = ['socket', 'listeners', 'mirror', 'caster', 'lastSent', 'pending', 'hostKey', 'sessionKey', 'introTimer', 'sweepTimer', 'version'];
+  /** A second screen's copy keeps its own store plumbing. */
+  static replicaInit(c: HostController) {
+    c.listeners = new Set();
+    c.version = 0;
+  }
   readonly noTv: boolean;
   private readonly sessionKey: string;
   code = '';
@@ -132,11 +140,13 @@ export class HostController implements GameHost {
   /** Party points per finished game, oldest first – for the standings chart. */
   history: PartyEntry[] = [];
   status: SocketStatus = 'closed';
-  /** Second screens: TVs elsewhere that show this one, streamed over WebRTC. */
+  /** Second screens: TVs elsewhere that draw this one from its state (see caster.ts). */
   readonly mirror = new MirrorHost(
     (id, m) => this.socket?.send({ t: 'screen', id, m }),
     () => this.changed(),
+    (id) => this.caster.ready(id),
   );
+  readonly caster = new TvCaster(this, this.mirror);
 
   private socket: ReconnectingSocket<ServerToHost, HostToServer> | null = null;
   private lastSent = new Map<string, string>();
@@ -167,6 +177,7 @@ export class HostController implements GameHost {
   changed() {
     this.version++;
     for (const fn of this.listeners) fn();
+    this.caster?.changed();
   }
 
   // ---- room lifecycle ---------------------------------------------------------

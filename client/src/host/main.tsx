@@ -17,5 +17,8 @@ const forceHost = params.has('host') || params.has('autohost') || params.has('ne
 if (isPhone && !forceHost && !HostController.savedSession()) {
   location.replace(`/join${params.get('code') ? `?code=${encodeURIComponent(params.get('code')!)}` : ''}`);
 } else {
-  render(<HostApp />, document.getElementById('app')!);
+  const controller = new HostController();
+  // For automated tests: /?debug exposes the room (e.g. `host.finish({...})` ends the current game).
+  if (params.has('debug')) (window as unknown as { host: HostController }).host = controller;
+  render(<HostApp room={controller} />, document.getElementById('app')!);
 }

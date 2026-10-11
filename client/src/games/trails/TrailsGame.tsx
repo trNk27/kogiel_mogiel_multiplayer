@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
-import { DT, POWERUP_RADIUS, POWER_KINDS, TrailsSim, WORLD_W, type PowerKind } from './sim';
+import { DT, POWERUP_RADIUS, POWER_KINDS, TrailsSim, WORLD_W, type PowerKind, type Segment } from './sim';
 import { POWER_INFO, PowerIcon, TARGET_COLOR, drawPowerIcon, powerColor } from './powerIcons';
 import { awardDeaths, trailsTarget, trailsWinner } from './scoring';
 import { Pierogi } from '../../lib/art';
@@ -34,7 +34,10 @@ export class TrailsGame implements Game {
   private acc = 0;
   private lastFrame = 0;
   private canvas: HTMLCanvasElement | null = null;
-  private trailLayer: HTMLCanvasElement;
+  /** The trails so far, drawn once (made on first use). */
+  private trailLayer: HTMLCanvasElement | null = null;
+  /** This round's trail as [idx, x0, y0, x1, y1, r, …], so a second screen arriving mid-round can draw it. */
+  private strokes: number[] = [];
   private flashes: { x: number; y: number; color: string; t: number }[] = [];
   /** "Kasia makes everyone else fat!" */
   private toast: { idx: number; kind: PowerKind; until: number } | null = null;
@@ -46,9 +49,6 @@ export class TrailsGame implements Game {
     this.scores = ids.map(() => 0);
     this.turn = ids.map(() => 0);
     this.target = trailsTarget(ids.length, host.short);
-    this.trailLayer = document.createElement('canvas');
-    this.trailLayer.width = CANVAS_W;
-    this.trailLayer.height = CANVAS_H;
   }
 
   start() {
@@ -71,7 +71,8 @@ export class TrailsGame implements Game {
     this.sim = new TrailsSim(this.ids.length, { powerups: this.host.options.powerups });
     for (const i of this.removed) this.sim.kill(i);
     this.sim.snakes.forEach((s) => (s.turn = this.turn[s.idx]));
-    this.trailLayer.getContext('2d')!.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    this.strokes = [];
+    this.paintTrail([], true);
     this.flashes = [];
     this.roundWinner = null;
     this.phase = 'countdown';
@@ -126,20 +127,10 @@ export class TrailsGame implements Game {
 
   private tick() {
     const ev = this.sim.step();
-    const ctx = this.trailLayer.getContext('2d')!;
-    ctx.lineCap = 'round';
-    for (const seg of ev.segments) {
-      ctx.strokeStyle = colorHex(this.colorOf(seg.idx));
-      ctx.lineWidth = seg.r * 2 * SCALE;
-      ctx.beginPath();
-      ctx.moveTo(seg.x0 * SCALE, seg.y0 * SCALE);
-      ctx.lineTo(seg.x1 * SCALE, seg.y1 * SCALE);
-      ctx.stroke();
-    }
-    if (ev.cleared) {
-      ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
-      sound.whoosh();
-    }
+    if (ev.cleared) this.strokes = [];
+    for (const g of ev.segments) this.strokes.push(g.idx, g.x0, g.y0, g.x1, g.y1, g.r);
+    if (ev.segments.length || ev.cleared) this.paintTrail(ev.segments, ev.cleared);
+    if (ev.cleared) sound.whoosh();
     for (const p of ev.pickups) {
       sound.pickup();
       this.host.buzz(this.ids[p.idx], [40]);
@@ -170,12 +161,44 @@ export class TrailsGame implements Game {
     return this.host.player(this.ids[idx])?.color ?? 'sourcream';
   }
 
+  /** The trail layer, made on first use with the round so far on it. */
+  private trail(): CanvasRenderingContext2D {
+    if (!this.trailLayer) {
+      this.trailLayer = document.createElement('canvas');
+      this.trailLayer.width = CANVAS_W;
+      this.trailLayer.height = CANVAS_H;
+      const ctx = this.trailLayer.getContext('2d')!;
+      ctx.lineCap = 'round';
+      const st = this.strokes;
+      for (let i = 0; i + 5 < st.length; i += 6) this.stroke(ctx, st[i], st[i + 1], st[i + 2], st[i + 3], st[i + 4], st[i + 5]);
+    }
+    return this.trailLayer.getContext('2d')!;
+  }
+
+  private stroke(ctx: CanvasRenderingContext2D, idx: number, x0: number, y0: number, x1: number, y1: number, r: number) {
+    ctx.strokeStyle = colorHex(this.colorOf(idx));
+    ctx.lineWidth = r * 2 * SCALE;
+    ctx.beginPath();
+    ctx.moveTo(x0 * SCALE, y0 * SCALE);
+    ctx.lineTo(x1 * SCALE, y1 * SCALE);
+    ctx.stroke();
+  }
+
+  /** New bits of trail (second screens replay this). `cleared`: wipe the arena first. */
+  private paintTrail(segments: Segment[], cleared: boolean) {
+    const ctx = this.trail();
+    if (cleared) ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.lineCap = 'round';
+    for (const g of segments) this.stroke(ctx, g.idx, g.x0, g.y0, g.x1, g.y1, g.r);
+  }
+
   private draw(now: number) {
     const canvas = this.canvas;
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
-    ctx.drawImage(this.trailLayer, 0, 0);
+    this.trail();
+    ctx.drawImage(this.trailLayer!, 0, 0);
 
     // Power-ups
     for (const p of this.sim.powerups) {

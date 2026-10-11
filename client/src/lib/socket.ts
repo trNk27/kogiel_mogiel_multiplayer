@@ -4,7 +4,8 @@ export type SocketStatus = 'connecting' | 'open' | 'closed';
 
 export interface SocketOptions<In> {
   url: () => string;
-  onMessage: (msg: In) => void;
+  /** `size`: the message as it came, in characters. */
+  onMessage: (msg: In, size: number) => void;
   onStatus?: (status: SocketStatus) => void;
   /** Called on a close the socket will not recover from (kicked, room gone, …). */
   onFatal?: (code: number) => void;
@@ -115,7 +116,7 @@ export class ReconnectingSocket<In, Out> {
       } catch {
         return;
       }
-      this.opts.onMessage(msg);
+      this.opts.onMessage(msg, (ev.data as string).length);
     };
     ws.onclose = (ev) => {
       if (this.ws !== ws) return;

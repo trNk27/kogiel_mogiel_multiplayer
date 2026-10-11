@@ -23,8 +23,15 @@ export class KitchenGame implements Game {
   private last = 0;
   private ticks = 0;
   private timer: number | undefined;
+  /** Not copied to second screens: they keep their own ticket elements. */
+  static readonly replicaSkip = ['ticketEls'];
+  /** A second screen's copy: the fields it keeps for itself. */
+  static replicaInit(g: KitchenGame) {
+    (g as { ticketEls: Map<number, HTMLElement> }).ticketEls = new Map();
+  }
   private canvas: HTMLCanvasElement | null = null;
-  private staticLayer: HTMLCanvasElement;
+  /** The kitchen without cooks and dishes, drawn once per level (made on first use). */
+  private staticLayer: HTMLCanvasElement | null = null;
   private popups: Popup[] = [];
   private lastCount = -1;
   private disposed = false;
@@ -42,12 +49,6 @@ export class KitchenGame implements Game {
     public ids: string[],
   ) {
     this.sim = this.makeSim(Math.max(0, Math.min(LEVELS.length - 1, host.options.level - 1)));
-    this.staticLayer = document.createElement('canvas');
-    this.staticLayer.width = CANVAS_W;
-    this.staticLayer.height = CANVAS_H;
-    this.paintStatic();
-    // Repaint once the station sprites have decoded.
-    void loadSprites().then(() => !this.disposed && this.paintStatic());
   }
 
   private makeSim(level: number) {
@@ -61,7 +62,15 @@ export class KitchenGame implements Game {
     return this.sim.levelIndex >= LEVELS.length - 1;
   }
 
+  /** The static layer, painted for this level (second screens replay this on a new level). */
   private paintStatic() {
+    if (!this.staticLayer) {
+      this.staticLayer = document.createElement('canvas');
+      this.staticLayer.width = CANVAS_W;
+      this.staticLayer.height = CANVAS_H;
+      // Repaint once the station sprites have decoded.
+      void loadSprites().then(() => !this.disposed && this.paintStatic());
+    }
     drawStatic(this.staticLayer.getContext('2d')!, this.sim);
   }
 
@@ -206,7 +215,8 @@ export class KitchenGame implements Game {
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
-    ctx.drawImage(this.staticLayer, 0, 0);
+    if (!this.staticLayer) this.paintStatic();
+    ctx.drawImage(this.staticLayer!, 0, 0);
     const looks = new Map<string, CookLook>();
     for (const c of this.sim.cooks) {
       const p = this.host.player(c.id);
@@ -230,8 +240,8 @@ export class KitchenGame implements Game {
       if (left !== this.lastCount) {
         this.lastCount = left;
         if (left <= 3 && left > 0) sound.count();
-        if (this.prepEl) this.prepEl.textContent = String(left);
       }
+      if (this.prepEl && this.prepEl.textContent !== String(left)) this.prepEl.textContent = String(left);
     }
     for (const o of sim.orders) {
       const el = this.ticketEls.get(o.id);
