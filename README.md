@@ -36,10 +36,13 @@ the notch) are added around controls, never taken out of them.
 | **Strzelnica** | Our take on Boo-ting Gallery: a fairground shooting gallery: steer a crosshair with the joystick, Fire corks and Reload. Ghosts 1, bats 2, golden ghost 5 – but shoot a babcia cut-out and you lose 3. | 1–8 |
 | **Babcia’s Cookbook** | Our take on Booksquirm: a giant page slams down on the book: stand in one of the holes cut in it to survive, and shove rivals out of it. Holes get smaller and pages faster. | 1–8 |
 | **Kafelki** | Inspired by Tiles and Tribulations: paint the kitchen floor your colour: walk, roll-dash and splat paint bombs while tiles crack and Babcia's mop sweeps. Most tiles wins. | 2–8 |
+| **Skakanka** | Our take on Hot Rope Jump (“skakanka” is Polish for a skipping rope): two babcias in a village yard turn a long rope of kiełbasa over a row of pierogi. Tap **JUMP** as it sweeps the ground; it turns faster and faster, with the odd sneaky lull or burst. Trip and you're out. Last one jumping wins. | 1–8 |
+| **Petarda** | Our take on Bowser's Big Blast: New Year's Eve in a snowy village square. A giant firecracker is wired to a row of plungers, one for each player, and only one is live. On your turn pick a plunger (◀ ▶) and **Push**: a dud fizzles, the live one blasts you over the rooftops. New plungers, one fewer, until one pierogi is left. | 2–8 |
+| **Babcia Mówi** | Our take on Shy Guy Says (“Babcia says”): Babcia calls the Polish flags from the shore of a lake – “RED up!”, “WHITE up!”, later “DON'T raise red!” and “BOTH up!”. Raise what she **says** on your phone (white left, red right) before time runs out; her own flags sometimes lie. Wrong or slow, and your plank tips you into the lake. | 1–8 |
 | **Maluch Rallye Premium** | Maluch Rally's big brother, a game of its own (the gold button at the top of the VIP's game list). It opens on a title screen where the camera flies over the tracks while four demo cars race and throw items. The VIP picks **Grand Prix** (Pierogi, Kompot, Barszcz or Babcia Cup: three named tracks in a row, 15/12/10/8 cup points per race) or **Tracks** (one race on any of the 12 named tracks, which are the same every time). Then everyone picks one of four cars, Mario Kart–style, each with its own **speed, acceleration, handling and off-road** stats, and says they're ready. The races play like Maluch Rally (same thumb pad, drifts and items). Never part of a tournament. | 1–4 (TV) |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
-The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
+The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda and Babcia Mówi – are inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
@@ -89,6 +92,9 @@ is played in its **short version** unless the VIP switched that off:
 | Strzelnica | 3 rounds of 30 s | 1 round of 40 s, everything mixed |
 | Babcia’s Cookbook | 3 rounds | 1 round |
 | Kafelki | 2 rounds of 60 s, tiles added up | 1 round of 45 s |
+| Skakanka | 3 rounds | 1 round |
+| Petarda | 2 rounds | 1 round |
+| Babcia Mówi | 2 rounds | 1 round |
 | Fajki | 60 s | 40 s |
 
 After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
@@ -245,9 +251,10 @@ client/src/phone/bazgroly.tsx  Bazgroły drawing, fake titles and guessing on th
 client/src/games/pedal|fork|parade/*  Tour de Pierogi, Fork Fight, Pierogi Parade (pure logic + TV views)
 client/src/phone/minigames.tsx   their phone controllers (pedals, the plate, the tap counter)
 client/src/phone/arenaPad.tsx    the arena games' phone pad: a joystick and up to two buttons
-client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts), pad input (input.ts) and no-TV snapshot playback (net.ts, mirror.ts)
+client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts), Babcia (babcia.ts), particles (puffs.ts), last-one-standing scoring (elimination.ts), pad input (input.ts) and no-TV snapshot playback (net.ts, mirror.ts)
 client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki, Pushy Pierogi, Strzelnica,
                             Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
+client/src/games/rope|blast|flags/*  Skakanka, Petarda, Babcia Mówi (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
 client/src/games/castle/*    Malbork Castle: waves, monsters, arrows and the volley skill (logic.ts), the 3D field, wall and monsters (scene.ts), TV view (CastleGame.tsx)
@@ -661,7 +668,7 @@ A round goes like this (timings at the top of
 
 ### Arena games
 
-Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook and Kafelki share one phone controller
+Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda and Babcia Mówi share one phone controller
 (`client/src/phone/arenaPad.tsx`): a floating joystick that fills most of the screen and up to two
 buttons under it. The host sends a `pad` view naming the buttons, with a cooldown deadline (`readyAt`)
 the phone animates itself, so cooldowns cost no extra messages. Phones send the stick as `stick {x, y}`
@@ -727,6 +734,27 @@ A tile-claiming brawl on a big old kitchen floor. Everyone is a pierogi in their
 - **Tribulations:** in the second half of the round a few tiles crack, then crumble into holes for 4 s before coming back as fresh, unclaimed tiles. Walk onto a hole and you fall in and respawn at the edge after 2 s. Babcia's mop sweeps two rows now and then, wiping them to white; it is announced with a striped warning band 1.8 s ahead.
 - **Rounds:** 2 rounds of 60 s, tile counts added up. The TV shows a live tile count per player, then a tally where the bars grow from last place to first.
 - Tuning is in `client/src/games/tiles/logic.ts` (speeds, cooldowns, stun, crack/hole times, round lengths).
+
+### Skakanka
+A village yard on a summer afternoon: a whitewashed cottage, a well, sunflowers along the fence. Two babcias turn a long string of kiełbasa links over a row of pierogi, who stand side by side. The phone is one big **JUMP** button (no joystick).
+- The rope starts at the top, comes down in front of the pierogi and sweeps along the ground under them. Whoever's feet are lower than 0.32 m at that moment trips and is out for the round; the rope's shadow darkens as it nears the ground, as a cue.
+- A jump lasts 0.47 s and clears the rope for about 0.31 s of it. You can't jump again in mid-air, but a press up to 0.1 s before landing jumps as soon as you touch down.
+- The first turn takes 1.9 s, then 1.55 s, each one 4.5 % quicker down to 0.66 s. From jump 8, about one turn in five is a surprise: a slow lull (×1.45, to catch out anyone who jumps on the beat) or a sudden burst (×0.8, never under 0.56 s; the TV shouts “Szybciej!”).
+- Points: one per player who tripped before you, plus 2 for the last one jumping (a tie shares it). Alone you score the jumps you cleared. The babcias stop after 45 jumps. 3 rounds, 1 in a tournament. Logic in `client/src/games/rope/logic.ts`.
+
+### Petarda
+New Year's Eve (Sylwester) in a snowy village square, with fireworks going off over the rooftops. A giant firecracker stands on a crate, wired to a row of detonator plungers: as many plungers as players still in, and exactly one of them is live.
+- Players take turns, starting with a random player (later, with the one after whoever was blasted last). On your turn your phone shows the joystick and a **Push!** button: lean ◀ ▶ to move along the free plungers (holding moves on every 0.32 s), then push. You have 6 s, or a plunger is pushed for you (1.2 s if your phone isn't connected).
+- A spark runs along the wire for 1.4 s. A dud fizzles out half-way (“Phew!”); the live one reaches the firecracker – BUM! – and blasts whoever pushed it high over the square, to land sooty beside the crate. Then a new firecracker drops in and the plungers are set up again, one fewer.
+- Everybody pushes once per set, so everybody has the same chance. If someone leaves mid-set, a dud is taken away so that stays true.
+- Points: one per player blasted before you, plus 2 for the survivor. 2 rounds, 1 in a tournament. Logic in `client/src/games/blast/logic.ts`.
+
+### Babcia Mówi
+A wooden jetty on a lake at sunset. Every pierogi stands on its own plank holding a white flag (on the TV's left) and a red one (on the right); Babcia stands on a crate on the shore with her own pair, and a big Polish flag flies behind her. The phone has two buttons, **White** (left) and **Red** (right).
+- Babcia calls a flag in a speech bubble (in English, with her Polish underneath). Calls 1–3 are “WHITE up!” or “RED up!”; from call 4 she also says “DON'T raise WHITE!” (raise red) and “DON'T raise RED!” (raise white); from call 9, now and then, “BOTH up!”.
+- Only her words count. On a “DON'T…” call she raises the flag she named, and from call 6 she sometimes raises the wrong flag on a plain call too.
+- You have 2.3 s for the first call, 6 % less each time, down to 0.9 s (BOTH gets 0.35 s extra). Raise a flag she didn't ask for, or not all of them in time, and your plank tips you into the lake. Presses between calls don't count. A call ends early once everybody has answered.
+- Points: one per player who fell in before you, plus 2 for the last one dry (a tie shares it). Alone you score the calls you got right. After 35 calls Babcia has lost her voice and the round ends. 2 rounds, 1 in a tournament. Logic in `client/src/games/flags/logic.ts`.
 
 `/?debug` on the TV exposes the room as `window.host`; `host.finish({...})` ends the current game
 with made-up scores, which is handy for walking through a tournament.
