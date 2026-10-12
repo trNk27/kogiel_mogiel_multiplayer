@@ -8,6 +8,7 @@ import { Icon as CookbookIcon } from '../games/cookbook/icon';
 import { Icon as TilesIcon } from '../games/tiles/icon';
 import { Icon as SmokeIcon } from '../games/smoke/icon';
 import { Icon as PremiumIcon } from '../games/premium/icon';
+import { Icon as CastleIcon } from '../games/castle/icon';
 
 /** Illustrated icons for the games (and the tournament). */
 export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }) {
@@ -19,6 +20,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
   if (game === 'tiles') return <TilesIcon size={size} />;
   if (game === 'smoke') return <SmokeIcon size={size} />;
   if (game === 'premium') return <PremiumIcon size={size} />;
+  if (game === 'castle') return <CastleIcon size={size} />;
   if (game === 'trails')
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">

@@ -6,6 +6,7 @@ import {
   KITCHEN_LEVELS,
   MAX_PLAYERS,
   RALLY_TRACKS,
+  SIEGE_MODES,
   TOURNAMENT_CANDIDATES,
   TOURNAMENT_MAX_GAMES,
   TOURNAMENT_MIN_GAMES,
@@ -40,6 +41,7 @@ import { BzDraw, BzGuess, BzLie, BzResult } from './bazgroly';
 import { ForkPad, ParadePad, PedalPad } from './minigames';
 import { ArenaPad } from './arenaPad';
 import { SmokePad } from './smoke';
+import { CastlePad } from './castle';
 
 export interface Props<V extends PhoneView['v']> {
   view: Extract<PhoneView, { v: V }>;
@@ -100,6 +102,8 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <SwapPad view={view} me={me} send={send} offset={offset} key={view.round} />;
     case 'smoke':
       return <SmokePad view={view} me={me} send={send} offset={offset} />;
+    case 'castle':
+      return <CastlePad view={view} me={me} send={send} offset={offset} />;
     case 'pad':
       return <ArenaPad view={view} me={me} send={send} offset={offset} key={view.game} />;
     case 'results':
@@ -208,6 +212,21 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
               </div>
             </div>
           </>
+        )}
+        {view.selected === 'castle' && (
+          <div class="segmented-wrap">
+            <div class="toggle-text">
+              <b>Difficulty</b>
+              <small>{SIEGE_MODES[view.options.siege - 1]?.hint}</small>
+            </div>
+            <div class="segmented n2">
+              {SIEGE_MODES.map((m, i) => (
+                <button class={view.options.siege === i + 1 ? 'on' : ''} onClick={() => send({ t: 'option', key: 'siege', value: i + 1 })}>
+                  <b>{m.name}</b>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         {!noTv && <Toggle label="🔊 TV sound" on={view.options.sound} onChange={(v) => send({ t: 'option', key: 'sound', value: v })} />}
       </div>
@@ -782,7 +801,7 @@ function Results({ view, me, send }: Props<'results'>) {
         <>
           <Stars n={view.coop.stars} size={64} />
           <p class="muted">
-            {view.coop.score.toLocaleString('en-US')} tips
+            {view.coop.score.toLocaleString('en-US')} {view.coop.unit ?? 'tips'}
           </p>
         </>
       ) : view.place > 0 ? (

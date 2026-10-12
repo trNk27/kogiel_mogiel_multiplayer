@@ -2,6 +2,7 @@ import {
   CLOSE,
   DEFAULT_OPTIONS,
   DIFFICULTIES,
+  SIEGE_MODES,
   KITCHEN_LEVELS,
   MAX_PLAYERS,
   RECONNECT_GRACE_MS,
@@ -432,8 +433,8 @@ export class HostController implements GameHost {
           this.options = { ...this.options, track: String(m.value) };
           sound.tick();
         }
-        else if (m.key === 'difficulty' || m.key === 'level') {
-          const max = m.key === 'difficulty' ? DIFFICULTIES.length : KITCHEN_LEVELS.length;
+        else if (m.key === 'difficulty' || m.key === 'level' || m.key === 'siege') {
+          const max = m.key === 'difficulty' ? DIFFICULTIES.length : m.key === 'siege' ? SIEGE_MODES.length : KITCHEN_LEVELS.length;
           const v = Math.round(Number(m.value));
           if (!(v >= 1 && v <= max)) return;
           this.options = { ...this.options, [m.key]: v };
@@ -807,7 +808,7 @@ export class HostController implements GameHost {
           score: st?.score ?? 0,
           players: s.standings.length,
           vip,
-          ...(s.coop ? { coop: { stars: s.coop.stars, score: s.coop.score } } : {}),
+          ...(s.coop ? { coop: { stars: s.coop.stars, score: s.coop.score, ...(s.coop.look ? { unit: s.coop.look.scoreUnit } : {}) } } : {}),
           ...(this.tournament ? { tour: this.tourView(id) } : {}),
           // Without a TV, every phone gets the scoreboard the TV would show.
           ...(this.noTv

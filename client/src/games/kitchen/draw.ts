@@ -19,14 +19,32 @@ const STEEL = { top: '#b6bfcb', front: '#6b7487', edge: '#e4e9f0' };
 const STOVE = { top: '#43434f', front: '#24242c', edge: '#686880' };
 const INK = '#2a120a';
 
+interface Theme {
+  tex: [Texture, Texture];
+  a: string;
+  b: string;
+  motif: string;
+  dot: string;
+  wall: string;
+  trim: string;
+  /** Laid over the floor texture, so later levels can reuse the tiles in a new colour. */
+  tint?: string;
+}
+
 /** Floor tiles and wall colours per level. */
-const THEMES = [
+const THEMES: Theme[] = [
   // Babcia's kitchen: cream and biscuit tiles with folk diamonds.
   { tex: ['floor-1a', 'floor-1b'], a: '#f8ecd2', b: '#ecd5aa', motif: 'rgba(214, 58, 79, 0.16)', dot: 'rgba(47, 95, 174, 0.18)', wall: '#5b2333', trim: '#e8335a' },
   // The village inn: warm terracotta.
   { tex: ['floor-2a', 'floor-2b'], a: '#f0cfa8', b: '#e2b68a', motif: 'rgba(120, 60, 20, 0.14)', dot: 'rgba(255, 244, 220, 0.4)', wall: '#3f2a1c', trim: '#ffc93c' },
   // The wedding hall: white and cobalt, like Boleslawiec pottery.
   { tex: ['floor-3a', 'floor-3b'], a: '#f6f3ec', b: '#dfe7f4', motif: 'rgba(47, 95, 174, 0.22)', dot: 'rgba(232, 51, 90, 0.25)', wall: '#26304f', trim: '#4f9dff' },
+  // The milk bar: white tiles gone a little mint, formica-green walls.
+  { tex: ['floor-3a', 'floor-3b'], a: '#eef6ef', b: '#d3eadc', motif: 'rgba(18, 145, 109, 0.2)', dot: 'rgba(255, 201, 60, 0.3)', wall: '#21453a', trim: '#2fd6a8', tint: 'rgba(47, 214, 168, 0.13)' },
+  // The mountain hut: dark wooden planks.
+  { tex: ['floor-2a', 'floor-2b'], a: '#c99a6b', b: '#b5845a', motif: 'rgba(60, 30, 10, 0.18)', dot: 'rgba(255, 244, 220, 0.3)', wall: '#3b2a20', trim: '#a3e048', tint: 'rgba(80, 40, 15, 0.22)' },
+  // Wigilia: the best tiles by candlelight, a deep blue night outside.
+  { tex: ['floor-1a', 'floor-1b'], a: '#f3e6cf', b: '#e4cfa3', motif: 'rgba(232, 51, 90, 0.2)', dot: 'rgba(255, 210, 63, 0.35)', wall: '#1d2748', trim: '#ffd23f', tint: 'rgba(255, 190, 90, 0.12)' },
 ];
 
 let bodyPath: Path2D | null = null;
@@ -121,7 +139,13 @@ export function drawStatic(ctx: Ctx, sim: KitchenSim) {
       }
       if (sim.stationAt(x, y)) continue;
       const dark = (x + y) % 2 === 1;
-      if (texture(ctx, th.tex[dark ? 1 : 0] as Texture, x * T, y * T, T, T)) continue;
+      if (texture(ctx, th.tex[dark ? 1 : 0], x * T, y * T, T, T)) {
+        if (th.tint) {
+          ctx.fillStyle = th.tint;
+          ctx.fillRect(x * T, y * T, T, T);
+        }
+        continue;
+      }
       ctx.fillStyle = dark ? th.b : th.a;
       ctx.fillRect(x * T, y * T, T, T);
       if (dark) {
@@ -157,7 +181,7 @@ export function drawStatic(ctx: Ctx, sim: KitchenSim) {
   for (const s of sim.stations) drawStationBase(ctx, sim, s);
 }
 
-function drawWall(ctx: Ctx, sim: KitchenSim, x: number, y: number, th: (typeof THEMES)[number]) {
+function drawWall(ctx: Ctx, sim: KitchenSim, x: number, y: number, th: Theme) {
   ctx.fillStyle = th.wall;
   ctx.fillRect(x * T, y * T, T, T);
   if (texture(ctx, 'wall', x * T, y * T, T, T)) {
@@ -229,7 +253,8 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
       sprite(ctx, 'flour', cx, cy, T * 0.86);
       break;
     case 'crate':
-      sprite(ctx, `crate-${s.crate!}`, cx, cy, T * 0.98);
+      // Crates only ever hold plain ingredients (mixed fillings are made on the board).
+      sprite(ctx, `crate-${s.crate!}` as Sprite, cx, cy, T * 0.98);
       break;
     case 'roll':
     case 'fold':
