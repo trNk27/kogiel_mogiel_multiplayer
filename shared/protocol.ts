@@ -156,7 +156,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
   { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
-  { id: 'castle', title: 'Obrona Wawelu', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
+  { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
     id: 'premium',
     title: 'Maluch Rallye Premium',
@@ -231,7 +231,7 @@ export interface LobbyOptions {
   difficulty: number;
   /** Pierogi Panic: level to start from (1-based). */
   level: number;
-  /** Obrona Wawelu: difficulty mode, 1-based index into SIEGE_MODES. */
+  /** Malbork Castle: difficulty mode, 1-based index into SIEGE_MODES. */
   siege: number;
   /** Maluch Rally: item boxes on the track. */
   items: boolean;
@@ -308,7 +308,7 @@ export const KITCHEN_LEVELS = [
 ] as const;
 
 /**
- * Obrona Wawelu difficulty modes. `count` scales how many monsters come, `hp` how much they take,
+ * Malbork Castle difficulty modes. `count` scales how many monsters come, `hp` how much they take,
  * `speed` how fast they walk, `dmg` how hard they hit the wall; `repair` is wall mended between waves.
  */
 export const SIEGE_MODES = [
@@ -585,8 +585,10 @@ export type PhoneView =
       levels: number;
     }
   /**
-   * Obrona Wawelu: the phone is a bow. `wall` is the castle wall's health in per cent; `phase` break is the
+   * Malbork Castle: the phone is a bow. `wall` is the castle wall's health in per cent; `phase` break is the
    * pause before a wave (`title` names it), won/lost the end. You can shoot in play and break.
+   * The volley skill: `volley` triple shots still loaded (0 = off); while it's off, `skillAt` is the host
+   * time (ms) it's ready again (absent: ready now) and `skillCool` the whole cooldown (ms).
    */
   | {
       v: 'castle';
@@ -596,6 +598,9 @@ export type PhoneView =
       wall: number;
       score: number;
       kills: number;
+      volley: number;
+      skillAt?: number;
+      skillCool: number;
       title?: string;
       text?: string;
     }
@@ -849,11 +854,11 @@ export type PhoneMsg =
   /** Arena pad: button `b` (index in the view's `buttons`) went down (`on`) or up. */
   | { t: 'btn'; b: number; on: boolean }
   /**
-   * Obrona Wawelu bow: aiming (sent while the drag changes, throttled), loosing the arrow, or easing off.
+   * Malbork Castle bow: aiming (sent while the drag changes, throttled), loosing the arrow, or easing off.
    * `a` is the angle in degrees from straight up (negative is left), `p` the draw 0–100, `c` a fully charged draw.
    */
   | { t: 'bow'; ev: 'aim' | 'fire' | 'cancel'; a: number; p: number; c?: boolean }
-  /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
+  /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts); Malbork Castle: the volley skill. */
   | { t: 'act' }
   /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number; `d` is the drift (0 none, 1 drifting, 2 blue sparks, 3 orange sparks). */
   | { t: 'car'; r: number; x: number; z: number; a: number; v: number; d?: number }

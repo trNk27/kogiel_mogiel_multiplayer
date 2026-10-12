@@ -1,12 +1,14 @@
 /**
- * Obrona Wawelu on the phone: the whole screen is a bow. Put a thumb down anywhere and pull back
+ * Malbork Castle on the phone: the whole screen is a bow. Put a thumb down anywhere and pull back
  * (down) to draw; sideways turns the aim. Let go to loose the arrow. Hold a full draw for a moment
  * and it glows: a charged arrow goes through several monsters. The aim line shows on the TV.
+ * Under the bow, the Volley button: once it has cooled down, tap it and the next shots fire three
+ * arrows in a row each.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { colorHex } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
-import { COOLDOWN_S, MAX_ANGLE, MIN_DRAW } from '../games/castle/logic';
+import { COOLDOWN_S, MAX_ANGLE, MIN_DRAW, VOLLEY_ARROWS, VOLLEY_SHOTS } from '../games/castle/logic';
 import type { Props } from './views';
 
 function vibrate(p: number | number[]) {
@@ -44,7 +46,7 @@ export function CastlePad({ view, me, send, offset }: Props<'castle'>) {
   return <Bow view={view} me={me} send={send} offset={offset} />;
 }
 
-function Bow({ view, me, send }: Props<'castle'>) {
+function Bow({ view, me, send, offset }: Props<'castle'>) {
   const color = colorHex(me.color);
   const zone = useRef<HTMLDivElement>(null);
   const sendRef = useRef(send);
@@ -65,7 +67,7 @@ function Bow({ view, me, send }: Props<'castle'>) {
     let readyAt = 0;
     let chargeTimer = 0;
     let nockTimer = 0;
-    // Keyboard on the /dev bench: ← → aim, hold Space to draw, let go to shoot.
+    // Keyboard on the /dev bench: ← → aim, hold Space to draw, let go to shoot, Shift for a volley.
     const keys = { l: false, r: false, space: false };
     let keyRaf = 0;
     let keyLast = 0;
@@ -158,6 +160,10 @@ function Bow({ view, me, send }: Props<'castle'>) {
     };
     const onKey = (down: boolean) => (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
+      if (k === 'shift') {
+        if (down && !e.repeat) sendRef.current({ t: 'act' });
+        return;
+      }
       if (k === 'arrowleft' || k === 'a') keys.l = down;
       else if (k === 'arrowright' || k === 'd') keys.r = down;
       else if (k === ' ' || k === 'enter') {
@@ -280,6 +286,64 @@ function Bow({ view, me, send }: Props<'castle'>) {
                     : `${Math.round(p * 100)}%`}
         </div>
       </div>
+      <VolleyButton view={view} offset={offset} onPress={() => send({ t: 'act' })} />
     </div>
+  );
+}
+
+/** The volley skill: cools down, then a tap loads three-arrow shots. `offset` turns host time into phone time. */
+function VolleyButton({ view, offset, onPress }: { view: Props<'castle'>['view']; offset: number; onPress: () => void }) {
+  const fill = useRef<HTMLDivElement>(null);
+  const [left, setLeft] = useState(0);
+  useEffect(() => {
+    if (!view.skillAt || view.volley > 0) {
+      setLeft(0);
+      return;
+    }
+    const until = view.skillAt + offset;
+    let raf = 0;
+    const loop = () => {
+      const ms = until - Date.now();
+      const k = Math.max(0, Math.min(1, 1 - ms / view.skillCool));
+      if (fill.current) fill.current.style.transform = `scaleX(${k})`;
+      setLeft(Math.max(0, Math.ceil(ms / 1000)));
+      if (ms > 0) raf = requestAnimationFrame(loop);
+    };
+    loop();
+    return () => cancelAnimationFrame(raf);
+  }, [view.skillAt, view.skillCool, view.volley, offset]);
+  const on = view.volley > 0;
+  const cooling = !on && left > 0;
+  const ready = !on && !cooling;
+  return (
+    <button
+      class={`cs-volley ${on ? 'on' : ''} ${cooling ? 'cooling' : ''} ${ready ? 'ready' : ''}`}
+      disabled={!ready}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        if (!ready) return;
+        onPress();
+        vibrate([20, 20, 20]);
+      }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {cooling && <div class="cs-volley-cool" ref={fill} />}
+      <span class="cs-volley-arrows" aria-hidden="true">
+        {Array.from({ length: VOLLEY_ARROWS }, () => (
+          <i />
+        ))}
+      </span>
+      <span>
+        {on ? (
+          <>
+            Volley! <b>{view.volley}</b> of {VOLLEY_SHOTS} shots left
+          </>
+        ) : cooling ? (
+          <>Volley in {left}s</>
+        ) : (
+          <>Volley ready – tap!</>
+        )}
+      </span>
+    </button>
   );
 }

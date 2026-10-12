@@ -1,10 +1,10 @@
-/* ---- Obrona Wawelu ---------------------------------------------------------------------- */
+/* ---- Malbork Castle: HUD over the 3D field ----------------------------------------------- */
 
 .castle {
   position: absolute;
   inset: -54px -96px;
   overflow: hidden;
-  background: #2c5530;
+  background: #000;
   animation: fade-in 0.4s both;
 }
 /* The room code would sit on top of the archers' name tags. */
@@ -16,6 +16,45 @@
   inset: 0;
   width: 1920px;
   height: 1080px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Points floating up over a monster that fell. */
+.castle-pop {
+  position: absolute;
+  translate: -50% -100%;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 38px;
+  color: var(--pc);
+  -webkit-text-stroke: 7px var(--ink);
+  paint-order: stroke fill;
+  white-space: nowrap;
+  animation: castle-pop 1.2s ease-out both;
+  pointer-events: none;
+  z-index: 2;
+}
+.castle-pop.big {
+  font-size: 66px;
+  -webkit-text-stroke-width: 10px;
+}
+@keyframes castle-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-70px);
+    opacity: 0;
+  }
 }
 
 /* HUD */

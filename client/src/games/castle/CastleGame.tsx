@@ -4,24 +4,39 @@ import type { Game, GameHost } from '../types';
 import { BigCountdown } from '../../host/components';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
-import { CastleSim, DT, END_S, H, MONSTERS, W, WAVES, type CEvent } from './logic';
-import { Effects, drawBackground, drawScene, type ArcherLook } from './draw';
+import { CastleSim, DT, END_S, MONSTERS, SKILL_COOLDOWN_S, WAVES, type CEvent } from './logic';
+import { ARENA_SCALE, CastleScene, type ArcherLook } from './scene';
 import './castle.css';
 
 /** How often the TV's HUD and the phones' views catch up (ms). */
 const HUD_MS = 150;
 const VIEW_MS = 250;
+/** Floating points stay up this long (ms). */
+const POP_MS = 1200;
 
-const WIN_LINES = ['', 'The wall held – just!', 'Wawel stands proud!', 'Legends of Kraków!'];
+const WIN_LINES = ['', 'The wall held – just!', 'Malbork stands proud!', 'Legends of Malbork!'];
+
+interface Pop {
+  id: number;
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  big: boolean;
+  until: number;
+}
 
 export class CastleGame implements Game {
   readonly id = 'castle' as const;
   sim: CastleSim;
   /** Host clock (Date.now) when the current break ends, for the countdown. */
   breakEndsAt = 0;
-  private fx = new Effects();
-  private bg: HTMLCanvasElement | null = null;
-  private ctx: CanvasRenderingContext2D | null = null;
+  /** Host clock (Date.now) when each archer's volley skill is ready again. */
+  skillReadyAt: number[];
+  pops: Pop[] = [];
+  glError = false;
+  private scene: CastleScene | null = null;
+  private popId = 0;
   private raf = 0;
   private acc = 0;
   private last = 0;
@@ -38,11 +53,14 @@ export class CastleGame implements Game {
   ) {
     this.sim = new CastleSim(ids.length, (Math.random() * 2 ** 31) | 0, host.options.siege);
     this.breakEndsAt = Date.now() + this.sim.breakEnds * 1000;
+    this.skillReadyAt = this.sim.archers.map((a) => Date.now() + a.skillAt * 1000);
     this.updateLooks();
   }
 
   start() {
     if (new URLSearchParams(location.search).has('debug')) (window as unknown as Record<string, CastleGame>).castle = this;
+    // The intro may have been up a while: the clocks the phones count down to start now.
+    this.skillReadyAt = this.sim.archers.map((a) => Date.now() + (a.skillAt - this.sim.t) * 1000);
     this.handle(this.sim.drain());
     this.last = performance.now();
     this.raf = requestAnimationFrame(this.frame);
@@ -57,19 +75,18 @@ export class CastleGame implements Game {
   }
 
   attach(canvas: HTMLCanvasElement) {
-    this.ctx = canvas.getContext('2d');
-    const bg = document.createElement('canvas');
-    bg.width = W;
-    bg.height = H;
-    drawBackground(bg.getContext('2d')!);
-    this.bg = bg;
-    // Repaint once the display font has loaded (the name tags use it).
-    void document.fonts?.ready.then(() => this.bg && drawBackground(this.bg.getContext('2d')!));
+    try {
+      this.scene = new CastleScene(canvas, this.looks);
+    } catch (err) {
+      console.error(err);
+      this.glError = true;
+      this.host.changed();
+    }
   }
 
   detach() {
-    this.ctx = null;
-    this.bg = null;
+    this.scene?.dispose();
+    this.scene = null;
   }
 
   private updateLooks() {
@@ -77,6 +94,13 @@ export class CastleGame implements Game {
       const p = this.host.player(id);
       return { color: colorHex(p?.color ?? 'sourcream'), name: p?.name ?? '?', connected: !!p?.connected };
     });
+    this.scene?.setLooks(this.looks);
+  }
+
+  private pop(at: { x: number; y: number; visible: boolean } | undefined, text: string, color: string, big = false) {
+    if (!at?.visible) return;
+    this.pops.push({ id: this.popId++, x: at.x, y: at.y, text, color, big, until: performance.now() + POP_MS });
+    if (this.pops.length > 30) this.pops.shift();
   }
 
   private update() {
@@ -96,8 +120,7 @@ export class CastleGame implements Game {
       this.sim.step(DT);
       this.handle(this.sim.drain());
     }
-    this.fx.step(elapsed);
-    if (this.ctx && this.bg) drawScene(this.ctx, this.bg, this.sim, this.looks, this.fx, now / 1000);
+    this.scene?.update(this.sim, elapsed);
     if (now - this.lastHud > HUD_MS) {
       this.lastHud = now;
       this.host.changed();
@@ -109,6 +132,7 @@ export class CastleGame implements Game {
   };
 
   private handle(events: CEvent[]) {
+    this.scene?.handle(events, this.sim, (i) => this.looks[i]?.color ?? '#fff');
     for (const ev of events) {
       switch (ev.e) {
         case 'wave':
@@ -132,32 +156,33 @@ export class CastleGame implements Game {
           sound.whoosh();
           if (ev.charged) this.host.buzz(this.ids[ev.by], [20, 30, 20]);
           break;
+        case 'skill': {
+          const a = this.sim.archers[ev.by];
+          if (ev.on) {
+            sound.pickup();
+            this.host.buzz(this.ids[ev.by], [30, 30, 30, 30, 60]);
+            if (a) this.pop(this.scene?.pointOverArcher(a.x), 'Volley!', '#ffd23f');
+          } else if (a) this.skillReadyAt[ev.by] = Date.now() + (a.skillAt - this.sim.t) * 1000;
+          this.host.refresh(this.ids[ev.by]);
+          break;
+        }
         case 'hit':
           sound.plop();
-          this.fx.burst(ev.x, ev.y, '#fff4dc', 6, 160);
           break;
         case 'kill': {
           const color = this.looks[ev.by]?.color ?? '#fff';
           const big = ev.kind === 'dragon';
-          this.fx.burst(ev.x, ev.y, color, big ? 60 : 16, big ? 520 : 280);
-          this.fx.pop(ev.x, ev.y - 30, big ? `Smok down! +${ev.pts}` : `+${ev.pts}`, color, big);
-          if (big) {
-            sound.fanfare();
-            this.fx.shake = 24;
-          } else if (ev.kind === 'fireball') sound.tick();
+          this.pop(this.scene?.pointOver(ev.kind, ev.x, ev.y), big ? `Smok down! +${ev.pts}` : `+${ev.pts}`, color, big);
+          if (big) sound.fanfare();
+          else if (ev.kind === 'fireball') sound.tick();
           else sound.pickup();
           this.host.buzz(this.ids[ev.by], big ? [80, 40, 80, 40, 160] : [30]);
           break;
         }
         case 'wall': {
-          this.fx.dust(ev.x);
-          if (ev.kind === 'fireball') {
-            this.fx.burst(ev.x, 850, '#ff9a3c', 22, 320);
-            this.fx.shake = Math.max(this.fx.shake, 14);
-            sound.crash();
-          } else if (performance.now() - this.lastThump > 400) {
+          if (ev.kind === 'fireball') sound.crash();
+          else if (performance.now() - this.lastThump > 400) {
             this.lastThump = performance.now();
-            this.fx.shake = Math.max(this.fx.shake, ev.kind === 'giant' ? 12 : 4);
             sound.tick();
           }
           break;
@@ -165,16 +190,10 @@ export class CastleGame implements Game {
         case 'fire':
           sound.whoosh();
           break;
-        case 'summon':
-          this.fx.burst(ev.x, ev.y, '#6b4590', 20, 260);
-          break;
         case 'won':
         case 'lost':
           if (ev.e === 'won') sound.fanfare();
-          else {
-            sound.wrong();
-            this.fx.shake = 30;
-          }
+          else sound.wrong();
           for (const id of this.ids) this.host.buzz(id, ev.e === 'won' ? [60, 40, 60, 40, 120] : [300]);
           clearTimeout(this.endTimer);
           this.endTimer = window.setTimeout(() => this.finish(), END_S * 1000);
@@ -213,9 +232,13 @@ export class CastleGame implements Game {
   // ---- phones --------------------------------------------------------------------
 
   onMessage(id: string, m: PhoneMsg) {
-    if (m.t !== 'bow') return;
     const i = this.ids.indexOf(id);
     if (i < 0) return;
+    if (m.t === 'act') {
+      this.sim.skill(i);
+      return;
+    }
+    if (m.t !== 'bow') return;
     const a = Number(m.a);
     const p = Number(m.p) / 100;
     if (!Number.isFinite(a) || !Number.isFinite(p)) return;
@@ -251,12 +274,15 @@ export class CastleGame implements Game {
       wall: Math.ceil((100 * sim.wall) / sim.wallMax),
       score: a?.points ?? 0,
       kills: a?.kills ?? 0,
+      volley: a?.volley ?? 0,
+      skillCool: SKILL_COOLDOWN_S * 1000,
+      ...(a && a.volley === 0 && sim.t < a.skillAt ? { skillAt: this.skillReadyAt[i] } : {}),
     };
     if (sim.phase === 'won') return { ...base, phase: 'won', title: 'Victory!', text: WIN_LINES[sim.stars] };
     if (sim.phase === 'lost') return { ...base, phase: 'lost', title: 'The castle has fallen!', text: '📺' };
     if (sim.phase === 'break') return { ...base, phase: 'break', title: `Wave ${sim.wave}: ${sim.current.name}`, text: sim.current.news };
     const dragon = sim.dragon;
-    return { ...base, phase: 'play', ...(dragon ? { title: 'Smok Wawelski!', text: 'Shoot down his fireballs!' } : {}) };
+    return { ...base, phase: 'play', ...(dragon ? { title: 'Smok!', text: 'Shoot down his fireballs!' } : {}) };
   }
 
   // ---- TV --------------------------------------------------------------------------
@@ -281,9 +307,17 @@ function CastleView({ game }: { game: CastleGame }) {
   const dragon = sim.dragon;
   const mode = siegeMode(sim.mode);
   const wave = sim.current;
+  const now = performance.now();
+  game.pops = game.pops.filter((p) => p.until > now);
   return (
     <div class="castle">
-      <canvas ref={canvas} class="castle-canvas" width={W} height={H} />
+      <canvas ref={canvas} class="castle-canvas" width={Math.round(1920 * ARENA_SCALE)} height={Math.round(1080 * ARENA_SCALE)} />
+      {game.pops.map((p) => (
+        <div class={`castle-pop ${p.big ? 'big' : ''}`} key={p.id} style={{ left: p.x, top: p.y, '--pc': p.color }}>
+          {p.text}
+        </div>
+      ))}
+      {game.glError && <div class="rally-count small">This screen can’t show 3D graphics (WebGL is off).</div>}
       <div class="castle-top">
         <div class="pill castle-wave">
           Wave {sim.wave} / {sim.waves}
@@ -300,7 +334,7 @@ function CastleView({ game }: { game: CastleGame }) {
       </div>
       {dragon && sim.phase === 'play' && (
         <div class="castle-boss pop-in">
-          <span>Smok Wawelski</span>
+          <span>Smok</span>
           <div class="castle-boss-bar">
             <i style={{ width: `${(100 * Math.max(0, dragon.hp)) / dragon.maxHp}%` }} />
           </div>
@@ -323,7 +357,7 @@ function CastleView({ game }: { game: CastleGame }) {
               <span class="castle-cast-chip">{MONSTERS[k].name}</span>
             ))}
           </div>
-          {sim.wave === 1 && <div class="castle-howto">On your phone: drag back to draw · aim · let go</div>}
+          {sim.wave === 1 && <div class="castle-howto">On your phone: drag back to draw · aim · let go · tap Volley</div>}
         </div>
       )}
       {sim.phase === 'break' && (
@@ -333,7 +367,7 @@ function CastleView({ game }: { game: CastleGame }) {
       )}
       {sim.over && (
         <div class={`trails-banner castle-banner castle-end ${sim.phase} pop-in`}>
-          <div class="trails-banner-big">{sim.phase === 'won' ? 'Wawel stands!' : 'The castle has fallen!'}</div>
+          <div class="trails-banner-big">{sim.phase === 'won' ? 'Malbork stands!' : 'The castle has fallen!'}</div>
           <div class="castle-news">
             {sim.phase === 'won' ? WIN_LINES[sim.stars] : `You held ${sim.wave - 1} of ${sim.waves} waves`} · {sim.kills} monsters slain
           </div>

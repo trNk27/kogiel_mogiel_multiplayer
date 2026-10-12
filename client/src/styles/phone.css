@@ -3214,7 +3214,7 @@ body.phone-body input {
   }
 }
 
-/* ---- Obrona Wawelu: the bow ---- */
+/* ---- Malbork Castle: the bow ---- */
 
 .cs-pad {
   gap: 10px;
@@ -3300,4 +3300,81 @@ body.phone-body input {
 }
 .cs-zone.charged .cs-hint {
   color: var(--yolk);
+}
+/* The volley skill button under the bow. */
+.cs-volley {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 24px;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 22px;
+  color: var(--ink);
+  background: var(--yolk);
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.22);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.cs-volley span {
+  position: relative;
+}
+.cs-volley.ready {
+  animation: cs-ready 1s ease-in-out infinite;
+}
+@keyframes cs-ready {
+  50% {
+    filter: brightness(1.18);
+    transform: scale(1.02);
+  }
+}
+.cs-volley.on {
+  color: var(--yolk);
+  background: color-mix(in srgb, var(--yolk) 18%, var(--panel));
+  box-shadow: inset 0 0 0 3px var(--yolk);
+}
+.cs-volley.on b {
+  font-size: 28px;
+}
+.cs-volley.cooling {
+  color: rgba(251, 240, 217, 0.6);
+  background: rgba(251, 240, 217, 0.1);
+}
+.cs-volley-cool {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: color-mix(in srgb, var(--yolk) 28%, transparent);
+  pointer-events: none;
+}
+/* Three little arrows in a row. */
+.cs-volley-arrows {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cs-volley-arrows i {
+  display: block;
+  position: relative;
+  width: 34px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.cs-volley-arrows i::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: -4px;
+  border: 6px solid transparent;
+  border-left: 8px solid currentColor;
+  border-right: 0;
 }

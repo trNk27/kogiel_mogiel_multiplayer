@@ -6,7 +6,12 @@ import {
   CastleSim,
   DT,
   MONSTERS,
+  MONSTER_SCALE,
   RANGE_MAX,
+  SKILL_COOLDOWN_S,
+  VOLLEY_ARROWS,
+  VOLLEY_GAP_S,
+  VOLLEY_SHOTS,
   WALL_HP,
   WALL_Y,
   WAVES,
@@ -169,6 +174,78 @@ describe('castle shooting', () => {
   });
 });
 
+describe('castle volley', () => {
+  it('is ready only after its cooldown, then loads five shots of three arrows', () => {
+    const sim = new CastleSim(1, 1, 2);
+    expect(sim.skill(0)).toBe(false);
+    run(sim, SKILL_COOLDOWN_S + 0.05);
+    expect(sim.skill(0)).toBe(true);
+    expect(sim.archers[0].volley).toBe(VOLLEY_SHOTS);
+    expect(sim.drain().filter((e) => e.e === 'skill')).toEqual([{ e: 'skill', by: 0, on: true }]);
+    // Pressing it again while it's on does nothing.
+    expect(sim.skill(0)).toBe(false);
+  });
+
+  it('looses three arrows in a row along the same line for each of the next five shots', () => {
+    const sim = fighting();
+    sim.archers[0].skillAt = 0;
+    expect(sim.skill(0)).toBe(true);
+    const line = [700, 550, 400].map((y) => {
+      const m = sim.spawn({ kind: 'giant', x: 960, y });
+      m.speed = 0;
+      return m;
+    });
+    expect(sim.fire(0, 0, 1)).toBe(true);
+    expect(sim.arrows).toHaveLength(1);
+    run(sim, VOLLEY_GAP_S * (VOLLEY_ARROWS - 1) + 0.02);
+    expect(sim.archers[0].shots).toBe(VOLLEY_ARROWS);
+    run(sim, 0.6);
+    // All three stop at the first giant in the line.
+    expect(line.map((m) => m.hp)).toEqual([8 - VOLLEY_ARROWS, 8, 8]);
+    expect(sim.archers[0].volley).toBe(VOLLEY_SHOTS - 1);
+    for (let k = 1; k < VOLLEY_SHOTS; k++) {
+      run(sim, COOLDOWN_S);
+      expect(sim.fire(0, 0, 1)).toBe(true);
+    }
+    expect(sim.archers[0].volley).toBe(0);
+    const events = sim.drain();
+    expect(events.filter((e) => e.e === 'skill')).toEqual([
+      { e: 'skill', by: 0, on: true },
+      { e: 'skill', by: 0, on: false },
+    ]);
+    // The cooldown starts again once the last volley shot is loosed; single arrows from now on.
+    expect(sim.archers[0].skillAt).toBeCloseTo(sim.t + SKILL_COOLDOWN_S);
+    expect(sim.skill(0)).toBe(false);
+    run(sim, 1);
+    const before = sim.archers[0].shots;
+    sim.fire(0, 0, 1);
+    run(sim, 0.3);
+    expect(sim.archers[0].shots).toBe(before + 1);
+  });
+
+  it('keeps the charge on every arrow of a volley shot', () => {
+    const sim = fighting();
+    sim.archers[0].skillAt = 0;
+    sim.skill(0);
+    sim.fire(0, 0, 1, true);
+    run(sim, VOLLEY_GAP_S * VOLLEY_ARROWS);
+    expect(sim.arrows.every((a) => a.charged && a.dmg === 2)).toBe(true);
+    expect(sim.arrows).toHaveLength(VOLLEY_ARROWS);
+  });
+
+  it('can’t be used by an archer who left, and drops their waiting arrows', () => {
+    const sim = fighting(2);
+    for (const a of sim.archers) a.skillAt = 0;
+    sim.skill(0);
+    sim.fire(0, 0, 1);
+    sim.remove(0);
+    run(sim, 0.5);
+    expect(sim.archers[0].shots).toBe(1);
+    expect(sim.skill(0)).toBe(false);
+    expect(sim.skill(1)).toBe(true);
+  });
+});
+
 describe('castle siege', () => {
   it('lets monsters that reach the wall wear it down, and the castle falls at zero', () => {
     const sim = fighting();
@@ -186,7 +263,7 @@ describe('castle siege', () => {
     expect(sim.fire(0, 0, 1)).toBe(false);
   });
 
-  it('plays all five waves, with Smok Wawelski in the last, and gives stars for the wall left', () => {
+  it('plays all five waves, with Smok in the last, and gives stars for the wall left', () => {
     const sim = new CastleSim(4, 3, 2);
     const waves: number[] = [];
     let dragon = false;
@@ -240,6 +317,13 @@ describe('castle siege', () => {
     expect(starsFor(true, 0.1)).toBe(1);
     expect(starsFor(true, 0.5)).toBe(2);
     expect(starsFor(true, 0.9)).toBe(3);
+  });
+
+  it('makes the monsters 20 % bigger than they were', () => {
+    expect(MONSTER_SCALE).toBe(1.2);
+    expect(MONSTERS.imp.r).toBeCloseTo(36);
+    expect(MONSTERS.giant.r).toBeCloseTo(69.6);
+    expect(MONSTERS.fireball.r).toBe(26);
   });
 
   it('describes every wave with monsters that exist', () => {
