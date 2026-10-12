@@ -5,6 +5,8 @@ type Wave = OscillatorType;
 export class Sound {
   private ctx: AudioContext | null = null;
   muted = false;
+  /** Told when each effect will have finished (context time), so the music can make room for it. */
+  onPlay: ((end: number) => void) | null = null;
 
   /** Must be called from a user gesture at least once (browser autoplay rules). */
   unlock() {
@@ -31,6 +33,7 @@ export class Sound {
     osc.connect(gain).connect(this.ctx.destination);
     osc.start(t0);
     osc.stop(t0 + dur + 0.05);
+    this.onPlay?.(t0 + dur);
   }
 
   private noise(dur: number, vol = 0.25, delay = 0) {
@@ -48,6 +51,7 @@ export class Sound {
     src.buffer = buf;
     src.connect(filter).connect(gain).connect(ctx.destination);
     src.start(ctx.currentTime + delay);
+    this.onPlay?.(ctx.currentTime + delay + dur);
   }
 
   join() {

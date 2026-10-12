@@ -1,7 +1,10 @@
 /**
  * The soundtrack, written out note by note. Each part is a string of steps:
  *   `D5` a note · `D4+F#4+A4` several at once · `-` hold the last one a step longer · `.` rest · `|` ignored.
- * Drum parts use k kick, s snare, h hat, o open hat, r rim, b brush, c clap, x shaker.
+ *   `D5!` accented · `D5?` a ghost note (each note of a chord can have its own) · `C#5>D5` a grace note into D5 ·
+ *   `D5~E5` a trill with E5 · `/D5` a slide into D5 from the part's previous note.
+ * A part is written in its track's steps per beat unless it has its own (`steps: 4` for sixteenths).
+ * Drum parts use k kick, s snare, h hat, o open hat, r rim, b brush, c clap, x shaker, and take `!` and `?` too.
  * The helpers below spell out the oom-pahs, walking basses and arpeggios from a chord per bar.
  */
 
@@ -11,6 +14,14 @@ export interface PartDef {
   inst: Inst;
   vol: number;
   seq: string;
+  /** Steps per beat, when the part isn't written in its track's (4 = sixteenths). */
+  steps?: number;
+  /** Where it sits, from -1 (left) to 1 (right). */
+  pan?: number;
+  /** How much goes to the room reverb (0–1), when not the instrument's usual amount. */
+  rev?: number;
+  /** How much goes to the track's echo (0–1). */
+  echo?: number;
 }
 
 export interface TrackDef {
@@ -22,6 +33,10 @@ export interface TrackDef {
   bars: number;
   /** Delay of every other step, as a fraction of a step (0.33 is a jazzy swing). */
   swing?: number;
+  /** A tempo echo: its time in beats (0.75 is a dotted eighth) and how much of each repeat comes back. */
+  echo?: { beats: number; feedback: number };
+  /** How far each kick pushes the other parts down (0–1), the dance-music "pump". */
+  pump?: number;
   parts: PartDef[];
 }
 
@@ -73,7 +88,15 @@ function perBar(chords: string[], pattern: string, voice: (c: { root: number; iv
   return chords
     .map((bar) => {
       const cs = bar.trim().split(/\s+/).map(chord);
-      return toks.map((tok, j) => (tok === '.' || tok === '-' ? tok : voice(cs[Math.floor((j * cs.length) / toks.length)], tok))).join(' ');
+      return toks
+        .map((tok, j) => {
+          if (tok === '.' || tok === '-') return tok;
+          // A `!` or `?` on a pattern token goes on every note it plays.
+          const vel = /[!?]$/.test(tok) ? tok.slice(-1) : '';
+          const notes = voice(cs[Math.floor((j * cs.length) / toks.length)], vel ? tok.slice(0, -1) : tok);
+          return vel ? notes.split('+').map((n) => n + vel).join('+') : notes;
+        })
+        .join(' ');
     })
     .join(' | ');
 }
@@ -116,13 +139,13 @@ const LOBBY_A = ['D', 'A7', 'D', 'G', 'D', 'Bm', 'E7', 'A7', 'G', 'D', 'A7', 'D'
 const LOBBY_B = ['Bm', 'F#7', 'Bm', 'Bm', 'G', 'D', 'E7', 'A7', 'G', 'D', 'A7', 'D', 'G', 'D', 'Em A7', 'D'];
 const LOBBY_CHORDS = [...LOBBY_A, ...LOBBY_B];
 const LOBBY_TUNE_END = `
-  B4 - D5 - G5 - | F#5 - E5 D5 A4 - | C#5 - E5 - G5 - | F#5 - - - D5 - |
-  B4 - D5 - B4 G4 | A4 - F#4 - D4 - | E4 G4 B4 - C#5 - | D5 - - - . . |`;
+  B4 - D5 - G5 - | F#5 - E5 D5 A4 - | C#5 - E5 - G5 - | F#5~G5 - - - D5 - |
+  B4 - D5 - B4 G4 | A4 - F#4 - D4 - | E4 G4 B4 - C#5 - | C#5>D5 - - - . . |`;
 const LOBBY_TUNE = `
-  F#4 - A4 - D5 - | C#5 - B4 A4 G4 - | F#4 G4 A4 - F#4 D4 | G4 - - - B4 - |
+  E4>F#4 - A4 - D5! - | C#5 - B4 A4 G4 - | F#4 G4 A4 - F#4 D4 | G4~A4 - - - B4 - |
   A4 - F#4 - A4 - | D5 - C#5 B4 F#4 - | G#4 - B4 - E5 D5 | C#5 - - - A4 - |
   ${LOBBY_TUNE_END}
-  B4 - D5 - F#5 - | E5 - C#5 - A#4 - | B4 C#5 D5 - B4 F#4 | F#4 - - - . . |
+  B4 - D5 - F#5! - | E5 - C#5 - A#4 - | B4 C#5 D5 - B4 F#4 | F#4~G4 - - - . . |
   G4 - B4 - D5 - | F#5 - E5 - D5 - | E5 - D5 B4 G#4 - | A4 - - - G4 - |
   ${LOBBY_TUNE_END}`;
 
@@ -133,11 +156,11 @@ const lobby: TrackDef = {
   beatsPerBar: 3,
   bars: 32,
   parts: [
-    { inst: 'bass', vol: 0.32, seq: bass(LOBBY_CHORDS, '1 - . . 5 .') },
-    { inst: 'accordion', vol: 0.07, seq: comp(LOBBY_CHORDS, '. . x . x .') },
-    { inst: 'accordion', vol: 0.16, seq: LOBBY_TUNE },
-    { inst: 'bell', vol: 0.05, seq: rep('. . . . . .', 7) + ' | . . . . A5 . | ' + rep('. . . . . .', 15) + ' | . . . . F#5 . | ' + rep('. . . . . .', 7) + ' | . . . . D6 .' },
-    { inst: 'drums', vol: 0.5, seq: rep('k . x . x .', 32) },
+    { inst: 'bass', vol: 0.32, seq: bass(LOBBY_CHORDS, '1! - . . 5 .') },
+    { inst: 'accordion', vol: 0.07, pan: -0.35, seq: comp(LOBBY_CHORDS, '. . x! . x .') },
+    { inst: 'accordion', vol: 0.16, pan: 0.1, seq: LOBBY_TUNE },
+    { inst: 'bell', vol: 0.05, pan: 0.45, seq: rep('. . . . . .', 7) + ' | . . . . A5 . | ' + rep('. . . . . .', 15) + ' | . . . . F#5 . | ' + rep('. . . . . .', 7) + ' | . . . . D6 .' },
+    { inst: 'drums', vol: 0.5, seq: rep('k . x! . x x?', 32) },
   ],
 };
 
@@ -153,19 +176,22 @@ const quiz: TrackDef = {
   beatsPerBar: 4,
   bars: 16,
   swing: 0.2,
+  echo: { beats: 0.75, feedback: 0.3 },
   parts: [
-    { inst: 'bass', vol: 0.3, seq: bass([...QUIZ_CHORDS, ...QUIZ_CHORDS], '1 . 5 . 8 . 5 .') },
-    { inst: 'ep', vol: 0.08, seq: comp([...QUIZ_CHORDS, ...QUIZ_CHORDS], '. x . . . x . .') },
+    { inst: 'bass', vol: 0.3, seq: bass([...QUIZ_CHORDS, ...QUIZ_CHORDS], '1! . 5 . 8 . 5 .') },
+    { inst: 'ep', vol: 0.08, pan: -0.3, seq: comp([...QUIZ_CHORDS, ...QUIZ_CHORDS], '. x . . . x! . .') },
     {
       inst: 'pluck',
       vol: 0.17,
+      pan: 0.15,
+      echo: 0.22,
       seq: `
-        A4 . C5 . E5 . D5 . | C5 . A4 . F4 - - . | G4 . B4 . D5 . F5 . | E5 - - . . . . . |
-        F4 . A4 . C5 . E5 . | D5 . C5 . A4 - . . | G#4 . B4 . D5 . E5 . | C5 - B4 - A4 - . . |
+        A4 . C5 . E5 . D5 . | C5 . A4 . F4 - - . | G4 . B4 . D5 . F5 . | D#5>E5 - - . . . . . |
+        F4 . A4 . C5 . E5 . | D5 . C5 . A4 - . . | G#4 . B4 . D5 . E5 . | C5 - B4 - A4! - . . |
         E5 . . E5 D5 . C5 . | D5 . . D5 C5 . A4 . | B4 . . B4 A4 . G4 . | G4 - - - E4 - - . |
         A4 . C5 . F5 . E5 . | D5 . F5 . A5 - . . | G#5 . E5 . B4 . D5 . | C5 - - - A4 - . . |`,
     },
-    { inst: 'drums', vol: 0.4, seq: rep('k+h . r+h . h . r+h .', 15) + ' | k+h . r+h . r r r r' },
+    { inst: 'drums', vol: 0.4, seq: rep('k+h . r+h . h . r+h h?', 15) + ' | k+h . r+h . r? r r! r!' },
   ],
 };
 
@@ -180,20 +206,24 @@ const polka: TrackDef = {
   steps: 2,
   beatsPerBar: 2,
   bars: 16,
+  pump: 0.15,
   parts: [
-    { inst: 'bass', vol: 0.34, seq: bass(POLKA_CHORDS, '1 . 5- .') },
-    { inst: 'accordion', vol: 0.07, seq: comp(POLKA_CHORDS, '. x . x') },
+    { inst: 'bass', vol: 0.34, seq: bass(POLKA_CHORDS, '1! . 5- .') },
+    { inst: 'accordion', vol: 0.07, pan: -0.35, seq: comp(POLKA_CHORDS, '. x! . x') },
     {
       inst: 'accordion',
-      vol: 0.15,
+      vol: 0.16,
+      pan: 0.1,
+      steps: 4,
       seq: `
-        D5 B4 G4 B4 | A4 F#4 D4 F#4 | A4 B4 C5 A4 | B4 - G4 . |
-        D5 B4 G4 B4 | C5 A4 F#4 A4 | C5 B4 A4 F#4 | G4 - - . |
-        E5 - G5 E5 | D5 - B4 G4 | A4 B4 C5 D5 | B4 - G4 . |
-        E5 G5 E5 C5 | D5 B4 G4 D5 | C5 A4 F#4 A4 | G4 - G5 . |`,
+        D5! . B4 . G4 . B4 . | A4! . F#4 . D4 . F#4 . | A4! . B4 . C5 B4 C5 A4 | B4! - - . G4 . . . |
+        D5! . B4 . G4 . B4 . | C5! . A4 . F#4 . A4 . | C5! . B4 . A4 G4 A4 F#4 | G4! - - - - . . . |
+        E5! - - . G5 . E5 . | C#5>D5! - - . B4 . G4 . | A4 . B4 . C5 . D5 . | B4~C5 - - . G4 . . . |
+        E5! . G5 . E5 . C5 . | D5! . B4 . G4 . D5 . | C5 D5 C5 A4 F#4 G4 A4 F#4 | G4! . D5 . G5! . . . |`,
     },
-    { inst: 'lead', vol: 0.05, seq: rep('. . . .', 8) + ' | ' + 'C5 - - - | B4 - - - | F#4 - A4 - | G4 - - - | C5 - E5 - | B4 - D5 - | A4 - C5 - | B4 - - -' },
-    { inst: 'drums', vol: 0.45, seq: rep('k s k s', 15) + ' | k s s s' },
+    { inst: 'lead', vol: 0.05, pan: 0.4, seq: rep('. . . .', 8) + ' | ' + 'C5 - - - | B4 - - - | F#4 - A4 - | G4 - - - | C5 - E5 - | B4 - D5 - | A4 - C5 - | B4 - - -' },
+    { inst: 'drums', vol: 0.45, seq: rep('k s! k s', 15) + ' | k s s! s!' },
+    { inst: 'drums', vol: 0.28, pan: 0.25, steps: 4, seq: rep('x? x? x x?', 32) },
   ],
 };
 
@@ -208,20 +238,24 @@ const arena: TrackDef = {
   steps: 2,
   beatsPerBar: 4,
   bars: 16,
+  pump: 0.35,
+  echo: { beats: 0.75, feedback: 0.35 },
   parts: [
-    { inst: 'bass', vol: 0.3, seq: bass(ARENA_CHORDS, '1 8 1 8 1 8 1 8') },
+    { inst: 'bass', vol: 0.3, seq: bass(ARENA_CHORDS, '1! 8 1 8 1! 8 1 8') },
     { inst: 'pad', vol: 0.05, seq: comp(ARENA_CHORDS, 'x - - - - - - -') },
     {
       inst: 'lead',
       vol: 0.1,
+      echo: 0.18,
       seq: `
         E5 . B4 . E5 . G5 F#5 | E5 . C5 . G4 . C5 . | D5 . A4 . D5 . F#5 E5 | B4 - - . . . . . |
-        E5 . B4 . E5 . G5 A5 | G5 . E5 . C5 . E5 . | F#5 . D5 . A4 . D5 . | D#5 - F#5 - B5 - - . |
-        G5 - - - - - - - | E5 - - - - - - - | F#5 - - - A5 - - - | B5 - - - - - - . |
+        E5 . B4 . E5 . G5 A5 | G5 . E5 . C5 . E5 . | F#5 . D5 . A4 . D5 . | D#5 - F#5 - /B5 - - . |
+        G5! - - - - - - - | E5 - - - - - - - | F#5 - - - A5 - - - | /B5 - - - - - - . |
         E5 - - - G5 - - - | C6 - - - B5 - - - | A5 - - - F#5 - - - | D#5 - - - F#5 - B5 - |`,
     },
-    { inst: 'pluck', vol: 0.08, seq: rep('. . . . . . . .', 8) + ' | ' + arp(ARENA_CHORDS.slice(8), '1 2 3 4 3 2 1 2', 64) },
-    { inst: 'drums', vol: 0.5, seq: rep('k h s h k k s h', 7) + ' | k h s h s s c c | ' + rep('k h s h k k s h', 7) + ' | k h s s s s c c' },
+    { inst: 'pluck', vol: 0.08, pan: 0.4, echo: 0.25, seq: rep('. . . . . . . .', 8) + ' | ' + arp(ARENA_CHORDS.slice(8), '1! 2 3 4 3 2 1 2', 64) },
+    { inst: 'drums', vol: 0.5, seq: rep('k . s! . k k s! s?', 7) + ' | k . s! . s s! c! c! | ' + rep('k . s! . k k s! s?', 7) + ' | k . s! s s! s c! c!' },
+    { inst: 'drums', vol: 0.3, pan: 0.2, steps: 4, seq: rep('h h? h h? h h? h h? h h? h h? h h? h h?', 15) + ' | h h? h h? h h? h h? o . . . . . . .' },
   ],
 };
 
@@ -236,19 +270,23 @@ const race: TrackDef = {
   steps: 2,
   beatsPerBar: 4,
   bars: 16,
+  pump: 0.4,
+  echo: { beats: 0.75, feedback: 0.3 },
   parts: [
-    { inst: 'bass', vol: 0.3, seq: bass(RACE_CHORDS, '1 1 8 1 1 1 8 1') },
-    { inst: 'pluck', vol: 0.06, seq: arp(RACE_CHORDS, '1 3 5 3 2 3 5 3', 57) },
+    { inst: 'bass', vol: 0.3, seq: bass(RACE_CHORDS, '1! 1 8 1 1! 1 8 1') },
+    { inst: 'pluck', vol: 0.06, pan: -0.35, echo: 0.3, seq: arp(RACE_CHORDS, '1 3 5 3 2 3 5 3', 57) },
     {
       inst: 'lead',
       vol: 0.1,
+      echo: 0.15,
       seq: `
         A5 - G5 - E5 - D5 E5 | D5 - B4 - G4 - B4 D5 | C5 - A4 - F4 - A4 C5 | B4 - D5 - G5 - - - |
         A5 - G5 - E5 - D5 E5 | B5 - A5 - G5 - D5 - | C6 - A5 - F5 - C5 - | B5 - G#5 - E5 - - - |
-        A5 - - - C6 - A5 - | B5 - - - D6 - B5 - | C6 - B5 - A5 - E5 - | A5 - - - - - . . |
-        F5 - A5 - C6 - A5 - | G5 - B5 - D6 - B5 - | G#5 - B5 - E6 - D6 - | B5 - G#5 - E5 - D5 - |`,
+        A5! - - - /C6 - A5 - | B5! - - - /D6 - B5 - | C6 - B5 - A5 - E5 - | A5 - - - - - . . |
+        F5 - A5 - C6 - A5 - | G5 - B5 - D6 - B5 - | G#5 - B5 - /E6 - D6 - | B5 - G#5 - E5 - D5 - |`,
     },
-    { inst: 'drums', vol: 0.5, seq: rep('k+h h k+s h k+h h k+s o', 15) + ' | k+s s k+s s s s c c' },
+    { inst: 'drums', vol: 0.5, seq: rep('k . k+s! . k . k+s! s?', 15) + ' | k+s s? k+s s? s s! c! c!' },
+    { inst: 'drums', vol: 0.3, pan: 0.25, steps: 4, seq: rep('h? h? h h? h? h? h h? h? h? h h? h? h? o .', 15) + ' | h? h? h h? h? h? h h? . . . . . . . .' },
   ],
 };
 
@@ -267,19 +305,22 @@ const lounge: TrackDef = {
   beatsPerBar: 4,
   bars: 16,
   swing: 0.33,
+  echo: { beats: 0.75, feedback: 0.25 },
   parts: [
     { inst: 'bass', vol: 0.34, seq: `${LOUNGE_BASS} | ${LOUNGE_BASS}` },
-    { inst: 'ep', vol: 0.08, seq: comp([...LOUNGE_CHORDS, ...LOUNGE_CHORDS], '. . x - . . x -') },
+    { inst: 'ep', vol: 0.08, pan: -0.3, seq: comp([...LOUNGE_CHORDS, ...LOUNGE_CHORDS], '. . x - . . x? -') },
     {
       inst: 'sax',
       vol: 0.13,
+      pan: 0.15,
+      echo: 0.15,
       seq: `
-        A4 - - - F4 - E4 - | D4 - - - . . F4 G4 | E4 - - - G4 - B4 - | C#5 - - - A4 - - . |
-        D5 - C5 - A4 - F4 - | G4 - F4 - D4 - B3 - | E4 - G4 - A4 - C#5 - | D5 - - - - - . . |
-        . . F5 - E5 - D5 - | B4 - - - G4 - - . | C5 - B4 - G4 - E4 - | G4 - - - E4 - C#4 - |
-        F4 - A4 - C5 - E5 - | F5 - - - D5 - B4 - | G4 - B4 - C#5 - E5 - | D5 - - - - - - . |`,
+        G#4>A4 - - - F4 - E4 - | D4 - - - . . F4 G4 | E4 - - - G4 - B4 - | /C#5 - - - A4 - - . |
+        /D5 - C5 - A4 - F4 - | G4 - F4 - D4 - B3 - | E4 - G4 - A4 - C#5 - | C#5>D5 - - - - - . . |
+        . . /F5 - E5 - D5 - | B4 - - - G4 - - . | C5 - B4 - G4 - E4 - | G4 - - - E4 - C#4 - |
+        F4 - A4 - C5 - E5 - | /F5 - - - D5 - B4 - | G4 - B4 - C#5 - E5 - | C#5>D5 - - - - - - . |`,
     },
-    { inst: 'drums', vol: 0.35, seq: rep('k+h . h+b h h . h+b h', 16) },
+    { inst: 'drums', vol: 0.35, seq: rep('k+h . h+b h? h . h+b h?', 16) },
   ],
 };
 
@@ -289,36 +330,74 @@ export const TRACKS: Record<TrackId, TrackDef> = { lobby, quiz, polka, arena, ra
 // Parsing
 // ---------------------------------------------------------------------------
 
+/** Loudness of an accented (`!`) and a ghost (`?`) note against a plain one. */
+export const ACCENT = 1.35;
+export const GHOST = 0.45;
+
 export interface NoteEvent {
   step: number;
   /** In steps. */
   len: number;
   /** MIDI notes, or drum letters for drum parts. */
   notes: (number | string)[];
+  /** Loudness of each note: 1, ACCENT or GHOST. */
+  vel: number[];
+  /** The MIDI note it slides in from: the part's previous note. */
+  slide?: number;
+  /** A quick note just before it. */
+  grace?: number;
+  /** The note it trills with. */
+  trill?: number;
+}
+
+function pitch(name: string): number {
+  const m = midi(name);
+  if (m === null) throw new Error(`Bad note ${name}`);
+  return m;
 }
 
 /** Splits a part into notes with their start step and length. */
 export function parsePart(seq: string, drums = false): { events: NoteEvent[]; length: number } {
   const toks = seq.split(/\s+/).filter((t) => t && t !== '|');
   const events: NoteEvent[] = [];
+  const slides = new Set<NoteEvent>();
   let last: NoteEvent | null = null;
   toks.forEach((tok, step) => {
     if (tok === '.') last = null;
     else if (tok === '-') {
       if (last) last.len++;
     } else {
-      const notes = tok.split('+').map((n) => {
-        if (drums) {
-          if (!/^[kshorbcx]$/.test(n)) throw new Error(`Bad drum ${n}`);
-          return n;
+      const ev: NoteEvent = { step, len: 1, notes: [], vel: [] };
+      let body = tok;
+      if (!drums) {
+        if (body.startsWith('/')) {
+          body = body.slice(1);
+          slides.add(ev);
         }
-        const m = midi(n);
-        if (m === null) throw new Error(`Bad note ${n}`);
-        return m;
-      });
-      last = { step, len: 1, notes };
-      events.push(last);
+        const grace = body.split('>');
+        if (grace.length === 2) [ev.grace, body] = [pitch(grace[0]), grace[1]];
+        const trill = body.split('~');
+        if (trill.length === 2) [body, ev.trill] = [trill[0], pitch(trill[1])];
+      }
+      for (const n of body.split('+')) {
+        const vel = n.endsWith('!') ? ACCENT : n.endsWith('?') ? GHOST : 1;
+        const name = vel === 1 ? n : n.slice(0, -1);
+        if (drums && !/^[kshorbcx]$/.test(name)) throw new Error(`Bad drum ${n}`);
+        ev.notes.push(drums ? name : pitch(name));
+        ev.vel.push(vel);
+      }
+      if (ev.notes.length > 1 && (slides.has(ev) || ev.grace !== undefined || ev.trill !== undefined)) {
+        throw new Error(`Slides, grace notes and trills are for single notes: ${tok}`);
+      }
+      last = ev;
+      events.push(ev);
     }
+  });
+  // A slide comes from the note before it, round the loop if it's the first; a lone note scoops up a tone.
+  events.forEach((ev, i) => {
+    if (!slides.has(ev)) return;
+    const prev = events[(i - 1 + events.length) % events.length];
+    ev.slide = prev === ev ? (ev.notes[0] as number) - 2 : (prev.notes[prev.notes.length - 1] as number);
   });
   return { events, length: toks.length };
 }
