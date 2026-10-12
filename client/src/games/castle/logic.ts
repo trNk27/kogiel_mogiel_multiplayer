@@ -1,11 +1,13 @@
 /**
- * Obrona Wawelu – co-op castle defence (pure, no DOM, deterministic for a given seed).
+ * Malbork Castle – co-op castle defence (pure, no DOM, deterministic for a given seed).
  *
- * The TV is a 1920 × 1080 field seen from above the castle: monsters come out of the forest at the
- * top and walk down to the wall at the bottom, where every player stands as an archer. Phones are
- * bows: drag back to draw, aim with the angle, let go to loose. A longer draw flies further and
- * faster; holding a full draw charges a piercing arrow. Monsters that reach the wall hit it, and if
- * the wall falls the castle is lost. Five waves, the last one with Smok Wawelski himself.
+ * The field is a 1920 × 1080 plan of the meadow in front of the castle: monsters come out of the
+ * forest at the top and walk down to the wall at the bottom, where every player stands as an
+ * archer (the TV shows it in 3D, from behind the battlements). Phones are bows: drag back to draw,
+ * aim with the angle, let go to loose. A longer draw flies further and faster; holding a full draw
+ * charges a piercing arrow, and the volley skill (after a cooldown) makes the next few shots three
+ * arrows each. Monsters that reach the wall hit it, and if the wall falls the castle is lost. Five
+ * waves, the last one with Smok the dragon himself.
  */
 import { SIEGE_MODES, siegeMode } from '../../../../shared/protocol';
 import { mulberry32, type Rng } from '../rng';
@@ -34,6 +36,13 @@ export const RANGE_MAX = 1020;
 /** Almost flat along the wall, so monsters at its foot can be shot from anywhere. */
 export const MAX_ANGLE = 88;
 export const WALL_HP = 100;
+/** Volley skill: ready this long after the game starts and after each volley is used up (seconds). */
+export const SKILL_COOLDOWN_S = 20;
+/** A volley lasts this many shots, and each of them looses this many arrows one after another. */
+export const VOLLEY_SHOTS = 5;
+export const VOLLEY_ARROWS = 3;
+/** Seconds between the arrows of one volley shot. */
+export const VOLLEY_GAP_S = 0.09;
 /** Arrows stuck in the ground stay this long (seconds). */
 const STUCK_S = 1.4;
 
@@ -44,7 +53,7 @@ export interface MonsterInfo {
   hp: number;
   /** px per second. */
   speed: number;
-  /** Body radius in px (at the wall; things further up are drawn a little smaller). */
+  /** Body radius in px (at the wall; things further up are hit a little smaller). */
   r: number;
   /** Wall damage per second while attacking (fireballs: per hit). */
   dmg: number;
@@ -52,14 +61,17 @@ export interface MonsterInfo {
   fly?: boolean;
 }
 
+/** How much bigger the monsters are than they first were (their bodies and what an arrow has to hit). */
+export const MONSTER_SCALE = 1.2;
+
 export const MONSTERS: Record<MonsterKind, MonsterInfo> = {
-  imp: { name: 'Bies', hp: 1, speed: 52, r: 30, dmg: 1.2, pts: 10 },
-  wolf: { name: 'Wolf', hp: 1, speed: 118, r: 30, dmg: 1, pts: 15 },
-  knight: { name: 'Black Knight', hp: 3, speed: 34, r: 36, dmg: 2.2, pts: 35 },
-  bat: { name: 'Bat', hp: 1, speed: 78, r: 24, dmg: 0.8, pts: 20, fly: true },
-  ghost: { name: 'Zmora', hp: 2, speed: 44, r: 32, dmg: 1.5, pts: 30 },
-  giant: { name: 'Giant', hp: 8, speed: 21, r: 58, dmg: 4.5, pts: 100 },
-  dragon: { name: 'Smok Wawelski', hp: 20, speed: 46, r: 96, dmg: 0, pts: 500, fly: true },
+  imp: { name: 'Bies', hp: 1, speed: 52, r: 30 * MONSTER_SCALE, dmg: 1.2, pts: 10 },
+  wolf: { name: 'Wolf', hp: 1, speed: 118, r: 30 * MONSTER_SCALE, dmg: 1, pts: 15 },
+  knight: { name: 'Black Knight', hp: 3, speed: 34, r: 36 * MONSTER_SCALE, dmg: 2.2, pts: 35 },
+  bat: { name: 'Bat', hp: 1, speed: 78, r: 24 * MONSTER_SCALE, dmg: 0.8, pts: 20, fly: true },
+  ghost: { name: 'Zmora', hp: 2, speed: 44, r: 32 * MONSTER_SCALE, dmg: 1.5, pts: 30 },
+  giant: { name: 'Giant', hp: 8, speed: 21, r: 58 * MONSTER_SCALE, dmg: 4.5, pts: 100 },
+  dragon: { name: 'Smok', hp: 20, speed: 46, r: 96 * MONSTER_SCALE, dmg: 0, pts: 500, fly: true },
   fireball: { name: 'Fireball', hp: 1, speed: 270, r: 26, dmg: 6, pts: 5, fly: true },
 };
 
@@ -78,7 +90,7 @@ export const WAVES: Wave[] = [
   { name: 'Wolves at the gate', news: 'Wolves zig-zag – and they’re fast', groups: [['imp', 6], ['wolf', 6]], dur: 38 },
   { name: 'Iron and wings', news: 'Black Knights take 3 arrows · bats flutter', groups: [['imp', 4], ['wolf', 3], ['knight', 2], ['bat', 4]], dur: 44 },
   { name: 'Giants in the mist', news: 'Zmory fade away – shoot when you see them', groups: [['imp', 3], ['wolf', 3], ['knight', 2], ['bat', 3], ['ghost', 3], ['giant', 1]], dur: 56 },
-  { name: 'Smok Wawelski!', news: 'The dragon! Shoot down his fireballs', groups: [['dragon', 1], ['imp', 3], ['wolf', 2], ['bat', 3], ['knight', 1]], dur: 48 },
+  { name: 'Smok!', news: 'The dragon! Shoot down his fireballs', groups: [['dragon', 1], ['imp', 3], ['wolf', 2], ['bat', 3], ['knight', 1]], dur: 48 },
 ];
 
 export interface Monster {
@@ -135,6 +147,9 @@ export interface Archer {
   charged: boolean;
   aiming: boolean;
   readyAt: number;
+  /** Volley skill: sim time it's ready again, and triple shots still loaded (0 = not in use). */
+  skillAt: number;
+  volley: number;
   active: boolean;
   points: number;
   kills: number;
@@ -149,6 +164,8 @@ export type CEvent =
   | { e: 'go'; wave: number }
   | { e: 'cleared'; wave: number }
   | { e: 'shoot'; by: number; charged: boolean }
+  /** Volley skill switched on (`on`), or used up (its cooldown starts). */
+  | { e: 'skill'; by: number; on: boolean }
   | { e: 'hit'; by: number; kind: MonsterKind; x: number; y: number }
   | { e: 'kill'; by: number; kind: MonsterKind; x: number; y: number; pts: number }
   | { e: 'wall'; x: number; dmg: number; kind: MonsterKind }
@@ -223,6 +240,15 @@ interface Spawn {
   x: number;
 }
 
+/** The later arrows of a volley shot, waiting their turn. */
+interface Burst {
+  at: number;
+  by: number;
+  aim: number;
+  draw: number;
+  full: boolean;
+}
+
 export class CastleSim {
   /** Sim time in seconds. */
   t = 0;
@@ -241,6 +267,7 @@ export class CastleSim {
   kills = 0;
   leaks = 0;
   private queue: Spawn[] = [];
+  private bursts: Burst[] = [];
   private rng: Rng;
   private seq = 0;
   private events: CEvent[] = [];
@@ -260,6 +287,8 @@ export class CastleSim {
       charged: false,
       aiming: false,
       readyAt: 0,
+      skillAt: SKILL_COOLDOWN_S,
+      volley: 0,
       active: true,
       points: 0,
       kills: 0,
@@ -325,7 +354,10 @@ export class CastleSim {
     a.charged = false;
   }
 
-  /** Loose an arrow. False if the bow isn't ready, the draw is too weak or the siege is over. */
+  /**
+   * Loose an arrow (three in a row while a volley is on). False if the bow isn't ready, the draw is
+   * too weak or the siege is over.
+   */
   fire(i: number, deg: number, draw: number, charged = false): boolean {
     const a = this.archers[i];
     this.cancel(i);
@@ -333,7 +365,30 @@ export class CastleSim {
     a.aim = clampAngle(deg);
     draw = Math.min(1, draw);
     const full = charged && draw >= 0.95;
-    const [dx, dy] = aimVector(a.aim);
+    this.loose(i, a.aim, draw, full);
+    a.readyAt = this.t + COOLDOWN_S;
+    if (a.volley > 0) {
+      for (let k = 1; k < VOLLEY_ARROWS; k++) this.bursts.push({ at: this.t + k * VOLLEY_GAP_S, by: i, aim: a.aim, draw, full });
+      if (--a.volley === 0) {
+        a.skillAt = this.t + SKILL_COOLDOWN_S;
+        this.events.push({ e: 'skill', by: i, on: false });
+      }
+    }
+    return true;
+  }
+
+  /** Switch on the volley skill: the next VOLLEY_SHOTS shots loose VOLLEY_ARROWS arrows each. */
+  skill(i: number): boolean {
+    const a = this.archers[i];
+    if (!a?.active || this.over || a.volley > 0 || this.t < a.skillAt) return false;
+    a.volley = VOLLEY_SHOTS;
+    this.events.push({ e: 'skill', by: i, on: true });
+    return true;
+  }
+
+  private loose(i: number, aim: number, draw: number, full: boolean) {
+    const a = this.archers[i];
+    const [dx, dy] = aimVector(aim);
     this.arrows.push({
       id: ++this.seq,
       owner: i,
@@ -349,10 +404,8 @@ export class CastleSim {
       stuck: -1,
       hit: [],
     });
-    a.readyAt = this.t + COOLDOWN_S;
     a.shots++;
     this.events.push({ e: 'shoot', by: i, charged: full });
-    return true;
   }
 
   /** A player left: their archer stops (the siege goes on). */
@@ -360,6 +413,8 @@ export class CastleSim {
     const a = this.archers[i];
     if (!a) return;
     a.active = false;
+    a.volley = 0;
+    this.bursts = this.bursts.filter((b) => b.by !== i);
     this.cancel(i);
   }
 
@@ -375,6 +430,10 @@ export class CastleSim {
     if (this.phase === 'break' && this.t >= this.breakEnds) this.startWave();
     if (this.phase === 'play') {
       while (this.queue.length && this.queue[0].at <= this.t) this.spawn(this.queue.shift()!);
+    }
+    if (this.bursts.some((b) => b.at <= this.t)) {
+      for (const b of this.bursts) if (b.at <= this.t) this.loose(b.by, b.aim, b.draw, b.full);
+      this.bursts = this.bursts.filter((b) => b.at > this.t);
     }
     this.stepMonsters(dt);
     this.stepArrows(dt);
@@ -502,7 +561,7 @@ export class CastleSim {
     if (gone.length) this.monsters = this.monsters.filter((m) => !gone.includes(m));
   }
 
-  /** Smok Wawelski flies in, then hovers over the field breathing fireballs at the wall. */
+  /** Smok flies in, then hovers over the field breathing fireballs at the wall. */
   private stepDragon(m: Monster, dt: number) {
     const hoverY = 300;
     if (m.y < hoverY) {
@@ -628,5 +687,9 @@ export function segmentHit(x0: number, y0: number, x1: number, y1: number, cx: n
 
 /** How to play, for the intro screen. */
 export function howTo(): string[] {
-  return ['Drag back on your phone to draw your bow, aim, let go', 'A longer pull flies further · hold a full pull for a piercing shot', 'Five waves – keep the monsters off the wall together'];
+  return [
+    'Drag back on your phone to draw your bow, aim, let go',
+    'A full pull pierces · Volley fires 3 arrows in a row',
+    'Five waves – keep the monsters off the wall together',
+  ];
 }
