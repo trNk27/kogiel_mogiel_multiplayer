@@ -209,7 +209,10 @@ create a key, then set the Worker secrets `TURN_KEY_ID` and `TURN_KEY_API_TOKEN`
   Trails renders on a Canvas 2D at a fixed 60 Hz timestep with an occupancy grid for collisions.
   Sound effects are synthesized with WebAudio, so there are no audio files, and there's a mute
   toggle on the TV and in the VIP's lobby options. The music is synthesized too: tracks written out
-  note by note in `client/src/lib/tracks.ts` and played by a small scheduler (`client/src/lib/music.ts`).
+  note by note in `client/src/lib/tracks.ts` (with accents, ghost notes, grace notes, trills and slides) and
+  played by a small scheduler (`client/src/lib/music.ts`) through a little mixing desk: every part has its own
+  place left to right and sends to a room reverb and a tempo echo, the kick pumps the other parts in the fast
+  tracks, a compressor glues it all together, and the music dips a little under each sound effect.
   The waiting room has its own tune (a lazy accordion mazurka), and games that feel alike share a track:
   *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły), *Polka Pierogi* (Tour de Pierogi,
   Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games and Malbork Castle), *Maluch Turbo*
