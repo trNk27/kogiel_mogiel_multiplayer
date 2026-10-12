@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
-import { KITCHEN_LEVELS, colorHex, fillingInfo, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
+import { KITCHEN_LEVELS, colorHex, fillingInfo, ingredientsOf, type Filling, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { CoopLevel, Game, GameHost } from '../types';
 import { DT_MS, KitchenSim, LEVELS, type KEvent, type Order } from './logic';
 import { CANVAS_H, CANVAS_W, drawDynamic, drawStatic, type CookLook, type Popup } from './draw';
@@ -310,9 +310,15 @@ export class KitchenGame implements Game {
 // TV view
 // ---------------------------------------------------------------------------
 
-function recipe(fried: boolean): { icon: JSX.Element; text: string }[] {
+function recipe(fried: boolean, mixes: Filling[]): { icon: JSX.Element; text: string }[] {
   return [
     { icon: <ItemIcon item={{ k: 'flour' }} size={50} />, text: 'Roll flour into dough' },
+    ...mixes.map((f) => ({
+      icon: <ItemIcon item={{ k: 'fill', f }} size={50} />,
+      text: `Mix ${ingredientsOf(f)
+        .map((x) => fillingInfo(x).name.toLowerCase())
+        .join(' + ')} on a board`,
+    })),
     { icon: <ItemIcon item={{ k: 'fill', f: 'potato' }} size={50} />, text: 'Dough + filling → fold' },
     { icon: <ItemIcon item={{ k: 'raw', f: 'potato' }} size={50} />, text: 'Boil on the stove' },
     ...(fried ? [{ icon: <ItemIcon item={{ k: 'plate', f: 'meat', fried: true }} size={50} />, text: 'Fried orders: use a pan' }] : []),
@@ -401,7 +407,10 @@ function KitchenView({ game }: { game: KitchenGame }) {
           </div>
           <div class="k-recipe">
             <div class="k-recipe-title">How to cook</div>
-            {recipe(sim.level.fried > 0).map((r, i) => (
+            {recipe(
+              sim.level.fried > 0,
+              sim.level.fillings.filter((f) => ingredientsOf(f).length > 1),
+            ).map((r, i) => (
               <div class="k-recipe-row">
                 <span class="k-recipe-num">{i + 1}</span>
                 {r.icon}

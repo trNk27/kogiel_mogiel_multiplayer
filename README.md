@@ -21,7 +21,7 @@ the notch) are added around controls, never taken out of them.
 | **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups can be switched on in the lobby: 11 pickups that change speed, line width and gaps (green ones affect you, red ones everyone else, blue ones everyone). | 2–8 |
 | **Quiz** | 10 questions from a pool of 200. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 140. | 1–8 |
-| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Six levels in six kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat), The Wedding Feast (+ blueberry and fried pierogi), The Milk Bar (a long serving counter splits the room, and the sink is at the far end from the hatch), The Mountain Hut (a big stove block in the middle of the room) and Wigilia (two rooms joined by two doors, every filling and half the orders fried). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby; the game plays from there to the last level. | 1–8 |
+| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Six levels in six kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat), The Wedding Feast (+ blueberry and fried pierogi), The Milk Bar (a long serving counter splits the room, and the sink is at the far end from the hatch), The Mountain Hut (a big stove block in the middle of the room) and Wigilia (two rooms joined by two doors; no meat on Christmas Eve, but **kraut & mushroom** pierogi: take sauerkraut and the new mushrooms to the same folding board and they mix into one filling). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive, from Relaxed up to Inferno) and the starting level in the lobby; the game plays from there to the last level. | 1–8 |
 | **Obrona Wawelu** | Co-op castle defence (“defending Wawel”). Everyone stands on the castle wall at the bottom of the TV with a bow, and monsters come out of the forest at the top. Your phone is the bow: put your thumb down, **pull back to draw, aim by pulling to the side, let go to shoot**. Your aim line shows on the TV; a longer pull flies further and faster, and holding a full pull for a moment charges a golden arrow that goes through up to three monsters for double damage. Five waves: Biesy (little devils), zig-zagging wolves, Black Knights (3 arrows) and fluttering bats, then giants and Zmory that fade in and out (arrows go straight through them while they're faded), and finally **Smok Wawelski**, who hovers over the field breathing fireballs at the wall (shoot them down). Monsters that reach the wall batter it, and if it falls the castle is lost. The wall is mended a little between waves; stars go by how much of it is left. The VIP picks the difficulty: Easy, Normal, Hard or Nightmare. | 1–8 |
 | **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup (different tracks, mostly hard ones; a tournament's single race is always on a hard track), a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Kiełbasa Lasso and Babcia’s Kapeć. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
@@ -377,20 +377,26 @@ character of the layout is one tile:
 | --- | --- | --- | --- |
 | `.` | floor | `X` | wall |
 | `#` | counter (storage) | `F` | flour sack |
-| `1`–`4` | crate: potato, sauerkraut, meat, blueberry | `R` | rolling board |
+| `1`–`5` | crate: potato, sauerkraut, meat, blueberry, mushrooms | `R` | rolling board |
 | `P` | pierogi (folding) board | `S` | stove with a pot |
 | `G` | frying pan | `W` | sink |
 | `K` | plate rack | `H` | serving hatch |
 | `D` | dirty-dish return | `T` | bin |
 
 Edit a layout and the TV redraws the kitchen. Spawn points are picked automatically. The unit tests
-check every layout: closed, connected floor, every station reachable, a crate for each filling the
-level orders, and pans only where fried orders exist.
+check every layout: closed, connected floor, every station reachable, a crate for each ingredient the
+level's menu needs, and pans only where fried orders exist.
+
+Some fillings are mixed rather than taken from a crate: `FILLINGS` in `shared/protocol.ts` gives kraut &
+mushroom a `from` pair (sauerkraut and mushrooms), and the folding board turns those two into it.
+Mushrooms are `mixOnly`, so they can't be folded on their own. To add another mixed dish, give it a
+`from` pair, put it on a level's menu and put crates for both ingredients in that level's layout.
 
 `KTUNING` in the same file holds the walking speed (4.2 tiles/s), the ticket time (80 s), how long
 cooked pierogi wait before they turn to mush or burn (25 s), and the points (fried pierogi earn 30
 extra). The lobby difficulty (`DIFFICULTIES` in `shared/protocol.ts`: Relaxed, Easy, Normal, Hard,
-Chaos) scales how often orders arrive and how long tickets last. Star targets follow the number of
+Chaos, Inferno) scales how often orders arrive and how long tickets last; Inferno sends orders twice
+as often as Normal with three-quarter-length tickets and lets one more ticket onto the rail at a time. Star targets follow the number of
 orders a team can expect, so they scale with team size and difficulty.
 
 The item and station sprites in `client/public/sprites/kitchen/` were painted with FLUX.2 [pro]
@@ -398,7 +404,9 @@ The item and station sprites in `client/public/sprites/kitchen/` were painted wi
 total). The chefs were painted the same way: one base chef, back and side views made with FLUX.2
 image editing, then the dough recoloured into each player colour so every chef is the same
 character. Floors, counter tops and walls are FLUX.2 textures too, with a different floor for each of
-the first three levels; the last three reuse them under a colour wash (`THEMES` in `draw.ts`). The scripts are in [`tools/sprites`](tools/sprites).
+the first three levels; the last three reuse them under a colour wash (`THEMES` in `draw.ts`). The
+mushroom sprites are hand-drawn SVG laid over the painted blueberry bowl and crate and the sauerkraut
+bowl, so they match. The scripts are in [`tools/sprites`](tools/sprites).
 
 ### Obrona Wawelu
 

@@ -289,10 +289,12 @@ export const DIFFICULTIES = [
   { name: 'Normal', pace: 1, ttl: 1 },
   { name: 'Hard', pace: 0.8, ttl: 0.9 },
   { name: 'Chaos', pace: 0.62, ttl: 0.8 },
+  /** Orders twice as often as Normal, one more ticket on the rail at a time, and short tickets. */
+  { name: 'Inferno', pace: 0.5, ttl: 0.75, extra: 1 },
 ] as const;
 
 export function difficultyName(d: number) {
-  return DIFFICULTIES[Math.max(1, Math.min(5, Math.round(d))) - 1].name;
+  return DIFFICULTIES[Math.max(1, Math.min(DIFFICULTIES.length, Math.round(d) || 3)) - 1].name;
 }
 
 /** Pierogi Panic levels, in order (details live with the game). */
@@ -302,7 +304,7 @@ export const KITCHEN_LEVELS = [
   { name: 'The Wedding Feast', news: 'Blueberries – and fried pierogi in the pans!' },
   { name: 'The Milk Bar', news: 'One long serving line – and the sink is miles away' },
   { name: 'The Mountain Hut', news: 'A cosy hut split by the big stove: go round it!' },
-  { name: 'Wigilia', news: 'Christmas Eve: every filling, fried and boiled, and no time' },
+  { name: 'Wigilia', news: 'Christmas Eve: no meat, but kraut & mushroom pierogi – mix both on the board' },
 ] as const;
 
 /**
@@ -453,14 +455,31 @@ export interface BetSlot {
 // Pierogi Panic (co-op kitchen)
 // ---------------------------------------------------------------------------
 
-export type Filling = 'potato' | 'cabbage' | 'meat' | 'berry';
+export type Filling = 'potato' | 'cabbage' | 'meat' | 'berry' | 'mushroom' | 'wigilia';
 
-export const FILLINGS: readonly { id: Filling; name: string; hex: string }[] = [
+/**
+ * Fillings in crate order (crate `1` holds the first, `5` the fifth). Mushrooms only go into pierogi
+ * mixed with sauerkraut: put both on a folding board and they become kraut & mushroom (`from`),
+ * which comes from no crate.
+ */
+export const FILLINGS: readonly { id: Filling; name: string; hex: string; mixOnly?: boolean; from?: readonly [Filling, Filling] }[] = [
   { id: 'potato', name: 'Potato & cheese', hex: '#f3cf6b' },
   { id: 'cabbage', name: 'Sauerkraut', hex: '#a9c94a' },
   { id: 'meat', name: 'Meat', hex: '#c0583a' },
   { id: 'berry', name: 'Blueberry', hex: '#5a4bb5' },
+  { id: 'mushroom', name: 'Mushrooms', hex: '#8a4a22', mixOnly: true },
+  { id: 'wigilia', name: 'Kraut & mushroom', hex: '#7d8f4a', from: ['cabbage', 'mushroom'] },
 ];
+
+/** What two ingredients on one folding board make, or null if they don't go together. */
+export function mixFillings(a: Filling, b: Filling): Filling | null {
+  return FILLINGS.find((x) => x.from && ((x.from[0] === a && x.from[1] === b) || (x.from[0] === b && x.from[1] === a)))?.id ?? null;
+}
+
+/** The crates a dish needs: itself, or the ingredients it's mixed from. */
+export function ingredientsOf(f: Filling): Filling[] {
+  return [...(FILLINGS.find((x) => x.id === f)?.from ?? [f])];
+}
 
 export function fillingInfo(f: Filling) {
   return FILLINGS.find((x) => x.id === f)!;

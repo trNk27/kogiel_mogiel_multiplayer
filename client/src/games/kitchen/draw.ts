@@ -253,7 +253,8 @@ function drawStationBase(ctx: Ctx, sim: KitchenSim, s: Station) {
       sprite(ctx, 'flour', cx, cy, T * 0.86);
       break;
     case 'crate':
-      sprite(ctx, `crate-${s.crate!}`, cx, cy, T * 0.98);
+      // Crates only ever hold plain ingredients (mixed fillings are made on the board).
+      sprite(ctx, `crate-${s.crate!}` as Sprite, cx, cy, T * 0.98);
       break;
     case 'roll':
     case 'fold':

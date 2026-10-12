@@ -1,6 +1,7 @@
 /**
  * Pierogi Panic art. Items and stations are painted sprites (generated with FLUX.2 [pro], cut out
- * and saved as 192 px WebP in client/public/sprites/kitchen). The same files are used as <img> on
+ * and saved as 192 px WebP in client/public/sprites/kitchen; the mushroom ones are drawn over them, see
+ * tools/sprites). The same files are used as <img> on
  * the phones and TV tickets and drawn onto the TV canvas.
  */
 import { PLAYER_COLORS, type ColorId, type Filling, type KitchenItem } from '../../../../shared/protocol';
@@ -12,14 +13,19 @@ export const SPRITES = [
   'fill-cabbage',
   'fill-meat',
   'fill-berry',
+  'fill-mushroom',
+  'fill-wigilia',
   'ing-potato',
   'ing-cabbage',
   'ing-meat',
   'ing-berry',
+  'ing-mushroom',
+  'ing-wigilia',
   'crate-potato',
   'crate-cabbage',
   'crate-meat',
   'crate-berry',
+  'crate-mushroom',
   'raw',
   'plate',
   'plate-boiled',
