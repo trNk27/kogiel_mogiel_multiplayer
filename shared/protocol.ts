@@ -96,6 +96,9 @@ export type GameId =
   | 'gallery'
   | 'cookbook'
   | 'tiles'
+  | 'rope'
+  | 'blast'
+  | 'flags'
   | 'swap'
   | 'smoke'
   | 'castle'
@@ -155,6 +158,9 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'gallery', title: 'Strzelnica', tagline: 'Pop the ghosts. Spare the babcias.', minPlayers: 1 },
   { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
   { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
+  { id: 'rope', title: 'Skakanka', tagline: 'Jump the kiełbasa rope. Faster and faster.', minPlayers: 1 },
+  { id: 'blast', title: 'Petarda', tagline: 'Push a plunger. Pray it’s not the big one.', minPlayers: 2 },
+  { id: 'flags', title: 'Babcia Mówi', tagline: 'Red up, white up – do what Babcia says.', minPlayers: 1 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
@@ -720,8 +726,8 @@ export type PhoneView =
       res: { correct: boolean; answer: number; added: string; removed: string; removedSrc: string; pts: number; total: number } | null;
     }
   /**
-   * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki): the phone is a
-   * joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
+   * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda,
+   * Babcia Mówi): the phone is a joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
    */
   | PadView
   /**

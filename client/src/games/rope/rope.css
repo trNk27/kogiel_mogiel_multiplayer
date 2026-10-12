@@ -1,0 +1,87 @@
+/* ---- Skakanka ------------------------------------------------------------------------------ */
+/* The container is `.rally` (full stage, canvas behind); chips and banner come from cookbook.css. */
+
+.rope-top {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  top: 54px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  pointer-events: none;
+}
+.rope-top .pill {
+  font-size: 32px;
+  padding: 8px 26px;
+  background: rgba(21, 9, 16, 0.78);
+  box-shadow: inset 0 0 0 3px rgba(251, 240, 217, 0.25);
+}
+.rope-rule {
+  font-size: 30px;
+  padding: 8px 24px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.55);
+  color: var(--cream);
+  text-shadow: 0 2px 0 #1f0a10;
+}
+/* The jump counter, top right: bumps every time the rope sweeps. */
+.rope-count {
+  position: absolute;
+  right: 96px;
+  top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.9;
+  pointer-events: none;
+  animation: rope-bump 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+.rope-count b {
+  font-size: 130px;
+  font-weight: 700;
+  color: var(--yolk);
+  -webkit-text-stroke: 9px #241015;
+  paint-order: stroke fill;
+  text-shadow: 0 10px 0 #241015;
+}
+.rope-count small {
+  font-size: 30px;
+  color: var(--cream);
+  text-shadow: 0 3px 0 #241015;
+}
+@keyframes rope-bump {
+  from {
+    scale: 1.3;
+  }
+  to {
+    scale: 1;
+  }
+}
+.rope-call {
+  position: absolute;
+  left: 50%;
+  top: 250px;
+  translate: -50% 0;
+  font-size: 110px;
+  font-weight: 700;
+  color: var(--beet);
+  -webkit-text-stroke: 9px #241015;
+  paint-order: stroke fill;
+  text-shadow: 0 10px 0 #241015;
+  rotate: -4deg;
+  pointer-events: none;
+  animation: cookbook-thwump 1.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.rope-pop {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--pc);
+  -webkit-text-stroke: 7px #241015;
+  paint-order: stroke fill;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cookbook-splat 1.6s ease-out both;
+}

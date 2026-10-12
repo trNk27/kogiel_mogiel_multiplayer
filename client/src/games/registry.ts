@@ -17,6 +17,9 @@ import { PushyGame } from './pushy/PushyGame';
 import { GalleryGame } from './gallery/GalleryGame';
 import { CookbookGame } from './cookbook/CookbookGame';
 import { TilesGame } from './tiles/TilesGame';
+import { RopeGame } from './rope/RopeGame';
+import { BlastGame } from './blast/BlastGame';
+import { FlagsGame } from './flags/FlagsGame';
 import { SmokeGame } from './smoke/SmokeGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
@@ -57,6 +60,12 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new CookbookGame(host, ids);
     case 'tiles':
       return new TilesGame(host, ids);
+    case 'rope':
+      return new RopeGame(host, ids);
+    case 'blast':
+      return new BlastGame(host, ids);
+    case 'flags':
+      return new FlagsGame(host, ids);
     case 'smoke':
       return new SmokeGame(host, ids);
     case 'castle':

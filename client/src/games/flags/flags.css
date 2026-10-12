@@ -1,0 +1,84 @@
+/* ---- Babcia Mówi ----------------------------------------------------------------------------- */
+/* The container is `.rally` (full stage, canvas behind); top bar, chips and banner come from cookbook.css. */
+
+/* Babcia's call, in a speech bubble over her head (she stands in the middle of the picture). */
+.flags-bubble {
+  position: absolute;
+  left: 50%;
+  top: 136px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 46px 26px;
+  border-radius: 34px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 5px #241015,
+    0 14px 0 #241015;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: flags-pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+.flags-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -26px;
+  left: 50%;
+  translate: -50% 0;
+  border: 18px solid transparent;
+  border-top: 22px solid var(--cream);
+  filter: drop-shadow(0 5px 0 #241015);
+}
+.flags-bubble.done {
+  opacity: 0.75;
+}
+.flags-bubble b {
+  font-size: 74px;
+  font-weight: 750;
+  line-height: 1;
+}
+.flags-bubble small {
+  font-size: 30px;
+  font-style: italic;
+  color: rgba(42, 18, 10, 0.65);
+  margin-top: 4px;
+}
+.flags-bubble.red b,
+.flags-bubble.notWhite b {
+  color: #c4123a;
+}
+.flags-bubble.both b {
+  background: linear-gradient(180deg, #8a7f72 0 50%, #c4123a 50% 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.flags-timer {
+  position: absolute;
+  left: 34px;
+  right: 34px;
+  bottom: 10px;
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(42, 18, 10, 0.15);
+  overflow: hidden;
+}
+.flags-timer div {
+  height: 100%;
+  background: #241015;
+}
+@keyframes flags-pop {
+  from {
+    scale: 0.5;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+.cookbook-chip.flags-ok {
+  background: rgba(18, 90, 70, 0.9);
+}
