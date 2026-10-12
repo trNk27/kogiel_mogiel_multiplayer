@@ -39,6 +39,11 @@ export interface CoopResult {
   missed: number;
   /** Per-level results, for games played in levels. */
   levels?: CoopLevel[];
+  /**
+   * How the results screen words it, for co-op games other than Pierogi Panic: the line under the stars,
+   * the three numbers, what the crew's own scores count (one, many) and what the team score is called.
+   */
+  look?: { line: string; stats: { v: number; label: string }[]; unit: [string, string]; scoreUnit: string };
 }
 
 export interface Game {

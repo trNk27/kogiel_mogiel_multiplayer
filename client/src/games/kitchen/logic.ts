@@ -102,6 +102,60 @@ export const LEVELS: KitchenLevel[] = [
       '##T###K#WW#K##T#',
     ],
   },
+  {
+    // A bar mleczny: one long serving counter down the middle, the sink at the far end from the hatch.
+    name: KITCHEN_LEVELS[3].name,
+    fillings: ['potato', 'cabbage', 'berry'],
+    fried: 0.25,
+    roundMs: 165_000,
+    layout: [
+      'X#R#R##S#S#G##HX',
+      'F..............H',
+      '1..............#',
+      '2..##PP#P###...#',
+      '4..............D',
+      '#..............#',
+      '#..##########..#',
+      'T..............#',
+      'XWW##K###K######',
+    ],
+  },
+  {
+    // A mountain hut (schronisko): the big stove stands in the middle of the room.
+    name: KITCHEN_LEVELS[4].name,
+    fillings: ['potato', 'meat', 'berry'],
+    fried: 0.3,
+    roundMs: 170_000,
+    layout: [
+      'X#R#R###F#1#3#HX',
+      '#..............H',
+      '#..............#',
+      'P....#SSSS#....#',
+      'P....#GSSG#....D',
+      '#..............#',
+      '#...##....##...#',
+      'T..............#',
+      'X##K#WW###4#K##X',
+    ],
+  },
+  {
+    // Christmas Eve: two rooms joined by two doors, prep on the left, the stoves on the right.
+    name: KITCHEN_LEVELS[5].name,
+    fillings: ['potato', 'cabbage', 'meat', 'berry'],
+    fried: 0.5,
+    roundMs: 180_000,
+    layout: [
+      'XR#R#F#XXS#SSG#X',
+      '1......XX......H',
+      '2..............H',
+      '3..PP..XX..#...#',
+      '4..PP..XX..#...D',
+      '#......XX......#',
+      '#..............#',
+      'T......XX......#',
+      'X#K##W#XXWK#G#TX',
+    ],
+  },
 ];
 
 export const GRID_W = 16;

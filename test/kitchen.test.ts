@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { KITCHEN_LEVELS } from '../shared/protocol';
 import {
   GRID_H,
   GRID_W,
@@ -108,6 +109,14 @@ describe.each(LEVELS.map((l, i) => [l.name, i] as const))('kitchen layout: %s', 
     const spawns = spawnPoints(L.layout);
     expect(spawns.length).toBe(8);
     expect(new Set(spawns.map((p) => p.join())).size).toBe(8);
+  });
+});
+
+describe('kitchen levels', () => {
+  it('has a name and a line of news for every level, in order', () => {
+    expect(KITCHEN_LEVELS.length).toBe(LEVELS.length);
+    expect(LEVELS.length).toBeGreaterThanOrEqual(6);
+    LEVELS.forEach((l, i) => expect(l.name).toBe(KITCHEN_LEVELS[i].name));
   });
 });
 

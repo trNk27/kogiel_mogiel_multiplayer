@@ -98,6 +98,7 @@ export type GameId =
   | 'tiles'
   | 'swap'
   | 'smoke'
+  | 'castle'
   | 'premium';
 
 export interface GameInfo {
@@ -155,6 +156,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
   { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
+  { id: 'castle', title: 'Obrona Wawelu', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
     id: 'premium',
     title: 'Maluch Rallye Premium',
@@ -229,6 +231,8 @@ export interface LobbyOptions {
   difficulty: number;
   /** Pierogi Panic: level to start from (1-based). */
   level: number;
+  /** Obrona Wawelu: difficulty mode, 1-based index into SIEGE_MODES. */
+  siege: number;
   /** Maluch Rally: item boxes on the track. */
   items: boolean;
   /** Maluch Rally: which tracks the cup is raced on (an id from RALLY_TRACKS). */
@@ -248,6 +252,7 @@ export const DEFAULT_OPTIONS: LobbyOptions = {
   sound: true,
   difficulty: 3,
   level: 1,
+  siege: 2,
   items: true,
   track: 'cup',
   tourGames: TOURNAMENT_GAMES,
@@ -295,7 +300,26 @@ export const KITCHEN_LEVELS = [
   { name: 'Babcia’s Kitchen', news: 'Potato & cheese pierogi, boiled' },
   { name: 'The Village Inn', news: 'New fillings: sauerkraut and meat' },
   { name: 'The Wedding Feast', news: 'Blueberries – and fried pierogi in the pans!' },
+  { name: 'The Milk Bar', news: 'One long serving line – and the sink is miles away' },
+  { name: 'The Mountain Hut', news: 'A cosy hut split by the big stove: go round it!' },
+  { name: 'Wigilia', news: 'Christmas Eve: every filling, fried and boiled, and no time' },
 ] as const;
+
+/**
+ * Obrona Wawelu difficulty modes. `count` scales how many monsters come, `hp` how much they take,
+ * `speed` how fast they walk, `dmg` how hard they hit the wall; `repair` is wall mended between waves.
+ */
+export const SIEGE_MODES = [
+  { name: 'Easy', hint: 'Fewer, slower monsters and a thick wall', count: 0.7, hp: 1, speed: 0.8, dmg: 0.6, repair: 15 },
+  { name: 'Normal', hint: 'A proper siege', count: 1, hp: 1, speed: 1, dmg: 1, repair: 10 },
+  { name: 'Hard', hint: 'More monsters, tougher and faster', count: 1.25, hp: 1.2, speed: 1.1, dmg: 1.2, repair: 6 },
+  { name: 'Nightmare', hint: 'The whole Bieszczady forest wants in', count: 1.5, hp: 1.35, speed: 1.22, dmg: 1.4, repair: 0 },
+] as const;
+
+export function siegeMode(n: number) {
+  const i = Math.round(n);
+  return SIEGE_MODES[(i >= 1 && i <= SIEGE_MODES.length ? i : 2) - 1];
+}
 
 /** Maluch Rally items. You pick one up from a ? box and fire it by lifting your thumb. */
 export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket' | 'bomb' | 'beet' | 'ghost' | 'lasso' | 'slipper';
@@ -541,6 +565,21 @@ export type PhoneView =
       level: number;
       levels: number;
     }
+  /**
+   * Obrona Wawelu: the phone is a bow. `wall` is the castle wall's health in per cent; `phase` break is the
+   * pause before a wave (`title` names it), won/lost the end. You can shoot in play and break.
+   */
+  | {
+      v: 'castle';
+      phase: 'break' | 'play' | 'won' | 'lost';
+      wave: number;
+      waves: number;
+      wall: number;
+      score: number;
+      kills: number;
+      title?: string;
+      text?: string;
+    }
   /** Maluch Rally. `pos` is your current race position (1-based) out of `of`. */
   | {
       v: 'rally';
@@ -708,8 +747,8 @@ export type PhoneView =
       score: number;
       players: number;
       vip: boolean;
-      /** Co-op games: the team result instead of a place. */
-      coop?: { stars: number; score: number };
+      /** Co-op games: the team result instead of a place (`unit` names the score, "tips" by default). */
+      coop?: { stars: number; score: number; unit?: string };
       /** Rooms without a TV: the final scores and party standings that the TV would show. */
       board?: { name: string; color: ColorId; score: number; place: number; party: number }[];
       /** In a tournament: this was game `game` of `games`; what you earned and where you stand. */
@@ -790,6 +829,11 @@ export type PhoneMsg =
   | { t: 'stick'; x: number; y: number }
   /** Arena pad: button `b` (index in the view's `buttons`) went down (`on`) or up. */
   | { t: 'btn'; b: number; on: boolean }
+  /**
+   * Obrona Wawelu bow: aiming (sent while the drag changes, throttled), loosing the arrow, or easing off.
+   * `a` is the angle in degrees from straight up (negative is left), `p` the draw 0–100, `c` a fully charged draw.
+   */
+  | { t: 'bow'; ev: 'aim' | 'fire' | 'cancel'; a: number; p: number; c?: boolean }
   /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
   | { t: 'act' }
   /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number; `d` is the drift (0 none, 1 drifting, 2 blue sparks, 3 orange sparks). */

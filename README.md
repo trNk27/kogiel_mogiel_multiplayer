@@ -21,7 +21,8 @@ the notch) are added around controls, never taken out of them.
 | **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups can be switched on in the lobby: 11 pickups that change speed, line width and gaps (green ones affect you, red ones everyone else, blue ones everyone). | 2–8 |
 | **Quiz** | 10 questions from a pool of 200. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 140. | 1–8 |
-| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
+| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Six levels in six kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat), The Wedding Feast (+ blueberry and fried pierogi), The Milk Bar (a long serving counter splits the room, and the sink is at the far end from the hatch), The Mountain Hut (a big stove block in the middle of the room) and Wigilia (two rooms joined by two doors, every filling and half the orders fried). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby; the game plays from there to the last level. | 1–8 |
+| **Obrona Wawelu** | Co-op castle defence (“defending Wawel”). Everyone stands on the castle wall at the bottom of the TV with a bow, and monsters come out of the forest at the top. Your phone is the bow: put your thumb down, **pull back to draw, aim by pulling to the side, let go to shoot**. Your aim line shows on the TV; a longer pull flies further and faster, and holding a full pull for a moment charges a golden arrow that goes through up to three monsters for double damage. Five waves: Biesy (little devils), zig-zagging wolves, Black Knights (3 arrows) and fluttering bats, then giants and Zmory that fade in and out (arrows go straight through them while they're faded), and finally **Smok Wawelski**, who hovers over the field breathing fireballs at the wall (shoot them down). Monsters that reach the wall batter it, and if it falls the castle is lost. The wall is mended a little between waves; stars go by how much of it is left. The VIP picks the difficulty: Easy, Normal, Hard or Nightmare. | 1–8 |
 | **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup (different tracks, mostly hard ones; a tournament's single race is always on a hard track), a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Kiełbasa Lasso and Babcia’s Kapeć. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 | **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 200 prompts. | 3–8 |
@@ -49,7 +50,7 @@ The VIP can also start a **Tournament**: five random games in a row by default, 
 3. The **first player to join is the VIP**. The VIP picks the game, toggles options, starts rounds,
    ends a game early (⋯ menu) and can remove players, all from their phone.
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
-   places; in the co-op Pierogi Panic everyone gets 1 point per star, averaged over the levels played). After a few
+   places; in the co-op games, Pierogi Panic and Obrona Wawelu, everyone gets 1 point per star, averaged over the levels played in Pierogi Panic). After a few
    seconds the podium gives way to a **standings screen**: the table starts as it stood before the game, the bars
    grow by what everyone just earned, the rows slide into their new places (▲▼ shows who moved), and a line chart
    shows everyone's total game by game (the last 10 games). The VIP chooses **Play again** or another game.
@@ -67,7 +68,7 @@ Pick **Tournament** at the top of the game list. The VIP's phone then shows the 
   current number of players are faded. A tournament needs at least two games it can play.
 
 The TV draws that many different games at random from
-the competitive ones that suit the room (never Pierogi Panic, which is co-op, or Maluch Rallye Premium, a game of its own; Maluch Rally only with
+the competitive ones that suit the room (never Pierogi Panic or Obrona Wawelu, which are co-op, or Maluch Rallye Premium, a game of its own; Maluch Rally only with
 up to 4 players; To Ty! and Bazgroły only with 3 or more) and switched on, and shows the line-up. Each game
 is played in its **short version** unless the VIP switched that off:
 
@@ -211,7 +212,7 @@ create a key, then set the Worker secrets `TURN_KEY_ID` and `TURN_KEY_API_TOKEN`
   note by note in `client/src/lib/tracks.ts` and played by a small scheduler (`client/src/lib/music.ts`).
   The waiting room has its own tune (a lazy accordion mazurka), and games that feel alike share a track:
   *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły), *Polka Pierogi* (Tour de Pierogi,
-  Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games), *Maluch Turbo*
+  Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games and Obrona Wawelu), *Maluch Turbo*
   (Maluch Rally, Maluch Rallye Premium, Trails) and *Smoke Rings* (Fajki).
 - The TV is a fixed **1920×1080 stage with a 5 % safe-area margin**, scaled to fit any screen.
 
@@ -246,6 +247,8 @@ client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki
                             Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
+client/src/games/castle/*    Obrona Wawelu: waves, monsters and arrows (logic.ts), the hand-drawn field, wall and monsters (draw.ts), TV view (CastleGame.tsx)
+client/src/phone/castle.tsx  Obrona Wawelu on the phone: the bow (pull back, aim, let go)
 client/src/host/tournament.ts    picking the tournament's games and its points table, party mode's choices and draw
 client/src/host/vote/*      party mode's vote: walking onto a game (logic.ts), the village square (scene.ts), TV view (VoteRoom.tsx)
 data/trivia.json            200 quiz questions
@@ -365,7 +368,7 @@ lengths of the tournament's short versions (`QUIZ_ROUND_LENGTH_SHORT`, `BP_QUEST
 
 ### Pierogi Panic
 
-The three levels live in `LEVELS` in
+The six levels live in `LEVELS` in
 [`client/src/games/kitchen/logic.ts`](client/src/games/kitchen/logic.ts). Each level has a name, the
 fillings that can be ordered, the share of fried orders, a round length and a 16 × 9 layout. Each
 character of the layout is one tile:
@@ -394,8 +397,30 @@ The item and station sprites in `client/public/sprites/kitchen/` were painted wi
 (Black Forest Labs), cut out of their white backgrounds and saved as 192 px WebP (about 750 KB in
 total). The chefs were painted the same way: one base chef, back and side views made with FLUX.2
 image editing, then the dough recoloured into each player colour so every chef is the same
-character. Floors, counter tops and walls are FLUX.2 textures too, with a different floor per
-level. The scripts are in [`tools/sprites`](tools/sprites).
+character. Floors, counter tops and walls are FLUX.2 textures too, with a different floor for each of
+the first three levels; the last three reuse them under a colour wash (`THEMES` in `draw.ts`). The scripts are in [`tools/sprites`](tools/sprites).
+
+### Obrona Wawelu
+
+The waves live in `WAVES` and the monsters in `MONSTERS` in
+[`client/src/games/castle/logic.ts`](client/src/games/castle/logic.ts). Each wave lists how many of
+each monster one archer faces on Normal and how long they take to come out; bigger crews get more
+(`crowd`: a little more than one share per extra archer, since a crowd covers the wall better than
+a lone archer). The difficulty modes are `SIEGE_MODES` in `shared/protocol.ts`:
+
+| Mode | Monsters | Health | Speed | Wall damage | Wall mended between waves |
+| --- | --- | --- | --- | --- | --- |
+| Easy | ×0.7 | ×1 | ×0.8 | ×0.6 | 15 % |
+| Normal | ×1 | ×1 | ×1 | ×1 | 10 % |
+| Hard | ×1.25 | ×1.2 | ×1.1 | ×1.2 | 6 % |
+| Nightmare | ×1.5 | ×1.35 | ×1.22 | ×1.4 | – |
+
+Bows: an arrow flies 260–1020 px depending on the pull (`RANGE_MIN`/`RANGE_MAX`), the next one is
+nocked after 0.35 s (`COOLDOWN_S`), and a full pull held for 0.6 s charges it (on the phone, in
+`client/src/phone/castle.tsx`). Stars: 3 with 70 % of the wall left, 2 with 35 %, 1 if it's still
+standing. The numbers were tuned with simulated archers: a crew that shoots about once every
+1.4 s with a few degrees of error wins Easy and Normal, needs a few players for Hard and loses
+Nightmare; sharp shooters can win them all. `/?debug` on the TV exposes the game as `window.castle`.
 
 Podmianka's 36 extra objects (`client/public/sprites/swap/`) were made the same way with
 `tools/sprites/swap.py`, which reuses the kitchen style prompt, and `process.py … raw-swap`.
