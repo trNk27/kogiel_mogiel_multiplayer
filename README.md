@@ -164,7 +164,7 @@ the same room code, just as they would in the host's room. Up to 8 players in to
 3. Players by the second screen scan the QR code they see in the stream, or go to `/join`.
 
 Under the hood the host TV captures its own tab (`getDisplayMedia`) and sends it to every second
-screen over WebRTC: one peer connection per screen, up to 4 screens, at most 720p, 3 Mbit/s and
+screen over WebRTC: one peer connection per screen, up to 4 screens, at most 720p, 1.5 Mbit/s and
 30 fps each. The Durable Object only relays the signalling (offer, answer, ICE candidates) on a third
 socket role, `screen`; the video itself goes straight from TV to TV. It's tuned for low delay rather
 than a perfect picture: H.264 is offered first (usually hardware-encoded on the host and

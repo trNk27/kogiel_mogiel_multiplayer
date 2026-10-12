@@ -25,8 +25,12 @@ interface Peer {
  */
 const MAX_WIDTH = 1280;
 const MAX_HEIGHT = 720;
-/** Video bitrate per second screen: plenty for 720p30 of a game, fine on home broadband. */
-const MAX_BITRATE = 3_000_000;
+/**
+ * Video bitrate per second screen: enough for 720p30 of a game. Kept low on purpose: at 3 Mbit/s
+ * two screens filled weak links (the host's Wi-Fi, or a screen's), the packets queued up and the
+ * round trip went from ~50 to ~180 ms, with the jitter buffer growing to match.
+ */
+const MAX_BITRATE = 1_500_000;
 const MAX_FPS = 30;
 
 /**
