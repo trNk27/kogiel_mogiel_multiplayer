@@ -34,11 +34,32 @@ import { CookbookScene } from '../games/cookbook/scene';
 import { Showroom } from '../games/premium/showroom';
 import { KitchenGame } from '../games/kitchen/KitchenGame';
 import { TrailsGame } from '../games/trails/TrailsGame';
+import { BlastScene } from '../games/blast/scene';
+import { CastleScene } from '../games/castle/scene';
+import { CastleGame } from '../games/castle/CastleGame';
+import { FlagsScene } from '../games/flags/scene';
+import { RopeScene } from '../games/rope/scene';
 
 type Ctor = abstract new (...args: any[]) => unknown;
 
 /** Objects each side draws with its own copy: never sent; the host's calls to them are replayed. */
-const VIEWS: Ctor[] = [TanksScene, PushyScene, MushroomScene, GalleryScene, SmokeScene, RallyScene, Minimap, TilesScene, CookbookScene, VoteScene, Showroom];
+const VIEWS: Ctor[] = [
+  TanksScene,
+  PushyScene,
+  MushroomScene,
+  GalleryScene,
+  SmokeScene,
+  RallyScene,
+  Minimap,
+  TilesScene,
+  CookbookScene,
+  VoteScene,
+  Showroom,
+  BlastScene,
+  CastleScene,
+  FlagsScene,
+  RopeScene,
+];
 
 /** Methods of replicated objects that only draw: replayed on the screen's copy. */
 const DRAWS: [Ctor, string[]][] = [
@@ -46,10 +67,11 @@ const DRAWS: [Ctor, string[]][] = [
   [TrailsGame, ['draw', 'paintTrail']],
   [GalleryGame, ['drawCrosshairs', 'muzzle', 'popText', 'flashCross']],
   [RallyGame, ['drawMap']],
+  [CastleGame, ['showEvents']],
 ];
 
 /** Never replayed: the screen makes and throws away its own views, and asks them its own questions. */
-const NOT_REPLAYED = new Set(['constructor', 'dispose', 'project', 'point', 'labelAt', 'actorPos', 'toStage']);
+const NOT_REPLAYED = new Set(['constructor', 'dispose', 'project', 'point', 'labelAt', 'actorPos', 'toStage', 'pointOver', 'pointOverArcher', 'plungerTop', 'above']);
 /** The sound player's internals (each effect is replayed whole). */
 const SOUND_INTERNAL = new Set(['unlock', 'tone', 'noise', 'later']);
 

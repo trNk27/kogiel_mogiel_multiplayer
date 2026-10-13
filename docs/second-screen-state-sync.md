@@ -74,7 +74,7 @@ their loop (Trails, Pierogi Panic). Sounds play when something happens. For thes
   host. The host records the calls it makes to its views, and the screen replays them on its own.
 - **Drawing methods** of games (`DRAWS`: `TrailsGame.draw` and `paintTrail`, `KitchenGame.draw`,
   `updateDom` and `paintStatic`, `GalleryGame.drawCrosshairs`, `muzzle`, `popText` and
-  `flashCross`, `RallyGame.drawMap`) are recorded and replayed on the screen's copy of the game.
+  `flashCross`, `RallyGame.drawMap`, `CastleGame.showEvents`) are recorded and replayed on the screen's copy of the game.
 - **Every sound the host plays** is recorded wherever it's played from, and the screen plays
   exactly those. Its own copy's sound calls are muted, so nothing plays twice. The music follows
   the screen's own copy of the TV.
@@ -137,7 +137,8 @@ The second screen reuses the TV code as it is, which works as long as:
    constructor. Examples are `TrailsGame.trailLayer` and `KitchenGame.staticLayer`.
 3. **Drawing that happens in the game loop** goes through a view method or a method listed in
    `DRAWS`. Its arguments are state or plain data, not DOM elements: `GalleryGame.flashCross(i)`
-   rather than `restart(cross.el)`.
+   rather than `restart(cross.el)`. Pass no functions to views either: they aren't sent, so
+   `CastleGame.showEvents` wraps the scene call that takes a colour callback.
 4. **Views keep their own bookkeeping to themselves.** Don't stash scene objects on state objects.
    Gallery maps targets to models with a `WeakMap` inside the scene.
 5. **Anything random that shows** (a visual style, a layout) is decided by the game, not by a view's
