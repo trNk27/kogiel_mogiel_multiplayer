@@ -30,3 +30,16 @@ Chef sprites share one crop and scale with the feet on the bottom edge, so the T
 (front, back, side, mirrored side) as the chef turns. `process_chefs.py` also makes the second
 terracotta tile (a darker, rotated copy of the first) and brightens or softens a few textures so
 they read well at 90 px.
+
+## Mushrooms
+
+The mushroom sprites (`ing-mushroom`, `fill-mushroom`, `crate-mushroom`, and `fill-wigilia` /
+`ing-wigilia` for the sauerkraut & mushroom filling) are drawn as SVG in `mushroom-art.mjs` in the
+painted sprites' cartoon style, then laid over the existing blueberry bowl and crate and the
+sauerkraut bowl and cabbage, so the bowls and crates stay identical. No credits needed:
+
+```sh
+cd tools/sprites
+PLAYWRIGHT=/path/to/node_modules/playwright node mushroom-build.mjs /tmp/mush
+python3 mushroom-compose.py ../../client/public/sprites/kitchen /tmp/mush ../../client/public/sprites/kitchen
+```

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
-import { GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, type GameId, type Selection } from '../../../shared/protocol';
+import { GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, siegeMode, type GameId, type Selection } from '../../../shared/protocol';
 import { FolkBorder, Logo, Pierogi } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
@@ -25,8 +25,12 @@ import { howTo as tanksHowTo } from '../games/tanks/logic';
 import { howTo as mushroomHowTo } from '../games/mushroom/logic';
 import { howTo as pushyHowTo } from '../games/pushy/logic';
 import { howTo as galleryHowTo } from '../games/gallery/logic';
+import { howTo as castleHowTo } from '../games/castle/logic';
 import { howTo as cookbookHowTo } from '../games/cookbook/logic';
 import { howTo as tilesHowTo } from '../games/tiles/logic';
+import { howTo as ropeHowTo } from '../games/rope/logic';
+import { howTo as blastHowTo } from '../games/blast/logic';
+import { howTo as flagsHowTo } from '../games/flags/logic';
 import { howTo as smokeHowTo } from '../games/smoke/logic';
 
 /**
@@ -365,6 +369,7 @@ function SelectedGame({ sel }: { sel: Selection }) {
   if (sel === 'premium') flags.push(`Grand Prix or single tracks · ${o.items ? 'items' : 'no items'}`);
   if (sel === 'trails' && o.powerups) flags.push('Power-ups');
   if (sel === 'kitchen') flags.push(`${difficultyName(o.difficulty)} · level ${o.level}`);
+  if (sel === 'castle') flags.push(siegeMode(o.siege).name);
   return (
     <div class="game-detail">
       <b>{g.title}</b>
@@ -416,8 +421,16 @@ function howTo(game: GameId, short: boolean): string[] {
       return cookbookHowTo(short);
     case 'tiles':
       return tilesHowTo(short);
+    case 'rope':
+      return ropeHowTo(short);
+    case 'blast':
+      return blastHowTo(short);
+    case 'flags':
+      return flagsHowTo(short);
     case 'smoke':
       return smokeHowTo();
+    case 'castle':
+      return castleHowTo();
     case 'premium':
       return ['Pick a Grand Prix of three tracks – or one track', 'Choose your car: speed, accel, handling, off-road', `Thumb pad, drifts, turbos and new items · ${LAPS} laps a race`];
   }
@@ -711,7 +724,7 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
   if (useAfter(STORY_MS + 3000) && c.players.size > 1)
     return (
       <div class="screen results">
-        <PartyStory title={`After ${gameInfo(game).title}`} sub="Co-op: everyone gets 1 point per star (average over the levels)" />
+        <PartyStory title={`After ${gameInfo(game).title}`} sub={coop.levels ? 'Co-op: everyone gets 1 point per star (average over the levels)' : 'Co-op: everyone gets 1 point per star'} />
         <div class="lobby-hint">{vip ? `${vip.name} (VIP): “Play again” or pick another game on your phone.` : ''}</div>
       </div>
     );
@@ -724,20 +737,20 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
       <div class="results-body">
         <div class="coop-main">
           <Stars n={coop.stars} size={150} />
-          <div class="coop-line">{STAR_LINES[coop.stars]}</div>
+          <div class="coop-line">{coop.look?.line ?? STAR_LINES[coop.stars]}</div>
           <div class="coop-stats">
-            <div>
-              <b>{coop.score.toLocaleString('en-US')}</b>
-              <small>team tips</small>
-            </div>
-            <div>
-              <b>{coop.served}</b>
-              <small>orders served</small>
-            </div>
-            <div>
-              <b>{coop.missed}</b>
-              <small>orders missed</small>
-            </div>
+            {(
+              coop.look?.stats ?? [
+                { v: coop.score, label: 'team tips' },
+                { v: coop.served, label: 'orders served' },
+                { v: coop.missed, label: 'orders missed' },
+              ]
+            ).map((st) => (
+              <div>
+                <b>{st.v.toLocaleString('en-US')}</b>
+                <small>{st.label}</small>
+              </div>
+            ))}
           </div>
           {coop.levels && coop.levels.length > 1 && (
             <div class="coop-levels">
@@ -755,7 +768,9 @@ function CoopResults({ game, standings, coop }: { game: GameId; standings: Stand
               <div class="coop-chef">
                 <Pierogi color={colorHex(st.color)} size={86} mood={coop.stars >= 2 ? 'wow' : 'happy'} class="bob" />
                 <span class="coop-chef-name">{st.name}</span>
-                <span class="muted">{st.score} {st.score === 1 ? 'job' : 'jobs'}</span>
+                <span class="muted">
+                  {st.score} {(coop.look?.unit ?? ['job', 'jobs'])[st.score === 1 ? 0 : 1]}
+                </span>
               </div>
             ))}
           </div>

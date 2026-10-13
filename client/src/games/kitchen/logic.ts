@@ -6,7 +6,7 @@
  * single action button does whatever makes sense for that station and what the cook is holding.
  * Some actions start a minigame on the cook's phone; the cook is frozen until it is done.
  */
-import { DIFFICULTIES, FILLINGS, KITCHEN_LEVELS, type Filling, type KitchenItem, type KitchenMini, type KitchenMiniKind } from '../../../../shared/protocol';
+import { DIFFICULTIES, FILLINGS, KITCHEN_LEVELS, mixFillings, type Filling, type KitchenItem, type KitchenMini, type KitchenMiniKind } from '../../../../shared/protocol';
 import { mulberry32, type Rng } from '../rng';
 
 export const TICK_HZ = 60;
@@ -36,14 +36,14 @@ export type KitchenTuning = typeof KTUNING;
 
 export interface KitchenLevel {
   name: string;
-  /** Fillings that can be ordered (each needs a crate in the layout). */
+  /** Fillings that can be ordered (each needs a crate in the layout, or crates for what it's mixed from). */
   fillings: Filling[];
   /** Share of orders that are fried (needs pans in the layout). */
   fried: number;
   roundMs: number;
   /**
    * One character per tile:
-   *  .  floor        #  counter       X  wall          F  flour sack     1-4  filling crates (FILLINGS order)
+   *  .  floor        #  counter       X  wall          F  flour sack     1-5  filling crates (FILLINGS order)
    *  R  rolling board  P  pierogi (folding) board  S  stove with pot   G  frying pan
    *  W  sink         K  plate rack    H  serving hatch  D  dirty dish return   T  bin
    */
@@ -100,6 +100,61 @@ export const LEVELS: KitchenLevel[] = [
       '4..............#',
       '#..............#',
       '##T###K#WW#K##T#',
+    ],
+  },
+  {
+    // A bar mleczny: one long serving counter down the middle, the sink at the far end from the hatch.
+    name: KITCHEN_LEVELS[3].name,
+    fillings: ['potato', 'cabbage', 'berry'],
+    fried: 0.25,
+    roundMs: 165_000,
+    layout: [
+      'X#R#R##S#S#G##HX',
+      'F..............H',
+      '1..............#',
+      '2..##PP#P###...#',
+      '4..............D',
+      '#..............#',
+      '#..##########..#',
+      'T..............#',
+      'XWW##K###K######',
+    ],
+  },
+  {
+    // A mountain hut (schronisko): the big stove stands in the middle of the room.
+    name: KITCHEN_LEVELS[4].name,
+    fillings: ['potato', 'meat', 'berry'],
+    fried: 0.3,
+    roundMs: 170_000,
+    layout: [
+      'X#R#R###F#1#3#HX',
+      '#..............H',
+      '#..............#',
+      'P....#SSSS#....#',
+      'P....#GSSG#....D',
+      '#..............#',
+      '#...##....##...#',
+      'T..............#',
+      'X##K#WW###4#K##X',
+    ],
+  },
+  {
+    // Christmas Eve: no meat, but sauerkraut & mushroom pierogi (mix both on a folding board).
+    // Two rooms joined by two doors, prep on the left, the stoves on the right.
+    name: KITCHEN_LEVELS[5].name,
+    fillings: ['potato', 'cabbage', 'wigilia', 'berry'],
+    fried: 0.35,
+    roundMs: 180_000,
+    layout: [
+      'XR#R#F#XXS#SSG#X',
+      '1......XX......H',
+      '2..............H',
+      '5..PP..XX..#...#',
+      '4..PP..XX..#...D',
+      '#......XX......#',
+      '#..............#',
+      'T......XX......#',
+      'X#K##W#XXWK#G#TX',
     ],
   },
 ];
@@ -213,21 +268,27 @@ export function fillName(f: Filling) {
   return FILLINGS.find((x) => x.id === f)!.name;
 }
 
+/** Mushrooms can't be folded on their own: they need sauerkraut on the board too. */
+export function isMixOnly(f: Filling) {
+  return !!FILLINGS.find((x) => x.id === f)?.mixOnly;
+}
+
 export function dishName(f: Filling, fried: boolean) {
   return fried ? `Fried ${fillName(f).toLowerCase()}` : fillName(f);
 }
 
-function difficulty(d: number) {
-  return DIFFICULTIES[Math.max(1, Math.min(5, Math.round(d) || 3)) - 1];
+function difficulty(d: number): (typeof DIFFICULTIES)[number] & { extra?: number } {
+  return DIFFICULTIES[Math.max(1, Math.min(DIFFICULTIES.length, Math.round(d) || 3)) - 1];
 }
 
-/** Seconds between new orders for a given team size and difficulty (1–5). */
+/** Seconds between new orders for a given team size and difficulty (1 = Relaxed … 6 = Inferno). */
 export function orderInterval(players: number, diff = 3): number {
   return Math.max(12, 34 - 3.5 * (Math.max(1, players) - 1)) * difficulty(diff).pace;
 }
 
-export function maxOrders(players: number): number {
-  return Math.min(5, 2 + Math.ceil(Math.max(1, players) / 2));
+/** Most tickets on the rail at once (Inferno allows one more, up to the rail's five). */
+export function maxOrders(players: number, diff = 3): number {
+  return Math.min(5, 2 + Math.ceil(Math.max(1, players) / 2) + (difficulty(diff).extra ?? 0));
 }
 
 export function startingPlates(players: number): number {
@@ -288,6 +349,7 @@ const KIND_OF: Record<string, StationKind> = {
   '2': 'crate',
   '3': 'crate',
   '4': 'crate',
+  '5': 'crate',
   R: 'roll',
   P: 'fold',
   S: 'stove',
@@ -338,7 +400,7 @@ export class KitchenSim {
     this.players = ids.length;
     this.levelIndex = Math.max(0, Math.min(LEVELS.length - 1, opts.level ?? 0));
     this.level = LEVELS[this.levelIndex];
-    this.difficulty = Math.max(1, Math.min(5, Math.round(opts.difficulty ?? 3)));
+    this.difficulty = Math.max(1, Math.min(DIFFICULTIES.length, Math.round(opts.difficulty ?? 3) || 3));
     this.tuning = { ...KTUNING, roundMs: this.level.roundMs, ...opts.tuning };
     this.tuning.orderTtlMs = Math.round(this.tuning.orderTtlMs * difficulty(this.difficulty).ttl);
     this.thresholds = starThresholds(ids.length, this.tuning.roundMs, this.difficulty, this.level.fried);
@@ -594,7 +656,13 @@ export class KitchenSim {
           const f = h.f;
           return put('Add filling', () => (s.fill = f));
         }
-        if (!h && s.dough && s.fill) return mini('Make pierogi', 'fold', s.fill);
+        if (h?.k === 'fill' && s.fill) {
+          // Sauerkraut and mushrooms on one board make kraut & mushroom.
+          const mix = mixFillings(s.fill, h.f);
+          if (mix) return put(`Mix in ${fillName(h.f).toLowerCase()}`, () => (s.fill = mix));
+          return null;
+        }
+        if (!h && s.dough && s.fill && !isMixOnly(s.fill)) return mini('Make pierogi', 'fold', s.fill);
         if (!h && s.fill) {
           const f = s.fill;
           return take(`Pick up ${fillName(f).toLowerCase()}`, { k: 'fill', f }, () => (s.fill = null));
@@ -769,7 +837,7 @@ export class KitchenSim {
       }
     }
     if (t >= this.nextOrderAt && t < this.playEnd - 15_000) {
-      if (this.orders.length < maxOrders(this.players)) {
+      if (this.orders.length < maxOrders(this.players, this.difficulty)) {
         this.spawnOrder();
         this.nextOrderAt = t + orderInterval(this.players, this.difficulty) * 1000;
       }

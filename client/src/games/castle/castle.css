@@ -1,0 +1,255 @@
+/* ---- Malbork Castle: HUD over the 3D field ----------------------------------------------- */
+
+.castle {
+  position: absolute;
+  inset: -54px -96px;
+  overflow: hidden;
+  background: #000;
+  animation: fade-in 0.4s both;
+}
+/* The room code would sit on top of the archers' name tags. */
+.stage:has(.castle) .corner {
+  display: none;
+}
+.castle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Points floating up over a monster that fell. */
+.castle-pop {
+  position: absolute;
+  translate: -50% -100%;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 38px;
+  color: var(--pc);
+  -webkit-text-stroke: 7px var(--ink);
+  paint-order: stroke fill;
+  white-space: nowrap;
+  animation: castle-pop 1.2s ease-out both;
+  pointer-events: none;
+  z-index: 2;
+}
+.castle-pop.big {
+  font-size: 66px;
+  -webkit-text-stroke-width: 10px;
+}
+@keyframes castle-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-70px);
+    opacity: 0;
+  }
+}
+
+/* HUD */
+.castle-top {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  padding: 40px 120px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  z-index: 3;
+  pointer-events: none;
+}
+.castle-top .pill {
+  font-size: 32px;
+  padding: 10px 28px;
+  background: rgba(20, 6, 10, 0.84);
+  box-shadow: var(--drop);
+}
+.castle-wave small {
+  font-size: 22px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+.castle-score {
+  font-variant-numeric: tabular-nums;
+  color: var(--yolk);
+}
+.castle-hp {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  background: rgba(20, 6, 10, 0.84);
+  box-shadow: var(--drop);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+}
+.castle-hp b {
+  min-width: 82px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.castle-hp-bar,
+.castle-boss-bar {
+  width: 440px;
+  height: 26px;
+  border-radius: 13px;
+  background: rgba(251, 240, 217, 0.15);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+.castle-hp-bar i,
+.castle-boss-bar i {
+  display: block;
+  height: 100%;
+  background: var(--dill);
+  border-radius: 13px;
+  transition: width 0.3s ease-out;
+}
+.castle-hp.low .castle-hp-bar i {
+  background: var(--beet);
+}
+.castle-hp.low b {
+  color: #ff6b81;
+  animation: castle-blink 0.6s steps(2) infinite;
+}
+@keyframes castle-blink {
+  50% {
+    opacity: 0.55;
+  }
+}
+.castle-boss {
+  position: absolute;
+  left: 50%;
+  top: 122px;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 26px;
+  border-radius: 999px;
+  background: rgba(20, 6, 10, 0.84);
+  box-shadow: var(--drop);
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 30px;
+  color: #a3e048;
+  z-index: 3;
+}
+.castle-boss-bar {
+  width: 640px;
+}
+.castle-boss-bar i {
+  background: linear-gradient(90deg, #e8335a, #ff8a2a);
+}
+.castle-left {
+  position: absolute;
+  left: 50%;
+  top: 130px;
+  translate: -50% 0;
+  padding: 8px 30px;
+  border-radius: 999px;
+  background: rgba(20, 6, 10, 0.8);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 32px;
+  color: var(--yolk);
+  z-index: 3;
+}
+
+/* Banners */
+.castle .castle-banner {
+  top: 140px;
+  translate: -50% 0;
+  z-index: 4;
+  padding: 28px 60px 32px;
+  max-width: 1500px;
+}
+.castle-banner .trails-banner-big {
+  color: var(--yolk);
+  font-size: 84px;
+}
+.castle-news {
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 36px;
+  margin-top: 6px;
+}
+.castle-cast {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.castle-cast-chip {
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 26px;
+}
+.castle-howto {
+  margin-top: 16px;
+  font-size: 28px;
+  color: var(--muted);
+}
+.castle-count {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 470px;
+  height: 340px;
+  z-index: 4;
+  pointer-events: none;
+}
+.castle .castle-end {
+  top: 50%;
+  translate: -50% -50%;
+}
+.castle-end.lost .trails-banner-big {
+  color: #ff6b81;
+}
+.castle-crew {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 20px auto 0;
+  width: fit-content;
+}
+.castle-crew-row {
+  display: grid;
+  grid-template-columns: 56px 220px 110px auto;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 32px;
+}
+.castle-crew-row b {
+  color: var(--yolk);
+  text-align: right;
+}
+.castle-crew-row small {
+  font-size: 22px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-left: 14px;
+}

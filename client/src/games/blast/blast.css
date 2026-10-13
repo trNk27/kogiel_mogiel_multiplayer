@@ -1,0 +1,95 @@
+/* ---- Petarda ------------------------------------------------------------------------------- */
+/* The container is `.rally` (full stage, canvas behind); top bar, chips and banner come from cookbook.css. */
+
+.blast-set {
+  color: var(--yolk);
+}
+/* Whose turn it is, top middle, with the time left to pick. */
+.blast-turn {
+  position: absolute;
+  left: 50%;
+  top: 150px;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 34px 10px 18px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.85);
+  box-shadow: inset 0 0 0 5px var(--pc);
+  pointer-events: none;
+  animation: blast-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.blast-turn span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.02;
+}
+.blast-turn b {
+  font-size: 46px;
+  font-weight: 650;
+}
+.blast-turn small {
+  font-size: 24px;
+  color: var(--muted);
+}
+.blast-timer {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  bottom: -14px;
+  height: 10px;
+  border-radius: 99px;
+  background: rgba(21, 9, 16, 0.85);
+  overflow: hidden;
+}
+.blast-timer div {
+  height: 100%;
+  background: var(--pc);
+  transition: width 0.12s linear;
+}
+@keyframes blast-in {
+  from {
+    scale: 0.6;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+.cookbook-chip.blast-now {
+  background: rgba(70, 40, 10, 0.92);
+  scale: 1.08;
+}
+.blast-flash {
+  background: #ffe2a0;
+}
+.blast-boom {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  translate: -50% -50%;
+  font-size: 220px;
+  font-weight: 700;
+  color: var(--yolk);
+  letter-spacing: 6px;
+  -webkit-text-stroke: 12px #241015;
+  paint-order: stroke fill;
+  text-shadow: 0 16px 0 #c4254a;
+  rotate: -6deg;
+  pointer-events: none;
+  animation: cookbook-thwump 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.blast-phew {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 54px;
+  font-weight: 700;
+  color: var(--dill);
+  -webkit-text-stroke: 8px #241015;
+  paint-order: stroke fill;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cookbook-splat 1.1s ease-out both;
+}

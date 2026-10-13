@@ -96,8 +96,12 @@ export type GameId =
   | 'gallery'
   | 'cookbook'
   | 'tiles'
+  | 'rope'
+  | 'blast'
+  | 'flags'
   | 'swap'
   | 'smoke'
+  | 'castle'
   | 'premium';
 
 export interface GameInfo {
@@ -154,7 +158,11 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'gallery', title: 'Strzelnica', tagline: 'Pop the ghosts. Spare the babcias.', minPlayers: 1 },
   { id: 'cookbook', title: 'Babcia’s Cookbook', tagline: 'Squeeze into the hole in the page.', minPlayers: 1 },
   { id: 'tiles', title: 'Kafelki', tagline: 'Paint the floor your colour.', minPlayers: 2 },
+  { id: 'rope', title: 'Skakanka', tagline: 'Jump the kiełbasa rope. Faster and faster.', minPlayers: 1 },
+  { id: 'blast', title: 'Petarda', tagline: 'Push a plunger. Pray it’s not the big one.', minPlayers: 2 },
+  { id: 'flags', title: 'Babcia Mówi', tagline: 'Red up, white up – do what Babcia says.', minPlayers: 1 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
+  { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
     id: 'premium',
     title: 'Maluch Rallye Premium',
@@ -229,6 +237,8 @@ export interface LobbyOptions {
   difficulty: number;
   /** Pierogi Panic: level to start from (1-based). */
   level: number;
+  /** Malbork Castle: difficulty mode, 1-based index into SIEGE_MODES. */
+  siege: number;
   /** Maluch Rally: item boxes on the track. */
   items: boolean;
   /** Maluch Rally: which tracks the cup is raced on (an id from RALLY_TRACKS). */
@@ -248,6 +258,7 @@ export const DEFAULT_OPTIONS: LobbyOptions = {
   sound: true,
   difficulty: 3,
   level: 1,
+  siege: 2,
   items: true,
   track: 'cup',
   tourGames: TOURNAMENT_GAMES,
@@ -284,10 +295,12 @@ export const DIFFICULTIES = [
   { name: 'Normal', pace: 1, ttl: 1 },
   { name: 'Hard', pace: 0.8, ttl: 0.9 },
   { name: 'Chaos', pace: 0.62, ttl: 0.8 },
+  /** Orders twice as often as Normal, one more ticket on the rail at a time, and short tickets. */
+  { name: 'Inferno', pace: 0.5, ttl: 0.75, extra: 1 },
 ] as const;
 
 export function difficultyName(d: number) {
-  return DIFFICULTIES[Math.max(1, Math.min(5, Math.round(d))) - 1].name;
+  return DIFFICULTIES[Math.max(1, Math.min(DIFFICULTIES.length, Math.round(d) || 3)) - 1].name;
 }
 
 /** Pierogi Panic levels, in order (details live with the game). */
@@ -295,7 +308,26 @@ export const KITCHEN_LEVELS = [
   { name: 'Babcia’s Kitchen', news: 'Potato & cheese pierogi, boiled' },
   { name: 'The Village Inn', news: 'New fillings: sauerkraut and meat' },
   { name: 'The Wedding Feast', news: 'Blueberries – and fried pierogi in the pans!' },
+  { name: 'The Milk Bar', news: 'One long serving line – and the sink is miles away' },
+  { name: 'The Mountain Hut', news: 'A cosy hut split by the big stove: go round it!' },
+  { name: 'Wigilia', news: 'Christmas Eve: no meat, but kraut & mushroom pierogi – mix both on the board' },
 ] as const;
+
+/**
+ * Malbork Castle difficulty modes. `count` scales how many monsters come, `hp` how much they take,
+ * `speed` how fast they walk, `dmg` how hard they hit the wall; `repair` is wall mended between waves.
+ */
+export const SIEGE_MODES = [
+  { name: 'Easy', hint: 'Fewer, slower monsters and a thick wall', count: 0.7, hp: 1, speed: 0.8, dmg: 0.6, repair: 15 },
+  { name: 'Normal', hint: 'A proper siege', count: 1, hp: 1, speed: 1, dmg: 1, repair: 10 },
+  { name: 'Hard', hint: 'More monsters, tougher and faster', count: 1.25, hp: 1.2, speed: 1.1, dmg: 1.2, repair: 6 },
+  { name: 'Nightmare', hint: 'The whole Bieszczady forest wants in', count: 1.5, hp: 1.35, speed: 1.22, dmg: 1.4, repair: 0 },
+] as const;
+
+export function siegeMode(n: number) {
+  const i = Math.round(n);
+  return SIEGE_MODES[(i >= 1 && i <= SIEGE_MODES.length ? i : 2) - 1];
+}
 
 /** Maluch Rally items. You pick one up from a ? box and fire it by lifting your thumb. */
 export type RallyItem = 'boost' | 'butter' | 'pickle' | 'lid' | 'storm' | 'rocket' | 'bomb' | 'beet' | 'ghost' | 'lasso' | 'slipper';
@@ -429,14 +461,31 @@ export interface BetSlot {
 // Pierogi Panic (co-op kitchen)
 // ---------------------------------------------------------------------------
 
-export type Filling = 'potato' | 'cabbage' | 'meat' | 'berry';
+export type Filling = 'potato' | 'cabbage' | 'meat' | 'berry' | 'mushroom' | 'wigilia';
 
-export const FILLINGS: readonly { id: Filling; name: string; hex: string }[] = [
+/**
+ * Fillings in crate order (crate `1` holds the first, `5` the fifth). Mushrooms only go into pierogi
+ * mixed with sauerkraut: put both on a folding board and they become kraut & mushroom (`from`),
+ * which comes from no crate.
+ */
+export const FILLINGS: readonly { id: Filling; name: string; hex: string; mixOnly?: boolean; from?: readonly [Filling, Filling] }[] = [
   { id: 'potato', name: 'Potato & cheese', hex: '#f3cf6b' },
   { id: 'cabbage', name: 'Sauerkraut', hex: '#a9c94a' },
   { id: 'meat', name: 'Meat', hex: '#c0583a' },
   { id: 'berry', name: 'Blueberry', hex: '#5a4bb5' },
+  { id: 'mushroom', name: 'Mushrooms', hex: '#8a4a22', mixOnly: true },
+  { id: 'wigilia', name: 'Kraut & mushroom', hex: '#7d8f4a', from: ['cabbage', 'mushroom'] },
 ];
+
+/** What two ingredients on one folding board make, or null if they don't go together. */
+export function mixFillings(a: Filling, b: Filling): Filling | null {
+  return FILLINGS.find((x) => x.from && ((x.from[0] === a && x.from[1] === b) || (x.from[0] === b && x.from[1] === a)))?.id ?? null;
+}
+
+/** The crates a dish needs: itself, or the ingredients it's mixed from. */
+export function ingredientsOf(f: Filling): Filling[] {
+  return [...(FILLINGS.find((x) => x.id === f)?.from ?? [f])];
+}
 
 export function fillingInfo(f: Filling) {
   return FILLINGS.find((x) => x.id === f)!;
@@ -540,6 +589,26 @@ export type PhoneView =
       /** 1-based level number and how many levels there are. */
       level: number;
       levels: number;
+    }
+  /**
+   * Malbork Castle: the phone is a bow. `wall` is the castle wall's health in per cent; `phase` break is the
+   * pause before a wave (`title` names it), won/lost the end. You can shoot in play and break.
+   * The volley skill: `volley` triple shots still loaded (0 = off); while it's off, `skillAt` is the host
+   * time (ms) it's ready again (absent: ready now) and `skillCool` the whole cooldown (ms).
+   */
+  | {
+      v: 'castle';
+      phase: 'break' | 'play' | 'won' | 'lost';
+      wave: number;
+      waves: number;
+      wall: number;
+      score: number;
+      kills: number;
+      volley: number;
+      skillAt?: number;
+      skillCool: number;
+      title?: string;
+      text?: string;
     }
   /** Maluch Rally. `pos` is your current race position (1-based) out of `of`. */
   | {
@@ -657,8 +726,8 @@ export type PhoneView =
       res: { correct: boolean; answer: number; added: string; removed: string; removedSrc: string; pts: number; total: number } | null;
     }
   /**
-   * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki): the phone is a
-   * joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
+   * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda,
+   * Babcia Mówi): the phone is a joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
    */
   | PadView
   /**
@@ -708,8 +777,8 @@ export type PhoneView =
       score: number;
       players: number;
       vip: boolean;
-      /** Co-op games: the team result instead of a place. */
-      coop?: { stars: number; score: number };
+      /** Co-op games: the team result instead of a place (`unit` names the score, "tips" by default). */
+      coop?: { stars: number; score: number; unit?: string };
       /** Rooms without a TV: the final scores and party standings that the TV would show. */
       board?: { name: string; color: ColorId; score: number; place: number; party: number }[];
       /** In a tournament: this was game `game` of `games`; what you earned and where you stand. */
@@ -790,7 +859,12 @@ export type PhoneMsg =
   | { t: 'stick'; x: number; y: number }
   /** Arena pad: button `b` (index in the view's `buttons`) went down (`on`) or up. */
   | { t: 'btn'; b: number; on: boolean }
-  /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts). */
+  /**
+   * Malbork Castle bow: aiming (sent while the drag changes, throttled), loosing the arrow, or easing off.
+   * `a` is the angle in degrees from straight up (negative is left), `p` the draw 0–100, `c` a fully charged draw.
+   */
+  | { t: 'bow'; ev: 'aim' | 'fire' | 'cancel'; a: number; p: number; c?: boolean }
+  /** Pierogi Panic action button; Maluch Rally: use your item (sent when the thumb lifts); Malbork Castle: the volley skill. */
   | { t: 'act' }
   /** No-TV Maluch Rally: where my car is (~15 times a second). `r` is the race number; `d` is the drift (0 none, 1 drifting, 2 blue sparks, 3 orange sparks). */
   | { t: 'car'; r: number; x: number; z: number; a: number; v: number; d?: number }

@@ -1155,6 +1155,9 @@ body.phone-body input {
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
+.segmented.n2 {
+  grid-template-columns: repeat(2, 1fr);
+}
 .segmented button {
   min-height: 56px;
   border-radius: 12px;
@@ -2555,7 +2558,7 @@ body.phone-body input {
   flex: 0 0 auto;
 }
 
-/* ---- Arena pad (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki) ---- */
+/* ---- Arena pad (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi) ---- */
 
 .ar-pad {
   position: relative;
@@ -3209,4 +3212,169 @@ body.phone-body input {
     grid-column: 2;
     grid-row: 2 / 4;
   }
+}
+
+/* ---- Malbork Castle: the bow ---- */
+
+.cs-pad {
+  gap: 10px;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+}
+.cs-wall {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.cs-wave {
+  white-space: nowrap;
+}
+.cs-wall-bar {
+  width: 56px;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(251, 240, 217, 0.15);
+  overflow: hidden;
+}
+.cs-wall-bar i {
+  display: block;
+  height: 100%;
+  background: var(--dill);
+}
+.cs-wall.low {
+  color: #ff6b81;
+}
+.cs-wall.low .cs-wall-bar i {
+  background: var(--beet);
+}
+.cs-alert {
+  color: #a3e048;
+}
+.cs-zone {
+  flex: 1 1 auto;
+  min-height: 260px;
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  display: grid;
+  place-items: center;
+}
+.cs-zone.active {
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--me) 60%, transparent);
+}
+.cs-zone.charged {
+  box-shadow: inset 0 0 0 4px var(--yolk);
+  background: color-mix(in srgb, var(--yolk) 12%, var(--panel));
+}
+.cs-bow {
+  width: min(86%, 380px);
+  max-height: 72%;
+  margin-bottom: 24px;
+  pointer-events: none;
+}
+.cs-zone.charged .cs-bow {
+  animation: cs-shiver 0.12s linear infinite;
+}
+@keyframes cs-shiver {
+  50% {
+    transform: translateX(1.5px);
+  }
+}
+.cs-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--muted);
+  pointer-events: none;
+  padding: 0 10px;
+}
+.cs-zone.charged .cs-hint {
+  color: var(--yolk);
+}
+/* The volley skill button under the bow. */
+.cs-volley {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 24px;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 22px;
+  color: var(--ink);
+  background: var(--yolk);
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.22);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.cs-volley span {
+  position: relative;
+}
+.cs-volley.ready {
+  animation: cs-ready 1s ease-in-out infinite;
+}
+@keyframes cs-ready {
+  50% {
+    filter: brightness(1.18);
+    transform: scale(1.02);
+  }
+}
+.cs-volley.on {
+  color: var(--yolk);
+  background: color-mix(in srgb, var(--yolk) 18%, var(--panel));
+  box-shadow: inset 0 0 0 3px var(--yolk);
+}
+.cs-volley.on b {
+  font-size: 28px;
+}
+.cs-volley.cooling {
+  color: rgba(251, 240, 217, 0.6);
+  background: rgba(251, 240, 217, 0.1);
+}
+.cs-volley-cool {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: color-mix(in srgb, var(--yolk) 28%, transparent);
+  pointer-events: none;
+}
+/* Three little arrows in a row. */
+.cs-volley-arrows {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cs-volley-arrows i {
+  display: block;
+  position: relative;
+  width: 34px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.cs-volley-arrows i::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: -4px;
+  border: 6px solid transparent;
+  border-left: 8px solid currentColor;
+  border-right: 0;
 }

@@ -21,7 +21,8 @@ the notch) are added around controls, never taken out of them.
 | **Trails** | Curve Fever–style. Hold LEFT/RIGHT to steer your line, and avoid walls and trails. Random gaps let you slip through. Every crash gives each survivor +1. First to 10 × (players − 1) wins. Power-ups can be switched on in the lobby: 11 pickups that change speed, line width and gaps (green ones affect you, red ones everyone else, blue ones everyone). | 2–8 |
 | **Quiz** | 10 questions from a pool of 200. You have 20 s per question, and a right answer scores 1000 points, dropping to 500 as the timer runs out. No question repeats within a session. | 1–8 |
 | **Ballpark** | Everyone guesses a number, then bets on the guess closest to the answer **without going over**. Edge slots pay more. 7 questions per game from a pool of 140. | 1–8 |
-| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Three levels in three kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat) and The Wedding Feast (+ blueberry and fried pierogi). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive) and the starting level in the lobby. | 1–8 |
+| **Pierogi Panic** | Co-op cooking, Overcooked-style. Walk your chef with a joystick on your phone and do everything else with one big button. Roll dough, fold pierogi, boil them, plate up and serve the orders before their tickets run out. Then wash the dirty plates. Rolling, folding, boiling, frying and washing are quick minigames on your phone. Six levels in six kitchens: Babcia's Kitchen (potato & cheese only), The Village Inn (+ sauerkraut and meat), The Wedding Feast (+ blueberry and fried pierogi), The Milk Bar (a long serving counter splits the room, and the sink is at the far end from the hatch), The Mountain Hut (a big stove block in the middle of the room) and Wigilia (two rooms joined by two doors; no meat on Christmas Eve, but **kraut & mushroom** pierogi: take sauerkraut and the new mushrooms to the same folding board and they mix into one filling). Up to 3 stars per level. The VIP sets the difficulty (how fast orders arrive, from Relaxed up to Inferno) and the starting level in the lobby; the game plays from there to the last level. | 1–8 |
+| **Malbork Castle** | Co-op castle defence on the red-brick walls of Malbork, in the arena games' low-poly 3D look: the camera stands behind the archers on the battlements and looks out over the meadow to the forest the monsters come from. Your phone is the bow: put your thumb down, **pull back to draw, aim by pulling to the side, let go to shoot**. Your aim line shows on the TV; a longer pull flies further and faster, and holding a full pull for a moment charges a golden arrow that goes through up to three monsters for double damage. Under the bow is the **Volley** button: once it has cooled down (20 s), tap it and your next 5 shots each fire three arrows in a row; the cooldown starts again after the fifth. Five waves: Biesy (little devils), zig-zagging wolves, Black Knights (3 arrows) and fluttering bats, then giants and Zmory that fade in and out (arrows go straight through them while they're faded), and finally **Smok** the dragon, who hovers over the field breathing fireballs at the wall (shoot them down). Monsters that reach the wall batter it, and if it falls the castle is lost. The wall is mended a little between waves; stars go by how much of it is left. The VIP picks the difficulty: Easy, Normal, Hard or Nightmare. | 1–8 |
 | **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup (different tracks, mostly hard ones; a tournament's single race is always on a hard track), a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Kiełbasa Lasso and Babcia’s Kapeć. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 | **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 200 prompts. | 3–8 |
@@ -35,10 +36,13 @@ the notch) are added around controls, never taken out of them.
 | **Strzelnica** | Our take on Boo-ting Gallery: a fairground shooting gallery: steer a crosshair with the joystick, Fire corks and Reload. Ghosts 1, bats 2, golden ghost 5 – but shoot a babcia cut-out and you lose 3. | 1–8 |
 | **Babcia’s Cookbook** | Our take on Booksquirm: a giant page slams down on the book: stand in one of the holes cut in it to survive, and shove rivals out of it. Holes get smaller and pages faster. | 1–8 |
 | **Kafelki** | Inspired by Tiles and Tribulations: paint the kitchen floor your colour: walk, roll-dash and splat paint bombs while tiles crack and Babcia's mop sweeps. Most tiles wins. | 2–8 |
+| **Skakanka** | Our take on Hot Rope Jump (“skakanka” is Polish for a skipping rope): two babcias in a village yard turn a long rope of kiełbasa over a row of pierogi. Tap **JUMP** as it sweeps the ground; it turns faster and faster, with the odd sneaky lull or burst. Trip and you're out. Last one jumping wins. | 1–8 |
+| **Petarda** | Our take on Bowser's Big Blast: New Year's Eve in a snowy village square. A giant firecracker is wired to a row of plungers, one for each player, and only one is live. On your turn pick a plunger (◀ ▶) and **Push**: a dud fizzles, the live one blasts you over the rooftops. New plungers, one fewer, until one pierogi is left. | 2–8 |
+| **Babcia Mówi** | Our take on Shy Guy Says (“Babcia says”): Babcia calls the Polish flags from the shore of a lake – “RED up!”, “WHITE up!”, later “DON'T raise red!” and “BOTH up!”. Raise what she **says** on your phone (white left, red right) before time runs out; her own flags sometimes lie. Wrong or slow, and your plank tips you into the lake. | 1–8 |
 | **Maluch Rallye Premium** | Maluch Rally's big brother, a game of its own (the gold button at the top of the VIP's game list). It opens on a title screen where the camera flies over the tracks while four demo cars race and throw items. The VIP picks **Grand Prix** (Pierogi, Kompot, Barszcz or Babcia Cup: three named tracks in a row, 15/12/10/8 cup points per race) or **Tracks** (one race on any of the 12 named tracks, which are the same every time). Then everyone picks one of four cars, Mario Kart–style, each with its own **speed, acceleration, handling and off-road** stats, and says they're ready. The races play like Maluch Rally (same thumb pad, drifts and items). Never part of a tournament. | 1–4 (TV) |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
-The six games from Czołgi on are **arena games** inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
+The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda and Babcia Mówi – are inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
@@ -49,7 +53,7 @@ The VIP can also start a **Tournament**: five random games in a row by default, 
 3. The **first player to join is the VIP**. The VIP picks the game, toggles options, starts rounds,
    ends a game early (⋯ menu) and can remove players, all from their phone.
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
-   places; in the co-op Pierogi Panic everyone gets 1 point per star, averaged over the levels played). After a few
+   places; in the co-op games, Pierogi Panic and Malbork Castle, everyone gets 1 point per star, averaged over the levels played in Pierogi Panic). After a few
    seconds the podium gives way to a **standings screen**: the table starts as it stood before the game, the bars
    grow by what everyone just earned, the rows slide into their new places (▲▼ shows who moved), and a line chart
    shows everyone's total game by game (the last 10 games). The VIP chooses **Play again** or another game.
@@ -67,7 +71,7 @@ Pick **Tournament** at the top of the game list. The VIP's phone then shows the 
   current number of players are faded. A tournament needs at least two games it can play.
 
 The TV draws that many different games at random from
-the competitive ones that suit the room (never Pierogi Panic, which is co-op, or Maluch Rallye Premium, a game of its own; Maluch Rally only with
+the competitive ones that suit the room (never Pierogi Panic or Malbork Castle, which are co-op, or Maluch Rallye Premium, a game of its own; Maluch Rally only with
 up to 4 players; To Ty! and Bazgroły only with 3 or more) and switched on, and shows the line-up. Each game
 is played in its **short version** unless the VIP switched that off:
 
@@ -88,6 +92,9 @@ is played in its **short version** unless the VIP switched that off:
 | Strzelnica | 3 rounds of 30 s | 1 round of 40 s, everything mixed |
 | Babcia’s Cookbook | 3 rounds | 1 round |
 | Kafelki | 2 rounds of 60 s, tiles added up | 1 round of 45 s |
+| Skakanka | 3 rounds | 1 round |
+| Petarda | 2 rounds | 1 round |
+| Babcia Mówi | 2 rounds | 1 round |
 | Fajki | 60 s | 40 s |
 
 After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
@@ -216,10 +223,13 @@ behind.
   Trails renders on a Canvas 2D at a fixed 60 Hz timestep with an occupancy grid for collisions.
   Sound effects are synthesized with WebAudio, so there are no audio files, and there's a mute
   toggle on the TV and in the VIP's lobby options. The music is synthesized too: tracks written out
-  note by note in `client/src/lib/tracks.ts` and played by a small scheduler (`client/src/lib/music.ts`).
+  note by note in `client/src/lib/tracks.ts` (with accents, ghost notes, grace notes, trills and slides) and
+  played by a small scheduler (`client/src/lib/music.ts`) through a little mixing desk: every part has its own
+  place left to right and sends to a room reverb and a tempo echo, the kick pumps the other parts in the fast
+  tracks, a compressor glues it all together, and the music dips a little under each sound effect.
   The waiting room has its own tune (a lazy accordion mazurka), and games that feel alike share a track:
   *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły), *Polka Pierogi* (Tour de Pierogi,
-  Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games), *Maluch Turbo*
+  Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games and Malbork Castle), *Maluch Turbo*
   (Maluch Rally, Maluch Rallye Premium, Trails) and *Smoke Rings* (Fajki).
 - The TV is a fixed **1920×1080 stage with a 5 % safe-area margin**, scaled to fit any screen.
 
@@ -250,11 +260,14 @@ client/src/phone/bazgroly.tsx  Bazgroły drawing, fake titles and guessing on th
 client/src/games/pedal|fork|parade/*  Tour de Pierogi, Fork Fight, Pierogi Parade (pure logic + TV views)
 client/src/phone/minigames.tsx   their phone controllers (pedals, the plate, the tap counter)
 client/src/phone/arenaPad.tsx    the arena games' phone pad: a joystick and up to two buttons
-client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts), pad input (input.ts) and no-TV snapshot playback (net.ts, mirror.ts)
+client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts), Babcia (babcia.ts), particles (puffs.ts), last-one-standing scoring (elimination.ts), pad input (input.ts) and no-TV snapshot playback (net.ts, mirror.ts)
 client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki, Pushy Pierogi, Strzelnica,
                             Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
+client/src/games/rope|blast|flags/*  Skakanka, Petarda, Babcia Mówi (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
+client/src/games/castle/*    Malbork Castle: waves, monsters, arrows and the volley skill (logic.ts), the 3D field, wall and monsters (scene.ts), TV view (CastleGame.tsx)
+client/src/phone/castle.tsx  Malbork Castle on the phone: the bow (pull back, aim, let go) and the Volley button
 client/src/host/tournament.ts    picking the tournament's games and its points table, party mode's choices and draw
 client/src/host/vote/*      party mode's vote: walking onto a game (logic.ts), the village square (scene.ts), TV view (VoteRoom.tsx)
 data/trivia.json            200 quiz questions
@@ -374,7 +387,7 @@ lengths of the tournament's short versions (`QUIZ_ROUND_LENGTH_SHORT`, `BP_QUEST
 
 ### Pierogi Panic
 
-The three levels live in `LEVELS` in
+The six levels live in `LEVELS` in
 [`client/src/games/kitchen/logic.ts`](client/src/games/kitchen/logic.ts). Each level has a name, the
 fillings that can be ordered, the share of fried orders, a round length and a 16 × 9 layout. Each
 character of the layout is one tile:
@@ -383,28 +396,69 @@ character of the layout is one tile:
 | --- | --- | --- | --- |
 | `.` | floor | `X` | wall |
 | `#` | counter (storage) | `F` | flour sack |
-| `1`–`4` | crate: potato, sauerkraut, meat, blueberry | `R` | rolling board |
+| `1`–`5` | crate: potato, sauerkraut, meat, blueberry, mushrooms | `R` | rolling board |
 | `P` | pierogi (folding) board | `S` | stove with a pot |
 | `G` | frying pan | `W` | sink |
 | `K` | plate rack | `H` | serving hatch |
 | `D` | dirty-dish return | `T` | bin |
 
 Edit a layout and the TV redraws the kitchen. Spawn points are picked automatically. The unit tests
-check every layout: closed, connected floor, every station reachable, a crate for each filling the
-level orders, and pans only where fried orders exist.
+check every layout: closed, connected floor, every station reachable, a crate for each ingredient the
+level's menu needs, and pans only where fried orders exist.
+
+Some fillings are mixed rather than taken from a crate: `FILLINGS` in `shared/protocol.ts` gives kraut &
+mushroom a `from` pair (sauerkraut and mushrooms), and the folding board turns those two into it.
+Mushrooms are `mixOnly`, so they can't be folded on their own. To add another mixed dish, give it a
+`from` pair, put it on a level's menu and put crates for both ingredients in that level's layout.
 
 `KTUNING` in the same file holds the walking speed (4.2 tiles/s), the ticket time (80 s), how long
 cooked pierogi wait before they turn to mush or burn (25 s), and the points (fried pierogi earn 30
 extra). The lobby difficulty (`DIFFICULTIES` in `shared/protocol.ts`: Relaxed, Easy, Normal, Hard,
-Chaos) scales how often orders arrive and how long tickets last. Star targets follow the number of
+Chaos, Inferno) scales how often orders arrive and how long tickets last; Inferno sends orders twice
+as often as Normal with three-quarter-length tickets and lets one more ticket onto the rail at a time. Star targets follow the number of
 orders a team can expect, so they scale with team size and difficulty.
 
 The item and station sprites in `client/public/sprites/kitchen/` were painted with FLUX.2 [pro]
 (Black Forest Labs), cut out of their white backgrounds and saved as 192 px WebP (about 750 KB in
 total). The chefs were painted the same way: one base chef, back and side views made with FLUX.2
 image editing, then the dough recoloured into each player colour so every chef is the same
-character. Floors, counter tops and walls are FLUX.2 textures too, with a different floor per
-level. The scripts are in [`tools/sprites`](tools/sprites).
+character. Floors, counter tops and walls are FLUX.2 textures too, with a different floor for each of
+the first three levels; the last three reuse them under a colour wash (`THEMES` in `draw.ts`). The
+mushroom sprites are hand-drawn SVG laid over the painted blueberry bowl and crate and the sauerkraut
+bowl, so they match. The scripts are in [`tools/sprites`](tools/sprites).
+
+### Malbork Castle
+
+The waves live in `WAVES` and the monsters in `MONSTERS` in
+[`client/src/games/castle/logic.ts`](client/src/games/castle/logic.ts). Each wave lists how many of
+each monster one archer faces on Normal and how long they take to come out; bigger crews get more
+(`crowd`: a little more than one share per extra archer, since a crowd covers the wall better than
+a lone archer). The difficulty modes are `SIEGE_MODES` in `shared/protocol.ts`:
+
+| Mode | Monsters | Health | Speed | Wall damage | Wall mended between waves |
+| --- | --- | --- | --- | --- | --- |
+| Easy | ×0.7 | ×1 | ×0.8 | ×0.6 | 15 % |
+| Normal | ×1 | ×1 | ×1 | ×1 | 10 % |
+| Hard | ×1.25 | ×1.2 | ×1.1 | ×1.2 | 6 % |
+| Nightmare | ×1.5 | ×1.35 | ×1.22 | ×1.4 | – |
+
+Bows: an arrow flies 260–1020 px depending on the pull (`RANGE_MIN`/`RANGE_MAX`), the next one is
+nocked after 0.35 s (`COOLDOWN_S`), and a full pull held for 0.6 s charges it (on the phone, in
+`client/src/phone/castle.tsx`). Monsters are 20 % bigger than they first were (`MONSTER_SCALE`, which
+sets both how big they're drawn and how big a target they are). The volley skill (`SKILL_COOLDOWN_S`,
+`VOLLEY_SHOTS`, `VOLLEY_ARROWS`) is ready 20 s into the game and 20 s after each volley is used up;
+the phone's button sends `act`, and the arrows of one volley shot leave 0.09 s apart along the same
+line, carrying the shot's charge. Stars: 3 with 70 % of the wall left, 2 with 35 %, 1 if it's still
+standing. The numbers were tuned with simulated archers: a crew that shoots about once every
+1.4 s with a few degrees of error wins Easy and Normal, needs a few players for Hard and loses
+Nightmare; sharp shooters can win them all. `/?debug` on the TV exposes the game as `window.castle`.
+
+The TV draws it with the arena kit (`client/src/games/castle/scene.ts`): the sim's 1920×1080 plan
+lies flat on the ground at 40 px to the metre, with the foot of the wall on z = 0. Flyers hover over
+their spot on the plan, and arrows dip from the bow to monster height. Each kind of monster is built
+once from a few scaled unit shapes, its parts that don't move on their own are merged into one mesh,
+and every monster on the field is a clone of that, so a full field stays at a few draw calls each.
+Merlons fall off the wall as it wears down and come back as it's mended.
 
 Podmianka's 36 extra objects (`client/public/sprites/swap/`) were made the same way with
 `tools/sprites/swap.py`, which reuses the kitchen style prompt, and `process.py … raw-swap`.
@@ -623,7 +677,7 @@ A round goes like this (timings at the top of
 
 ### Arena games
 
-Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook and Kafelki share one phone controller
+Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda and Babcia Mówi share one phone controller
 (`client/src/phone/arenaPad.tsx`): a floating joystick that fills most of the screen and up to two
 buttons under it. The host sends a `pad` view naming the buttons, with a cooldown deadline (`readyAt`)
 the phone animates itself, so cooldowns cost no extra messages. Phones send the stick as `stick {x, y}`
@@ -689,6 +743,27 @@ A tile-claiming brawl on a big old kitchen floor. Everyone is a pierogi in their
 - **Tribulations:** in the second half of the round a few tiles crack, then crumble into holes for 4 s before coming back as fresh, unclaimed tiles. Walk onto a hole and you fall in and respawn at the edge after 2 s. Babcia's mop sweeps two rows now and then, wiping them to white; it is announced with a striped warning band 1.8 s ahead.
 - **Rounds:** 2 rounds of 60 s, tile counts added up. The TV shows a live tile count per player, then a tally where the bars grow from last place to first.
 - Tuning is in `client/src/games/tiles/logic.ts` (speeds, cooldowns, stun, crack/hole times, round lengths).
+
+### Skakanka
+A village yard on a summer afternoon: a whitewashed cottage, a well, sunflowers along the fence. Two babcias turn a long string of kiełbasa links over a row of pierogi, who stand side by side. The phone is one big **JUMP** button (no joystick).
+- The rope starts at the top, comes down in front of the pierogi and sweeps along the ground under them. Whoever's feet are lower than 0.32 m at that moment trips and is out for the round; the rope's shadow darkens as it nears the ground, as a cue.
+- A jump lasts 0.47 s and clears the rope for about 0.31 s of it. You can't jump again in mid-air, but a press up to 0.1 s before landing jumps as soon as you touch down.
+- The first turn takes 1.9 s, then 1.55 s, each one 4.5 % quicker down to 0.66 s. From jump 8, about one turn in five is a surprise: a slow lull (×1.45, to catch out anyone who jumps on the beat) or a sudden burst (×0.8, never under 0.56 s; the TV shouts “Szybciej!”).
+- Points: one per player who tripped before you, plus 2 for the last one jumping (a tie shares it). Alone you score the jumps you cleared. The babcias stop after 45 jumps. 3 rounds, 1 in a tournament. Logic in `client/src/games/rope/logic.ts`.
+
+### Petarda
+New Year's Eve (Sylwester) in a snowy village square, with fireworks going off over the rooftops. A giant firecracker stands on a crate, wired to a row of detonator plungers: as many plungers as players still in, and exactly one of them is live.
+- Players take turns, starting with a random player (later, with the one after whoever was blasted last). On your turn your phone shows the joystick and a **Push!** button: lean ◀ ▶ to move along the free plungers (holding moves on every 0.32 s), then push. You have 6 s, or a plunger is pushed for you (1.2 s if your phone isn't connected).
+- A spark runs along the wire for 1.4 s. A dud fizzles out half-way (“Phew!”); the live one reaches the firecracker – BUM! – and blasts whoever pushed it high over the square, to land sooty beside the crate. Then a new firecracker drops in and the plungers are set up again, one fewer.
+- Everybody pushes once per set, so everybody has the same chance. If someone leaves mid-set, a dud is taken away so that stays true.
+- Points: one per player blasted before you, plus 2 for the survivor. 2 rounds, 1 in a tournament. Logic in `client/src/games/blast/logic.ts`.
+
+### Babcia Mówi
+A wooden jetty on a lake at sunset. Every pierogi stands on its own plank holding a white flag (on the TV's left) and a red one (on the right); Babcia stands on a crate on the shore with her own pair, and a big Polish flag flies behind her. The phone has two buttons, **White** (left) and **Red** (right).
+- Babcia calls a flag in a speech bubble (in English, with her Polish underneath). Calls 1–3 are “WHITE up!” or “RED up!”; from call 4 she also says “DON'T raise WHITE!” (raise red) and “DON'T raise RED!” (raise white); from call 9, now and then, “BOTH up!”.
+- Only her words count. On a “DON'T…” call she raises the flag she named, and from call 6 she sometimes raises the wrong flag on a plain call too.
+- You have 2.3 s for the first call, 6 % less each time, down to 0.9 s (BOTH gets 0.35 s extra). Raise a flag she didn't ask for, or not all of them in time, and your plank tips you into the lake. Presses between calls don't count. A call ends early once everybody has answered.
+- Points: one per player who fell in before you, plus 2 for the last one dry (a tie shares it). Alone you score the calls you got right. After 35 calls Babcia has lost her voice and the round ends. 2 rounds, 1 in a tournament. Logic in `client/src/games/flags/logic.ts`.
 
 `/?debug` on the TV exposes the room as `window.host`; `host.finish({...})` ends the current game
 with made-up scores, which is handy for walking through a tournament.

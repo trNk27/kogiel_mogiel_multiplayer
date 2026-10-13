@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { DIFFICULTIES, KITCHEN_LEVELS, ingredientsOf, mixFillings } from '../shared/protocol';
 import {
   GRID_H,
   GRID_W,
   KTUNING,
   KitchenSim,
   LEVELS,
+  maxOrders,
   TICK_HZ,
   orderInterval,
   spawnPoints,
@@ -102,12 +104,87 @@ describe.each(LEVELS.map((l, i) => [l.name, i] as const))('kitchen layout: %s', 
     const sim = new KitchenSim(['a'], 1, { level });
     const count = (k: StationKind) => sim.stations.filter((s) => s.kind === k).length;
     for (const k of ['flour', 'roll', 'fold', 'stove', 'sink', 'rack', 'hatch', 'return', 'trash'] as const) expect(count(k), k).toBeGreaterThan(0);
-    const crates = sim.stations.filter((s) => s.kind === 'crate').map((s) => s.crate);
-    expect(crates).toEqual(L.fillings);
+    // One crate for every ingredient the menu needs (mixed fillings come from two crates).
+    const crates = sim.stations.filter((s) => s.kind === 'crate').map((s) => s.crate!);
+    const needed = new Set(L.fillings.flatMap(ingredientsOf));
+    expect(new Set(crates)).toEqual(needed);
+    expect(crates.length).toBe(needed.size);
     expect(count('pan') > 0).toBe(L.fried > 0);
     const spawns = spawnPoints(L.layout);
     expect(spawns.length).toBe(8);
     expect(new Set(spawns.map((p) => p.join())).size).toBe(8);
+  });
+});
+
+describe('kraut & mushroom pierogi', () => {
+  const WIGILIA = LEVELS.findIndex((l) => l.fillings.includes('wigilia'));
+
+  it('mixes sauerkraut and mushrooms on one board, in either order', () => {
+    expect(mixFillings('cabbage', 'mushroom')).toBe('wigilia');
+    expect(mixFillings('mushroom', 'cabbage')).toBe('wigilia');
+    expect(mixFillings('potato', 'mushroom')).toBeNull();
+    expect(ingredientsOf('wigilia')).toEqual(['cabbage', 'mushroom']);
+    expect(ingredientsOf('potato')).toEqual(['potato']);
+  });
+
+  it('is on the Wigilia menu, with a mushroom crate and no meat', () => {
+    expect(WIGILIA).toBe(5);
+    expect(LEVELS[WIGILIA].fillings).not.toContain('meat');
+    const sim = new KitchenSim(['a'], 1, { level: WIGILIA });
+    expect(sim.stations.some((s) => s.kind === 'crate' && s.crate === 'mushroom')).toBe(true);
+    expect(sim.stations.some((s) => s.kind === 'crate' && s.crate === 'wigilia')).toBe(false);
+  });
+
+  it('cooks from two crates to a served order', () => {
+    const sim = playing(['a'], 1, WIGILIA);
+    sim.orders = [{ id: 99, f: 'wigilia', fried: false, born: sim.t, ttl: 60_000 }];
+    const crate = (f: string) => sim.stations.filter((s) => s.kind === 'crate').findIndex((s) => s.crate === f);
+    sim.stations.find((s) => s.kind === 'fold')!.dough = true;
+
+    act(sim, 'a', 'crate', crate('mushroom'));
+    expect(sim.cook('a')!.hold).toEqual({ k: 'fill', f: 'mushroom' });
+    act(sim, 'a', 'fold');
+    // Mushrooms alone don't make pierogi: the button picks them back up instead.
+    expect(sim.hint('a')).toBe('Pick up mushrooms');
+    act(sim, 'a', 'crate', crate('cabbage'));
+    goTo(sim, 'a', 'fold');
+    expect(sim.hint('a')).toBe('Mix in sauerkraut');
+    sim.act('a');
+    expect(sim.stations.find((s) => s.kind === 'fold')!.fill).toBe('wigilia');
+    expect(sim.hint('a')).toBe('Make pierogi');
+    sim.act('a');
+    expect(sim.viewState('a')!.mini).toMatchObject({ kind: 'fold', f: 'wigilia' });
+    finishMini(sim, 'a');
+    sim.act('a');
+    expect(sim.cook('a')!.hold).toEqual({ k: 'raw', f: 'wigilia' });
+
+    act(sim, 'a', 'stove');
+    sim.act('a');
+    finishMini(sim, 'a');
+    act(sim, 'a', 'rack');
+    act(sim, 'a', 'stove');
+    expect(sim.cook('a')!.hold).toEqual({ k: 'plate', f: 'wigilia' });
+    expect(act(sim, 'a', 'hatch')).toBe(true);
+    expect(sim.served).toBe(1);
+    expect(sim.orders.some((o) => o.id === 99)).toBe(false);
+  });
+
+  it('won’t mix things that don’t go together', () => {
+    const sim = playing(['a'], 1, WIGILIA);
+    const crate = (f: string) => sim.stations.filter((s) => s.kind === 'crate').findIndex((s) => s.crate === f);
+    act(sim, 'a', 'crate', crate('potato'));
+    act(sim, 'a', 'fold');
+    act(sim, 'a', 'crate', crate('mushroom'));
+    goTo(sim, 'a', 'fold');
+    expect(sim.hint('a')).toBeNull();
+  });
+});
+
+describe('kitchen levels', () => {
+  it('has a name and a line of news for every level, in order', () => {
+    expect(KITCHEN_LEVELS.length).toBe(LEVELS.length);
+    expect(LEVELS.length).toBeGreaterThanOrEqual(6);
+    LEVELS.forEach((l, i) => expect(l.name).toBe(KITCHEN_LEVELS[i].name));
   });
 });
 
@@ -371,11 +448,25 @@ describe('kitchen scoring', () => {
   });
 
   it('sends orders faster on harder difficulties', () => {
-    for (let d = 1; d < 5; d++) expect(orderInterval(4, d + 1)).toBeLessThan(orderInterval(4, d));
+    for (let d = 1; d < DIFFICULTIES.length; d++) expect(orderInterval(4, d + 1)).toBeLessThan(orderInterval(4, d));
     const easy = new KitchenSim(['a'], 1, { difficulty: 1 });
     const chaos = new KitchenSim(['a'], 1, { difficulty: 5 });
     expect(easy.tuning.orderTtlMs).toBeGreaterThan(chaos.tuning.orderTtlMs);
     expect(easy.thresholds[2]).toBeLessThan(chaos.thresholds[2]);
+  });
+
+  it('has an Inferno above Chaos: more orders, more tickets at once, shorter tickets', () => {
+    expect(DIFFICULTIES.at(-1)!.name).toBe('Inferno');
+    const inferno = DIFFICULTIES.length;
+    const chaos = new KitchenSim(['a', 'b'], 1, { difficulty: 5 });
+    const hell = new KitchenSim(['a', 'b'], 1, { difficulty: inferno });
+    expect(hell.difficulty).toBe(inferno);
+    expect(hell.tuning.orderTtlMs).toBeLessThan(chaos.tuning.orderTtlMs);
+    expect(expectedOrders(2, 180_000, inferno)).toBeGreaterThan(expectedOrders(2, 180_000, 5));
+    expect(maxOrders(2, inferno)).toBe(maxOrders(2, 5) + 1);
+    // The ticket rail still holds five at most.
+    expect(maxOrders(8, inferno)).toBe(5);
+    expect(hell.thresholds[2]).toBeGreaterThan(chaos.thresholds[2]);
   });
 
   it('only orders what the level teaches', () => {
