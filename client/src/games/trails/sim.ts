@@ -209,6 +209,8 @@ export interface SimOptions {
 }
 
 export class TrailsSim {
+  /** Second screens draw the trails from the strokes, not from the (big) occupancy grid. */
+  static readonly replicaSkip = ['grid'];
   readonly w: number;
   readonly h: number;
   readonly grid: Grid;

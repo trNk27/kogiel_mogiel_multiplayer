@@ -30,6 +30,7 @@ import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 import { KartArt, StatBars } from './karts';
 import { SHOWROOM_SCALE, Showroom } from './showroom';
+import { replicaMode } from '../../lib/replica/mode';
 import './premium.css';
 
 /** The title screen flies over these, one after the other. */
@@ -316,7 +317,8 @@ export class PremiumGame implements Game {
     this.showing = null;
     this.last = performance.now();
     cancelAnimationFrame(this.raf);
-    this.raf = requestAnimationFrame(this.frame);
+    // On a second screen the host's flyover is replayed instead.
+    if (!replicaMode.on) this.raf = requestAnimationFrame(this.frame);
   }
 
   attachRoom(canvas: HTMLCanvasElement | null) {

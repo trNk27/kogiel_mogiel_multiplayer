@@ -1,37 +1,42 @@
-import { CLOSE, type MirrorSignal, type ServerToScreen } from '../../../shared/protocol';
+import { CLOSE, type HostToScreen, type MirrorSignal, type ServerToScreen, type TvFrame } from '../../../shared/protocol';
 import { ReconnectingSocket, wsUrl } from '../lib/socket';
-import { iceJson, iceServers, serial } from '../lib/rtc';
-import { lowLatency, snapshot, summarize, type MirrorStats, type StatsEntry } from '../lib/rtcStats';
+import { iceJson, iceServers, roundTrip, serial } from '../lib/rtc';
+import type { HostController } from '../host/controller';
+import { Replica, type ReplicaStats } from './replica';
 
 export type ReceiverState =
   /** Connecting to the room. */
   | 'connecting'
-  /** In the room, but the host TV is offline or not sharing. */
+  /** In the room, waiting for the host TV's first frame (or the host is offline). */
   | 'waiting'
-  /** The host is sending video: setting up the connection. */
-  | 'starting'
-  | 'live'
-  /** The video connection failed; the host retries. */
-  | 'failed';
+  | 'live';
 
-/** If a broken video doesn't come back by itself, ask the host for a fresh one after this long. */
-const ASK_AGAIN_MS = 8000;
+/** How the frames come: through the server, or straight from the host TV. */
+export type Route = 'relay' | 'direct';
+
+export interface ScreenStats extends ReplicaStats {
+  route: Route;
+  /** Round trip to the host TV (direct connections only). */
+  rttMs: number | null;
+}
 
 /**
- * A second screen's side of the mirror: joins the room as a "screen", answers the host's WebRTC
- * offers and hands the incoming stream to the page.
+ * A second screen's side: joins the room as a "screen", takes the host TV's frames (through the
+ * server at first, then over a WebRTC data channel once one opens) and feeds them to the replica.
  */
 export class Receiver {
   state: ReceiverState = 'connecting';
   hostOnline = true;
-  stream: MediaStream | null = null;
+  route: Route = 'relay';
+  readonly replica: Replica;
   private pc: RTCPeerConnection | null = null;
+  private dc: RTCDataChannel | null = null;
   private socket: ReconnectingSocket<ServerToScreen, MirrorSignal>;
   private run = serial();
   /** Bumped whenever the connection is replaced or dropped, so a step still setting one up gives up. */
   private gen = 0;
-  private askTimer: number | undefined;
-  private lastStats: StatsEntry[] | null = null;
+  /** A frame coming in parts, per route. */
+  private parts: Record<Route, { n: number; got: string[]; left: number } | null> = { relay: null, direct: null };
 
   constructor(
     readonly code: string,
@@ -40,12 +45,17 @@ export class Receiver {
     /** The room is gone, full, or open on another tab: give up with this reason. */
     private onFatal: (reason: string) => void,
   ) {
+    this.replica = new Replica((root) => {
+      if (root && this.state !== 'live') this.state = 'live';
+      this.onChange();
+    });
     this.socket = new ReconnectingSocket<ServerToScreen, MirrorSignal>({
       url: () => wsUrl(`/ws/${code}?role=screen&id=${encodeURIComponent(id)}`),
-      onMessage: (m) => this.handle(m),
+      onMessage: (m, size) => this.handle(m, 'relay', size),
       onStatus: (s) => {
         if (s === 'open') {
-          this.socket.send({ t: 'hello', live: this.state === 'live' });
+          // Everything again: whatever happened while the socket was down is lost.
+          this.socket.send({ t: 'hello' });
           if (this.state === 'connecting') this.set('waiting');
         } else if (s === 'connecting' && this.state !== 'live') this.set('connecting');
       },
@@ -65,21 +75,19 @@ export class Receiver {
     });
   }
 
-  close() {
-    clearTimeout(this.askTimer);
-    this.socket.close();
-    this.closePeer();
+  get root(): HostController | null {
+    return this.replica.root;
   }
 
-  /** Live numbers for the video, or null when there's none (rates cover the time since the last call). */
-  async stats(): Promise<MirrorStats | null> {
-    const pc = this.pc;
-    if (!pc || this.state !== 'live') return null;
-    const cur = await snapshot(pc).catch(() => null);
-    if (!cur || this.pc !== pc) return null;
-    const s = summarize(cur, this.lastStats, 'receive');
-    this.lastStats = cur;
-    return s;
+  close() {
+    this.socket.close();
+    this.closePeer();
+    this.replica.close();
+  }
+
+  async stats(): Promise<ScreenStats> {
+    const rttMs = this.pc && this.route === 'direct' ? await roundTrip(this.pc) : null;
+    return { ...this.replica.stats(), route: this.route, rttMs };
   }
 
   private set(state: ReceiverState) {
@@ -87,15 +95,11 @@ export class Receiver {
     this.onChange();
   }
 
-  private handle(m: ServerToScreen) {
+  private handle(m: ServerToScreen, via: Route, size = 0) {
     switch (m.t) {
       case 'host':
         this.hostOnline = m.online;
         this.onChange();
-        break;
-      case 'idle':
-        this.closePeer();
-        this.set('waiting');
         break;
       case 'offer':
         this.answer(m.sdp);
@@ -108,46 +112,75 @@ export class Receiver {
         });
         break;
       }
+      case 'part': {
+        let p = this.parts[via];
+        if (!p || p.n !== m.n || m.i === 0) p = this.parts[via] = { n: m.n, got: [], left: m.of };
+        if (p.got[m.i] === undefined) {
+          p.got[m.i] = m.s;
+          p.left--;
+        }
+        if (p.left === 0) {
+          const json = p.got.join('');
+          this.parts[via] = null;
+          try {
+            this.frame(JSON.parse(json) as TvFrame, via, json.length);
+          } catch (err) {
+            console.warn('[screen]', err);
+          }
+        }
+        break;
+      }
+      case 'f':
+      case 'F':
+        this.frame(m, via, size);
+        break;
       case 'err':
         break; // the close code that follows says why
     }
   }
 
-  /** A (new) stream from the host: replace whatever we had. */
+  private frame(f: TvFrame, via: Route, size: number) {
+    if (f.t === 'F' && via !== this.route) {
+      this.route = via;
+      this.onChange();
+    }
+    // Frames from the other route are from before the switch: the full frame covers them.
+    if (via !== this.route) return;
+    if (!this.replica.push(f, size)) this.socket.send({ t: 'hello' });
+  }
+
+  /** The host offers a direct connection: answer it, and take frames from its data channel. */
   private answer(sdp: string) {
     this.closePeer();
-    this.set('starting');
+    // No WebRTC here: frames keep coming through the server.
+    if (typeof RTCPeerConnection === 'undefined') return;
     const gen = this.gen;
     this.run(async () => {
       const servers = await iceServers();
       if (gen !== this.gen) return;
       const pc = new RTCPeerConnection({ iceServers: servers });
       this.pc = pc;
-      pc.ontrack = (e) => {
+      pc.ondatachannel = (e) => {
         if (this.pc !== pc) return;
-        lowLatency(e.receiver);
-        this.stream = e.streams[0] ?? new MediaStream([e.track]);
-        this.onChange();
+        const dc = e.channel;
+        this.dc = dc;
+        dc.onmessage = (ev) => {
+          if (this.dc !== dc || typeof ev.data !== 'string') return;
+          try {
+            this.handle(JSON.parse(ev.data) as HostToScreen, 'direct', ev.data.length);
+          } catch (err) {
+            console.warn('[screen]', err);
+          }
+        };
+        dc.onclose = () => {
+          if (this.dc !== dc) return;
+          // The host sends everything through the server again.
+          this.route = 'relay';
+          this.onChange();
+        };
       };
       pc.onicecandidate = (e) => {
         if (e.candidate && this.pc === pc) this.socket.send({ t: 'ice', c: iceJson(e.candidate) });
-      };
-      pc.onconnectionstatechange = () => {
-        if (this.pc !== pc) return;
-        const s = pc.connectionState;
-        if (s === 'connected') {
-          clearTimeout(this.askTimer);
-          this.set('live');
-        } else if (s === 'disconnected') {
-          // Often comes back by itself within seconds; don't leave a frozen picture up meanwhile.
-          this.set('failed');
-        } else if (s === 'failed') {
-          this.set('failed');
-          clearTimeout(this.askTimer);
-          this.askTimer = window.setTimeout(() => {
-            if (this.pc === pc && this.state === 'failed') this.socket.send({ t: 'hello', live: false });
-          }, ASK_AGAIN_MS);
-        }
       };
       await pc.setRemoteDescription({ type: 'offer', sdp });
       const answer = await pc.createAnswer();
@@ -158,15 +191,17 @@ export class Receiver {
 
   private closePeer() {
     this.gen++;
-    this.lastStats = null;
-    clearTimeout(this.askTimer);
+    if (this.dc) {
+      this.dc.onmessage = this.dc.onclose = null;
+      this.dc = null;
+    }
     if (this.pc) {
-      this.pc.ontrack = this.pc.onicecandidate = this.pc.onconnectionstatechange = null;
+      this.pc.ondatachannel = this.pc.onicecandidate = null;
       this.pc.close();
       this.pc = null;
     }
-    if (this.stream) {
-      this.stream = null;
+    if (this.route !== 'relay') {
+      this.route = 'relay';
       this.onChange();
     }
   }

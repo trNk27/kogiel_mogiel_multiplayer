@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { normalizeCode } from '../../../shared/protocol';
 import { FolkBorder, Logo } from '../lib/art';
 import { Receiver } from './receiver';
-import { describe, estimateDelayMs, type MirrorStats } from '../lib/rtcStats';
+import { sound } from '../lib/sound';
+import { HostApp } from '../host/HostApp';
+import type { ScreenStats } from './receiver';
 
 /**
  * /screen: a second screen. A TV or laptop in another place that shows exactly what the host TV
- * shows (streamed over WebRTC), so a second group can play in the same room with their phones.
+ * shows, drawn here from the host's game state (see replica.ts), so a second group can play in
+ * the same room with their phones.
  */
 
 const params = new URLSearchParams(location.search);
@@ -49,6 +52,8 @@ export function ScreenApp() {
 
   const connect = (c: string) => {
     if (c.length !== 4) return;
+    // A click: the browser lets sound start now.
+    sound.unlock();
     receiver?.close();
     setError(null);
     saved.current = { ...saved.current, code: c };
@@ -65,6 +70,8 @@ export function ScreenApp() {
         setError(reason);
       },
     );
+    // For automated tests: /screen?debug exposes the connection (and through it the copy of the room).
+    if (params.has('debug')) (window as unknown as { receiver: Receiver }).receiver = r;
     setReceiver(r);
   };
 
@@ -106,7 +113,7 @@ export function ScreenApp() {
           </button>
           {error && <p class="screen-error">{error}</p>}
           <p class="screen-note">
-            On the host TV, press <b>📡</b> and <b>Share this screen</b>. Players here join on their phones at{' '}
+            Players here join on their phones at{' '}
             <b>{location.host}/join</b> with the same code.
           </p>
         </form>
@@ -125,28 +132,12 @@ export function ScreenApp() {
 }
 
 function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => void }) {
-  const video = useRef<HTMLVideoElement>(null);
-  const [needsTap, setNeedsTap] = useState(false);
+  const [needsTap, setNeedsTap] = useState(() => sound.context?.state !== 'running');
+  const [muted, setMuted] = useState(false);
   const [idle, setIdle] = useState(false);
   const [showStats, setShowStats] = useState(params.has('stats'));
-  const live = r.state === 'live' && r.stream;
-
-  useEffect(() => {
-    const v = video.current;
-    if (!v) return;
-    if (v.srcObject !== r.stream) v.srcObject = r.stream;
-    if (!r.stream) return;
-    v.muted = false;
-    v.play().then(
-      () => setNeedsTap(false),
-      () => {
-        // No click on this page yet (a reload): browsers only autoplay muted video.
-        v.muted = true;
-        void v.play().catch(() => {});
-        setNeedsTap(true);
-      },
-    );
-  }, [r.stream]);
+  const root = r.root;
+  const live = r.state === 'live' && root !== null;
 
   // Hide the cursor and the buttons when nobody's touching the mouse.
   useEffect(() => {
@@ -167,10 +158,8 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
   }, []);
 
   const unmute = () => {
-    const v = video.current;
-    if (!v) return;
-    v.muted = false;
-    void v.play().then(() => setNeedsTap(false), () => {});
+    sound.unlock();
+    setNeedsTap(false);
   };
 
   const message =
@@ -178,38 +167,26 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
       ? 'Connecting to the room…'
       : !r.hostOnline
         ? 'The host TV is offline. Waiting for it to come back…'
-        : r.state === 'waiting'
-          ? 'Waiting for the host TV to share its screen'
-          : r.state === 'starting'
-            ? 'Starting the picture…'
-            : r.state === 'failed'
-              ? 'The picture dropped. Reconnecting…'
-              : null;
+        : 'Waiting for the host TV…';
 
   return (
     <div class={`mirror ${idle && live ? 'idle' : ''}`} onClick={needsTap ? unmute : undefined}>
-      <video ref={video} class={`mirror-video ${live ? 'on' : ''}`} autoplay playsInline />
-      {!live && (
+      {live ? (
+        <HostApp room={root} isReplica key={r.replica.epochKey} />
+      ) : (
         <div class="mirror-wait">
           <Logo size={1.1} />
           <div class="mirror-wait-card card-paper">
             <div class="eyebrow">Room</div>
             <div class="mirror-wait-code">{r.code}</div>
             <p>{message}</p>
-            {r.state === 'waiting' && r.hostOnline && (
-              <p class="screen-note">
-                On the host TV: press <b>📡</b> → <b>Share this screen</b>
-              </p>
-            )}
-            {r.state === 'failed' && (
-              <p class="screen-note">If it never connects, one of the two networks blocks direct video: the host can add a TURN server (see the README).</p>
-            )}
           </div>
         </div>
       )}
+      {live && !r.hostOnline && <div class="reconnecting">The host TV is offline. Waiting for it to come back…</div>}
       {showStats && live && <StatsBox receiver={r} />}
       <div class="mirror-bar">
-        {needsTap && live && (
+        {needsTap && (
           <button class="btn btn-yolk" onClick={unmute}>
             🔊 Sound on
           </button>
@@ -217,6 +194,19 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
         <span class="pill">
           {location.host}/join · <b>{r.code}</b>
         </span>
+        <button
+          class={`btn btn-ghost ${muted ? '' : 'on'}`}
+          title="Sound on this screen"
+          onClick={(e) => {
+            e.stopPropagation();
+            sound.unlock();
+            setNeedsTap(false);
+            r.replica.muted = !muted;
+            setMuted(!muted);
+          }}
+        >
+          {muted ? '🔇' : '🔊'}
+        </button>
         <button
           class={`btn btn-ghost ${showStats ? 'on' : ''}`}
           title="Show how far behind the host this screen is"
@@ -253,12 +243,12 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
   );
 }
 
-/** Live numbers for the video: how far behind the host this screen is, and why. */
+/** Live numbers: how far behind the host this screen is, and why. */
 function StatsBox({ receiver: r }: { receiver: Receiver }) {
-  const [s, setS] = useState<MirrorStats | null>(null);
+  const [s, setS] = useState<ScreenStats | null>(null);
   useEffect(() => {
     let alive = true;
-    const poll = () => void r.stats().then((x) => alive && x && setS(x));
+    const poll = () => void r.stats().then((x) => alive && setS(x));
     poll();
     const t = window.setInterval(poll, 1000);
     return () => {
@@ -267,17 +257,18 @@ function StatsBox({ receiver: r }: { receiver: Receiver }) {
     };
   }, [r]);
   if (!s) return null;
-  const delay = estimateDelayMs(s);
-  const ms = (v: number | null) => (v === null ? '–' : `${Math.round(v)} ms`);
+  const ms = (v: number) => `${Math.round(v)} ms`;
+  const trip = s.rttMs === null ? null : s.rttMs / 2;
   return (
     <div class="mirror-stats-box">
-      <div class="mirror-stats-delay">≈ {ms(delay)} behind the host</div>
+      <div class="mirror-stats-delay">{trip === null ? `network + ${ms(s.bufferMs)}` : `≈ ${ms(trip + s.bufferMs)}`} behind the host</div>
       <div>
-        network {ms(s.rttMs === null ? null : s.rttMs / 2)} · buffer {ms(s.bufferMs)} · decode {ms(s.decodeMs)}
-        {s.dropped ? ` · ${s.dropped} dropped` : ''}
+        {s.route === 'direct' ? 'direct from the host TV' : 'through the server'}
+        {trip !== null ? ` · network ${ms(trip)}` : ''} · buffer {ms(s.bufferMs)}
       </div>
-      <div>{describe(s)}</div>
-      <div class="mirror-stats-note">plus the host’s capture and encoding (see 📡 on the host)</div>
+      <div>
+        {Math.round(s.framesPerSec)} frames/s · {Math.round(s.kbps)} kbit/s · {s.objects} objects
+      </div>
     </div>
   );
 }
