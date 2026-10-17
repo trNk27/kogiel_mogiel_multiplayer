@@ -33,6 +33,7 @@ import { howTo as ropeHowTo } from '../games/rope/logic';
 import { howTo as blastHowTo } from '../games/blast/logic';
 import { howTo as flagsHowTo } from '../games/flags/logic';
 import { howTo as smokeHowTo } from '../games/smoke/logic';
+import { howTo as cowsHowTo } from '../games/cows/logic';
 
 const controller = new HostController();
 const params = new URLSearchParams(location.search);
@@ -451,6 +452,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return flagsHowTo(short);
     case 'smoke':
       return smokeHowTo();
+    case 'cows':
+      return cowsHowTo(short);
     case 'castle':
       return castleHowTo();
     case 'premium':

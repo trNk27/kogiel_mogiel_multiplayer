@@ -101,6 +101,7 @@ export type GameId =
   | 'flags'
   | 'swap'
   | 'smoke'
+  | 'cows'
   | 'castle'
   | 'premium';
 
@@ -162,6 +163,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'blast', title: 'Petarda', tagline: 'Push a plunger. Pray it’s not the big one.', minPlayers: 2 },
   { id: 'flags', title: 'Babcia Mówi', tagline: 'Red up, white up – do what Babcia says.', minPlayers: 1 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
+  { id: 'cows', title: 'Krówki', tagline: 'Lasso your cows. Drag them home.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
     id: 'premium',

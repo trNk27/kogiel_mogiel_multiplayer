@@ -1,6 +1,6 @@
 /**
  * The arena pad, shared by Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka,
- * Petarda and Babcia Mówi:
+ * Petarda, Babcia Mówi and Krówki:
  * a floating joystick that fills most of the screen and up to two buttons under it.
  * The game itself is on the TV; the host says what the buttons are called and when they cool down.
  * Without a TV (Grzybki, Pushy Pierogi), the arena is drawn above the joystick (see arenaScreen.tsx).

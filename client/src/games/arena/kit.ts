@@ -1,6 +1,6 @@
 /**
  * Shared low-poly 3D kit for the arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica,
- * Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi). Same PS2 look as Maluch Rally: a low internal resolution scaled
+ * Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi, Krówki). Same PS2 look as Maluch Rally: a low internal resolution scaled
  * up without smoothing, flat-shaded meshes, tiny nearest-filtered textures, blob shadows and fog.
  *
  * World units are metres, y is up. A whole arena is seen by one camera (no split screen).

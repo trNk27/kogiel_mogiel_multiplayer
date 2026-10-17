@@ -10,6 +10,7 @@ import { Icon as RopeIcon } from '../games/rope/icon';
 import { Icon as BlastIcon } from '../games/blast/icon';
 import { Icon as FlagsIcon } from '../games/flags/icon';
 import { Icon as SmokeIcon } from '../games/smoke/icon';
+import { Icon as CowsIcon } from '../games/cows/icon';
 import { Icon as PremiumIcon } from '../games/premium/icon';
 import { Icon as CastleIcon } from '../games/castle/icon';
 
@@ -25,6 +26,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
   if (game === 'blast') return <BlastIcon size={size} />;
   if (game === 'flags') return <FlagsIcon size={size} />;
   if (game === 'smoke') return <SmokeIcon size={size} />;
+  if (game === 'cows') return <CowsIcon size={size} />;
   if (game === 'premium') return <PremiumIcon size={size} />;
   if (game === 'castle') return <CastleIcon size={size} />;
   if (game === 'trails')

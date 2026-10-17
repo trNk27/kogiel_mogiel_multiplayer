@@ -40,9 +40,10 @@ the notch) are added around controls, never taken out of them.
 | **Petarda** | Our take on Bowser's Big Blast: New Year's Eve in a snowy village square. A giant firecracker is wired to a row of plungers, one for each player, and only one is live. On your turn pick a plunger (◀ ▶) and **Push**: a dud fizzles, the live one blasts you over the rooftops. New plungers, one fewer, until one pierogi is left. | 2–8 |
 | **Babcia Mówi** | Our take on Shy Guy Says (“Babcia says”): Babcia calls the Polish flags from the shore of a lake – “RED up!”, “WHITE up!”, later “DON'T raise red!” and “BOTH up!”. Raise what she **says** on your phone (white left, red right) before time runs out; her own flags sometimes lie. Wrong or slow, and your plank tips you into the lake. | 1–8 |
 | **Maluch Rallye Premium** | Maluch Rally's big brother, a game of its own (the gold button at the top of the VIP's game list). It opens on a title screen where the camera flies over the tracks while four demo cars race and throw items. The VIP picks **Grand Prix** (Pierogi, Kompot, Barszcz or Babcia Cup: three named tracks in a row, 15/12/10/8 cup points per race) or **Tracks** (one race on any of the 12 named tracks, which are the same every time). Then everyone picks one of four cars, Mario Kart–style, each with its own **speed, acceleration, handling and off-road** stats, and says they're ready. The races play like Maluch Rally (same thumb pad, drifts and items). Never part of a tournament. | 1–4 (TV) |
+| **Krówki** | “Little cows” (also a classic Polish fudge). A meadow on a farm, in the arena games' low-poly 3D look, with a pen in every player's colour along its edges and a herd in the middle: six cows for each player, with patches and a bell in their owner's colour, all mixed up. Walk up to one of yours, **face it and tap LASSO** (a ring under the cow shows which one you'd catch), then drag it home on a rope that stretches a little: the cow digs in, so you walk slower. Lead it through your own gate and it's penned (other pens' gates stay shut to it); tap again (**Let go**) to drop it. **Nobody can walk through someone else's rope**, and neither can loose cows, so a rope is a moving fence for blocking rivals. The first to pen all six ends the round and gets +3; otherwise it's the cows penned when the 90 s run out. Two rounds. | 1–8 |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
-The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda and Babcia Mówi – are inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
+The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi and Krówki – are inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
@@ -96,6 +97,7 @@ is played in its **short version** unless the VIP switched that off:
 | Petarda | 2 rounds | 1 round |
 | Babcia Mówi | 2 rounds | 1 round |
 | Fajki | 60 s | 40 s |
+| Krówki | 2 rounds of 90 s | 1 round of 75 s |
 
 After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
 points** for 1st to 6th place (ties share a place). Then the standings screen animates the tournament
@@ -257,6 +259,7 @@ client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki
 client/src/games/rope|blast|flags/*  Skakanka, Petarda, Babcia Mówi (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
+client/src/games/cows/*      Krówki: pens, the herd, the lasso and ropes that fence (logic.ts), the 3D farm, cows and ropes (scene.ts), TV view (CowsGame.tsx)
 client/src/games/castle/*    Malbork Castle: waves, monsters, arrows and the volley skill (logic.ts), the 3D field, wall and monsters (scene.ts), TV view (CastleGame.tsx)
 client/src/phone/castle.tsx  Malbork Castle on the phone: the bow (pull back, aim, let go) and the Volley button
 client/src/host/tournament.ts    picking the tournament's games and its points table, party mode's choices and draw
