@@ -138,6 +138,18 @@ export class Sound {
     this.tone(2400, 0.05, { type: 'square', vol: 0.03 });
   }
 
+  /**
+   * A single synthesized note, for games with sounds of their own (bells, an accordion, a ticking timer)
+   * that don't need a named effect here. `slide` glides the pitch to that frequency.
+   */
+  note(freq: number, dur: number, opts: { type?: Wave; vol?: number; delay?: number; slide?: number } = {}) {
+    this.tone(freq, dur, opts);
+  }
+  /** A burst of filtered noise (thuds, splashes, hisses), `delay` seconds from now. */
+  hiss(dur: number, vol = 0.25, delay = 0) {
+    this.noise(dur, vol, delay);
+  }
+
   private later(sec: number, fn: () => void) {
     if (sec <= 0) fn();
     else window.setTimeout(fn, sec * 1000);

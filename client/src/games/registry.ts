@@ -20,6 +20,22 @@ import { TilesGame } from './tiles/TilesGame';
 import { RopeGame } from './rope/RopeGame';
 import { BlastGame } from './blast/BlastGame';
 import { FlagsGame } from './flags/FlagsGame';
+import { PotatoGame } from './potato/PotatoGame';
+import { FloesGame } from './floes/FloesGame';
+import { ChairsGame } from './chairs/ChairsGame';
+import { ChickensGame } from './chickens/ChickensGame';
+import { CrownGame } from './crown/CrownGame';
+import { CoinsGame } from './coins/CoinsGame';
+import { MolesGame } from './moles/MolesGame';
+import { SheepGame } from './sheep/SheepGame';
+import { ClockGame } from './clock/ClockGame';
+import { BoulesGame } from './boules/BoulesGame';
+import { BellsGame } from './bells/BellsGame';
+import { QuipGame } from './quip/QuipGame';
+import { SpyGame } from './spy/SpyGame';
+import { HerdGame } from './herd/HerdGame';
+import { WaveGame } from './wave/WaveGame';
+import { TelephoneGame } from './telephone/TelephoneGame';
 import { SmokeGame } from './smoke/SmokeGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
@@ -66,6 +82,38 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new BlastGame(host, ids);
     case 'flags':
       return new FlagsGame(host, ids);
+    case 'potato':
+      return new PotatoGame(host, ids);
+    case 'floes':
+      return new FloesGame(host, ids);
+    case 'chairs':
+      return new ChairsGame(host, ids);
+    case 'chickens':
+      return new ChickensGame(host, ids);
+    case 'crown':
+      return new CrownGame(host, ids);
+    case 'coins':
+      return new CoinsGame(host, ids);
+    case 'moles':
+      return new MolesGame(host, ids);
+    case 'sheep':
+      return new SheepGame(host, ids);
+    case 'clock':
+      return new ClockGame(host, ids);
+    case 'boules':
+      return new BoulesGame(host, ids);
+    case 'bells':
+      return new BellsGame(host, ids);
+    case 'quip':
+      return new QuipGame(host, ids);
+    case 'spy':
+      return new SpyGame(host, ids);
+    case 'herd':
+      return new HerdGame(host, ids);
+    case 'wave':
+      return new WaveGame(host, ids);
+    case 'telephone':
+      return new TelephoneGame(host, ids);
     case 'smoke':
       return new SmokeGame(host, ids);
     case 'castle':

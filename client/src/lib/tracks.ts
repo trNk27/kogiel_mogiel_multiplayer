@@ -402,14 +402,25 @@ export function parsePart(seq: string, drums = false): { events: NoteEvent[]; le
   return { events, length: toks.length };
 }
 
-/** Which track plays for a game. Games that feel alike share one. */
-export function trackForGame(game: string): TrackId {
+/**
+ * Which track plays for a game. Games that feel alike share one. Games that make their own music
+ * (Krzesła's accordion stops for the scramble, Dzwonki's bells play the tune) get none.
+ */
+export function trackForGame(game: string): TrackId | null {
   switch (game) {
+    case 'chairs':
+    case 'bells':
+      return null;
     case 'quiz':
     case 'ballpark':
     case 'swap':
     case 'toty':
     case 'bazgroly':
+    case 'quip':
+    case 'spy':
+    case 'herd':
+    case 'wave':
+    case 'telephone':
       return 'quiz';
     case 'pedal':
     case 'fork':

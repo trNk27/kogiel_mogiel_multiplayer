@@ -42,6 +42,7 @@ import { ForkPad, ParadePad, PedalPad } from './minigames';
 import { ArenaPad } from './arenaPad';
 import { SmokePad } from './smoke';
 import { CastlePad } from './castle';
+import { AskPad } from './ask';
 
 export interface Props<V extends PhoneView['v']> {
   view: Extract<PhoneView, { v: V }>;
@@ -104,6 +105,8 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <SmokePad view={view} me={me} send={send} offset={offset} />;
     case 'castle':
       return <CastlePad view={view} me={me} send={send} offset={offset} />;
+    case 'ask':
+      return <AskPad view={view} me={me} send={send} offset={offset} key={`${view.game}:${view.key}`} />;
     case 'pad':
       return <ArenaPad view={view} me={me} send={send} offset={offset} key={view.game} />;
     case 'results':
