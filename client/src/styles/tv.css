@@ -219,21 +219,109 @@ body.tv {
 /* ---- Landing -------------------------------------------------------------- */
 
 .landing {
+  text-align: center;
+}
+/* The game icons orbit the title (Orbits.tsx): everything is placed from the centre of the stage. */
+.orbits {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+.orbit-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 3px dashed rgba(251, 240, 217, 0.09);
+  pointer-events: none;
+}
+.orbit-planet {
+  position: absolute;
+  left: -48px;
+  top: -48px;
+  width: 96px;
+  height: 96px;
+  will-change: transform;
+}
+.orbit-planet svg {
+  display: block;
+  filter: drop-shadow(0 7px 0 rgba(0, 0, 0, 0.45));
+}
+.landing-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -54%;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  text-align: center;
+  gap: 22px;
+  width: 1200px;
+  animation: landing-rise 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
-.landing .logo {
-  margin-top: 6px;
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+/* A soft pool of the background colour behind the title, so planets passing behind it fade out. */
+.landing-center::before {
+  content: '';
+  position: absolute;
+  inset: -90px -40px -40px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--bg) 55%, transparent);
+  pointer-events: none;
+}
+/* The title is centred on its own; the glass hangs just to its left. */
+.landing-title {
+  position: relative;
+}
+.landing-title svg {
+  position: absolute;
+  right: calc(100% + 18px);
+  bottom: 22px;
+  animation: landing-bob 3.2s ease-in-out infinite;
+}
+@keyframes landing-bob {
+  50% {
+    transform: translateY(-10px) rotate(-4deg);
+  }
+}
+.landing-title h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 150px;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--cream);
+  text-shadow: 0 10px 0 var(--beet-deep);
+  white-space: nowrap;
+}
+.landing-title h1 small {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 34px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--yolk);
+  text-shadow: none;
 }
 .landing-sub {
   font-family: var(--font-display);
   font-weight: 650;
-  font-size: 34px;
+  font-size: 32px;
   color: var(--muted);
-  margin: -10px 0 0;
+  margin: 0;
 }
 .landing-actions {
   display: flex;
@@ -257,8 +345,13 @@ body.tv {
   outline-offset: 8px;
 }
 .landing-notv {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -30px;
+  z-index: 500;
   margin: 0;
-  font-size: 26px;
+  font-size: 24px;
   color: var(--muted);
 }
 .landing-notv b {
@@ -273,35 +366,6 @@ body.tv {
   font-size: 30px;
   margin: 0;
 }
-.landing-games {
-  display: grid;
-  grid-template-columns: repeat(13, 116px);
-  gap: 14px 12px;
-}
-.landing-game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.landing-game:nth-child(odd) svg {
-  transform: rotate(-3deg);
-}
-.landing-game:nth-child(even) svg {
-  transform: rotate(3deg);
-}
-.landing-game svg {
-  width: 66px;
-  height: 66px;
-  filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.4));
-}
-.landing-game b {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 17px;
-  line-height: 1.05;
-}
-
 /* ---- Lobby ---------------------------------------------------------------- */
 
 .lobby {

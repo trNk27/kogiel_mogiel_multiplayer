@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 import { GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, siegeMode, type GameId, type Selection } from '../../../shared/protocol';
-import { FolkBorder, Logo, Pierogi } from '../lib/art';
+import { KogielGlass, Logo, Pierogi } from '../lib/art';
+import { Orbits } from './Orbits';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
 import { music } from '../lib/music';
@@ -270,35 +271,34 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
   const saved = HostController.savedSession();
   return (
     <div class="screen landing">
-      <FolkBorder count={9} size={52} />
-      <Logo size={1.5} />
-      <p class="landing-sub">One screen · everyone’s phones · no installs</p>
-      <div class="landing-actions">
-        <button class="btn btn-big btn-yolk" autofocus disabled={busy} onClick={() => controller.create()}>
-          {busy ? 'Warming up the pierogi…' : 'Host a party'}
-        </button>
-        {saved && !busy && (
-          <button class="btn btn-ghost" onClick={() => controller.resume(saved)}>
-            Rejoin room {saved.code}
+      <Orbits />
+      <div class="landing-center">
+        <div class="landing-title">
+          <KogielGlass size={128} />
+          <h1>
+            <small>Couch Party</small>
+            Kogiel Mogiel
+          </h1>
+        </div>
+        <p class="landing-sub">One screen · everyone’s phones · no installs</p>
+        <div class="landing-actions">
+          <button class="btn btn-big btn-yolk" autofocus disabled={busy} onClick={() => controller.create()}>
+            {busy ? 'Warming up the pierogi…' : 'Host a party'}
           </button>
-        )}
+          {saved && !busy && (
+            <button class="btn btn-ghost" onClick={() => controller.resume(saved)}>
+              Rejoin room {saved.code}
+            </button>
+          )}
+        </div>
+        {error && <p class="landing-error">{error}</p>}
       </div>
-      {error && <p class="landing-error">{error}</p>}
       <p class="landing-notv">
         No TV? Open <b>{location.host}</b> on a phone → <b>Play without a TV</b> · Far away?{' '}
         <a class="landing-link" href="/screen">
           Show another room’s party on this screen
         </a>
       </p>
-      <div class="landing-games">
-        {GAMES.map((g) => (
-          <div class="landing-game">
-            <GameIcon game={g.id} size={84} />
-            <b>{g.title}</b>
-          </div>
-        ))}
-      </div>
-      <FolkBorder count={9} size={52} />
     </div>
   );
 }
