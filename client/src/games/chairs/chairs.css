@@ -1,0 +1,130 @@
+/* ---- Krzesła ------------------------------------------------------------------------------- */
+/* The container is `.rally` (full stage, canvas behind); chips and banner come from cookbook.css. */
+
+.chairs-top {
+  position: absolute;
+  left: 96px;
+  right: 340px;
+  top: 54px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+}
+.chairs-top .pill {
+  font-size: 32px;
+  padding: 8px 26px;
+  background: rgba(21, 9, 16, 0.78);
+  box-shadow: inset 0 0 0 3px rgba(251, 240, 217, 0.25);
+  white-space: nowrap;
+}
+.chairs-top .chairs-stop {
+  color: var(--yolk);
+}
+.chairs-rule {
+  font-size: 30px;
+  padding: 8px 24px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.55);
+  color: var(--cream);
+  text-shadow: 0 2px 0 #1f0a10;
+  white-space: nowrap;
+}
+/* Chairs left, top right: bumps whenever the count changes. */
+.chairs-count {
+  position: absolute;
+  right: 96px;
+  top: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.9;
+  pointer-events: none;
+  animation: chairs-bump 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+.chairs-count b {
+  font-size: 130px;
+  font-weight: 700;
+  color: var(--yolk);
+  -webkit-text-stroke: 9px #241015;
+  paint-order: stroke fill;
+  text-shadow: 0 10px 0 #241015;
+}
+.chairs-count small {
+  font-size: 30px;
+  color: var(--cream);
+  text-shadow: 0 3px 0 #241015;
+}
+@keyframes chairs-bump {
+  from {
+    scale: 1.3;
+  }
+  to {
+    scale: 1;
+  }
+}
+.chairs-call {
+  position: absolute;
+  left: 50%;
+  top: 200px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 150px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--yolk);
+  -webkit-text-stroke: 10px #241015;
+  paint-order: stroke fill;
+  text-shadow: 0 12px 0 #241015;
+  rotate: -4deg;
+  pointer-events: none;
+  animation: cookbook-thwump 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.chairs-call small {
+  font-size: 44px;
+  color: var(--cream);
+  -webkit-text-stroke: 6px #241015;
+}
+.chairs-call.slow {
+  font-size: 110px;
+  color: var(--beet);
+}
+.chairs-timer {
+  position: absolute;
+  left: 50%;
+  top: 70px;
+  translate: -50% 0;
+  min-width: 120px;
+  padding: 4px 26px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--beet);
+  background: rgba(21, 9, 16, 0.8);
+  box-shadow: inset 0 0 0 4px var(--beet);
+  pointer-events: none;
+}
+.chairs-pop {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--pc);
+  -webkit-text-stroke: 7px #241015;
+  paint-order: stroke fill;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cookbook-splat 1.6s ease-out both;
+}
+.chairs-pop.bad {
+  color: var(--beet);
+}
+.chairs-pop.good {
+  color: var(--dill);
+}
+.cookbook-chip.chairs-seated {
+  background: rgba(30, 60, 40, 0.88);
+}
