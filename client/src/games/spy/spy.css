@@ -1,0 +1,492 @@
+/* Szpieg: the clue board round Babcia's kitchen table, the vote, the unmasking and the last guess. */
+
+.spy {
+  display: flex;
+  flex-direction: column;
+}
+.spy-cat span {
+  font-size: 1.1em;
+}
+
+/* ---- headline ------------------------------------------------------------------------------ */
+
+.spy-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  height: 150px;
+  flex: none;
+  text-align: center;
+  animation: rise-in 0.45s both;
+}
+.spy-big {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 66px;
+  line-height: 1.05;
+}
+.spy-big b {
+  font-weight: 900;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+}
+.spy-big.good {
+  color: var(--dill);
+}
+.spy-big.bad {
+  color: #ff7a8a;
+}
+.spy-small {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--muted);
+  min-height: 1.2em;
+}
+.spy-head.stage-drum .spy-small {
+  color: var(--yolk);
+  animation: spy-shiver 0.12s linear infinite;
+}
+@keyframes spy-shiver {
+  50% {
+    transform: translateX(3px);
+  }
+}
+.spy-ballot {
+  position: absolute;
+  left: 50%;
+  bottom: -70px;
+  translate: -50% 0;
+  font-size: 70px;
+  animation: pop-in 0.5s both;
+  z-index: 3;
+}
+.spy-candle {
+  flex: none;
+}
+.spy-flame {
+  transform-origin: 30px 36px;
+  animation: spy-flicker 0.9s ease-in-out infinite alternate;
+}
+@keyframes spy-flicker {
+  0% {
+    transform: scale(1, 1) rotate(-3deg);
+  }
+  50% {
+    transform: scale(0.92, 1.08) rotate(2deg);
+  }
+  100% {
+    transform: scale(1.05, 0.94) rotate(-1deg);
+  }
+}
+
+/* ---- the table and the seats ------------------------------------------------------------------- */
+
+.spy-table {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--seat-gap);
+  padding-top: 70px;
+  min-height: 0;
+}
+/* A tablecloth with a scalloped, paper-cut edge; the pierogi sit behind it. */
+.spy-cloth {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  top: 300px;
+  bottom: 6px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 50% 0, transparent 13px, var(--cream) 14px) 0 0 / 40px 28px repeat-x,
+    repeating-linear-gradient(90deg, rgba(232, 51, 90, 0.07) 0 40px, transparent 40px 80px),
+    repeating-linear-gradient(0deg, rgba(232, 51, 90, 0.07) 0 40px, transparent 40px 80px),
+    var(--cream);
+  box-shadow: var(--drop-lg);
+}
+.spy-table.laps1 .spy-cloth {
+  top: 300px;
+}
+.spy-seat {
+  position: relative;
+  width: var(--seat-w);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3),
+    opacity 0.4s;
+}
+.spy-seat.current {
+  transform: translateY(-14px);
+}
+.spy-seat.dim {
+  opacity: 0.55;
+}
+.spy-seat.offline .spy-name {
+  opacity: 0.6;
+}
+.spy-votes {
+  position: absolute;
+  top: -66px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  gap: 2px;
+  min-height: 34px;
+}
+.spy-token {
+  display: inline-block;
+  animation: spy-fly 0.6s cubic-bezier(0.3, 0.7, 0.3, 1.2) both;
+}
+@keyframes spy-fly {
+  from {
+    transform: translate(var(--fx), var(--fy)) scale(1.6) rotate(-30deg);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.spy-voted {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--ink);
+  background: var(--dill);
+  border-radius: 999px;
+  padding: 2px 14px;
+  align-self: flex-end;
+}
+.spy-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 112px;
+}
+.spy-avatar > svg:not(.spy-disguise) {
+  filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+}
+.spy-seat.current .spy-avatar::before {
+  content: '';
+  position: absolute;
+  inset: -8px -20px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px var(--yolk);
+  animation: pop-in 0.4s both;
+}
+.spy-bubble {
+  position: absolute;
+  right: -10px;
+  top: -34px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 34px;
+  line-height: 1;
+  padding: 2px 14px 12px;
+  border-radius: 18px;
+  box-shadow: var(--drop);
+  animation: spy-think 1.2s ease-in-out infinite;
+  z-index: 2;
+}
+@keyframes spy-think {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.spy-count {
+  position: absolute;
+  left: -18px;
+  top: -18px;
+  min-width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--panel-2);
+  box-shadow: var(--edge);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 36px;
+  z-index: 2;
+}
+.spy-count.top {
+  background: var(--yolk);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--yolk-deep);
+}
+.spy-seat.top .spy-name {
+  color: var(--yolk);
+}
+.spy-disguise {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  translate: -50% -50%;
+  overflow: visible;
+  pointer-events: none;
+}
+.spy-seat .spy-disguise {
+  width: min(130px, calc(var(--seat-w) * 0.62));
+  height: auto;
+  aspect-ratio: 120 / 96;
+}
+.spy-hat {
+  animation: spy-hat-drop 0.7s cubic-bezier(0.3, 0.8, 0.3, 1.3) both;
+}
+.spy-glasses {
+  animation: spy-glasses 0.5s 0.45s both;
+}
+@keyframes spy-hat-drop {
+  from {
+    transform: translateY(-120px) rotate(-20deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes spy-glasses {
+  from {
+    transform: translateY(-20px) scale(1.4);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.spy-seat.unmasked .spy-avatar {
+  animation: spy-shake 0.5s 0.2s both;
+}
+@keyframes spy-shake {
+  20%,
+  60% {
+    transform: translateX(-8px) rotate(-4deg);
+  }
+  40%,
+  80% {
+    transform: translateX(8px) rotate(4deg);
+  }
+}
+.spy-seat.unmasked .spy-name {
+  color: #ff7a8a;
+}
+.spy-name {
+  margin-top: 6px;
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.spy-score {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--muted);
+}
+.spy-clues {
+  margin-top: 48px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.spy-clue {
+  height: 92px;
+  display: grid;
+  place-items: center;
+  padding: 0 12px;
+  font-family: var(--font-display);
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  border: 4px solid var(--pc);
+  animation: spy-clue-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.spy-clue.skipped {
+  color: rgba(36, 16, 21, 0.4);
+}
+.spy-clue.empty {
+  background: transparent;
+  border: 4px dashed rgba(36, 16, 21, 0.22);
+  border-radius: var(--radius);
+  animation: none;
+}
+.spy-clue.empty.now {
+  border-color: var(--yolk-deep);
+  background: rgba(255, 201, 60, 0.18);
+}
+@keyframes spy-clue-in {
+  from {
+    transform: translateY(-60px) scale(1.5) rotate(-6deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(var(--tilt, -1.5deg));
+    opacity: 1;
+  }
+}
+.spy-clue:nth-child(2) {
+  --tilt: 1.5deg;
+}
+
+.spy-foot {
+  flex: none;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 30px;
+  color: var(--muted);
+}
+
+/* ---- the spy's last guess -------------------------------------------------------------------- */
+
+.spy-guess {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  padding: 10px 0 0;
+  min-height: 0;
+}
+.spy-guess-side {
+  width: 440px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.spy-avatar.big {
+  height: 230px;
+}
+.spy-avatar.big .spy-disguise {
+  width: 220px;
+  height: 176px;
+}
+.spy-guess-name {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 64px;
+}
+.spy-guess-line {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.15;
+}
+.spy-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 160px;
+  gap: 18px;
+}
+.spy-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1.1;
+  animation: pop-in 0.45s both;
+  transition:
+    opacity 0.4s,
+    transform 0.4s,
+    background 0.4s;
+}
+.spy-tile-e {
+  font-size: 48px;
+  line-height: 1;
+}
+.spy-tile.dim {
+  opacity: 0.35;
+}
+.spy-tile.truth {
+  background: var(--yolk);
+  box-shadow: 0 10px 0 var(--yolk-deep);
+  transform: scale(1.08) rotate(-2deg);
+  z-index: 1;
+}
+.spy-tile.wrong {
+  background: #ff9aac;
+  transform: rotate(2deg);
+  text-decoration: line-through;
+  text-decoration-thickness: 4px;
+}
+
+/* ---- round banner ---------------------------------------------------------------------------- */
+
+.spy-banner {
+  background: rgba(20, 6, 10, 0.97);
+  min-width: 900px;
+  max-width: 1500px;
+  z-index: 5;
+}
+.spy-banner-word {
+  margin: 6px 0 4px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 96px;
+  line-height: 1.05;
+  color: var(--yolk);
+  text-shadow: 0 8px 0 var(--beet-deep);
+}
+.spy-banner-big {
+  font-size: 60px;
+}
+.spy-banner-list {
+  margin: 22px auto 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 10px 22px;
+  text-align: left;
+}
+.spy-banner-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 18px;
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: inset 4px 0 0 var(--pc);
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 32px;
+}
+.spy-banner-row b {
+  color: var(--muted);
+}
+.spy-banner-row.win b {
+  color: var(--dill);
+}
+.spy-next {
+  margin-top: 10px;
+}
