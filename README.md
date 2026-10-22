@@ -26,6 +26,11 @@ the notch) are added around controls, never taken out of them.
 | **Maluch Rally** | Split-screen 3D racing in little Fiat 126p “Maluch” cars, with a low-poly PS2 look. Your phone is a pad: hold your thumb on it, and how high or low it is sets gas or brake while left/right steers. Three races of three laps on randomly generated tracks. The VIP picks a mixed cup (different tracks, mostly hard ones; a tournament's single race is always on a hard track), a **hard cup** (hairpins, S-bends, narrow barriers) or all three races on one kind of track. **Brake while turning** (pull your thumb down) to drift round tight corners, and let go when the sparks show for a mini-turbo. Tracks have tunnels through hills and red steel bridges over a river. Drive through ? boxes for items and **lift your thumb for a moment** (or, without a TV, tap the item button) to use them: Kompot Boost, Butter Slick, Pickle Missile, Pot Lid, Thunderstorm, Maluch Rocket, Cabbage Bomb, Beet Splash, Babcia’s Ghost, Kiełbasa Lasso and Babcia’s Kapeć. The VIP can switch items off. 15/12/10/8 cup points per race. **Also plays without a TV** (see below): then every phone shows its own car in 3D with a minimap, you steer by tilting or swiping, and up to 8 can race. | 1–4 (TV) · 1–8 (no TV) |
 | **To Ty!** | Our take on PlayLink’s *That’s You!* (“to ty” is Polish for “that’s you”). Everyone takes a selfie on their phone, or skips and plays as their pierogi. Then come 7 “Who’s most likely to…?” questions: vote for a player, and you score 100 if you agree with the room (the last question pays double). After questions 3 and 6, everyone doodles on the photo of the player the room picked (“Turn Kasia into a pirate”), and the TV replays the doodles stroke by stroke. Vote for your favourite by letter; each vote is worth 100. | 3–8 |
 | **Bazgroły** | Our take on Jackbox’s *Drawful* (“bazgroły” is Polish for scribbles). Everyone gets a weird secret prompt (“A cat filing its taxes”, “Babcia on a motorbike”) and draws it on their phone. Then each drawing goes up on the TV, and everyone else makes up a fake title for it (or taps **Lie for me**). Pick the real title from the lies: finding it scores 1000 for you and 1000 for the artist, and every player who falls for your lie earns you 500. Two rounds with up to 4 players (the second pays double), one round with more. 200 prompts. | 3–8 |
+| **Riposta** | Our take on Jackbox’s *Quiplash* (“riposta” is a witty comeback). Everyone answers two silly prompts on their phone (“The worst thing to find inside a pierogi”), and every prompt goes to two players (or tap **🎲 Answer for me**). The TV shows each matchup and everyone else votes for the funnier answer: 100 per vote, a **RIPOSTA!** bonus of +250 for taking every vote, nothing for a jinx (the same answer twice). Round 2 pays double; in the final, *Ostatnia Riposta*, everyone answers one prompt and has three votes, each worth triple. 260 prompts. | 3–8 |
+| **Szpieg** | A spy (*szpieg*) is hiding among you, like *The Chameleon*. Every phone shows the category and the secret word – except the spy’s, which shows only the category. Round a candlelit table everyone gives a one-word clue in turn, then votes. If the spy gets the most votes they get one guess at the word out of 16: right, and they steal the round. One round per player (up to 6), 32 categories. | 3–8 |
+| **Zgodni** | “In agreement”, like *Herd Mentality*: everyone types an answer to an open question (“A Polish city”, “Something Babcia always says”), and on a 3D meadow the answers run to signposts, where similar spellings herd together (diacritics, plurals, number words and small typos don’t matter). The single biggest herd scores a point each; a tie scores nobody. Exactly one player on their own gets the **Różowa Krowa** (pink cow), which costs 2 points at the end. 10 questions from 261. | 3–8 |
+| **Fala** | “The wave”, our take on *Wavelength*. One player is the Psychic and secretly sees a target on a spectrum (“Cold ↔ Hot”, “Babcia would approve ↔ Babcia would faint”). They type a clue; everyone else slides to where they think the target is. Within 4 scores 4, within 10 scores 3, within 17 scores 2, and the Psychic gets the average. Everyone is the Psychic once or twice (4–8 rounds). 160 spectra. | 2–8 |
+| **Głuchy Telefon** | The whisper game (“deaf telephone”), like *Gartic Phone*. Everyone writes a silly sentence; it’s passed on and drawn, the next player describes the drawing, the next draws that, and so on, everyone working at once. Then the TV replays every chain step by step so you can watch it go wrong, and the room votes for its favourite entry in each: 100 per vote. 193 starter sentences for **🎲 Pick for me**. | 3–8 |
 | **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
 | **Fork Fight** | A quick-draw duel. A plate on your phone: when a pierogi lands on it, tap to stab it. Socks, slippers and rubber ducks land too; stab one (or stab an empty plate) and you lose a point. The fastest three forks get 3/2/1. Eight rounds, with more fakes as you go. | 1–8 |
 | **Pierogi Parade** | Pierogi of five colours march down a busy market street on the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Lamp posts, trees, market stalls, barrels and trams hide them for a moment, some march in tight groups, and balloons, pierogi kites, pigeons, fireworks and the neighbours in the windows try to distract you. Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
@@ -39,10 +44,21 @@ the notch) are added around controls, never taken out of them.
 | **Skakanka** | Our take on Hot Rope Jump (“skakanka” is Polish for a skipping rope): two babcias in a village yard turn a long rope of kiełbasa over a row of pierogi. Tap **JUMP** as it sweeps the ground; it turns faster and faster, with the odd sneaky lull or burst. Trip and you're out. Last one jumping wins. | 1–8 |
 | **Petarda** | Our take on Bowser's Big Blast: New Year's Eve in a snowy village square. A giant firecracker is wired to a row of plungers, one for each player, and only one is live. On your turn pick a plunger (◀ ▶) and **Push**: a dud fizzles, the live one blasts you over the rooftops. New plungers, one fewer, until one pierogi is left. | 2–8 |
 | **Babcia Mówi** | Our take on Shy Guy Says (“Babcia says”): Babcia calls the Polish flags from the shore of a lake – “RED up!”, “WHITE up!”, later “DON'T raise red!” and “BOTH up!”. Raise what she **says** on your phone (white left, red right) before time runs out; her own flags sometimes lie. Wrong or slow, and your plank tips you into the lake. | 1–8 |
+| **Gorący Ziemniak** | Hot potato (*gorący ziemniak*) on an autumn village square with a bonfire and hay bales. One player holds a steaming potato that glows redder and whistles faster as its hidden fuse (9–22 s) runs down. Touch someone to pass it (no passing straight back); the holder is a little faster, and everyone has a **Dash**. When it bursts the holder is mashed and out, and a new potato drops on a survivor. Last one standing wins. | 2–8 |
+| **Kra** | Like *Hex-A-Gone*: *kra* is an ice floe. A frozen river at dusk with three stacked layers of hexagonal ice; a tile you touch cracks and drops half a second later, so keep moving. Fall through to the layer below, and off the bottom you’re in the water and out. **Jump** hops a gap. Last one dry wins (on your own: seconds survived), 90 s at most. | 1–8 |
+| **Krzesła** | Musical chairs (*krzesła*) at a village wedding. Walk round the ring while the folk band plays its accordion polka (the game’s only music); when it stops, **Sit** at a free chair. Sitting too early trips you, and from the third stop the band fakes you out. One chair fewer each time, and whoever’s left standing is out. Last one seated wins. | 2–8 |
+| **Kurnik** | The henhouse is open and the hens are loose in the farmyard. **Grab** hens (up to three ride on your head, slowing you down) and run them to your own coop: 1 point each, 3 for the golden hen. **Shove** a carrier and they drop the lot. Fresh hens keep coming, and the last 10 s are frantic. Two rounds of 60 s. | 1–8 |
+| **Korona** | Keep the crown (*korona*) in the arcaded courtyard of Wawel. Touch it to wear it: a point a second, but you walk 15 % slower. **Dash** into the wearer to knock it off – it flies a few metres, the old wearer is dazed, the new one briefly immune. The last 10 s count double. Two rounds of 60 s. | 2–8 |
+| **Grosze** | Groszy (pennies) rain on an old-town market square, each with a shadow that grows where it will land: copper 1, silver 2, a rare gold 5. Babcias lean out of the windows and drop flower pots and pans (a red mark on the cobbles): a hit stuns you and spills 30 % of your coins. **Dash** into someone and they drop 3. The last 10 s are the *Złoty deszcz* (golden rain). Two rounds of 45 s. | 1–8 |
+| **Krety** | Moles (*krety*) are digging up Babcia’s vegetable garden. Walk to a molehill and **Whack!** with a wooden spoon: 1 point, 3 for a golden mole, but a hedgehog costs 2. Whack another pierogi and they’re stunned for a second. The moles get quicker. Two rounds of 45 s. | 1–8 |
+| **Owieczki** | Little sheep (*owieczki*) on a Podhale meadow with the Tatras behind, and a pen in your colour by the fence. The flock runs away from you, so use that: steer sheep through your gate and they’re yours for good (white 1, black 3). **Whistle** scares every sheep within 5 m. New sheep wander in from the shepherd’s hut. Two rounds of 75 s. | 1–8 |
+| **Minutnik** | The kitchen timer (*minutnik*): a giant tomato timer ticks on Babcia’s table for 2.5 s, then she throws a tea towel over it. Count in your head and press **STOP** when the target (5, 7, 10… 20 s) has passed. The towel lifts and a ruler shows everyone’s flag: within 0.10 s is *Idealnie!* (10 points), closer is better, and the three closest get 3/2/1 on top. Five rounds. | 1–8 |
+| **Bule** | Boules (*bule*) on the village green, old men watching from the benches. Aim with the stick, hold **Throw** to charge and let go: the ball arcs, lands and rolls, knocking other balls and the little golden pierożek (the jack) about. After everyone’s two balls, the three closest to the jack score 3/2/1. Three ends; on your own you score by distance. | 1–8 |
+| **Dzwonki** | Simon says with bells (*dzwonki*) in a Highlander belfry at dusk. Listen to the tune, then everyone rings it back at once on four coloured keys on their phone. A wrong bell or too slow and you’re out; the tune grows a note every turn and speeds up. Last one ringing wins; on your own you play for the longest tune. The bells are the only music. | 1–8 |
 | **Maluch Rallye Premium** | Maluch Rally's big brother, a game of its own (the gold button at the top of the VIP's game list). It opens on a title screen where the camera flies over the tracks while four demo cars race and throw items. The VIP picks **Grand Prix** (Pierogi, Kompot, Barszcz or Babcia Cup: three named tracks in a row, 15/12/10/8 cup points per race) or **Tracks** (one race on any of the 12 named tracks, which are the same every time). Then everyone picks one of four cars, Mario Kart–style, each with its own **speed, acceleration, handling and off-road** stats, and says they're ready. The races play like Maluch Rally (same thumb pad, drifts and items). Never part of a tournament. | 1–4 (TV) |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
-The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda and Babcia Mówi – are inspired by Mario Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
+The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi, Gorący Ziemniak, Kra, Krzesła, Kurnik, Korona, Grosze, Krety, Owieczki, Minutnik and Bule – are inspired by Mario Party and LEGO Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Dzwonki has the same 3D look but four bell keys on the phone. Riposta, Szpieg, Zgodni, Fala and Głuchy Telefon are Jackbox-style: you type, slide, draw and vote on one shared phone screen (`client/src/phone/ask.tsx`), and the TV runs the show. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
@@ -96,6 +112,22 @@ is played in its **short version** unless the VIP switched that off:
 | Petarda | 2 rounds | 1 round |
 | Babcia Mówi | 2 rounds | 1 round |
 | Fajki | 60 s | 40 s |
+| Gorący Ziemniak | 3 rounds | 1 round |
+| Kra | 3 rounds | 1 round |
+| Krzesła | 2 rounds | 1 round |
+| Kurnik | 2 rounds of 60 s | 1 round |
+| Korona | 2 rounds of 60 s | 1 round |
+| Grosze | 2 rounds of 45 s | 1 round |
+| Krety | 2 rounds of 45 s | 1 round |
+| Owieczki | 2 rounds of 75 s | 1 round |
+| Minutnik | 5 rounds | 3 rounds |
+| Bule | 3 ends | 1 end |
+| Dzwonki | 2 rounds | 1 round |
+| Riposta | 2 rounds + the final | 1 round + the final |
+| Szpieg | 1 round per player (up to 6) | 3 rounds |
+| Zgodni | 10 questions | 6 questions |
+| Fala | everyone the Psychic once or twice (4–8 rounds) | up to 4 rounds |
+| Głuchy Telefon | chains of up to 6 steps | up to 4 steps |
 
 After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
 points** for 1st to 6th place (ties share a place). Then the standings screen animates the tournament
@@ -220,9 +252,10 @@ create a key, then set the Worker secrets `TURN_KEY_ID` and `TURN_KEY_API_TOKEN`
   place left to right and sends to a room reverb and a tempo echo, the kick pumps the other parts in the fast
   tracks, a compressor glues it all together, and the music dips a little under each sound effect.
   The waiting room has its own tune (a lazy accordion mazurka), and games that feel alike share a track:
-  *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły), *Polka Pierogi* (Tour de Pierogi,
-  Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games and Malbork Castle), *Maluch Turbo*
-  (Maluch Rally, Maluch Rallye Premium, Trails) and *Smoke Rings* (Fajki).
+  *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły, Riposta, Szpieg, Zgodni, Fala, Głuchy Telefon),
+  *Polka Pierogi* (Tour de Pierogi, Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games
+  and Malbork Castle), *Maluch Turbo* (Maluch Rally, Maluch Rallye Premium, Trails) and *Smoke Rings* (Fajki).
+  Krzesła and Dzwonki have no track: the wedding band's polka (it has to stop dead) and the bells are the music.
 - The TV is a fixed **1920×1080 stage with a 5 % safe-area margin**, scaled to fit any screen.
 
 ```
@@ -255,6 +288,12 @@ client/src/games/arena/*    the arena games' shared low-poly 3D kit (kit.ts), Ba
 client/src/games/tanks|mushroom|pushy|gallery|cookbook|tiles/*  Czołgi, Grzybki, Pushy Pierogi, Strzelnica,
                             Babcia’s Cookbook, Kafelki (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/rope|blast|flags/*  Skakanka, Petarda, Babcia Mówi (pure logic.ts, three.js scene.ts, TV view)
+client/src/games/potato|floes|chairs|chickens|crown|coins|moles|sheep|clock|boules|bells/*
+                            Gorący Ziemniak, Kra, Krzesła (+ music.ts, the band's polka), Kurnik, Korona, Grosze,
+                            Krety, Owieczki, Minutnik, Bule, Dzwonki (pure logic.ts, three.js scene.ts, TV view)
+client/src/games/quip|spy|herd|wave|telephone/*  Riposta, Szpieg, Zgodni (with a 3D meadow), Fala, Głuchy Telefon
+                            (pure logic.ts, TV views)
+client/src/phone/ask.tsx    the word games' (and Dzwonki's) phone screen: type, pick, slide, keys or draw (AskView)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
 client/src/games/castle/*    Malbork Castle: waves, monsters, arrows and the volley skill (logic.ts), the 3D field, wall and monsters (scene.ts), TV view (CastleGame.tsx)
@@ -265,6 +304,11 @@ data/trivia.json            200 quiz questions
 data/ballpark.json          140 estimation questions
 data/toty.json              162 "who's most likely to…" questions (66 with a doodle prompt)
 data/bazgroly.json          200 Bazgroły drawing prompts
+data/quip.json              260 Riposta prompts and 62 “answer for me” lines
+data/spy.json               32 Szpieg categories of 16 words
+data/herd.json              261 Zgodni questions
+data/wave.json              160 Fala spectra
+data/telephone.json         193 Głuchy Telefon starter sentences
 test/*.test.ts              Vitest unit tests (scoring, Trails collisions, data checks)
 ```
 
