@@ -63,7 +63,11 @@ describe('soundtrack', () => {
   }
 
   it('gives every game a track', () => {
-    for (const g of GAMES) expect(TRACKS[trackForGame(g.id)]).toBeDefined();
+    for (const g of GAMES) {
+      const t = trackForGame(g.id);
+      if (t !== null) expect(TRACKS[t]).toBeDefined();
+    }
+    expect(trackForGame('chairs')).toBeNull();
     expect(trackForGame('quiz')).toBe(trackForGame('ballpark'));
   });
 });

@@ -1,0 +1,346 @@
+/* Fala: a big paper dial on the kitchen table. */
+
+.wv {
+  display: flex;
+  flex-direction: column;
+}
+.wv .quiz-top {
+  flex: none;
+}
+.wv-psy-pill {
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 3px var(--pc);
+}
+.wv-psy-pill svg {
+  margin: -8px 0;
+}
+
+/* ---- the clue --------------------------------------------------------------- */
+.wv-clue-row {
+  flex: none;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -8px;
+}
+.wv-clue {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 66px;
+  line-height: 1.05;
+  padding: 14px 48px 18px;
+  max-width: 1500px;
+  text-align: center;
+  overflow-wrap: anywhere;
+  transform: rotate(-1deg);
+}
+.wv-clue.none {
+  font-size: 48px;
+  color: rgba(36, 16, 21, 0.6);
+}
+.wv-thinking {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 50px;
+  color: var(--muted);
+}
+.wv-dots {
+  display: inline-block;
+  animation: wv-blink 1.2s steps(2) infinite;
+}
+@keyframes wv-blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* ---- the dial --------------------------------------------------------------- */
+.wv-dial-row {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  padding-bottom: 14px;
+}
+.wv-dial {
+  position: relative;
+  flex: none;
+}
+.wv-dial svg {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.38));
+}
+.wv-end {
+  position: absolute;
+  bottom: 18px;
+  width: 290px;
+  padding: 16px 22px 20px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.wv-end.left {
+  left: 0;
+  transform: rotate(-2deg);
+}
+.wv-end.right {
+  right: 0;
+  transform: rotate(2deg);
+}
+.wv-arrow {
+  display: block;
+  font-size: 34px;
+  color: var(--beet-deep);
+}
+.wv-end.right .wv-arrow {
+  color: var(--blueberry-deep);
+}
+
+.wv-shutter {
+  transition: transform 1.3s cubic-bezier(0.6, 0, 0.3, 1) 0.9s;
+}
+.wv-dial.open .wv-shutter {
+  transform: rotate(180deg);
+}
+.wv-shutter-q {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 190px;
+  text-anchor: middle;
+  fill: rgba(251, 240, 217, 0.14);
+}
+.wv-band-num {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 42px;
+  text-anchor: middle;
+  fill: #2a120a;
+}
+.wv-needle {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: wv-needle 0.6s ease-out 1.8s forwards;
+}
+@keyframes wv-needle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.wv-target-tag {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 2px 16px 6px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--yolk);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 38px;
+  animation-delay: 2s;
+  animation-fill-mode: both;
+}
+
+/* A guesser's needle: swings from straight up to their guess. */
+.wv-arm {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform: rotate(0deg);
+  animation: wv-swing 1.1s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes wv-swing {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--rot));
+    opacity: 1;
+  }
+}
+.wv-arm-line {
+  position: absolute;
+  left: -4px;
+  bottom: 0;
+  width: 8px;
+  height: calc(var(--len) - 30px);
+  border-radius: 8px;
+  background: var(--pc);
+  box-shadow: 0 0 0 3px rgba(42, 18, 10, 0.7);
+}
+.wv-arm-tip {
+  position: absolute;
+  left: -60px;
+  top: calc(-1 * var(--len) - 52px);
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: wv-counter 1.1s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes wv-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(calc(-1 * var(--rot)));
+  }
+}
+.wv-arm-name {
+  max-width: 150px;
+  padding: 0 10px 2px;
+  border-radius: 999px;
+  background: var(--pc);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* ---- player chips -------------------------------------------------------------- */
+.wv-chips {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+.wv-chip {
+  position: relative;
+  width: 190px;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: center;
+  padding: 8px 12px 10px;
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    background 0.3s;
+}
+.wv-chip svg {
+  grid-row: 1 / 3;
+}
+.wv-chip-name {
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wv-chip-status {
+  font-size: 18px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.wv-chip-score {
+  position: absolute;
+  top: -14px;
+  right: -8px;
+  min-width: 48px;
+  padding: 0 10px 2px;
+  border-radius: 999px;
+  background: var(--pc);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 26px;
+  text-align: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
+}
+.wv-gain {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  font-style: normal;
+  font-size: 34px;
+  color: var(--dill);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+}
+.wv-gain.zero {
+  color: var(--muted);
+}
+.wv-chip.done {
+  background: rgba(47, 214, 168, 0.18);
+  box-shadow: inset 0 0 0 3px var(--dill);
+  transform: translateY(-8px);
+}
+.wv-chip.psychic {
+  background: rgba(255, 201, 60, 0.14);
+  box-shadow: inset 0 0 0 3px var(--yolk);
+}
+.wv-chip.psychic .wv-chip-status {
+  color: var(--yolk);
+  font-weight: 800;
+}
+.wv-chip.offline {
+  opacity: 0.5;
+}
+
+/* ---- round intro --------------------------------------------------------------- */
+.wv-intro {
+  justify-content: space-between;
+  align-items: center;
+}
+.wv-intro-card {
+  margin-top: 40px;
+  padding: 30px 90px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: rotate(-1.5deg);
+}
+.wv-intro-round {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  color: var(--beet-deep);
+}
+.wv-intro-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 96px;
+  line-height: 1;
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+}
+.wv-intro-role {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 56px;
+}
+.wv-intro-hint {
+  margin-top: 10px;
+  font-size: 30px;
+  color: rgba(36, 16, 21, 0.65);
+}
+
+.wv-scores .wv-next {
+  margin-top: 26px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 36px;
+  color: var(--yolk);
+}

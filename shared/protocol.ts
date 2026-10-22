@@ -99,6 +99,22 @@ export type GameId =
   | 'rope'
   | 'blast'
   | 'flags'
+  | 'potato'
+  | 'floes'
+  | 'chairs'
+  | 'chickens'
+  | 'crown'
+  | 'coins'
+  | 'moles'
+  | 'sheep'
+  | 'clock'
+  | 'boules'
+  | 'bells'
+  | 'quip'
+  | 'spy'
+  | 'herd'
+  | 'wave'
+  | 'telephone'
   | 'swap'
   | 'smoke'
   | 'castle'
@@ -161,6 +177,22 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'rope', title: 'Skakanka', tagline: 'Jump the kiełbasa rope. Faster and faster.', minPlayers: 1 },
   { id: 'blast', title: 'Petarda', tagline: 'Push a plunger. Pray it’s not the big one.', minPlayers: 2 },
   { id: 'flags', title: 'Babcia Mówi', tagline: 'Red up, white up – do what Babcia says.', minPlayers: 1 },
+  { id: 'potato', title: 'Gorący Ziemniak', tagline: 'Pass the hot potato before it blows.', minPlayers: 2 },
+  { id: 'floes', title: 'Kra', tagline: 'The ice cracks where you stand.', minPlayers: 1 },
+  { id: 'chairs', title: 'Krzesła', tagline: 'Musical chairs – one seat fewer every time.', minPlayers: 2 },
+  { id: 'chickens', title: 'Kurnik', tagline: 'Catch the hens. Bring them home.', minPlayers: 1 },
+  { id: 'crown', title: 'Korona', tagline: 'Grab the crown. Keep it.', minPlayers: 2 },
+  { id: 'coins', title: 'Grosze', tagline: 'Catch the coins. Dodge the pots.', minPlayers: 1 },
+  { id: 'moles', title: 'Krety', tagline: 'Whack the moles in Babcia’s garden.', minPlayers: 1 },
+  { id: 'sheep', title: 'Owieczki', tagline: 'Herd the sheep into your pen.', minPlayers: 1 },
+  { id: 'clock', title: 'Minutnik', tagline: 'Stop the kitchen timer by feel.', minPlayers: 1 },
+  { id: 'boules', title: 'Bule', tagline: 'Roll closest to the little pierogi.', minPlayers: 1 },
+  { id: 'bells', title: 'Dzwonki', tagline: 'Ring the tune back. It keeps getting longer.', minPlayers: 1 },
+  { id: 'quip', title: 'Riposta', tagline: 'Funniest answer wins the vote.', minPlayers: 3 },
+  { id: 'spy', title: 'Szpieg', tagline: 'Everyone knows the word. Except the spy.', minPlayers: 3 },
+  { id: 'herd', title: 'Zgodni', tagline: 'Answer like everybody else.', minPlayers: 3 },
+  { id: 'wave', title: 'Fala', tagline: 'Read the clue. Find the spot.', minPlayers: 2 },
+  { id: 'telephone', title: 'Głuchy Telefon', tagline: 'Draw it, guess it, draw that – watch it go wrong.', minPlayers: 3 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
@@ -730,6 +762,8 @@ export type PhoneView =
    * Babcia Mówi): the phone is a joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
    */
   | PadView
+  /** Jackbox-style screens shared by the word, drawing and voting games (see `AskView`). */
+  | AskView
   /**
    * Fajki. `hand`: empty (GRAB), reaching for the tray, holding a cigarette of your colour (`left` of
    * CIG_LENGTH still to smoke), or coughing until `coughUntil` (host clock ms). The game ends at `endsAt`.
@@ -786,6 +820,58 @@ export type PhoneView =
     }
   /** The end of a tournament. */
   | { v: 'tourResults'; place: number; points: number; players: number; vip: boolean };
+
+/**
+ * A generic phone screen for the word, drawing and voting games (Riposta, Szpieg, Zgodni, Fala,
+ * Głuchy Telefon, Dzwonki): a title, a time bar and one kind of input. The phone answers with an
+ * `ask` message carrying the view's `key`, so a late answer to an old question can be ignored.
+ * Drawn by `client/src/phone/ask.tsx`.
+ */
+export interface AskView {
+  v: 'ask';
+  game: GameId;
+  /** Changes with every new question: the phone resets its input, and answers carry it back. */
+  key: number;
+  /** Small line at the top, e.g. "Round 1 / 3". */
+  note?: string;
+  /** The big line: the question or the instruction. */
+  title: string;
+  /** Smaller text under the title. */
+  text?: string;
+  /** Colour for the title (hex). */
+  accent?: string;
+  /** Host clock ms when time runs out (shown as a shrinking bar). */
+  endsAt?: number;
+  /** Your score so far, shown in the corner (omit to hide it). */
+  score?: number;
+  /** A drawing to show above the input (e.g. Głuchy Telefon: describe this). */
+  pic?: Stroke[];
+  input: AskInput;
+}
+
+export type AskInput =
+  /** Nothing to do: a message, e.g. "Waiting for the others" or how the round went for you. */
+  | { k: 'none'; big?: string; mood?: 'happy' | 'wow' | 'dead' | 'sleep'; good?: boolean }
+  /**
+   * Type an answer (sent as `{ t: 'ask', key, text }`). `sent` is what the host already has (the phone
+   * then shows it and waits), `error` why the last one was turned down. With `auto`, a button labelled
+   * so (e.g. "🎲 Answer for me") sends `{ t: 'ask', key, auto: true }`.
+   */
+  | { k: 'text'; placeholder?: string; max: number; sent: string | null; error?: string; auto?: string; button?: string }
+  /**
+   * Pick one option (sent as `{ t: 'ask', key, i }`). `off` options can't be picked (e.g. your own answer);
+   * `sub` is a small line under an option's label; `color` its background.
+   */
+  | { k: 'choice'; options: { label: string; sub?: string; color?: string; off?: boolean }[]; picked: number | null; grid?: boolean }
+  /** A slider (sent as `{ t: 'ask', key, n }` on "Lock in"). `left`/`right` label the two ends. */
+  | { k: 'slider'; min: number; max: number; step: number; start?: number; left?: string; right?: string; unit?: string; sent: number | null; button?: string }
+  /**
+   * Big keys: every tap is sent straight away as `{ t: 'ask', key, i }` (e.g. Dzwonki's bells).
+   * `off` greys them all out; `lit` lights one key (e.g. while the host plays a tune back).
+   */
+  | { k: 'keys'; keys: { label: string; color: string }[]; off?: boolean; lit?: number | null }
+  /** Draw on the doodle pad (sent as `{ t: 'ask', key, strokes }`); `sent` once the host has it. */
+  | { k: 'draw'; prompt: string; sent: boolean };
 
 /** A button on the arena pad. */
 export interface PadButton {
@@ -897,6 +983,8 @@ export type PhoneMsg =
   | { t: 'prem'; a: 'mode' | 'hover' | 'go' | 'back' | 'kart' | 'ready'; i?: number; on?: boolean }
   /** Bazgroły: a fake title for the drawing on the TV, or `auto` to have the game make one up. */
   | { t: 'lie'; text: string; auto?: boolean }
+  /** Answer to an `AskView` (`key` is the view's key): a text, an option or key, a number or a drawing. */
+  | { t: 'ask'; key: number; text?: string; auto?: boolean; i?: number; n?: number; strokes?: Stroke[] }
   // VIP-only actions (the host ignores them from anybody else)
   | { t: 'select'; game: Selection }
   | { t: 'option'; key: keyof LobbyOptions; value: boolean | number | string | string[] }

@@ -32,6 +32,22 @@ import { howTo as tilesHowTo } from '../games/tiles/logic';
 import { howTo as ropeHowTo } from '../games/rope/logic';
 import { howTo as blastHowTo } from '../games/blast/logic';
 import { howTo as flagsHowTo } from '../games/flags/logic';
+import { howTo as potatoHowTo } from '../games/potato/logic';
+import { howTo as floesHowTo } from '../games/floes/logic';
+import { howTo as chairsHowTo } from '../games/chairs/logic';
+import { howTo as chickensHowTo } from '../games/chickens/logic';
+import { howTo as crownHowTo } from '../games/crown/logic';
+import { howTo as coinsHowTo } from '../games/coins/logic';
+import { howTo as molesHowTo } from '../games/moles/logic';
+import { howTo as sheepHowTo } from '../games/sheep/logic';
+import { howTo as clockHowTo } from '../games/clock/logic';
+import { howTo as boulesHowTo } from '../games/boules/logic';
+import { howTo as bellsHowTo } from '../games/bells/logic';
+import { howTo as quipHowTo } from '../games/quip/logic';
+import { howTo as spyHowTo } from '../games/spy/logic';
+import { howTo as herdHowTo } from '../games/herd/logic';
+import { howTo as waveHowTo } from '../games/wave/logic';
+import { howTo as telephoneHowTo } from '../games/telephone/logic';
 import { howTo as smokeHowTo } from '../games/smoke/logic';
 
 const controller = new HostController();
@@ -449,6 +465,38 @@ function howTo(game: GameId, short: boolean): string[] {
       return blastHowTo(short);
     case 'flags':
       return flagsHowTo(short);
+    case 'potato':
+      return potatoHowTo(short);
+    case 'floes':
+      return floesHowTo(short);
+    case 'chairs':
+      return chairsHowTo(short);
+    case 'chickens':
+      return chickensHowTo(short);
+    case 'crown':
+      return crownHowTo(short);
+    case 'coins':
+      return coinsHowTo(short);
+    case 'moles':
+      return molesHowTo(short);
+    case 'sheep':
+      return sheepHowTo(short);
+    case 'clock':
+      return clockHowTo(short);
+    case 'boules':
+      return boulesHowTo(short);
+    case 'bells':
+      return bellsHowTo(short);
+    case 'quip':
+      return quipHowTo(short);
+    case 'spy':
+      return spyHowTo(short);
+    case 'herd':
+      return herdHowTo(short);
+    case 'wave':
+      return waveHowTo(short);
+    case 'telephone':
+      return telephoneHowTo(short);
     case 'smoke':
       return smokeHowTo();
     case 'castle':

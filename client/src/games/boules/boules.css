@@ -1,0 +1,146 @@
+/* ---- Bule ---------------------------------------------------------------------------------- */
+/* The container is `.rally` (full stage, canvas behind). Top bar, chips, banner and the turn pill come from
+   cookbook.css / blast.css; this file adds the power meter, the pops and the measuring tape labels. */
+
+.boules-turn b {
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.boules-balls {
+  color: var(--yolk);
+  letter-spacing: 2px;
+}
+.boules-best {
+  font-size: 22px;
+  color: var(--muted);
+}
+
+/* Throw power: a tall gauge at the left edge. */
+.boules-meter {
+  position: absolute;
+  left: 96px;
+  top: 50%;
+  translate: 0 -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 14px;
+  border-radius: 28px;
+  background: rgba(21, 9, 16, 0.82);
+  box-shadow: inset 0 0 0 4px rgba(251, 240, 217, 0.22);
+  pointer-events: none;
+  transition: scale 0.15s, box-shadow 0.15s;
+}
+.boules-meter small {
+  font-size: 22px;
+  color: var(--muted);
+  line-height: 1;
+}
+.boules-meter.on {
+  scale: 1.06;
+  box-shadow: inset 0 0 0 5px var(--pc);
+}
+.boules-meter.on small:last-child {
+  color: var(--yolk);
+}
+.boules-meter-bar {
+  position: relative;
+  width: 54px;
+  height: 340px;
+  border-radius: 999px;
+  background: rgba(251, 240, 217, 0.12);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+.boules-meter-fill {
+  width: 100%;
+  height: 0;
+  border-radius: 999px;
+  background: linear-gradient(to top, #a3e048, #ffd23f 60%, #ff4d4d);
+}
+
+/* Little callouts over the pitch ("Kiss!", "Dead ball"…). */
+.boules-pop {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 46px;
+  font-weight: 700;
+  color: var(--pc);
+  -webkit-text-stroke: 8px #241015;
+  paint-order: stroke fill;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cookbook-splat 1.6s ease-out both;
+}
+
+/* Distance labels hovering above the three closest balls while the ref measures. */
+.boules-measure {
+  position: absolute;
+  translate: -50% -100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 18px 4px 6px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.88);
+  box-shadow: inset 0 0 0 4px var(--pc);
+  font-size: 32px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: blast-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.boules-measure b {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--pc);
+  color: #1b0d12;
+  font-size: 30px;
+}
+.boules-measure.none {
+  opacity: 0.7;
+}
+
+.boules-intro {
+  position: absolute;
+  left: 50%;
+  top: 300px;
+  translate: -50% 0;
+  text-align: center;
+  padding: 14px 44px 18px;
+  border-radius: 40px;
+  background: rgba(21, 9, 16, 0.82);
+  box-shadow: inset 0 0 0 4px rgba(251, 240, 217, 0.22);
+  pointer-events: none;
+}
+.boules-intro small {
+  display: block;
+  font-size: 28px;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.boules-intro b {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--yolk);
+}
+.boules-measuring {
+  position: absolute;
+  left: 50%;
+  top: 170px;
+  translate: -50% 0;
+  padding: 10px 40px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.85);
+  font-size: 46px;
+  color: var(--cream);
+  pointer-events: none;
+  animation: blast-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
