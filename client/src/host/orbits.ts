@@ -9,20 +9,38 @@
 
 export interface Ring {
   rx: number;
-  ry: number;
   /** Radians per second; the sign is the direction. */
   speed: number;
   /** How many of the planets this ring takes, relative to the others. */
   weight: number;
 }
 
+/**
+ * All rings lie on one disc tilted towards the viewer, so every orbit is squashed by the same amount
+ * and an icon's depth is simply how far down the screen it is – the same for every ring. That keeps
+ * the stacking consistent: two icons only swap which one is in front when they are level.
+ */
+export const TILT = 0.48;
+
 /** From the inside out. The inner ring clears the title and the button; the outer one stays on the stage. */
 export const RINGS: readonly Ring[] = [
-  { rx: 560, ry: 282, speed: 0.15, weight: 7 },
-  { rx: 680, ry: 330, speed: -0.105, weight: 9 },
-  { rx: 790, ry: 375, speed: 0.072, weight: 11 },
-  { rx: 890, ry: 418, speed: -0.05, weight: 12 },
+  { rx: 560, speed: 0.15, weight: 7 },
+  { rx: 680, speed: -0.105, weight: 9 },
+  { rx: 790, speed: 0.072, weight: 11 },
+  { rx: 890, speed: -0.05, weight: 12 },
 ];
+
+export const ringRy = (r: Ring) => r.rx * TILT;
+
+/** The furthest any planet gets from the middle line (the outer ring's front and back). */
+const DEEPEST = Math.max(...RINGS.map(ringRy));
+
+/**
+ * The stacking order for a planet at height `y`: the title sits at Z_TITLE, so planets above the
+ * middle line pass behind it and planets below it in front. Tenths of a pixel, so neighbours never tie.
+ */
+export const Z_TITLE = 10_000;
+export const zFor = (y: number) => Z_TITLE + Math.round(y * 10);
 
 export interface Planet {
   ring: number;
@@ -50,7 +68,7 @@ export function orbitLayout(count: number, rings: readonly Ring[] = RINGS): Plan
 export interface PlanetPose {
   x: number;
   y: number;
-  /** -1 at the very back of the orbit, +1 at the very front. */
+  /** -1 at the very back of the outer orbit, +1 at its very front (from the height on screen). */
   depth: number;
   scale: number;
   opacity: number;
@@ -60,12 +78,14 @@ export interface PlanetPose {
 export function planetAt(p: Planet, t: number, rings: readonly Ring[] = RINGS): PlanetPose {
   const r = rings[p.ring];
   const a = p.phase + r.speed * t;
-  const depth = Math.sin(a);
+  const y = ringRy(r) * Math.sin(a);
+  // Depth comes from the height on screen, not the angle, so planets level with each other match.
+  const depth = y / DEEPEST;
   return {
     x: r.rx * Math.cos(a),
-    y: r.ry * depth,
+    y,
     depth,
     scale: 0.9 + 0.22 * depth,
-    opacity: 0.72 + 0.28 * (depth + 1) / 2,
+    opacity: 0.72 + (0.28 * (depth + 1)) / 2,
   };
 }

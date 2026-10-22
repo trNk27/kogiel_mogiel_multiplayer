@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { GAMES } from '../../../shared/protocol';
 import { GameIcon } from './GameIcon';
-import { RINGS, orbitLayout, planetAt, type Planet } from './orbits';
+import { RINGS, orbitLayout, planetAt, ringRy, zFor, type Planet } from './orbits';
 
 const ICON = 96;
 
@@ -10,7 +10,7 @@ const ICON = 96;
 function poseStyle(p: Planet | undefined) {
   if (!p) return undefined;
   const pose = planetAt(p, 0);
-  return { transform: `translate(${pose.x}px, ${pose.y}px) scale(${pose.scale})`, opacity: pose.opacity, zIndex: pose.depth > 0 ? 300 : 100 };
+  return { transform: `translate(${pose.x}px, ${pose.y}px) scale(${pose.scale})`, opacity: pose.opacity, zIndex: zFor(pose.y) };
 }
 
 export function Orbits() {
@@ -32,8 +32,8 @@ export function Orbits() {
         const spin = Math.sin(t * 0.7 + i * 1.7) * 7;
         el.style.transform = `translate(${pose.x.toFixed(1)}px, ${pose.y.toFixed(1)}px) scale(${pose.scale.toFixed(3)}) rotate(${spin.toFixed(1)}deg)`;
         el.style.opacity = pose.opacity.toFixed(2);
-        // In front of the title on the near half of the orbit, behind it on the far half.
-        el.style.zIndex = String(pose.depth > 0 ? 300 + Math.round(pose.depth * 100) : 100 + Math.round(pose.depth * 100));
+        // Lower on the screen is nearer: in front of the title below the middle line, behind it above.
+        el.style.zIndex = String(zFor(pose.y));
       });
       raf = requestAnimationFrame(frame);
     };
@@ -44,7 +44,7 @@ export function Orbits() {
   return (
     <div class="orbits" aria-hidden="true">
       {RINGS.map((r) => (
-        <div class="orbit-ring" style={{ width: r.rx * 2, height: r.ry * 2 }} />
+        <div class="orbit-ring" style={{ width: r.rx * 2, height: ringRy(r) * 2 }} />
       ))}
       {GAMES.map((g, i) => (
         <div class="orbit-planet" ref={(el) => {

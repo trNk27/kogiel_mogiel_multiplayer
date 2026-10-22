@@ -255,7 +255,8 @@ body.tv {
   left: 50%;
   top: 50%;
   translate: -50% -54%;
-  z-index: 200;
+  /* Between the far and near halves of the orbits (Z_TITLE in orbits.ts). */
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -349,7 +350,7 @@ body.tv {
   left: 0;
   right: 0;
   bottom: -30px;
-  z-index: 500;
+  z-index: 20000;
   margin: 0;
   font-size: 24px;
   color: var(--muted);
