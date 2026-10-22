@@ -29,7 +29,7 @@ export function AskPad({ view, me, send, offset }: Props<'ask'>) {
   }
   const center = input.k === 'none';
   return (
-    <div class={`pv ask ${center ? 'pv-center' : ''} ask-${input.k} ${input.k === 'none' && input.good !== undefined ? `result-${input.good ? 'good' : 'bad'}` : ''}`} style={view.accent ? { '--ask-accent': view.accent } : undefined}>
+    <div class={`pv ask ${center ? 'pv-center' : ''} ask-in-${input.k} ${input.k === 'none' && input.good !== undefined ? `result-${input.good ? 'good' : 'bad'}` : ''}`} style={view.accent ? { '--ask-accent': view.accent } : undefined}>
       {(view.note || view.score !== undefined) && (
         <div class="ask-top">
           <span class="muted">{view.note}</span>
