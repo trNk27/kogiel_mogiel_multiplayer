@@ -1,0 +1,141 @@
+/* ---- Dzwonki ----------------------------------------------------------------------------------- */
+/* The container is `.rally` (full stage, canvas behind); top bar, chips and banner come from cookbook.css. */
+
+/* The call under the top bar: "Listen…" with a dot per note, "Ring it back!" with the clock. */
+.bells-call {
+  position: absolute;
+  left: 50%;
+  top: 140px;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 44px 18px;
+  border-radius: 32px;
+  background: rgba(21, 9, 16, 0.8);
+  box-shadow: inset 0 0 0 4px rgba(251, 240, 217, 0.22);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: bells-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+.bells-call b {
+  font-size: 64px;
+  font-weight: 750;
+  line-height: 1;
+  color: var(--cream);
+}
+.bells-call.go b {
+  color: var(--yolk);
+}
+.bells-call.result.good b {
+  color: var(--dill);
+}
+.bells-call.result.bad b {
+  color: #ff7a8a;
+}
+.bells-call small {
+  font-size: 28px;
+  color: var(--muted);
+}
+.bells-tune {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 760px;
+  gap: 8px;
+}
+.bells-tune i {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(251, 240, 217, 0.45);
+  transition: background 0.15s, scale 0.15s;
+}
+.bells-tune i.on {
+  background: var(--cream);
+  scale: 1.15;
+}
+.bells-timer {
+  width: 520px;
+  height: 16px;
+  border-radius: 99px;
+  background: rgba(251, 240, 217, 0.15);
+  overflow: hidden;
+}
+.bells-timer span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--yolk);
+  transition: width 0.12s linear;
+}
+@keyframes bells-pop {
+  from {
+    scale: 0.6;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+/* Progress dots over every pierogi while they ring back. */
+.bells-dots {
+  position: absolute;
+  translate: -50% -100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  max-width: 150px;
+  padding: 6px 10px;
+  border-radius: 18px;
+  background: rgba(21, 9, 16, 0.72);
+  pointer-events: none;
+}
+.bells-dots i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(251, 240, 217, 0.5);
+}
+.bells-dots i.on {
+  background: var(--pc);
+  box-shadow: 0 0 0 2px #241015;
+}
+.bells-dots .bells-num {
+  font-size: 26px;
+  font-weight: 750;
+  color: var(--pc);
+}
+.bells-dots .bells-tick,
+.bells-dots .bells-cross {
+  font-size: 34px;
+  font-weight: 850;
+  line-height: 1;
+  padding: 0 4px;
+  animation: bells-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.6) both;
+}
+.bells-dots.done {
+  box-shadow: inset 0 0 0 3px var(--dill);
+}
+.bells-dots .bells-tick {
+  color: var(--dill);
+}
+.bells-dots.out {
+  box-shadow: inset 0 0 0 3px #ff7a8a;
+}
+.bells-dots .bells-cross {
+  color: #ff7a8a;
+}
+.bells-pop {
+  font-size: 36px;
+}
+.cookbook-chip.bells-ok {
+  box-shadow:
+    inset 0 0 0 4px var(--pc),
+    0 0 0 4px var(--dill);
+}
