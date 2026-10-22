@@ -1,0 +1,341 @@
+/* ---- Zgodni: TV overlays over the 3D meadow. The container reuses .rally / .cookbook (and its chips and banner). */
+
+.herd-top {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  top: 54px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  pointer-events: none;
+}
+.herd-top .pill {
+  font-size: 32px;
+  padding: 8px 26px;
+  background: rgba(21, 9, 16, 0.78);
+  box-shadow: inset 0 0 0 3px rgba(251, 240, 217, 0.25);
+}
+.herd-top .timer-ring {
+  margin-left: auto;
+}
+
+/* The question on a paper card, big while people type. */
+.herd-q {
+  position: absolute;
+  left: 50%;
+  top: 54px;
+  translate: -50% 0;
+  max-width: 1080px;
+  padding: 12px 40px 14px;
+  text-align: center;
+  font-size: 44px;
+  line-height: 1.1;
+  font-weight: 850;
+  rotate: -0.6deg;
+  animation: herd-drop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  pointer-events: none;
+}
+.herd-q small {
+  display: block;
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #6b4a3a;
+}
+.herd-q.big {
+  top: 150px;
+  max-width: 1300px;
+  padding: 26px 64px 28px;
+  font-size: 76px;
+  rotate: -1deg;
+}
+.herd-q.big small {
+  font-size: 30px;
+}
+@keyframes herd-drop {
+  from {
+    transform: translateY(-80px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* The Pink Cow badge. */
+.herd-cow {
+  position: absolute;
+  right: 96px;
+  top: 150px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 26px 6px 12px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.78);
+  box-shadow: inset 0 0 0 3px #ff8fb8;
+  pointer-events: none;
+}
+.herd-cow-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+.herd-cow-text small {
+  font-size: 18px;
+  color: var(--muted);
+}
+.herd-cow-text b {
+  font-size: 30px;
+  font-weight: 700;
+}
+.herd-cow-text b.nobody {
+  color: var(--muted);
+  font-weight: 600;
+}
+.herd-cow.moved {
+  animation: herd-cow-hop 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes herd-cow-hop {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35) rotate(-4deg);
+  }
+  60% {
+    transform: scale(1.15) rotate(3deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* "Pytanie 3" between questions. */
+.herd-intro {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  translate: -50% -50%;
+  text-align: center;
+  pointer-events: none;
+  animation: pop-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.herd-intro b {
+  display: block;
+  font-size: 120px;
+  font-weight: 850;
+  color: var(--cream);
+  -webkit-text-stroke: 10px #241015;
+  paint-order: stroke fill;
+  text-shadow: 0 10px 0 #241015;
+  rotate: -3deg;
+}
+.herd-intro small {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 6px 28px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.78);
+  font-size: 38px;
+  color: var(--yolk);
+}
+
+/* A herd's signpost label, floating over its sign. */
+.herd-sign {
+  position: absolute;
+  translate: -50% -100%;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  max-width: 520px;
+  padding: 6px 26px 8px;
+  border-radius: 18px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 5px #241015,
+    0 14px 0 rgba(36, 16, 21, 0.45);
+  font-size: 46px;
+  font-weight: 850;
+  line-height: 1.05;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: herd-sign-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.herd-sign-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.herd-sign-n {
+  font-size: 40px;
+  color: #c2410c;
+}
+.herd-sign.blank {
+  background: #b9b0a0;
+  color: #5b5348;
+  font-size: 34px;
+  font-style: italic;
+}
+.herd-sign.win {
+  background: var(--yolk);
+  box-shadow:
+    0 0 0 6px #241015,
+    0 0 40px 10px rgba(255, 201, 60, 0.75);
+  scale: 1.18;
+  transition: scale 0.3s;
+}
+.herd-sign.tie {
+  background: #ffe9b0;
+  box-shadow:
+    0 0 0 5px #241015,
+    0 0 24px 6px rgba(255, 201, 60, 0.4);
+}
+.herd-sign.cow {
+  background: #ffc2d9;
+  box-shadow:
+    0 0 0 5px #241015,
+    0 0 34px 8px rgba(255, 105, 160, 0.7);
+}
+@keyframes herd-sign-in {
+  from {
+    transform: translateY(-40px) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Plain cards when WebGL is unavailable. */
+.herd-fallback {
+  position: absolute;
+  left: 96px;
+  right: 96px;
+  top: 360px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  justify-content: center;
+}
+.herd-fallback .herd-sign {
+  position: static;
+  translate: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.herd-sign-who {
+  font-size: 22px;
+  font-weight: 700;
+  color: #6b4a3a;
+}
+
+/* "+1" over a scorer's head. */
+.herd-plus {
+  position: absolute;
+  translate: -50% -100%;
+  font-size: 84px;
+  font-weight: 850;
+  color: var(--pc);
+  -webkit-text-stroke: 10px #241015;
+  paint-order: stroke fill;
+  pointer-events: none;
+  animation: herd-plus 2.4s ease-out both;
+}
+@keyframes herd-plus {
+  0% {
+    transform: translateY(20px) scale(0.4);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(-10px) scale(1.25);
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(-14px) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-110px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* The verdict ribbon. */
+.herd-verdict {
+  position: absolute;
+  left: 50%;
+  bottom: 190px;
+  translate: -50% 0;
+  text-align: center;
+  padding: 14px 64px 16px;
+  border-radius: 26px;
+  background: rgba(20, 6, 10, 0.9);
+  box-shadow:
+    0 0 0 4px var(--cream),
+    0 24px 50px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  animation: pop-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.herd-verdict b {
+  display: block;
+  font-size: 68px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.herd-verdict small {
+  font-size: 30px;
+  color: var(--muted);
+}
+.herd-verdict.herd b {
+  color: var(--yolk);
+}
+.herd-verdict.tie b,
+.herd-verdict.apart b {
+  color: #ff8a8a;
+}
+.herd-verdict.cow {
+  box-shadow:
+    0 0 0 4px #ff8fb8,
+    0 24px 50px rgba(0, 0, 0, 0.5);
+}
+.herd-verdict.cow b {
+  color: #ff8fb8;
+}
+
+.herd-chips {
+  bottom: 40px;
+}
+.herd-chip.done {
+  background: rgba(30, 80, 60, 0.85);
+}
+.herd-chip.gain {
+  animation: herd-chip-gain 0.9s ease-out both;
+}
+@keyframes herd-chip-gain {
+  30% {
+    transform: translateY(-14px) scale(1.08);
+  }
+}
+
+.herd-final {
+  z-index: 5;
+}
+.herd-final-cow {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #ff8fb8;
+  font-size: 30px;
+}
+.herd-glerr {
+  top: 300px;
+  font-size: 34px;
+  padding: 18px 40px;
+}
