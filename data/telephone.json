@@ -1,0 +1,774 @@
+[
+  {
+    "id": "tel001",
+    "text": "A goose stealing Babcia’s pierogi"
+  },
+  {
+    "id": "tel002",
+    "text": "Dziadek surfing on a cabbage"
+  },
+  {
+    "id": "tel003",
+    "text": "A cat conducting an orchestra"
+  },
+  {
+    "id": "tel004",
+    "text": "A pierogi riding a bicycle"
+  },
+  {
+    "id": "tel005",
+    "text": "Babcia lifting a tractor"
+  },
+  {
+    "id": "tel006",
+    "text": "A stork delivering a pizza"
+  },
+  {
+    "id": "tel007",
+    "text": "A dragon toasting marshmallows"
+  },
+  {
+    "id": "tel008",
+    "text": "A dog driving a little Fiat"
+  },
+  {
+    "id": "tel009",
+    "text": "A snowman selling ice cream"
+  },
+  {
+    "id": "tel010",
+    "text": "A sheep knitting a sweater for itself"
+  },
+  {
+    "id": "tel011",
+    "text": "A cow jumping over the Palace of Culture"
+  },
+  {
+    "id": "tel012",
+    "text": "Dziadek fishing out an old boot"
+  },
+  {
+    "id": "tel013",
+    "text": "A potato wearing a crown"
+  },
+  {
+    "id": "tel014",
+    "text": "A hedgehog playing the accordion"
+  },
+  {
+    "id": "tel015",
+    "text": "A bear in a bathtub full of honey"
+  },
+  {
+    "id": "tel016",
+    "text": "A pickle running a marathon"
+  },
+  {
+    "id": "tel017",
+    "text": "A pigeon stealing a sandwich"
+  },
+  {
+    "id": "tel018",
+    "text": "Babcia winning a dance battle"
+  },
+  {
+    "id": "tel019",
+    "text": "A mushroom holding an umbrella"
+  },
+  {
+    "id": "tel020",
+    "text": "A ghost doing the laundry"
+  },
+  {
+    "id": "tel021",
+    "text": "A horse on roller skates"
+  },
+  {
+    "id": "tel022",
+    "text": "A beetroot superhero saving the day"
+  },
+  {
+    "id": "tel023",
+    "text": "A frog singing in the rain"
+  },
+  {
+    "id": "tel024",
+    "text": "A cat stuck in a Christmas tree"
+  },
+  {
+    "id": "tel025",
+    "text": "A wizard cooking soup in a cauldron"
+  },
+  {
+    "id": "tel026",
+    "text": "Two pierogi getting married"
+  },
+  {
+    "id": "tel027",
+    "text": "A rocket made of sausages"
+  },
+  {
+    "id": "tel028",
+    "text": "A fish riding a bicycle"
+  },
+  {
+    "id": "tel029",
+    "text": "A giant pretzel chasing a man"
+  },
+  {
+    "id": "tel030",
+    "text": "Dziadek flying a kite in a storm"
+  },
+  {
+    "id": "tel031",
+    "text": "A penguin on the beach in Sopot"
+  },
+  {
+    "id": "tel032",
+    "text": "A robot milking a cow"
+  },
+  {
+    "id": "tel033",
+    "text": "A chicken crossing a very busy road"
+  },
+  {
+    "id": "tel034",
+    "text": "An elephant hiding behind a lamp post"
+  },
+  {
+    "id": "tel035",
+    "text": "A mermaid eating pierogi"
+  },
+  {
+    "id": "tel036",
+    "text": "A tram full of dogs"
+  },
+  {
+    "id": "tel037",
+    "text": "A bee wearing sunglasses"
+  },
+  {
+    "id": "tel038",
+    "text": "A pirate ship in a bathtub"
+  },
+  {
+    "id": "tel039",
+    "text": "Babcia on a motorbike"
+  },
+  {
+    "id": "tel040",
+    "text": "A cabbage with a moustache"
+  },
+  {
+    "id": "tel041",
+    "text": "A duck in a business suit"
+  },
+  {
+    "id": "tel042",
+    "text": "A sausage dog that is really, really long"
+  },
+  {
+    "id": "tel043",
+    "text": "A hen laying a golden egg"
+  },
+  {
+    "id": "tel044",
+    "text": "A pig flying over a farm"
+  },
+  {
+    "id": "tel045",
+    "text": "A knight fighting a vacuum cleaner"
+  },
+  {
+    "id": "tel046",
+    "text": "A lighthouse made of cheese"
+  },
+  {
+    "id": "tel047",
+    "text": "A squirrel hoarding doughnuts"
+  },
+  {
+    "id": "tel048",
+    "text": "Babcia’s slipper flying through the air"
+  },
+  {
+    "id": "tel049",
+    "text": "An owl reading a newspaper"
+  },
+  {
+    "id": "tel050",
+    "text": "A volcano erupting with barszcz"
+  },
+  {
+    "id": "tel051",
+    "text": "A snail winning a race"
+  },
+  {
+    "id": "tel052",
+    "text": "A king with a tiny crown"
+  },
+  {
+    "id": "tel053",
+    "text": "A tooth fairy with a hammer"
+  },
+  {
+    "id": "tel054",
+    "text": "A camel in the snow"
+  },
+  {
+    "id": "tel055",
+    "text": "A vampire at the dentist"
+  },
+  {
+    "id": "tel056",
+    "text": "A giant spoon stirring a lake"
+  },
+  {
+    "id": "tel057",
+    "text": "A crocodile brushing its teeth"
+  },
+  {
+    "id": "tel058",
+    "text": "A cat on a skateboard"
+  },
+  {
+    "id": "tel059",
+    "text": "Dziadek asleep on the sofa with the remote"
+  },
+  {
+    "id": "tel060",
+    "text": "A family photo with a llama"
+  },
+  {
+    "id": "tel061",
+    "text": "A tree growing kiełbasa"
+  },
+  {
+    "id": "tel062",
+    "text": "A dentist pulling a shark’s tooth"
+  },
+  {
+    "id": "tel063",
+    "text": "A man walking a goldfish on a lead"
+  },
+  {
+    "id": "tel064",
+    "text": "A carrot doing yoga"
+  },
+  {
+    "id": "tel065",
+    "text": "A monkey taking a selfie"
+  },
+  {
+    "id": "tel066",
+    "text": "A pizza with googly eyes"
+  },
+  {
+    "id": "tel067",
+    "text": "A train made of loaves of bread"
+  },
+  {
+    "id": "tel068",
+    "text": "A teddy bear lifting weights"
+  },
+  {
+    "id": "tel069",
+    "text": "A cloud raining pierogi"
+  },
+  {
+    "id": "tel070",
+    "text": "A boxing kangaroo"
+  },
+  {
+    "id": "tel071",
+    "text": "A mouse riding a cat"
+  },
+  {
+    "id": "tel072",
+    "text": "A spider wearing eight shoes"
+  },
+  {
+    "id": "tel073",
+    "text": "An alien buying potatoes at the market"
+  },
+  {
+    "id": "tel074",
+    "text": "A goat on a rooftop"
+  },
+  {
+    "id": "tel075",
+    "text": "A cake with legs running away"
+  },
+  {
+    "id": "tel076",
+    "text": "A dog wearing a raincoat"
+  },
+  {
+    "id": "tel077",
+    "text": "Babcia telling off a thunderstorm"
+  },
+  {
+    "id": "tel078",
+    "text": "Kids building a giant snowman"
+  },
+  {
+    "id": "tel079",
+    "text": "A sock monster under the bed"
+  },
+  {
+    "id": "tel080",
+    "text": "The moon eating a cookie"
+  },
+  {
+    "id": "tel081",
+    "text": "A tiny house on a giant turtle"
+  },
+  {
+    "id": "tel082",
+    "text": "A clown in a canoe"
+  },
+  {
+    "id": "tel083",
+    "text": "A queen milking a goat"
+  },
+  {
+    "id": "tel084",
+    "text": "A fox in a chef’s hat"
+  },
+  {
+    "id": "tel085",
+    "text": "Babcia riding a dragon"
+  },
+  {
+    "id": "tel086",
+    "text": "A walrus wearing a bow tie"
+  },
+  {
+    "id": "tel087",
+    "text": "A horse in pyjamas"
+  },
+  {
+    "id": "tel088",
+    "text": "A pickle in a jar, waving"
+  },
+  {
+    "id": "tel089",
+    "text": "A ladybird with a backpack"
+  },
+  {
+    "id": "tel090",
+    "text": "A bus with wings"
+  },
+  {
+    "id": "tel091",
+    "text": "A pig in a mud bath"
+  },
+  {
+    "id": "tel092",
+    "text": "A wolf dressed as a grandma"
+  },
+  {
+    "id": "tel093",
+    "text": "A haunted fridge"
+  },
+  {
+    "id": "tel094",
+    "text": "A tractor in a traffic jam"
+  },
+  {
+    "id": "tel095",
+    "text": "A man sneezing a tornado"
+  },
+  {
+    "id": "tel096",
+    "text": "A worm wearing a top hat"
+  },
+  {
+    "id": "tel097",
+    "text": "A sunflower taller than a house"
+  },
+  {
+    "id": "tel098",
+    "text": "A dinosaur at a birthday party"
+  },
+  {
+    "id": "tel099",
+    "text": "A Christmas carp in the bathtub"
+  },
+  {
+    "id": "tel100",
+    "text": "An octopus juggling oranges"
+  },
+  {
+    "id": "tel101",
+    "text": "A baby elephant in a pram"
+  },
+  {
+    "id": "tel102",
+    "text": "A rainbow made of socks"
+  },
+  {
+    "id": "tel103",
+    "text": "A gnome guarding a mushroom"
+  },
+  {
+    "id": "tel104",
+    "text": "A cat reading a cookbook"
+  },
+  {
+    "id": "tel105",
+    "text": "Babcia making pierogi for a giant"
+  },
+  {
+    "id": "tel106",
+    "text": "A bat hanging from a washing line"
+  },
+  {
+    "id": "tel107",
+    "text": "A pancake flipping a chef"
+  },
+  {
+    "id": "tel108",
+    "text": "A bird nesting in Dziadek’s beard"
+  },
+  {
+    "id": "tel109",
+    "text": "A flying carpet over a vegetable patch"
+  },
+  {
+    "id": "tel110",
+    "text": "A cow on a swing"
+  },
+  {
+    "id": "tel111",
+    "text": "A ninja eating soup"
+  },
+  {
+    "id": "tel112",
+    "text": "A beaver building a bridge"
+  },
+  {
+    "id": "tel113",
+    "text": "A shark in a swimming pool"
+  },
+  {
+    "id": "tel114",
+    "text": "A bike with square wheels"
+  },
+  {
+    "id": "tel115",
+    "text": "Dziadek dancing the polka"
+  },
+  {
+    "id": "tel116",
+    "text": "A pirate with a parrot on his head"
+  },
+  {
+    "id": "tel117",
+    "text": "A sleeping dragon on a pile of coins"
+  },
+  {
+    "id": "tel118",
+    "text": "An apple with a worm waving hello"
+  },
+  {
+    "id": "tel119",
+    "text": "A toaster launching toast into space"
+  },
+  {
+    "id": "tel120",
+    "text": "A kid riding a giant chicken"
+  },
+  {
+    "id": "tel121",
+    "text": "A crab playing the drums"
+  },
+  {
+    "id": "tel122",
+    "text": "A snowball the size of a house"
+  },
+  {
+    "id": "tel123",
+    "text": "A teapot pouring rain"
+  },
+  {
+    "id": "tel124",
+    "text": "A tortoise with a jet pack"
+  },
+  {
+    "id": "tel125",
+    "text": "A giraffe wearing a scarf"
+  },
+  {
+    "id": "tel126",
+    "text": "A mole popping out of a cake"
+  },
+  {
+    "id": "tel127",
+    "text": "A puppy delivering the post"
+  },
+  {
+    "id": "tel128",
+    "text": "A hippo in a ballet tutu"
+  },
+  {
+    "id": "tel129",
+    "text": "A broom sweeping all by itself"
+  },
+  {
+    "id": "tel130",
+    "text": "Father Christmas stuck in a chimney"
+  },
+  {
+    "id": "tel131",
+    "text": "A watermelon with a zip"
+  },
+  {
+    "id": "tel132",
+    "text": "A pigeon wearing a crown"
+  },
+  {
+    "id": "tel133",
+    "text": "A haunted castle with a lift"
+  },
+  {
+    "id": "tel134",
+    "text": "A dog doing homework"
+  },
+  {
+    "id": "tel135",
+    "text": "A lemon riding a horse"
+  },
+  {
+    "id": "tel136",
+    "text": "A shopping trolley race"
+  },
+  {
+    "id": "tel137",
+    "text": "A cheese moon above a village"
+  },
+  {
+    "id": "tel138",
+    "text": "A wedding cake ten metres tall"
+  },
+  {
+    "id": "tel139",
+    "text": "A cat hiding in a cardboard box"
+  },
+  {
+    "id": "tel140",
+    "text": "A bear eating a whole picnic"
+  },
+  {
+    "id": "tel141",
+    "text": "A football team of chickens"
+  },
+  {
+    "id": "tel142",
+    "text": "A bubble bath in a teacup"
+  },
+  {
+    "id": "tel143",
+    "text": "A sausage on a skateboard"
+  },
+  {
+    "id": "tel144",
+    "text": "A window cleaner on a skyscraper"
+  },
+  {
+    "id": "tel145",
+    "text": "Babcia’s soup with a fish in it"
+  },
+  {
+    "id": "tel146",
+    "text": "A banana phone ringing"
+  },
+  {
+    "id": "tel147",
+    "text": "A dragon at the hairdresser"
+  },
+  {
+    "id": "tel148",
+    "text": "A mouse building a castle of cheese"
+  },
+  {
+    "id": "tel149",
+    "text": "A goose chasing the postman"
+  },
+  {
+    "id": "tel150",
+    "text": "A tiny man in a giant shoe"
+  },
+  {
+    "id": "tel151",
+    "text": "A rabbit pulling a magician out of a hat"
+  },
+  {
+    "id": "tel152",
+    "text": "A storm cloud with a grumpy face"
+  },
+  {
+    "id": "tel153",
+    "text": "A pirate counting pierogi"
+  },
+  {
+    "id": "tel154",
+    "text": "A sheep on a motorbike"
+  },
+  {
+    "id": "tel155",
+    "text": "A ladder to the moon"
+  },
+  {
+    "id": "tel156",
+    "text": "A hot-air balloon shaped like a potato"
+  },
+  {
+    "id": "tel157",
+    "text": "A fox stealing the Easter eggs"
+  },
+  {
+    "id": "tel158",
+    "text": "A sausage in a sleeping bag"
+  },
+  {
+    "id": "tel159",
+    "text": "A whale in a fountain"
+  },
+  {
+    "id": "tel160",
+    "text": "Dziadek with a tiny umbrella"
+  },
+  {
+    "id": "tel161",
+    "text": "A kid on a sledge pulled by geese"
+  },
+  {
+    "id": "tel162",
+    "text": "A birthday cake blowing out the candles"
+  },
+  {
+    "id": "tel163",
+    "text": "A stork stuck on a chimney"
+  },
+  {
+    "id": "tel164",
+    "text": "A cow playing the trumpet"
+  },
+  {
+    "id": "tel165",
+    "text": "A pierogi sunbathing on a plate"
+  },
+  {
+    "id": "tel166",
+    "text": "A big dog walking a small man"
+  },
+  {
+    "id": "tel167",
+    "text": "A snowman losing his carrot nose"
+  },
+  {
+    "id": "tel168",
+    "text": "A cat sitting on a laptop"
+  },
+  {
+    "id": "tel169",
+    "text": "A bee stuck in a jar of honey"
+  },
+  {
+    "id": "tel170",
+    "text": "A fish tank full of jelly"
+  },
+  {
+    "id": "tel171",
+    "text": "A dragon in a hot tub"
+  },
+  {
+    "id": "tel172",
+    "text": "A mushroom house with a doorbell"
+  },
+  {
+    "id": "tel173",
+    "text": "A llama spitting at a tourist"
+  },
+  {
+    "id": "tel174",
+    "text": "A fish wearing a hat"
+  },
+  {
+    "id": "tel175",
+    "text": "A shoe with teeth"
+  },
+  {
+    "id": "tel176",
+    "text": "A wizard with a broken wand"
+  },
+  {
+    "id": "tel177",
+    "text": "A ghost afraid of a mouse"
+  },
+  {
+    "id": "tel178",
+    "text": "A pirate walking the plank into soup"
+  },
+  {
+    "id": "tel179",
+    "text": "A bear riding a unicycle"
+  },
+  {
+    "id": "tel180",
+    "text": "A wild boar in a supermarket"
+  },
+  {
+    "id": "tel181",
+    "text": "A pierogi astronaut on the moon"
+  },
+  {
+    "id": "tel182",
+    "text": "A giant ice cream melting on a city"
+  },
+  {
+    "id": "tel183",
+    "text": "Babcia bowling with cabbages"
+  },
+  {
+    "id": "tel184",
+    "text": "A dachshund in a hot-dog bun"
+  },
+  {
+    "id": "tel185",
+    "text": "A smok breathing fire on a frying pan"
+  },
+  {
+    "id": "tel186",
+    "text": "The Wawel dragon eating a sheep sandwich"
+  },
+  {
+    "id": "tel187",
+    "text": "A stork with a suitcase going on holiday"
+  },
+  {
+    "id": "tel188",
+    "text": "Dziadek’s moustache flying away"
+  },
+  {
+    "id": "tel189",
+    "text": "A cuckoo clock with a grumpy bird"
+  },
+  {
+    "id": "tel190",
+    "text": "A hamster on a running machine"
+  },
+  {
+    "id": "tel191",
+    "text": "A pot of bigos with a lid that bites"
+  },
+  {
+    "id": "tel192",
+    "text": "A polar bear in a sauna"
+  },
+  {
+    "id": "tel193",
+    "text": "A potato sack race at a wedding"
+  }
+]
