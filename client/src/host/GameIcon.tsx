@@ -26,6 +26,7 @@ import { Icon as HerdIcon } from '../games/herd/icon';
 import { Icon as WaveIcon } from '../games/wave/icon';
 import { Icon as TelephoneIcon } from '../games/telephone/icon';
 import { Icon as SmokeIcon } from '../games/smoke/icon';
+import { Icon as CowsIcon } from '../games/cows/icon';
 import { Icon as PremiumIcon } from '../games/premium/icon';
 import { Icon as CastleIcon } from '../games/castle/icon';
 
@@ -57,6 +58,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
   if (game === 'wave') return <WaveIcon size={size} />;
   if (game === 'telephone') return <TelephoneIcon size={size} />;
   if (game === 'smoke') return <SmokeIcon size={size} />;
+  if (game === 'cows') return <CowsIcon size={size} />;
   if (game === 'premium') return <PremiumIcon size={size} />;
   if (game === 'castle') return <CastleIcon size={size} />;
   if (game === 'trails')

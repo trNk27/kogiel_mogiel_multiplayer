@@ -117,6 +117,7 @@ export type GameId =
   | 'telephone'
   | 'swap'
   | 'smoke'
+  | 'cows'
   | 'castle'
   | 'premium';
 
@@ -194,6 +195,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'wave', title: 'Fala', tagline: 'Read the clue. Find the spot.', minPlayers: 2 },
   { id: 'telephone', title: 'Głuchy Telefon', tagline: 'Draw it, guess it, draw that – watch it go wrong.', minPlayers: 3 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
+  { id: 'cows', title: 'Krówki', tagline: 'Lasso your cows. Drag them home.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
     id: 'premium',

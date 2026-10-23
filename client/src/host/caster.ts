@@ -51,6 +51,7 @@ import { ClockScene } from '../games/clock/scene';
 import { BoulesScene } from '../games/boules/scene';
 import { BellsScene } from '../games/bells/scene';
 import { HerdScene } from '../games/herd/scene';
+import { CowsScene } from '../games/cows/scene';
 import { BoulesGame } from '../games/boules/BoulesGame';
 
 type Ctor = abstract new (...args: any[]) => unknown;
@@ -84,6 +85,7 @@ const VIEWS: Ctor[] = [
   BoulesScene,
   BellsScene,
   HerdScene,
+  CowsScene,
 ];
 
 /** Methods of replicated objects that only draw: replayed on the screen's copy. */

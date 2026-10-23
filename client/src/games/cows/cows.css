@@ -1,0 +1,41 @@
+/* ---- Krówki ------------------------------------------------------------------------------- */
+/* The HUD, chips and tally come from tiles.css (Kafelki); these are the extras. */
+
+/* One dot per cow in the chip: filled as they're penned. */
+.cows-dots {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+.cows-dots i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(251, 240, 217, 0.18);
+  box-shadow: inset 0 0 0 2px rgba(251, 240, 217, 0.35);
+}
+.cows-dots i.on {
+  background: var(--pc);
+  box-shadow: inset 0 0 0 2px #241015;
+  animation: cows-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
+}
+@keyframes cows-pop {
+  from {
+    scale: 1.8;
+  }
+  to {
+    scale: 1;
+  }
+}
+.tiles-chips.n7 .cows-dots i,
+.tiles-chips.n8 .cows-dots i {
+  width: 11px;
+  height: 11px;
+}
+.cows-root .tiles-toast {
+  -webkit-text-stroke: 8px #241015;
+  paint-order: stroke fill;
+}
+.cows-star {
+  color: var(--yolk);
+}

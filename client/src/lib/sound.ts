@@ -112,6 +112,12 @@ export class Sound {
     this.tone(1800, 0.25, { type: 'square', vol: 0.06 });
     this.tone(1800, 0.6, { type: 'square', vol: 0.06, delay: 0.32 });
   }
+  /** A cow: a low, wobbly mooo. */
+  moo() {
+    this.tone(150, 0.22, { type: 'sawtooth', vol: 0.05, slide: 175 });
+    this.tone(175, 0.7, { type: 'sawtooth', vol: 0.06, delay: 0.18, slide: 105 });
+    this.tone(88, 0.8, { type: 'triangle', vol: 0.08, delay: 0.1, slide: 70 });
+  }
   whoosh() {
     this.tone(300, 0.25, { type: 'sine', vol: 0.1, slide: 900 });
   }
