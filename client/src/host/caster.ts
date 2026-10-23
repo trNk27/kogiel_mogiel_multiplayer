@@ -39,6 +39,19 @@ import { CastleScene } from '../games/castle/scene';
 import { CastleGame } from '../games/castle/CastleGame';
 import { FlagsScene } from '../games/flags/scene';
 import { RopeScene } from '../games/rope/scene';
+import { PotatoScene } from '../games/potato/scene';
+import { FloesScene } from '../games/floes/scene';
+import { ChairsScene } from '../games/chairs/scene';
+import { ChickScene } from '../games/chickens/scene';
+import { CrownScene } from '../games/crown/scene';
+import { CoinsScene } from '../games/coins/scene';
+import { MolesScene } from '../games/moles/scene';
+import { SheepScene } from '../games/sheep/scene';
+import { ClockScene } from '../games/clock/scene';
+import { BoulesScene } from '../games/boules/scene';
+import { BellsScene } from '../games/bells/scene';
+import { HerdScene } from '../games/herd/scene';
+import { BoulesGame } from '../games/boules/BoulesGame';
 
 type Ctor = abstract new (...args: any[]) => unknown;
 
@@ -59,6 +72,18 @@ const VIEWS: Ctor[] = [
   CastleScene,
   FlagsScene,
   RopeScene,
+  PotatoScene,
+  FloesScene,
+  ChairsScene,
+  ChickScene,
+  CrownScene,
+  CoinsScene,
+  MolesScene,
+  SheepScene,
+  ClockScene,
+  BoulesScene,
+  BellsScene,
+  HerdScene,
 ];
 
 /** Methods of replicated objects that only draw: replayed on the screen's copy. */
@@ -68,10 +93,11 @@ const DRAWS: [Ctor, string[]][] = [
   [GalleryGame, ['drawCrosshairs', 'muzzle', 'popText', 'flashCross']],
   [RallyGame, ['drawMap']],
   [CastleGame, ['showEvents']],
+  [BoulesGame, ['paintMeter']],
 ];
 
 /** Never replayed: the screen makes and throws away its own views, and asks them its own questions. */
-const NOT_REPLAYED = new Set(['constructor', 'dispose', 'project', 'point', 'labelAt', 'actorPos', 'toStage', 'pointOver', 'pointOverArcher', 'plungerTop', 'above']);
+const NOT_REPLAYED = new Set(['constructor', 'dispose', 'project', 'point', 'labelAt', 'actorPos', 'toStage', 'pointOver', 'pointOverArcher', 'plungerTop', 'above', 'headOnStage', 'headAt']);
 /** The sound player's internals (each effect is replayed whole). */
 const SOUND_INTERNAL = new Set(['unlock', 'tone', 'noise', 'later']);
 

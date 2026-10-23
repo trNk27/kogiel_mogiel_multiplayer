@@ -93,7 +93,7 @@ export class BoulesGame implements Game {
           return { name: p?.name ?? '?', color: colorHex(p?.color ?? 'sourcream') };
         }),
       );
-      this.scene.reset(this.sim, (i) => this.removed.has(i));
+      this.scene.reset(this.sim, [...this.removed]);
     } catch (err) {
       console.error(err);
       this.glError = true;
@@ -118,7 +118,7 @@ export class BoulesGame implements Game {
       Math.random,
       this.ids.map((_, i) => this.removed.has(i)),
     );
-    this.scene?.reset(this.sim, (i) => this.removed.has(i));
+    this.scene?.reset(this.sim, [...this.removed]);
     this.roundPts = this.ids.map(() => 0);
     this.ranked = [];
     this.pops = [];
@@ -174,6 +174,11 @@ export class BoulesGame implements Game {
 
   // ---- loop --------------------------------------------------------------------------------------
 
+  /** The power meter follows the charge every frame (replayed on second screens, see host/caster.ts). */
+  paintMeter() {
+    if (this.meterFill) this.meterFill.style.height = `${Math.round(this.sim.power * 100)}%`;
+  }
+
   private frame = (now: number) => {
     this.raf = requestAnimationFrame(this.frame);
     const elapsed = Math.min(0.25, (now - this.lastFrame) / 1000);
@@ -185,10 +190,10 @@ export class BoulesGame implements Game {
     }
     this.scene?.render(this.sim, this.camMode(), elapsed, {
       thrower: this.sim.thrower,
-      gone: (i) => this.removed.has(i),
+      gone: [...this.removed],
       measured: this.phase === 'measure' || this.phase === 'over' ? this.ranked.slice(0, 3).map((m) => m.b) : [],
     });
-    if (this.meterFill) this.meterFill.style.height = `${Math.round(this.sim.power * 100)}%`;
+    this.paintMeter();
     if (now - this.lastHud > HUD_MS) {
       this.lastHud = now;
       this.host.changed();

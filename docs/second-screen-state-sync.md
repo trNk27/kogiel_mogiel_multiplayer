@@ -74,7 +74,7 @@ their loop (Trails, Pierogi Panic). Sounds play when something happens. For thes
   host. The host records the calls it makes to its views, and the screen replays them on its own.
 - **Drawing methods** of games (`DRAWS`: `TrailsGame.draw` and `paintTrail`, `KitchenGame.draw`,
   `updateDom` and `paintStatic`, `GalleryGame.drawCrosshairs`, `muzzle`, `popText` and
-  `flashCross`, `RallyGame.drawMap`, `CastleGame.showEvents`) are recorded and replayed on the screen's copy of the game.
+  `flashCross`, `RallyGame.drawMap`, `CastleGame.showEvents`, `BoulesGame.paintMeter`) are recorded and replayed on the screen's copy of the game.
 - **Every sound the host plays** is recorded wherever it's played from, and the screen plays
   exactly those. Its own copy's sound calls are muted, so nothing plays twice. The music follows
   the screen's own copy of the TV.
