@@ -183,41 +183,49 @@ they were. If the TV reloads, it resumes the same room. During games, phones kee
 
 ### Two rooms, one party: second screens
 
-Two groups far apart can play in the same room. The host TV streams its picture and sound to a
-**second screen** (another TV, laptop or tablet), and players there join on their phones with
-the same room code, just as they would in the host's room. Up to 8 players in total, as always.
+Two groups far apart can play in the same room. A **second screen** (another TV, laptop or
+tablet) shows exactly what the host TV shows, sound included, and players there join on their
+phones with the same room code, just as they would in the host's room. Up to 8 players in total, as
+always.
 
 1. On the second screen, open `/screen` (or **Show another room's party on this screen** on the
-   landing page) and type the room code.
-2. On the host TV, press **📡** (top right; it pulses while a screen is waiting) → **Share this
-   screen**, and pick this tab with its sound. The host has to be a browser that can share a tab:
-   Chrome or Edge on a computer (Firefox and Safari can share the window). The Xbox browser can't,
-   but it can be a second screen.
-3. Players by the second screen scan the QR code they see in the stream, or go to `/join`.
+   landing page) and type the room code. That's all: the host doesn't have to do anything, and
+   any browser can be either side (the Xbox browser included).
+2. Players by the second screen scan the QR code on it, or go to `/join`.
 
-Under the hood the host TV captures its own tab (`getDisplayMedia`) and sends it to every second
-screen over WebRTC: one peer connection per screen, up to 4 screens, at most 720p, 3 Mbit/s and
-30 fps each. The Durable Object only relays the signalling (offer, answer, ICE candidates) on a third
-socket role, `screen`; the video itself goes straight from TV to TV. It's tuned for low delay rather
-than a perfect picture: H.264 is offered first (usually hardware-encoded on the host and
-hardware-decoded on the TV), the encoder drops resolution rather than frames when it can't keep up,
-and the second screen asks for no safety buffer (`jitterBufferTarget = 0`), so a stutter shows up
-as a dropped frame instead of a picture that stays behind. The video still adds some delay on top of
-the phones' own, most noticeable in the fastest games (Fork Fight, Maluch Rally).
+The host's **📡** button (top right) lists the second screens and how each is connected.
+
+**It's not a video.** The host TV sends the second screen its *state*: the room, the players and
+the running game, copied object by object (`client/src/lib/replica`). Each frame carries only
+what changed, typically a few hundred bytes. It also carries the calls the TV made to draw (its 3D
+scenes, the Trails and Pierogi Panic canvases) and the sounds it played. The second screen runs the
+very same TV interface on that copy and replays the calls on its own scenes, so it draws the TV
+itself at its own resolution and frame rate. Compared with streaming the tab, nothing has to be
+captured, encoded or decoded, it needs tens of kbit/s instead of megabits, the picture is never
+blurry, and the host's CPU barely notices (well under a millisecond per frame to work out what
+changed). Details in [`docs/second-screen-state-sync.md`](docs/second-screen-state-sync.md).
+
+Frames go through the Durable Object at first, then straight from TV to TV over a WebRTC data
+channel as soon as one connects (the Durable Object relays the signalling on a third socket role,
+`screen`). If the direct connection fails, frames keep coming through the server, so a second
+screen always works. The screen plays frames back a little behind the host, on the host's clock,
+with a buffer that adapts to the network (at most 150 ms; on a good connection a few ms), so a late
+frame still comes on time. Second screens reconnect by themselves after a reload or a network blip,
+and follow the host if it reloads. A screen that joins mid-game gets the whole state at once. The
+ids phones connect with never reach a second screen: it sees aliases.
 
 **How far behind is it?** Press **📊** on the second screen (or open `/screen?stats`) for its
-estimate: half the round trip, the jitter buffer and decoding, with the resolution, frame rate,
-codec and whether the video goes through TURN. The host's **📡** panel shows its side for each
-screen, including the time to encode a frame and whether the CPU or the network holds the picture
-back. Capturing the tab on the host adds a frame or two that neither side can measure. Second screens reconnect by themselves after a reload or a
-network blip. If the host TV reloads, it has to press **📡 → Share this screen** again (browsers only
-start a screen share from a click).
+numbers: half the round trip to the host (direct connections), the playback buffer, frames per
+second and the data rate. The host's **📡** panel shows the data rate and round trip per screen and
+how long the host takes to build a frame.
 
-**If a second screen never connects**: WebRTC needs a route between the two networks. STUN
-(always on) is enough for most home networks; behind stricter NATs (some mobile hotspots, office
-networks) add a Cloudflare TURN server (the first 1,000 GB a month are free): in the dashboard open **Realtime → TURN Server**,
-create a key, then set the Worker secrets `TURN_KEY_ID` and `TURN_KEY_API_TOKEN`
-(`npx wrangler secret put TURN_KEY_ID`, …). `/api/ice` then hands out short-lived TURN credentials.
+**If frames always go through the server**: a direct connection needs a route between the two
+networks. STUN (always on) is enough for most home networks; behind stricter NATs (some mobile
+hotspots, office networks) add a Cloudflare TURN server (the first 1,000 GB a month are free): in
+the dashboard open **Realtime → TURN Server**, create a key, then set the Worker secrets
+`TURN_KEY_ID` and `TURN_KEY_API_TOKEN` (`npx wrangler secret put TURN_KEY_ID`, …). `/api/ice` then
+hands out short-lived TURN credentials. Without it, the second screen still works, a little further
+behind.
 
 ## Architecture
 
@@ -265,9 +273,10 @@ worker/room.ts              RoomDO – the relay Durable Object
 client/index.html           TV (host) entry   → client/src/host
 client/join.html            phone entry       → client/src/phone
 client/dev.html             /dev test bench   → client/src/dev
-client/screen.html          second screen     → client/src/screen (receiver.ts: the WebRTC side)
-client/src/host/mirror.ts   the host TV's side of second screens: tab capture, one peer connection per screen
-client/src/lib/rtcStats.ts  second-screen video: low-latency tuning (H.264 first, no jitter buffer) and the live numbers
+client/screen.html          second screen     → client/src/screen (receiver.ts: frames in; replica.ts: the copy of the TV)
+client/src/host/caster.ts   second screens, host side: what changed each frame, and the draw and sound calls to replay
+client/src/host/mirror.ts   second screens, host side: who's connected, data channels, the relay fallback
+client/src/lib/replica/*    object-graph replication (codec.ts) and the shared class registry (classes.ts)
 client/src/games/*          quiz, trails, ballpark, kitchen (pure logic + TV views)
 client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigames
 client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js renderer, no-TV race client

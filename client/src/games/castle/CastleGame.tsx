@@ -131,8 +131,13 @@ export class CastleGame implements Game {
     }
   };
 
-  private handle(events: CEvent[]) {
+  /** Show what just happened in the 3D scene (second screens replay this). */
+  private showEvents(events: CEvent[]) {
     this.scene?.handle(events, this.sim, (i) => this.looks[i]?.color ?? '#fff');
+  }
+
+  private handle(events: CEvent[]) {
+    this.showEvents(events);
     for (const ev of events) {
       switch (ev.e) {
         case 'wave':

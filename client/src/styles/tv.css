@@ -113,15 +113,6 @@ body.tv {
 .mirror-btn.on {
   background: var(--dill);
 }
-.mirror-btn.nudge {
-  background: var(--yolk);
-  animation: mirror-nudge 1.2s ease-in-out infinite;
-}
-@keyframes mirror-nudge {
-  50% {
-    transform: scale(1.15);
-  }
-}
 .mirror-count {
   position: absolute;
   right: -6px;
@@ -188,15 +179,6 @@ body.tv {
   display: block;
   font-size: 22px;
   opacity: 0.8;
-}
-.mirror-screen.failed {
-  background: var(--beet);
-  color: var(--cream);
-}
-.mirror-error {
-  margin: 0 0 24px;
-  color: var(--beet-deep);
-  font-weight: 800;
 }
 .mirror-actions {
   display: flex;

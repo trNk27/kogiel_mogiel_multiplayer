@@ -1010,15 +1010,17 @@ export class GalleryScene {
     return this.stage.toStage(this.proj.set(x, y, z));
   }
 
+  /** Which model shows which target (kept here, not on the target: second screens copy targets). */
+  private modelOf = new WeakMap<Target, Model>();
+
   private placeModels(targets: readonly Target[], dt: number) {
     const t = this.time;
     const seen = new Set<Model>();
     for (const tg of targets) {
-      const key = tg as Target & { _m?: Model };
-      let m = key._m;
+      let m = this.modelOf.get(tg);
       if (!m) {
         m = this.takeModel(tg.kind);
-        key._m = m;
+        this.modelOf.set(tg, m);
         m.lastGlitter = 0;
       }
       seen.add(m);

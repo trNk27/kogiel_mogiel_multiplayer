@@ -7,8 +7,7 @@ import { sound } from '../lib/sound';
 import { music } from '../lib/music';
 import { trackForGame, type TrackId } from '../lib/tracks';
 import { HostController, type Standing } from './controller';
-import type { ScreenState } from './mirror';
-import { describe, type MirrorStats } from '../lib/rtcStats';
+import type { ScreenState, ScreenStats } from './mirror';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
@@ -51,10 +50,14 @@ import { howTo as waveHowTo } from '../games/wave/logic';
 import { howTo as telephoneHowTo } from '../games/telephone/logic';
 import { howTo as smokeHowTo } from '../games/smoke/logic';
 
-const controller = new HostController();
+/**
+ * The room this page shows: the real one on the host TV, or a second screen's copy of it (see
+ * screen/replica.ts). There's one per page, so the components below just use it.
+ */
+let controller: HostController;
+/** A second screen: no buttons that change the room, and nothing that only the host TV does. */
+let replica = false;
 const params = new URLSearchParams(location.search);
-// For automated tests: /?debug exposes the room (e.g. `host.finish({...})` ends the current game).
-if (params.has('debug')) (window as unknown as { host: HostController }).host = controller;
 
 /** Scale the fixed 1920×1080 stage to fit any screen. */
 function useStageScale() {
@@ -74,12 +77,15 @@ function useController() {
   return controller;
 }
 
-export function HostApp() {
+export function HostApp({ room, isReplica = false }: { room: HostController; isReplica?: boolean }) {
+  controller = room;
+  replica = isReplica;
   const c = useController();
   const scale = useStageScale();
   const [mirrorOpen, setMirrorOpen] = useState(false);
 
   useEffect(() => {
+    if (replica) return;
     // The /dev page asks us to host straight away; a refreshed TV resumes its room.
     const saved = HostController.savedSession();
     if (saved && !params.has('new')) void c.resume(saved);
@@ -87,7 +93,7 @@ export function HostApp() {
   }, []);
 
   useEffect(() => {
-    if (c.code && window.parent !== window) window.parent.postMessage({ type: 'couch-party-room', code: c.code }, location.origin);
+    if (!replica && c.code && window.parent !== window) window.parent.postMessage({ type: 'couch-party-room', code: c.code }, location.origin);
   }, [c.code]);
 
   const s = c.screen;
@@ -100,7 +106,7 @@ export function HostApp() {
   switch (s.s) {
     case 'landing':
     case 'creating':
-      body = <Landing busy={s.s === 'creating'} error={s.s === 'landing' ? s.error : undefined} />;
+      body = replica ? null : <Landing busy={s.s === 'creating'} error={s.s === 'landing' ? s.error : undefined} />;
       break;
     case 'lobby':
       body = <Lobby />;
@@ -136,8 +142,8 @@ export function HostApp() {
       <div class="stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
         <div class="safe">{body}</div>
         {c.code && s.s !== 'landing' && s.s !== 'creating' && <CornerInfo onMirror={() => setMirrorOpen(!mirrorOpen)} />}
-        {mirrorOpen && c.code && s.s !== 'landing' && s.s !== 'creating' && <MirrorPanel onClose={() => setMirrorOpen(false)} />}
-        {c.status === 'connecting' && c.code && <div class="reconnecting">Reconnecting to the server…</div>}
+        {mirrorOpen && !replica && c.code && s.s !== 'landing' && s.s !== 'creating' && <MirrorPanel onClose={() => setMirrorOpen(false)} />}
+        {c.status === 'connecting' && c.code && !replica && <div class="reconnecting">Reconnecting to the server…</div>}
       </div>
     </div>
   );
@@ -147,10 +153,7 @@ function CornerInfo({ onMirror }: { onMirror: () => void }) {
   const c = controller;
   const [muted, setMuted] = useState(sound.muted);
   const inLobby = c.screen.s === 'lobby';
-  const screens = c.mirror.screens();
-  const live = screens.filter((x) => x.state === 'live').length;
-  // A screen is waiting for this TV to share: nudge the host.
-  const waiting = !c.mirror.sharing && screens.length > 0;
+  const screens = replica ? [] : c.mirror.screens();
   return (
     <div class="corner">
       {!inLobby && (
@@ -158,51 +161,39 @@ function CornerInfo({ onMirror }: { onMirror: () => void }) {
           {location.host}/join · <b>{c.code}</b>
         </span>
       )}
-      {!c.noTv && (
-        <button class={`mute mirror-btn ${c.mirror.sharing ? 'on' : ''} ${waiting ? 'nudge' : ''}`} onClick={onMirror} title="Second screen">
-          📡{c.mirror.sharing && live > 0 && <span class="mirror-count">{live}</span>}
+      {!c.noTv && !replica && (
+        <button class={`mute mirror-btn ${screens.length ? 'on' : ''}`} onClick={onMirror} title="Second screens">
+          📡{screens.length > 0 && <span class="mirror-count">{screens.length}</span>}
         </button>
       )}
-      <button
-        class="mute"
-        onClick={() => {
-          sound.unlock();
-          sound.muted = !sound.muted;
-          setMuted(sound.muted);
-        }}
-        title="Toggle sound"
-      >
-        {muted ? '🔇' : '🔊'}
-      </button>
+      {!replica && (
+        <button
+          class="mute"
+          onClick={() => {
+            sound.unlock();
+            sound.muted = !sound.muted;
+            setMuted(sound.muted);
+          }}
+          title="Toggle sound"
+        >
+          {muted ? '🔇' : '🔊'}
+        </button>
+      )}
     </div>
   );
 }
 
-const LIMIT: Record<string, string> = {
-  cpu: 'held back by this computer’s CPU',
-  bandwidth: 'held back by the network',
-};
-
-/** The host's own numbers for one second screen: picture, encoding and network. */
-function screenStats(s: MirrorStats): string {
-  const parts = [describe(s)];
-  if (s.encodeMs !== null) parts.push(`encode ${s.encodeMs.toFixed(1)} ms`);
-  if (s.limit && LIMIT[s.limit]) parts.push(LIMIT[s.limit]!);
-  return parts.join(' · ');
-}
-
 const SCREEN_STATE: Record<ScreenState, string> = {
-  waiting: 'waiting for you to share',
   connecting: 'connecting…',
-  live: 'watching',
-  failed: 'can’t connect, retrying…',
+  relay: 'watching (through the server)',
+  direct: 'watching (direct)',
 };
 
-/** Share this TV with second screens elsewhere, so another group can play in the same room. */
+/** Second screens elsewhere, so another group can play in the same room. */
 function MirrorPanel({ onClose }: { onClose: () => void }) {
   const m = controller.mirror;
   const screens = m.screens();
-  const [stats, setStats] = useState<Map<string, MirrorStats>>(new Map());
+  const [stats, setStats] = useState<Map<string, ScreenStats>>(new Map());
   // Live numbers while the panel is open (only then: nothing re-renders the TV every second).
   useEffect(() => {
     let alive = true;
@@ -222,43 +213,30 @@ function MirrorPanel({ onClose }: { onClose: () => void }) {
           <li>
             On the other TV or laptop, open <b>{location.host}/screen</b> and type <b class="mirror-code">{controller.code}</b>
           </li>
-          <li>Press <b>Share this screen</b> below and pick this tab, with its sound</li>
+          <li>It shows this TV straight away, sound included</li>
           <li>Players there join on their phones with the same code</li>
         </ol>
-        {screens.length > 0 && (
+        {screens.length > 0 ? (
           <ul class="mirror-screens">
-            {screens.map((x, i) => (
-              <li class={`mirror-screen ${x.state}`} key={x.id}>
-                Screen {i + 1}: <b>{SCREEN_STATE[x.state]}</b>
-                {x.state === 'live' && stats.get(x.id) && <small class="mirror-stats">{screenStats(stats.get(x.id)!)}</small>}
-              </li>
-            ))}
+            {screens.map((x, i) => {
+              const st = stats.get(x.id);
+              return (
+                <li class={`mirror-screen ${x.state === 'connecting' ? 'connecting' : 'live'}`} key={x.id}>
+                  Screen {i + 1}: <b>{SCREEN_STATE[x.state]}</b>
+                  {st && x.state !== 'connecting' && (
+                    <small class="mirror-stats">
+                      {Math.round(st.kbps)} kbit/s{st.rttMs !== null ? ` · ${Math.round(st.rttMs)} ms round trip` : ''} · {controller.caster.buildMs.toFixed(1)} ms per frame here
+                    </small>
+                  )}
+                </li>
+              );
+            })}
           </ul>
+        ) : (
+          <p class="muted">No second screens yet.</p>
         )}
-        {!m.supported ? (
-          <p class="mirror-error">This browser can’t share its screen. Host on a laptop with Chrome, Edge or Firefox.</p>
-        ) : m.error ? (
-          <p class="mirror-error">{m.error}</p>
-        ) : null}
         <div class="mirror-actions">
-          {m.sharing ? (
-            <button class="btn btn-big btn-beet" onClick={() => m.stop()}>
-              Stop sharing
-            </button>
-          ) : (
-            <button
-              class="btn btn-big btn-yolk"
-              autofocus
-              disabled={!m.supported || m.starting}
-              onClick={async () => {
-                await m.start();
-                if (controller.mirror.sharing) onClose();
-              }}
-            >
-              {m.starting ? 'Pick this tab…' : 'Share this screen'}
-            </button>
-          )}
-          <button class="btn btn-ghost" onClick={onClose}>
+          <button class="btn btn-ghost" autofocus onClick={onClose}>
             Close
           </button>
         </div>
