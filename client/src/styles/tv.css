@@ -495,8 +495,8 @@ body.tv {
 
 .game-picker {
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 9px;
   margin-top: auto;
 }
 .game-card {
@@ -506,7 +506,7 @@ body.tv {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 8px 4px;
+  padding: 8px 2px;
   min-height: 94px;
   border-radius: var(--radius);
   background: var(--panel);
@@ -532,8 +532,12 @@ body.tv {
 .game-card-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.game-card.tour .game-card-title {
+  font-size: 12.5px;
 }
 .game-card.tour {
   background: color-mix(in srgb, var(--yolk) 18%, var(--panel));
