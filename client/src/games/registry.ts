@@ -37,6 +37,7 @@ import { HerdGame } from './herd/HerdGame';
 import { WaveGame } from './wave/WaveGame';
 import { TelephoneGame } from './telephone/TelephoneGame';
 import { SmokeGame } from './smoke/SmokeGame';
+import { CowsGame } from './cows/CowsGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
 
@@ -116,6 +117,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new TelephoneGame(host, ids);
     case 'smoke':
       return new SmokeGame(host, ids);
+    case 'cows':
+      return new CowsGame(host, ids);
     case 'castle':
       return new CastleGame(host, ids);
     case 'premium':

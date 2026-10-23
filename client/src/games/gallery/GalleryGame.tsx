@@ -46,6 +46,11 @@ interface Cross {
 }
 
 export class GalleryGame implements Game {
+  /** Second screens make their own crosshair elements when their view attaches. */
+  static readonly replicaSkip = ['crosses'];
+  static replicaInit(g: GalleryGame) {
+    (g as unknown as { crosses: unknown[] }).crosses = [];
+  }
   readonly id = 'gallery' as const;
   readonly rounds: number;
   round = 0;
@@ -256,7 +261,7 @@ export class GalleryGame implements Game {
         } else if (r === 'dry') {
           this.pending[i] = 0;
           sound.tick();
-          this.restart(this.crosses[i]?.ring, 'dry');
+          this.flashCross(i, 'dry');
           this.host.refresh(this.ids[i]);
         } else if (r === 'reloading') this.pending[i] = 0;
       }
@@ -276,7 +281,7 @@ export class GalleryGame implements Game {
     this.sim.applyHits(hits);
     for (const s of shots) {
       this.muzzle(s.x, s.y, this.ids[s.player]);
-      this.restart(this.crosses[s.player]?.ring, 'fire');
+      this.flashCross(s.player, 'fire');
     }
     sound.plop();
     let sfx: Kind | null = null;
@@ -331,6 +336,11 @@ export class GalleryGame implements Game {
       }
       c.el.classList.toggle('dim', this.phase === 'over');
     }
+  }
+
+  /** Play a crosshair's "fire" or "dry" animation. */
+  private flashCross(i: number, cls: string) {
+    this.restart(this.crosses[i]?.ring, cls);
   }
 
   /** Restart a CSS animation class on an element. */

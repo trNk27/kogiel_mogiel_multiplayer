@@ -56,9 +56,10 @@ the notch) are added around controls, never taken out of them.
 | **Bule** | Boules (*bule*) on the village green, old men watching from the benches. Aim with the stick, hold **Throw** to charge and let go: the ball arcs, lands and rolls, knocking other balls and the little golden pierożek (the jack) about. After everyone’s two balls, the three closest to the jack score 3/2/1. Three ends; on your own you score by distance. | 1–8 |
 | **Dzwonki** | Simon says with bells (*dzwonki*) in a Highlander belfry at dusk. Listen to the tune, then everyone rings it back at once on four coloured keys on their phone. A wrong bell or too slow and you’re out; the tune grows a note every turn and speeds up. Last one ringing wins; on your own you play for the longest tune. The bells are the only music. | 1–8 |
 | **Maluch Rallye Premium** | Maluch Rally's big brother, a game of its own (the gold button at the top of the VIP's game list). It opens on a title screen where the camera flies over the tracks while four demo cars race and throw items. The VIP picks **Grand Prix** (Pierogi, Kompot, Barszcz or Babcia Cup: three named tracks in a row, 15/12/10/8 cup points per race) or **Tracks** (one race on any of the 12 named tracks, which are the same every time). Then everyone picks one of four cars, Mario Kart–style, each with its own **speed, acceleration, handling and off-road** stats, and says they're ready. The races play like Maluch Rally (same thumb pad, drifts and items). Never part of a tournament. | 1–4 (TV) |
+| **Krówki** | “Little cows” (also a classic Polish fudge). A meadow on a farm, in the arena games' low-poly 3D look, with a pen in every player's colour along its edges and a herd in the middle: six cows for each player, with patches and a bell in their owner's colour, all mixed up. Walk up to one of yours, **face it and tap LASSO** (a ring under the cow shows which one you'd catch), then drag it home on a rope that stretches a little: the cow digs in, so you walk slower. Lead it through your own gate and it's penned (other pens' gates stay shut to it); tap again (**Let go**) to drop it. **Nobody can walk through someone else's rope**, and neither can loose cows, so a rope is a moving fence for blocking rivals. The first to pen all six ends the round and gets +3; otherwise it's the cows penned when the 90 s run out. Two rounds. | 1–8 |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
-The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi, Gorący Ziemniak, Kra, Krzesła, Kurnik, Korona, Grosze, Krety, Owieczki, Minutnik and Bule – are inspired by Mario Party and LEGO Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Dzwonki has the same 3D look but four bell keys on the phone. Riposta, Szpieg, Zgodni, Fala and Głuchy Telefon are Jackbox-style: you type, slide, draw and vote on one shared phone screen (`client/src/phone/ask.tsx`), and the TV runs the show. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
+The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi, Gorący Ziemniak, Kra, Krzesła, Kurnik, Korona, Grosze, Krety, Owieczki, Minutnik, Bule and Krówki – are inspired by Mario Party and LEGO Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Dzwonki has the same 3D look but four bell keys on the phone. Riposta, Szpieg, Zgodni, Fala and Głuchy Telefon are Jackbox-style: you type, slide, draw and vote on one shared phone screen (`client/src/phone/ask.tsx`), and the TV runs the show. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
@@ -128,6 +129,7 @@ is played in its **short version** unless the VIP switched that off:
 | Zgodni | 10 questions | 6 questions |
 | Fala | everyone the Psychic once or twice (4–8 rounds) | up to 4 rounds |
 | Głuchy Telefon | chains of up to 6 steps | up to 4 steps |
+| Krówki | 2 rounds of 90 s | 1 round of 75 s |
 
 After every game the TV shows that game's podium and the tournament table: **10/7/5/3/2/1 tournament
 points** for 1st to 6th place (ties share a place). Then the standings screen animates the tournament
@@ -183,41 +185,49 @@ they were. If the TV reloads, it resumes the same room. During games, phones kee
 
 ### Two rooms, one party: second screens
 
-Two groups far apart can play in the same room. The host TV streams its picture and sound to a
-**second screen** (another TV, laptop or tablet), and players there join on their phones with
-the same room code, just as they would in the host's room. Up to 8 players in total, as always.
+Two groups far apart can play in the same room. A **second screen** (another TV, laptop or
+tablet) shows exactly what the host TV shows, sound included, and players there join on their
+phones with the same room code, just as they would in the host's room. Up to 8 players in total, as
+always.
 
 1. On the second screen, open `/screen` (or **Show another room's party on this screen** on the
-   landing page) and type the room code.
-2. On the host TV, press **📡** (top right; it pulses while a screen is waiting) → **Share this
-   screen**, and pick this tab with its sound. The host has to be a browser that can share a tab:
-   Chrome or Edge on a computer (Firefox and Safari can share the window). The Xbox browser can't,
-   but it can be a second screen.
-3. Players by the second screen scan the QR code they see in the stream, or go to `/join`.
+   landing page) and type the room code. That's all: the host doesn't have to do anything, and
+   any browser can be either side (the Xbox browser included).
+2. Players by the second screen scan the QR code on it, or go to `/join`.
 
-Under the hood the host TV captures its own tab (`getDisplayMedia`) and sends it to every second
-screen over WebRTC: one peer connection per screen, up to 4 screens, at most 720p, 3 Mbit/s and
-30 fps each. The Durable Object only relays the signalling (offer, answer, ICE candidates) on a third
-socket role, `screen`; the video itself goes straight from TV to TV. It's tuned for low delay rather
-than a perfect picture: H.264 is offered first (usually hardware-encoded on the host and
-hardware-decoded on the TV), the encoder drops resolution rather than frames when it can't keep up,
-and the second screen asks for no safety buffer (`jitterBufferTarget = 0`), so a stutter shows up
-as a dropped frame instead of a picture that stays behind. The video still adds some delay on top of
-the phones' own, most noticeable in the fastest games (Fork Fight, Maluch Rally).
+The host's **📡** button (top right) lists the second screens and how each is connected.
+
+**It's not a video.** The host TV sends the second screen its *state*: the room, the players and
+the running game, copied object by object (`client/src/lib/replica`). Each frame carries only
+what changed, typically a few hundred bytes. It also carries the calls the TV made to draw (its 3D
+scenes, the Trails and Pierogi Panic canvases) and the sounds it played. The second screen runs the
+very same TV interface on that copy and replays the calls on its own scenes, so it draws the TV
+itself at its own resolution and frame rate. Compared with streaming the tab, nothing has to be
+captured, encoded or decoded, it needs tens of kbit/s instead of megabits, the picture is never
+blurry, and the host's CPU barely notices (well under a millisecond per frame to work out what
+changed). Details in [`docs/second-screen-state-sync.md`](docs/second-screen-state-sync.md).
+
+Frames go through the Durable Object at first, then straight from TV to TV over a WebRTC data
+channel as soon as one connects (the Durable Object relays the signalling on a third socket role,
+`screen`). If the direct connection fails, frames keep coming through the server, so a second
+screen always works. The screen plays frames back a little behind the host, on the host's clock,
+with a buffer that adapts to the network (at most 150 ms; on a good connection a few ms), so a late
+frame still comes on time. Second screens reconnect by themselves after a reload or a network blip,
+and follow the host if it reloads. A screen that joins mid-game gets the whole state at once. The
+ids phones connect with never reach a second screen: it sees aliases.
 
 **How far behind is it?** Press **📊** on the second screen (or open `/screen?stats`) for its
-estimate: half the round trip, the jitter buffer and decoding, with the resolution, frame rate,
-codec and whether the video goes through TURN. The host's **📡** panel shows its side for each
-screen, including the time to encode a frame and whether the CPU or the network holds the picture
-back. Capturing the tab on the host adds a frame or two that neither side can measure. Second screens reconnect by themselves after a reload or a
-network blip. If the host TV reloads, it has to press **📡 → Share this screen** again (browsers only
-start a screen share from a click).
+numbers: half the round trip to the host (direct connections), the playback buffer, frames per
+second and the data rate. The host's **📡** panel shows the data rate and round trip per screen and
+how long the host takes to build a frame.
 
-**If a second screen never connects**: WebRTC needs a route between the two networks. STUN
-(always on) is enough for most home networks; behind stricter NATs (some mobile hotspots, office
-networks) add a Cloudflare TURN server (the first 1,000 GB a month are free): in the dashboard open **Realtime → TURN Server**,
-create a key, then set the Worker secrets `TURN_KEY_ID` and `TURN_KEY_API_TOKEN`
-(`npx wrangler secret put TURN_KEY_ID`, …). `/api/ice` then hands out short-lived TURN credentials.
+**If frames always go through the server**: a direct connection needs a route between the two
+networks. STUN (always on) is enough for most home networks; behind stricter NATs (some mobile
+hotspots, office networks) add a Cloudflare TURN server (the first 1,000 GB a month are free): in
+the dashboard open **Realtime → TURN Server**, create a key, then set the Worker secrets
+`TURN_KEY_ID` and `TURN_KEY_API_TOKEN` (`npx wrangler secret put TURN_KEY_ID`, …). `/api/ice` then
+hands out short-lived TURN credentials. Without it, the second screen still works, a little further
+behind.
 
 ## Architecture
 
@@ -265,9 +275,10 @@ worker/room.ts              RoomDO – the relay Durable Object
 client/index.html           TV (host) entry   → client/src/host
 client/join.html            phone entry       → client/src/phone
 client/dev.html             /dev test bench   → client/src/dev
-client/screen.html          second screen     → client/src/screen (receiver.ts: the WebRTC side)
-client/src/host/mirror.ts   the host TV's side of second screens: tab capture, one peer connection per screen
-client/src/lib/rtcStats.ts  second-screen video: low-latency tuning (H.264 first, no jitter buffer) and the live numbers
+client/screen.html          second screen     → client/src/screen (receiver.ts: frames in; replica.ts: the copy of the TV)
+client/src/host/caster.ts   second screens, host side: what changed each frame, and the draw and sound calls to replay
+client/src/host/mirror.ts   second screens, host side: who's connected, data channels, the relay fallback
+client/src/lib/replica/*    object-graph replication (codec.ts) and the shared class registry (classes.ts)
 client/src/games/*          quiz, trails, ballpark, kitchen (pure logic + TV views)
 client/src/phone/kitchen.tsx  Pierogi Panic joystick, action button and minigames
 client/src/games/rally/*    Maluch Rally: track generator, car physics, three.js renderer, no-TV race client
@@ -296,6 +307,7 @@ client/src/games/quip|spy|herd|wave|telephone/*  Riposta, Szpieg, Zgodni (with a
 client/src/phone/ask.tsx    the word games' (and Dzwonki's) phone screen: type, pick, slide, keys or draw (AskView)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
+client/src/games/cows/*      Krówki: pens, the herd, the lasso and ropes that fence (logic.ts), the 3D farm, cows and ropes (scene.ts), TV view (CowsGame.tsx)
 client/src/games/castle/*    Malbork Castle: waves, monsters, arrows and the volley skill (logic.ts), the 3D field, wall and monsters (scene.ts), TV view (CastleGame.tsx)
 client/src/phone/castle.tsx  Malbork Castle on the phone: the bow (pull back, aim, let go) and the Volley button
 client/src/host/tournament.ts    picking the tournament's games and its points table, party mode's choices and draw

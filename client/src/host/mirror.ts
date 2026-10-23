@@ -1,117 +1,101 @@
-import type { MirrorSignal } from '../../../shared/protocol';
-import { canShareScreen, iceJson, iceServers, serial } from '../lib/rtc';
-import { preferH264, snapshot, summarize, type MirrorStats, type StatsEntry } from '../lib/rtcStats';
+import type { HostToScreen, MirrorSignal, TvFrame } from '../../../shared/protocol';
+import { iceJson, iceServers, roundTrip, serial } from '../lib/rtc';
 
-/** How a second screen is doing, as the host TV shows it. */
-export type ScreenState = 'waiting' | 'connecting' | 'live' | 'failed';
+/**
+ * How a second screen is connected, as the host TV shows it: still saying hello, getting frames
+ * through the server, or straight from this TV over a data channel.
+ */
+export type ScreenState = 'connecting' | 'relay' | 'direct';
 
 interface Peer {
   id: string;
   pc: RTCPeerConnection | null;
-  state: ScreenState;
+  dc: RTCDataChannel | null;
+  /** The screen has had a full frame and takes the stream of changes from here. */
+  synced: boolean;
   /** Failed connections in a row (the retry waits longer each time). */
   fails: number;
   /** Bumped whenever the connection is replaced or dropped, so a step still setting one up gives up. */
   gen: number;
   retry: number | undefined;
   run: ReturnType<typeof serial>;
-  /** The last stats sample, so the next one can work out rates. */
-  lastStats: StatsEntry[] | null;
+  /** Bytes sent since `since`, for the panel. */
+  bytes: number;
+  since: number;
+}
+
+/** Frames bigger than this go in parts: the relay takes messages up to 96 KB, escaped JSON included. */
+const PART = 40_000;
+/** A data channel this far behind is dropped back to a full frame once it drains. */
+const BACKLOG = 4 * 1024 * 1024;
+
+/** One second screen's numbers for the 📡 panel. */
+export interface ScreenStats {
+  kbps: number;
+  rttMs: number | null;
 }
 
 /**
- * 720p rather than 1080p: half the pixels to capture and encode, so frames leave sooner and the
- * host's own game keeps its frame rate. Still sharp on a TV for these games.
- */
-const MAX_WIDTH = 1280;
-const MAX_HEIGHT = 720;
-/** Video bitrate per second screen: plenty for 720p30 of a game, fine on home broadband. */
-const MAX_BITRATE = 3_000_000;
-const MAX_FPS = 30;
-
-/**
- * The host TV's side of second screens. When the host shares its tab, the picture and sound are
- * streamed to every second screen in the room over WebRTC (one peer connection each, host offers).
- * The Durable Object only relays the signalling, via `send`.
+ * The host TV's side of second screens: who's connected, and how frames get to them. Each
+ * screen gets frames through the Durable Object at first, and over a WebRTC data channel straight
+ * from this TV as soon as one opens (lower delay, and nothing goes through the server). If the
+ * channel fails, frames go back to the relay.
  */
 export class MirrorHost {
-  readonly supported = canShareScreen();
-  stream: MediaStream | null = null;
-  /** Why sharing didn't start, for the panel. */
-  error: string | null = null;
-  starting = false;
   private peers = new Map<string, Peer>();
 
   constructor(
-    private send: (id: string, m: MirrorSignal) => void,
+    private send: (id: string, m: HostToScreen) => void,
     private changed: () => void,
+    /** A screen needs everything: send it a full frame now (through `deliver`). */
+    private onReady: (id: string) => void,
   ) {}
 
-  get sharing() {
-    return this.stream !== null;
+  get count() {
+    return this.peers.size;
   }
 
-  /** Second screens in the room and how each is doing. */
   screens(): { id: string; state: ScreenState }[] {
-    return [...this.peers.values()].map((p) => ({ id: p.id, state: p.state }));
+    return [...this.peers.values()].map((p) => ({ id: p.id, state: !p.synced ? 'connecting' : p.dc?.readyState === 'open' ? 'direct' : 'relay' }));
   }
 
-  /** Live numbers for every connected screen (rates cover the time since the last call). */
-  async stats(): Promise<Map<string, MirrorStats>> {
-    const out = new Map<string, MirrorStats>();
+  async stats(): Promise<Map<string, ScreenStats>> {
+    const out = new Map<string, ScreenStats>();
+    const now = performance.now();
     await Promise.all(
       [...this.peers.values()].map(async (p) => {
-        const pc = p.pc;
-        if (!pc || p.state !== 'live') return;
-        const cur = await snapshot(pc).catch(() => null);
-        if (!cur || p.pc !== pc) return;
-        out.set(p.id, summarize(cur, p.lastStats, 'send'));
-        p.lastStats = cur;
+        const secs = Math.max(0.001, (now - p.since) / 1000);
+        const kbps = (p.bytes * 8) / 1000 / secs;
+        p.bytes = 0;
+        p.since = now;
+        const rttMs = p.pc && p.dc?.readyState === 'open' ? await roundTrip(p.pc) : null;
+        out.set(p.id, { kbps, rttMs });
       }),
     );
     return out;
   }
 
-  /** Ask the browser to share this tab. Must run from a click. */
-  async start() {
-    if (this.stream || this.starting || !this.supported) return;
-    this.starting = true;
-    this.error = null;
-    this.changed();
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { frameRate: { ideal: MAX_FPS, max: MAX_FPS }, width: { max: MAX_WIDTH }, height: { max: MAX_HEIGHT } },
-        audio: true,
-        // Chrome / Edge: offer this tab first, and don't let the share wander to another one.
-        preferCurrentTab: true,
-        selfBrowserSurface: 'include',
-        surfaceSwitching: 'exclude',
-        systemAudio: 'exclude',
-      } as DisplayMediaStreamOptions);
-      const [video] = stream.getVideoTracks();
-      if (video) video.contentHint = 'motion';
-      // The browser's own "Stop sharing" button.
-      video?.addEventListener('ended', () => this.stop());
-      this.stream = stream;
-      for (const p of this.peers.values()) this.offer(p);
-    } catch (err) {
-      const name = (err as Error).name;
-      this.error = name === 'NotAllowedError' ? 'Sharing was cancelled.' : `This browser couldn't share the screen (${name || 'error'}).`;
+  /** Send a frame to every screen that's in step. */
+  broadcast(f: TvFrame) {
+    let json: string | null = null;
+    for (const p of this.peers.values()) {
+      if (!p.synced) continue;
+      json ??= JSON.stringify(f);
+      this.deliver(p, f, json);
     }
-    this.starting = false;
+  }
+
+  /** Send a full frame to one screen: from now on it's in step. */
+  sendFull(id: string, f: TvFrame) {
+    const p = this.peers.get(id);
+    if (!p) return;
+    p.synced = true;
+    this.deliver(p, f, JSON.stringify(f));
     this.changed();
   }
 
   stop() {
-    if (!this.stream) return;
-    for (const t of this.stream.getTracks()) t.stop();
-    this.stream = null;
-    for (const p of this.peers.values()) {
-      this.closePeer(p);
-      p.state = 'waiting';
-      this.send(p.id, { t: 'idle' });
-    }
-    this.changed();
+    for (const p of [...this.peers.values()]) this.gone(p.id);
   }
 
   // ---- from the relay ---------------------------------------------------------
@@ -120,23 +104,13 @@ export class MirrorHost {
   sync(ids: string[]) {
     const present = new Set(ids);
     for (const p of [...this.peers.values()]) if (!present.has(p.id)) this.gone(p.id);
-    for (const id of ids) {
-      if (!this.peers.has(id)) this.connected(id);
-      const p = this.peers.get(id)!;
-      // These screens won't say hello again (their sockets stayed open), so reach out to them.
-      if (!this.stream) this.send(id, { t: 'idle' });
-      else if (!p.pc || p.state === 'failed') this.offer(p);
-    }
+    // These screens won't say hello again (their sockets stayed open), so start them over.
+    for (const id of ids) this.hello(id);
   }
 
   connected(id: string) {
-    let p = this.peers.get(id);
-    if (!p) {
-      p = { id, pc: null, state: 'waiting', fails: 0, gen: 0, retry: undefined, run: serial(), lastStats: null };
-      this.peers.set(id, p);
-      this.changed();
-    }
-    // The screen says hello when its socket opens; that's when it gets an offer.
+    this.peer(id);
+    // The screen says hello when its socket opens; that's when it gets its first frame.
   }
 
   gone(id: string) {
@@ -148,13 +122,10 @@ export class MirrorHost {
   }
 
   signal(id: string, m: MirrorSignal) {
-    if (!this.peers.has(id)) this.connected(id);
-    const p = this.peers.get(id)!;
+    const p = this.peer(id);
     switch (m.t) {
       case 'hello':
-        if (!this.stream) this.send(id, { t: 'idle' });
-        // A screen whose socket blipped keeps its video; a fresh or broken one gets a new offer.
-        else if (!m.live || !p.pc || p.state === 'failed') this.offer(p);
+        this.hello(id);
         break;
       case 'answer': {
         const pc = p.pc;
@@ -175,69 +146,109 @@ export class MirrorHost {
     }
   }
 
-  // ---- peer connections -------------------------------------------------------
+  // ---- delivery ---------------------------------------------------------------
+
+  private peer(id: string): Peer {
+    let p = this.peers.get(id);
+    if (!p) {
+      p = { id, pc: null, dc: null, synced: false, fails: 0, gen: 0, retry: undefined, run: serial(), bytes: 0, since: performance.now() };
+      this.peers.set(id, p);
+      this.changed();
+    }
+    return p;
+  }
+
+  /** A screen (re)started: everything again through the relay, and a fresh direct connection. */
+  private hello(id: string) {
+    const p = this.peer(id);
+    if (p.dc?.readyState !== 'open') this.closePeer(p);
+    p.synced = false;
+    this.onReady(id);
+    if (!p.pc) this.offer(p);
+  }
+
+  private deliver(p: Peer, f: TvFrame, json: string) {
+    p.bytes += json.length;
+    const dc = p.dc?.readyState === 'open' ? p.dc : null;
+    if (dc && dc.bufferedAmount > BACKLOG) {
+      // The screen can't keep up: let the channel drain, then start it over.
+      p.synced = false;
+      dc.onbufferedamountlow = () => {
+        dc.onbufferedamountlow = null;
+        if (p.dc === dc && !p.synced) this.onReady(p.id);
+      };
+      dc.bufferedAmountLowThreshold = BACKLOG / 4;
+      return;
+    }
+    const send = dc ? (m: HostToScreen, s?: string) => dc.send(s ?? JSON.stringify(m)) : (m: HostToScreen) => this.send(p.id, m);
+    try {
+      if (json.length <= PART) send(f, json);
+      else {
+        const of = Math.ceil(json.length / PART);
+        for (let i = 0; i < of; i++) send({ t: 'part', n: f.n, i, of, s: json.slice(i * PART, (i + 1) * PART) });
+      }
+    } catch (err) {
+      // A channel closing under us: the relay takes over.
+      console.warn('[screens]', err);
+      if (dc) this.dropChannel(p);
+    }
+  }
+
+  // ---- direct connections -----------------------------------------------------
 
   private offer(p: Peer) {
-    const stream = this.stream;
-    if (!stream) return;
+    if (typeof RTCPeerConnection === 'undefined') return;
     this.closePeer(p);
-    p.state = 'connecting';
-    this.changed();
     const gen = p.gen;
     p.run(async () => {
       const servers = await iceServers();
-      if (gen !== p.gen || this.stream !== stream) return;
+      if (gen !== p.gen || this.peers.get(p.id) !== p) return;
       const pc = new RTCPeerConnection({ iceServers: servers });
       p.pc = pc;
-      for (const track of stream.getTracks()) pc.addTrack(track, stream);
-      preferH264(pc);
+      const dc = pc.createDataChannel('tv', { ordered: true });
+      p.dc = dc;
+      dc.onopen = () => {
+        if (p.dc !== dc) return;
+        p.fails = 0;
+        // Start the screen over on the channel: frames still on their way through the relay are older and get ignored.
+        this.onReady(p.id);
+      };
+      dc.onclose = () => {
+        if (p.dc === dc) this.dropChannel(p);
+      };
       pc.onicecandidate = (e) => {
         if (e.candidate && p.pc === pc) this.send(p.id, { t: 'ice', c: iceJson(e.candidate) });
       };
       pc.onconnectionstatechange = () => {
-        if (p.pc !== pc) return;
-        const s = pc.connectionState;
-        if (s === 'connected') {
-          p.state = 'live';
-          p.fails = 0;
-        } else if (s === 'failed') {
-          p.state = 'failed';
-          this.retryLater(p);
-        }
-        this.changed();
+        if (p.pc === pc && pc.connectionState === 'failed') this.dropChannel(p);
       };
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      for (const sender of pc.getSenders()) {
-        if (sender.track?.kind !== 'video') continue;
-        const params = sender.getParameters();
-        if (!params.encodings?.length) continue;
-        params.encodings[0].maxBitrate = MAX_BITRATE;
-        params.encodings[0].maxFramerate = MAX_FPS;
-        // When the CPU or network can't keep up, drop resolution rather than frames: a skipped
-        // frame is felt as lag in a fast game, a softer picture much less.
-        const withPref = { ...params, degradationPreference: 'maintain-framerate' } as RTCRtpSendParameters;
-        await sender.setParameters(withPref).catch(() => sender.setParameters(params).catch(() => {}));
-      }
       this.send(p.id, { t: 'offer', sdp: pc.localDescription!.sdp });
     });
   }
 
-  /** A connection failed (a network change, or a NAT that needs TURN): try again in a while. */
-  private retryLater(p: Peer) {
-    clearTimeout(p.retry);
-    const delay = Math.min(20_000, 2000 * 2 ** p.fails);
+  /** The direct connection broke: back to the relay, and try again in a while. */
+  private dropChannel(p: Peer) {
+    const wasOpen = p.dc?.readyState === 'open' || p.synced;
+    this.closePeer(p);
+    if (wasOpen && this.peers.get(p.id) === p) this.onReady(p.id);
+    const delay = Math.min(30_000, 2000 * 2 ** p.fails);
     p.fails++;
     p.retry = window.setTimeout(() => {
-      if (this.peers.get(p.id) === p && this.stream && p.state === 'failed') this.offer(p);
+      if (this.peers.get(p.id) === p && !p.pc) this.offer(p);
     }, delay);
+    this.changed();
   }
 
   private closePeer(p: Peer) {
     p.gen++;
-    p.lastStats = null;
     clearTimeout(p.retry);
     p.retry = undefined;
+    if (p.dc) {
+      p.dc.onopen = p.dc.onclose = p.dc.onbufferedamountlow = null;
+      p.dc = null;
+    }
     if (p.pc) {
       p.pc.onicecandidate = p.pc.onconnectionstatechange = null;
       p.pc.close();

@@ -6,6 +6,7 @@ import { generateTrack, type Track } from './track';
 import { RENDER_SCALE, RallyScene, splitLayout, type Slot } from './render3d';
 import { ItemIcon, hitLabel } from './items';
 import { Minimap } from './minimap';
+import { pickStyle } from '../arena/styles';
 import { ALL_SHAPES, cupShapes, type Shape } from './track';
 import { shuffle } from '../quiz/logic';
 import { Pierogi } from '../../lib/art';
@@ -82,6 +83,8 @@ export class RallyGame implements Game {
   /** Host clock (Date.now) when the lights go green, and when the first car finished. */
   private goAt = 0;
   private firstFinishAt: number | null = null;
+  /** The visual style (arena/styles.ts) the race is drawn in. */
+  private readonly look: string;
 
   constructor(
     private host: GameHost,
@@ -97,6 +100,9 @@ export class RallyGame implements Game {
     this.shapes = cfg ? cfg.courses.map((c) => c.shape) : cupShapes(host.options.track, this.races, shuffle);
     this.flash = ids.map(() => ({ text: '', until: 0 }));
     this.net = host.noTv;
+    // Premium always races in the original look; the rally rolls one per game (here, not in the
+    // scene, so second screens show the same one).
+    this.look = cfg ? 'psx' : pickStyle().id;
   }
 
   start() {
@@ -133,8 +139,7 @@ export class RallyGame implements Game {
           return { name: p?.name ?? '?', color: colorHex(p?.color ?? 'sourcream'), kart: this.cfg?.karts[this.ids.indexOf(id)] };
         }),
         undefined,
-        // Premium always races in the original look.
-        this.cfg ? ['psx'] : undefined,
+        [this.look],
       );
       this.scene.setTrack(this.track);
       this.scene.resetCameras(this.sim.cars);

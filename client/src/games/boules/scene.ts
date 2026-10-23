@@ -434,14 +434,14 @@ export class BoulesScene {
 
   // ---- end set-up -------------------------------------------------------------------------------------
   /** A new end: no balls, and the jack is tossed out to its spot. */
-  reset(sim: BoulesSim, gone: (i: number) => boolean) {
+  reset(sim: BoulesSim, gone: readonly number[]) {
     this.ballGroup.clear();
     this.balls = [];
     this.toss = 0;
     this.tapes.forEach((t) => (t.visible = false));
     this.refPos.set(-HALF_W - 1, 0, sim.jack.z + 1.5);
     this.actors.forEach((a, i) => {
-      a.model.root.visible = !gone(i);
+      a.model.root.visible = !gone.includes(i);
       a.swing = a.cheer = -1;
     });
   }
@@ -519,7 +519,7 @@ export class BoulesScene {
   }
 
   // ---- drawing ----------------------------------------------------------------------------------------
-  render(sim: BoulesSim, mode: CamMode, dt: number, opts: { thrower: number; gone: (i: number) => boolean; measured: number[] }) {
+  render(sim: BoulesSim, mode: CamMode, dt: number, opts: { thrower: number; gone: readonly number[]; measured: number[] }) {
     this.time += dt;
     const t = this.time;
     const jack = sim.jack;
@@ -639,7 +639,7 @@ export class BoulesScene {
     // Players: the thrower at the circle, the rest waiting by the side.
     let w = 0;
     this.actors.forEach((a, i) => {
-      if (opts.gone(i)) {
+      if (opts.gone.includes(i)) {
         a.model.root.visible = false;
         return;
       }

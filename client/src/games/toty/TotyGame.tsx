@@ -54,7 +54,11 @@ interface DoodleRound {
 }
 
 export class TotyGame implements Game {
+  /** Bookkeeping that second screens don't need (and whose keys hold player ids). */
+  static readonly replicaSkip = ['served'];
   readonly id = 'toty' as const;
+  /** The session's selfies, held here too so second screens get them with the game. */
+  private readonly photos = PHOTOS;
   private readonly layout: TyLayout;
   private plan: TotyQuestion[];
   private index = -1;
@@ -115,14 +119,14 @@ export class TotyGame implements Game {
   }
 
   private photo(id: string) {
-    return PHOTOS.get(id)?.data ?? null;
+    return this.photos.get(id)?.data ?? null;
   }
 
   /** Player id → photo version, for everybody in the game with a photo. */
   private photoRevs(): Record<string, number> {
     const out: Record<string, number> = {};
     for (const id of this.ids) {
-      const p = PHOTOS.get(id);
+      const p = this.photos.get(id);
       if (p) out[id] = p.rev;
     }
     return out;

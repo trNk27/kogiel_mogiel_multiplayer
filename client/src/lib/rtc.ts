@@ -25,11 +25,20 @@ export function iceJson(c: RTCIceCandidate): IceJson {
 export function serial() {
   let chain: Promise<unknown> = Promise.resolve();
   return (step: () => Promise<unknown>) => {
-    chain = chain.then(step).catch((err) => console.warn('[mirror]', err));
+    chain = chain.then(step).catch((err) => console.warn('[screens]', err));
   };
 }
 
-/** Can this browser share its own screen (the host side of a second screen)? */
-export function canShareScreen(): boolean {
-  return typeof RTCPeerConnection !== 'undefined' && !!navigator.mediaDevices?.getDisplayMedia;
+/** The round trip between the two ends of a connection, in ms (null until the browser knows). */
+export async function roundTrip(pc: RTCPeerConnection): Promise<number | null> {
+  try {
+    const report = await pc.getStats();
+    let rtt: number | null = null;
+    report.forEach((s: { type: string; nominated?: boolean; state?: string; currentRoundTripTime?: number }) => {
+      if (s.type === 'candidate-pair' && s.nominated && s.state === 'succeeded' && typeof s.currentRoundTripTime === 'number') rtt = s.currentRoundTripTime * 1000;
+    });
+    return rtt;
+  } catch {
+    return null;
+  }
 }

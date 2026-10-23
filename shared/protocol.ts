@@ -117,6 +117,7 @@ export type GameId =
   | 'telephone'
   | 'swap'
   | 'smoke'
+  | 'cows'
   | 'castle'
   | 'premium';
 
@@ -194,6 +195,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'wave', title: 'Fala', tagline: 'Read the clue. Find the spot.', minPlayers: 2 },
   { id: 'telephone', title: 'Głuchy Telefon', tagline: 'Draw it, guess it, draw that – watch it go wrong.', minPlayers: 3 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
+  { id: 'cows', title: 'Krówki', tagline: 'Lasso your cows. Drag them home.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
     id: 'premium',
@@ -1045,8 +1047,8 @@ export type HostToServer =
   | { t: 'all'; m: HostToPhone }
   /** Close a player's connection (after kicking them). */
   | { t: 'drop'; id: string }
-  /** WebRTC signalling for one second screen. */
-  | { t: 'screen'; id: string; m: MirrorSignal };
+  /** A frame or WebRTC signalling for one second screen. */
+  | { t: 'screen'; id: string; m: HostToScreen };
 
 export type ServerToHost =
   /** Sent right after the host (re)connects: ids of phones (and second screens) currently connected. */
@@ -1060,14 +1062,17 @@ export type ServerToHost =
   | { t: 'smsg'; id: string; m: MirrorSignal };
 
 // ---------------------------------------------------------------------------
-// Second screens: a TV somewhere else that mirrors the host TV
+// Second screens: a TV somewhere else that shows what the host TV shows
 // ---------------------------------------------------------------------------
 //
-// The host TV shares its own tab (getDisplayMedia) and streams it over WebRTC to every
-// second screen in the room; the Durable Object only relays the signalling. Players by the
-// second screen join with their phones as usual, so two groups far apart play in one room.
+// The host TV sends every second screen its state as data: the controller and the running game,
+// copied object by object (client/src/lib/replica), plus the calls it makes to draw and to play
+// sounds. The screen draws the TV itself from that. Frames go over a WebRTC data channel when
+// one connects (the Durable Object relays the signalling), and through the Durable Object until
+// then. Players by the second screen join with their phones as usual, so two groups far apart
+// play in one room.
 
-/** Second screens a room takes at once (the host encodes one video stream per screen). */
+/** Second screens a room takes at once. */
 export const MAX_SCREENS = 4;
 
 /** An ICE candidate as JSON (RTCIceCandidateInit, which the Worker's types don't have). */
@@ -1078,19 +1083,42 @@ export interface IceJson {
   usernameFragment?: string | null;
 }
 
+/** Second screen → host. */
 export type MirrorSignal =
-  /** Screen → host, whenever its socket opens: is its video still running? */
-  | { t: 'hello'; live: boolean }
-  /** Host → screen: the host isn't sharing right now. */
-  | { t: 'idle' }
-  /** Host → screen: start (or restart) the stream. */
-  | { t: 'offer'; sdp: string }
-  /** Screen → host. */
+  /** Whenever its socket opens, or when it lost track of the frames: send everything again. */
+  | { t: 'hello' }
   | { t: 'answer'; sdp: string }
   | { t: 'ice'; c: IceJson };
 
+/**
+ * One frame of the host TV. `F` carries everything (the screen starts over from it), `f` what
+ * changed since frame `n - 1`. `p` and `d` are the host's `performance.now()` and `Date.now()`.
+ */
+export interface TvFrame {
+  t: 'f' | 'F';
+  n: number;
+  p: number;
+  d: number;
+  /** The objects that changed (a replica Patch). */
+  x?: unknown;
+  /** Calls to replay, in order: [target, method, args]. */
+  k?: unknown[];
+  /** The host re-rendered its TV. */
+  ch?: 1;
+  /** `F` only: ids from another epoch mean other objects (the host started over). */
+  e?: string;
+}
+
+/** Host → second screen. */
+export type HostToScreen =
+  | { t: 'offer'; sdp: string }
+  | { t: 'ice'; c: IceJson }
+  | TvFrame
+  /** A piece of a frame too big for one message: `s` is a slice of its JSON. */
+  | { t: 'part'; n: number; i: number; of: number; s: string };
+
 export type ServerToScreen =
-  | MirrorSignal
+  | HostToScreen
   | { t: 'host'; online: boolean }
   | { t: 'err'; code: 'no_room' | 'bad_request' | 'full' };
 
