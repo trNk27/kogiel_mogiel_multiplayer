@@ -27,7 +27,7 @@ import {
   CircleGeometry,
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ArenaStage, buildPierogi, nameTag, noise, pixelTexture, type PierogiModel } from '../arena/kit';
+import { ArenaStage, buildPierogi, groundTexture, nameTag, noise, pixelTexture, type PierogiModel } from '../arena/kit';
 import { buildBabcia } from '../arena/babcia';
 import { Puffs } from '../arena/puffs';
 import { ARENA_R, DOT_GAP, MAX_DOTS, resample, type FootEvent, type FootstepsSim } from './logic';
@@ -221,6 +221,25 @@ export class FootstepsScene {
     const clearing = new Mesh(st.keep(new CircleGeometry(ARENA_R + 0.4, 56)), st.keep(new MeshLambertMaterial({ map: snowTex(9, [238, 243, 250], 14) })));
     clearing.rotation.x = -Math.PI / 2;
     st.add(clearing);
+    // Landmarks for walking from memory: a little frozen puddle in the middle and three thick rings of ice
+    // round it, each its own colour, with a thin dark edge so they read against the snow.
+    const iceTex = st.keep(groundTexture('ice', 6, 21));
+    const bands: [number, number, string][] = [
+      [0, 1.3, '#bfe6ff'],
+      [3.2, 4.3, '#79d6b8'],
+      [6.6, 7.8, '#b9a3f2'],
+      [10.0, 11.2, '#6fb3e8'],
+    ];
+    bands.forEach(([r0, r1, color], k) => {
+      const y = 0.006 + k * 0.001;
+      const edge = new Mesh(st.keep(new RingGeometry(Math.max(0, r0 - 0.12), r1 + 0.12, 64)), st.keep(new MeshBasicMaterial({ color: '#5d86a8' })));
+      edge.rotation.x = -Math.PI / 2;
+      edge.position.y = y;
+      const ice = new Mesh(st.keep(new RingGeometry(r0, r1, 64)), st.keep(new MeshLambertMaterial({ map: iceTex, color })));
+      ice.rotation.x = -Math.PI / 2;
+      ice.position.y = y + 0.002;
+      st.add(edge, ice);
+    });
     // A trodden path from the gap in the fence up to the cottage door.
     const p = new Parts();
     p.add(BOX, '#cfd8e6', 0, 0.005, -ARENA_R - 3, 3.2, 0.01, 6.5);

@@ -819,7 +819,7 @@ A wooden jetty on a lake at sunset. Every pierogi stands on its own plank holdin
 with made-up scores, which is handy for walking through a tournament.
 
 ### Śladami Babci
-A round clearing of snow 13 m across (radius), with Babcia's cottage at the top. Tuning is at the top of `client/src/games/footsteps/logic.ts`.
+A round clearing of snow 13 m across (radius), with Babcia's cottage at the top. Three thick rings of ice (mint, lilac and blue, at 3.2–4.3, 6.6–7.8 and 10–11.2 m) and a frozen puddle in the middle give you landmarks for walking from memory. Tuning is at the top of `client/src/games/footsteps/logic.ts`.
 
 - **Shapes** (`SHAPES`): easy (triangle, square, circle, zigzag), medium (house, heart, snake, lightning, diamond) and hard (star, spiral, figure eight, pierogi, letter M). Each is rotated a little, maybe mirrored, started at a random corner (closed shapes) or end (open ones), scaled to a path of 38 / 46 / 54 m (`TARGET_LEN`) as long as it stays within 9.5 m of the middle, and nudged off-centre. A game never repeats a shape.
 - **Babcia's walk**: she waits 1.2 s, walks at 5 / 5.6 / 6.2 m/s dropping a berry every 0.3 m, and stands for 0.8 s at the end. Nobody can move meanwhile. Then she steps off to the edge of the clearing to watch.
