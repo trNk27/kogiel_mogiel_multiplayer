@@ -495,8 +495,8 @@ body.tv {
 
 .game-picker {
   display: grid;
-  grid-template-columns: repeat(11, minmax(0, 1fr));
-  gap: 9px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 8px;
   margin-top: auto;
 }
 .game-card {

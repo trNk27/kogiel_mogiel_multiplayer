@@ -1,0 +1,76 @@
+/* ---- Shared bits of Ankieta, Pół na Pół, Słownik and Plotki (on top of Riposta's styles) ---- */
+
+.qp-head.wk-head-small {
+  font-size: 54px;
+  margin: 40px 0 12px;
+}
+.wk-grid .qp-entry {
+  min-height: 170px;
+}
+.wk-grid.revealed .qp-entry {
+  min-height: 0;
+}
+.wk-entry-head {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--beet);
+}
+.wk-entry-foot {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.2;
+  color: #6a4a3a;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+/* The word, phrase or question the round is about, big on a paper card. */
+.wk-card {
+  position: relative;
+  max-width: 1500px;
+  margin: 10px auto 0;
+  padding: 26px 56px 30px;
+  text-align: center;
+  transform: rotate(-0.6deg);
+  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.4);
+  animation: qp-drop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.wk-card-kicker {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--beet);
+}
+.wk-card-big {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 64px;
+  line-height: 1.08;
+}
+.wk-card-small {
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.25;
+  color: #5a3a2a;
+}
+/* A filled-in blank. */
+.wk-fill {
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--yolk);
+  color: var(--ink);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.wk-blank {
+  display: inline-block;
+  min-width: 160px;
+  border-bottom: 6px dashed var(--beet);
+}

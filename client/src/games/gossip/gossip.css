@@ -1,0 +1,23 @@
+/* ---- Plotki ------------------------------------------------------------------------- */
+
+.gs-example {
+  max-width: 1100px;
+  margin-top: 30px;
+}
+.gs-ex-big {
+  font-size: 44px;
+}
+.gs .qp-entry-text {
+  font-size: 32px;
+}
+.gs .qp-grid.n6 .qp-entry-text,
+.gs .qp-grid.n7 .qp-entry-text,
+.gs .qp-grid.n8 .qp-entry-text {
+  font-size: 26px;
+}
+.gs .wk-entry-foot {
+  font-size: 22px;
+}
+.gs-splash {
+  bottom: 30px;
+}

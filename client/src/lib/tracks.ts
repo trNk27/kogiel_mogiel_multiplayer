@@ -421,6 +421,10 @@ export function trackForGame(game: string): TrackId | null {
     case 'herd':
     case 'wave':
     case 'telephone':
+    case 'survey':
+    case 'split':
+    case 'dictionary':
+    case 'gossip':
       return 'quiz';
     case 'pedal':
     case 'fork':

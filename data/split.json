@@ -1,0 +1,616 @@
+{
+ "scenarios": [
+  {
+   "id": "p001",
+   "text": "You can eat as many pierogi as you like and never gain weight, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p002",
+   "text": "You can fly, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p003",
+   "text": "You win a million złoty, but ___.",
+   "ask": "Would you take the money?"
+  },
+  {
+   "id": "p004",
+   "text": "You can talk to animals, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p005",
+   "text": "You get a free holiday anywhere in the world, but ___.",
+   "ask": "Would you go?"
+  },
+  {
+   "id": "p006",
+   "text": "You never have to sleep again, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p007",
+   "text": "You can read minds, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p008",
+   "text": "Babcia will cook for you every day for the rest of your life, but ___.",
+   "ask": "Would you say yes?"
+  },
+  {
+   "id": "p009",
+   "text": "You can be invisible whenever you like, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p010",
+   "text": "You get your dream job, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p011",
+   "text": "You can live to 150, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p012",
+   "text": "You never have to queue anywhere ever again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p013",
+   "text": "You can teleport anywhere, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p014",
+   "text": "You can speak every language in the world, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p015",
+   "text": "You get a house by the sea for free, but ___.",
+   "ask": "Would you move in?"
+  },
+  {
+   "id": "p016",
+   "text": "You become the best footballer in Poland, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p017",
+   "text": "You can stop time for ten minutes a day, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p018",
+   "text": "Your phone battery never runs out, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p019",
+   "text": "You can have any pet you want, even a dragon, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p020",
+   "text": "You can go back in time once, but ___.",
+   "ask": "Would you go?"
+  },
+  {
+   "id": "p021",
+   "text": "You become famous overnight, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p022",
+   "text": "You never catch a cold again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p023",
+   "text": "You can eat anything without ever feeling full, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p024",
+   "text": "You get free pizza for life, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p025",
+   "text": "You can breathe underwater, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p026",
+   "text": "You always know the right thing to say, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p027",
+   "text": "You can retire tomorrow on full pay, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p028",
+   "text": "You get a personal chef, but ___.",
+   "ask": "Would you hire them?"
+  },
+  {
+   "id": "p029",
+   "text": "You can control the weather, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p030",
+   "text": "You win every argument from now on, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p031",
+   "text": "You can have a sauna in your living room, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p032",
+   "text": "You get to meet your favourite celebrity, but ___.",
+   "ask": "Would you go?"
+  },
+  {
+   "id": "p033",
+   "text": "You can run as fast as a car, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p034",
+   "text": "You never have to do the washing-up again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p035",
+   "text": "You can live in a castle, but ___.",
+   "ask": "Would you move in?"
+  },
+  {
+   "id": "p036",
+   "text": "You can see ten seconds into the future, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p037",
+   "text": "You can sing like an opera star, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p038",
+   "text": "You get free train tickets anywhere in Europe for life, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p039",
+   "text": "Your garden grows the best vegetables in the village, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p040",
+   "text": "You can sleep for just one hour a night and feel great, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p041",
+   "text": "You get a robot that does all your chores, but ___.",
+   "ask": "Would you buy it?"
+  },
+  {
+   "id": "p042",
+   "text": "You can remember everything you've ever read, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p043",
+   "text": "You can change your name to anything you like, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p044",
+   "text": "You can have any car you want for free, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p045",
+   "text": "You never get lost again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p046",
+   "text": "You can shrink to the size of a mouse whenever you like, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p047",
+   "text": "You get to be the mayor of your town, but ___.",
+   "ask": "Would you take the job?"
+  },
+  {
+   "id": "p048",
+   "text": "You can live on the Moon, but ___.",
+   "ask": "Would you go?"
+  },
+  {
+   "id": "p049",
+   "text": "You get a lifetime supply of chocolate, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p050",
+   "text": "You become the world's best dancer, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p051",
+   "text": "You can understand babies, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p052",
+   "text": "You can redo one day of your life, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p053",
+   "text": "Your cooking always tastes amazing, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p054",
+   "text": "You can have a secret room in your home, but ___.",
+   "ask": "Would you build it?"
+  },
+  {
+   "id": "p055",
+   "text": "You can always find a parking space, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p056",
+   "text": "You get a free wedding with three hundred guests, but ___.",
+   "ask": "Would you say yes?"
+  },
+  {
+   "id": "p057",
+   "text": "You can grow back any lost hair, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p058",
+   "text": "You get to live in the 1980s, but ___.",
+   "ask": "Would you go?"
+  },
+  {
+   "id": "p059",
+   "text": "You win the lottery every year, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p060",
+   "text": "You can taste colours, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p061",
+   "text": "You become a famous painter, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p062",
+   "text": "You never have to pay rent again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p063",
+   "text": "You can climb walls like a spider, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p064",
+   "text": "You get a lifetime of perfect hair days, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p065",
+   "text": "You can talk to your future self once a year, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p066",
+   "text": "You get a horse and a cart and never need a car again, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p067",
+   "text": "You can make anyone laugh, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p068",
+   "text": "You can live in any film you like, but ___.",
+   "ask": "Would you go?"
+  },
+  {
+   "id": "p069",
+   "text": "You get a dog that lives forever, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p070",
+   "text": "You can turn anything into gold, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p071",
+   "text": "You never have to go to a meeting again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p072",
+   "text": "You can see through walls, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p073",
+   "text": "You get ten more years of youth, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p074",
+   "text": "You can have the perfect garden, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p075",
+   "text": "You can pause any conversation, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p076",
+   "text": "You get front row seats at every concert, but ___.",
+   "ask": "Would you take them?"
+  },
+  {
+   "id": "p077",
+   "text": "You can magically clean your home with a snap, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p078",
+   "text": "You can be the best in the world at one board game, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p079",
+   "text": "You never step on a Lego brick again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p080",
+   "text": "You become the funniest person you know, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p081",
+   "text": "You can photograph your dreams, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p082",
+   "text": "You get to keep any one thing from a museum, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p083",
+   "text": "You get paid to travel the world, but ___.",
+   "ask": "Would you take the job?"
+  },
+  {
+   "id": "p084",
+   "text": "You never feel cold again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p085",
+   "text": "You can speak to the dead once, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p086",
+   "text": "You get unlimited free coffee, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p087",
+   "text": "You can get anywhere in the city in five minutes, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p088",
+   "text": "You can be a cat for a day, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p089",
+   "text": "You get a cottage in the mountains, but ___.",
+   "ask": "Would you move in?"
+  },
+  {
+   "id": "p090",
+   "text": "You can know what anyone thinks of you, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p091",
+   "text": "You can drive a tank to work, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p092",
+   "text": "You can live without your phone and be perfectly happy, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p093",
+   "text": "You never have to cook again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p094",
+   "text": "You get your own island, but ___.",
+   "ask": "Would you move there?"
+  },
+  {
+   "id": "p095",
+   "text": "You can be on any TV show you want, but ___.",
+   "ask": "Would you go on?"
+  },
+  {
+   "id": "p096",
+   "text": "You win a gold medal at the Olympics, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p097",
+   "text": "You never hear an annoying song again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p098",
+   "text": "You can host the perfect party every weekend, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p099",
+   "text": "You can swap lives with anyone for a week, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p100",
+   "text": "You get a time machine, but ___.",
+   "ask": "Would you use it?"
+  },
+  {
+   "id": "p101",
+   "text": "You can never be embarrassed again, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p102",
+   "text": "You become a world-famous chef, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p103",
+   "text": "You can be a superhero, but ___.",
+   "ask": "Would you take the job?"
+  },
+  {
+   "id": "p104",
+   "text": "You find a magic lamp with three wishes, but ___.",
+   "ask": "Would you rub it?"
+  },
+  {
+   "id": "p105",
+   "text": "You can always win at cards, but ___.",
+   "ask": "Would you take the gift?"
+  },
+  {
+   "id": "p106",
+   "text": "You get a lifetime pass to every theme park, but ___.",
+   "ask": "Would you take it?"
+  },
+  {
+   "id": "p107",
+   "text": "You can get rid of all your bills forever, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p108",
+   "text": "You can heal anyone with a touch, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p109",
+   "text": "You get to name a new star, but ___.",
+   "ask": "Would you do it?"
+  },
+  {
+   "id": "p110",
+   "text": "You can make it snow on any day you like, but ___.",
+   "ask": "Would you take the power?"
+  },
+  {
+   "id": "p111",
+   "text": "Your favourite team wins every match, but ___.",
+   "ask": "Would you take the deal?"
+  },
+  {
+   "id": "p112",
+   "text": "You can live in a treehouse, but ___.",
+   "ask": "Would you move in?"
+  }
+ ],
+ "fills": [
+  "you have to sing everything you say",
+  "you can only wear pyjamas",
+  "Babcia moves in with you",
+  "you sneeze every five minutes",
+  "you lose your sense of taste",
+  "you have to eat only cabbage on Sundays",
+  "everyone can hear your thoughts",
+  "you have to do it all in Hungarian",
+  "your feet smell like cheese",
+  "you can never use the internet again",
+  "you have to wear a tracksuit to every wedding",
+  "you can never sit down in public",
+  "your neighbour gets the same, but double",
+  "you have to shout every time you laugh",
+  "you lose all your photos",
+  "you must clap after every meal",
+  "you hiccup forever",
+  "you can only travel by bicycle",
+  "you have to say yes to every question",
+  "you forget how to whistle",
+  "you must wear a crown in public",
+  "your voice becomes very squeaky",
+  "you have to live in a tent",
+  "you can only drink kompot",
+  "you have to tell everyone your PIN",
+  "you must dance whenever music plays",
+  "your hair turns bright green",
+  "you can never eat pierogi again",
+  "you have to hug every stranger you meet",
+  "you must answer every phone call on speaker",
+  "you have to sleep in the bath",
+  "you can only walk backwards",
+  "a goose follows you everywhere",
+  "you lose a tooth every year",
+  "you must speak in rhymes",
+  "you can't wear socks ever again",
+  "you have to wake up at 4 a.m. every day",
+  "you're always slightly damp",
+  "you can never watch TV again",
+  "you have to carry a ladder everywhere",
+  "your shoes squeak loudly",
+  "you get the hiccups at every important moment",
+  "you can only eat with a spoon",
+  "everyone calls you by the wrong name",
+  "you have to wear a hat made of bread",
+  "your phone autocorrects everything to 'pierogi'",
+  "your ex gets the same thing",
+  "you must keep a live chicken as a pet",
+  "you forget everyone's birthday",
+  "you have to start every sentence with 'Well, actually'"
+ ]
+}

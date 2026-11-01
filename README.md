@@ -31,6 +31,10 @@ the notch) are added around controls, never taken out of them.
 | **Zgodni** | “In agreement”, like *Herd Mentality*: everyone types an answer to an open question (“A Polish city”, “Something Babcia always says”), and on a 3D meadow the answers run to signposts, where similar spellings herd together (diacritics, plurals, number words and small typos don’t matter). The single biggest herd scores a point each; a tie scores nobody. Exactly one player on their own gets the **Różowa Krowa** (pink cow), which costs 2 points at the end. 10 questions from 261. | 3–8 |
 | **Fala** | “The wave”, our take on *Wavelength*. One player is the Psychic and secretly sees a target on a spectrum (“Cold ↔ Hot”, “Babcia would approve ↔ Babcia would faint”). They type a clue; everyone else slides to where they think the target is. Within 4 scores 4, within 10 scores 3, within 17 scores 2, and the Psychic gets the average. Everyone is the Psychic once or twice (4–8 rounds). 160 spectra. | 2–8 |
 | **Głuchy Telefon** | The whisper game (“deaf telephone”), like *Gartic Phone*. Everyone writes a silly sentence; it’s passed on and drawn, the next player describes the drawing, the next draws that, and so on, everyone working at once. Then the TV replays every chain step by step so you can watch it go wrong, and the room votes for its favourite entry in each: 100 per vote. 193 starter sentences for **🎲 Pick for me**. | 3–8 |
+| **Ankieta** | “The survey”, our take on *Guesspionage* – except the survey is the people in the room. Everyone secretly answers a yes/no question on their phone (“Have you ever eaten pierogi for breakfast?”). Then the **surveyor** guesses how many said yes, and everyone else bets: **more**, **exactly** or **fewer**? The answers flip over on the TV, anonymous, yes first. A spot-on guess is worth 1000 (less the further off, scaled to the size of the room); a right more/fewer bet 300, a right “exactly” 600. Everyone is the surveyor once (up to 6 rounds). 147 questions. | 3–8 |
+| **Pół na Pół** | “Half and half”, our take on *Split the Room*. Everyone gets their own dilemma with a blank (“You can fly, but ___. Would you take the power?”) and fills it in. Then the dilemmas go up one by one and everyone else votes **yes or no**. The author scores for **how evenly the room splits**: a perfect half-and-half is worth 1000, everyone agreeing nothing. Two rounds, the second pays double. 112 dilemmas, and **🎲 Fill it for me** has 50 of Babcia's. | 3–8 |
+| **Słownik** | “The dictionary”, our take on *Dictionarium*. A made-up word goes up (*Pierogrzmot, noun*). Everyone writes a **definition** and the room votes; the winner becomes official. Then everyone writes a **synonym** for it and votes, then uses the word **in a sentence** (any form of it counts, but it has to be there) and votes. 100 per vote, +200 for the best of each stage. Two words. 80 invented words. | 3–8 |
+| **Plotki** | “Gossip”, our take on *Survive the Internet*. Everyone answers a harmless question about themselves (“What's on your bedside table?”). Then each answer goes to someone else, who puts it in a new setting to make it sound terrible: a **Gazeta Wiejska** headline, a **police report**, a **dating profile**, a **wedding speech**, what Pani Krysia asked at the village shop… The room votes for the best twist: 100 per vote and +200 for the best. Two rounds, the second pays double. 80 questions, 14 settings. | 3–8 |
 | **Tour de Pierogi** | A button-mashing bike race. Your phone shows two pedals: tap LEFT, RIGHT, LEFT, RIGHT… as fast as you can. Only alternating taps count, so mashing one side gets you nowhere. 100 strokes to the finish line, three heats, 10/8/6/5/4/3/2/1 points per heat. | 1–8 |
 | **Fork Fight** | A quick-draw duel. A plate on your phone: when a pierogi lands on it, tap to stab it. Socks, slippers and rubber ducks land too; stab one (or stab an empty plate) and you lose a point. The fastest three forks get 3/2/1. Eight rounds, with more fakes as you go. | 1–8 |
 | **Pierogi Parade** | Pierogi of five colours march down a busy market street on the TV. Tap your phone once for every pierogi of the colour you're told to count (with a −1 button for slips). Lamp posts, trees, market stalls, barrels and trams hide them for a moment, some march in tight groups, and balloons, pierogi kites, pigeons, fireworks and the neighbours in the windows try to distract you. Exactly right is 10 points, 1 off 6, 2 off 3, 3 off 1. Three rounds, each longer, faster and busier. | 1–8 |
@@ -60,7 +64,7 @@ the notch) are added around controls, never taken out of them.
 | **Śladami Babci** | “In Babcia’s footsteps”, our take on LEGO Party’s *Snailed It*. A snowy clearing in front of Babcia’s cottage, in the arena games' low-poly 3D look. Everyone waits on a straw mat while **Babcia walks a shape** across the snow (a triangle, a heart, a star, a spiral…) and drops a red rowan berry every step, so her trail shows up behind her. Then it’s your turn: walk the same trail with the joystick, and your own footprints show as a line in your colour. Her berries stay for a few seconds while you get going, then **snow falls and covers them**, and you finish from memory. Tap **Done** when you’re finished (when everyone has, the round ends early). Her trail comes back and everyone’s accuracy shows: 100 % for a perfect copy, less the further you strayed or the more you left out. Three trails, easy to hard, each scoring its accuracy in points. | 1–8 |
 | **Fajki** | Polish slang for smokes. In a smoky karczma (a country inn, in the arena games' low-poly 3D look, top view), a tray of cigarettes in everyone's colours spins in the middle of the table. Tap **GRAB** when yours passes in front of you, then smoke it: pull down on your phone at the right pace (follow the ghost ring), hold, let go – *Too fast!* or *Too slow!* puffs smoke less. Grab someone else's colour, or hold too long, and you cough for 3 s. The room fills with smoke as the minute goes on, so the colours get harder to tell apart. Then the pierogi fall one by one into a tower and say cheese: a crown hovers from grin to grin before it drops on the yellowest teeth. | 1–8 |
 
-The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi, Gorący Ziemniak, Kra, Krzesła, Kurnik, Korona, Grosze, Krety, Owieczki, Minutnik, Bule, Krówki and Śladami Babci – are inspired by Mario Party and LEGO Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Dzwonki has the same 3D look but four bell keys on the phone. Riposta, Szpieg, Zgodni, Fala and Głuchy Telefon are Jackbox-style: you type, slide, draw and vote on one shared phone screen (`client/src/phone/ask.tsx`), and the TV runs the show. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
+The arena games – Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda, Babcia Mówi, Gorący Ziemniak, Kra, Krzesła, Kurnik, Korona, Grosze, Krety, Owieczki, Minutnik, Bule, Krówki and Śladami Babci – are inspired by Mario Party and LEGO Party minigames: the whole arena is on the TV in Maluch Rally's low-poly look, and every phone becomes the same pad, a joystick and one or two buttons. Dzwonki has the same 3D look but four bell keys on the phone. Riposta, Szpieg, Zgodni, Fala, Głuchy Telefon, Ankieta, Pół na Pół, Słownik and Plotki are Jackbox-style: you type, slide, draw and vote on one shared phone screen (`client/src/phone/ask.tsx`), and the TV runs the show. Grzybki and Pushy Pierogi also play without a TV (see below); the others need a TV for now.
 
 The VIP can also start a **Tournament**: five random games in a row by default, or in **party mode** five games the players vote for one by one (see below).
 
@@ -130,6 +134,10 @@ is played in its **short version** unless the VIP switched that off:
 | Zgodni | 10 questions | 6 questions |
 | Fala | everyone the Psychic once or twice (4–8 rounds) | up to 4 rounds |
 | Głuchy Telefon | chains of up to 6 steps | up to 4 steps |
+| Ankieta | one round per player, up to 6 | up to 3 rounds |
+| Pół na Pół | 2 rounds (the 2nd ×2) | 1 round |
+| Słownik | 2 words | 1 word |
+| Plotki | 2 rounds (the 2nd ×2) | 1 round |
 | Krówki | 2 rounds of 90 s | 1 round of 75 s |
 | Śladami Babci | 3 trails (easy, medium, hard) | 1 medium trail |
 
@@ -264,7 +272,7 @@ behind.
   place left to right and sends to a room reverb and a tempo echo, the kick pumps the other parts in the fast
   tracks, a compressor glues it all together, and the music dips a little under each sound effect.
   The waiting room has its own tune (a lazy accordion mazurka), and games that feel alike share a track:
-  *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły, Riposta, Szpieg, Zgodni, Fala, Głuchy Telefon),
+  *Thinking Cap* (Quiz, Ballpark, Podmianka, To Ty!, Bazgroły, Riposta, Szpieg, Zgodni, Fala, Głuchy Telefon, Ankieta, Pół na Pół, Słownik, Plotki),
   *Polka Pierogi* (Tour de Pierogi, Fork Fight, Pierogi Parade, Pierogi Panic), *Barnyard Brawl* (the arena games
   and Malbork Castle), *Maluch Turbo* (Maluch Rally, Maluch Rallye Premium, Trails) and *Smoke Rings* (Fajki).
   Krzesła and Dzwonki have no track: the wedding band's polka (it has to stop dead) and the bells are the music.
@@ -306,6 +314,9 @@ client/src/games/potato|floes|chairs|chickens|crown|coins|moles|sheep|clock|boul
                             Krety, Owieczki, Minutnik, Bule, Dzwonki (pure logic.ts, three.js scene.ts, TV view)
 client/src/games/quip|spy|herd|wave|telephone/*  Riposta, Szpieg, Zgodni (with a 3D meadow), Fala, Głuchy Telefon
                             (pure logic.ts, TV views)
+client/src/games/wordkit/*  the newer word games' common frame (WordGame.tsx: phases, phone keys, title card, writing
+                            screen, a grid of entries to vote on, scores) and shared rules (logic.ts: clean-up, vote scoring)
+client/src/games/survey|split|dictionary|gossip/*  Ankieta, Pół na Pół, Słownik, Plotki (pure logic.ts, TV view on WordGame)
 client/src/phone/ask.tsx    the word games' (and Dzwonki's) phone screen: type, pick, slide, keys or draw (AskView)
 client/src/games/smoke/*     Fajki: tray, puff scoring and teeth (logic.ts), the 3D table and tower (scene.ts), TV view (SmokeGame.tsx)
 client/src/phone/smoke.tsx   Fajki on the phone: GRAB and the pull-down puff
@@ -324,6 +335,10 @@ data/spy.json               32 Szpieg categories of 16 words
 data/herd.json              261 Zgodni questions
 data/wave.json              160 Fala spectra
 data/telephone.json         193 Głuchy Telefon starter sentences
+data/survey.json            147 Ankieta yes/no questions
+data/split.json             112 Pół na Pół dilemmas and 50 of Babcia's fills
+data/dictionary.json        80 Słownik made-up words, with Babcia's definitions, synonyms and sentences
+data/gossip.json            80 Plotki questions, 14 gossip settings and Babcia's answers
 test/*.test.ts              Vitest unit tests (scoring, Trails collisions, data checks)
 ```
 

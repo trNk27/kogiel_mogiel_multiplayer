@@ -50,6 +50,10 @@ import { howTo as waveHowTo } from '../games/wave/logic';
 import { howTo as telephoneHowTo } from '../games/telephone/logic';
 import { howTo as smokeHowTo } from '../games/smoke/logic';
 import { howTo as cowsHowTo } from '../games/cows/logic';
+import { howTo as gossipHowTo } from '../games/gossip/logic';
+import { howTo as dictionaryHowTo } from '../games/dictionary/logic';
+import { howTo as splitHowTo } from '../games/split/logic';
+import { howTo as surveyHowTo } from '../games/survey/logic';
 import { howTo as footstepsHowTo } from '../games/footsteps/logic';
 
 /**
@@ -481,6 +485,14 @@ function howTo(game: GameId, short: boolean): string[] {
       return smokeHowTo();
     case 'cows':
       return cowsHowTo(short);
+    case 'gossip':
+      return gossipHowTo(short);
+    case 'dictionary':
+      return dictionaryHowTo(short);
+    case 'split':
+      return splitHowTo(short);
+    case 'survey':
+      return surveyHowTo(short);
     case 'footsteps':
       return footstepsHowTo(short);
     case 'castle':

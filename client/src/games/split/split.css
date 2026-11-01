@@ -1,0 +1,61 @@
+/* ---- Pół na Pół ------------------------------------------------------------------------- */
+
+.pn-card .pn-text {
+  font-size: 56px;
+}
+.pn-fill {
+  font-weight: 900;
+}
+.pn-ask {
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 44px;
+  color: var(--beet);
+}
+.pn-example {
+  max-width: 1200px;
+  margin-top: 40px;
+}
+
+/* YES on the left, NO on the right, voters hopping on. */
+.pn-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  margin: 34px 60px 0;
+}
+.pn-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 20px 22px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: inset 0 -10px 0 var(--side);
+  min-height: 250px;
+}
+.pn-side.yes {
+  --side: #2fb07a;
+}
+.pn-side.no {
+  --side: var(--beet);
+}
+.pn-side-label {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 54px;
+  color: var(--side);
+}
+.pn-side-count {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 90px;
+  line-height: 1;
+  animation: pop-in 0.4s both;
+}
+.pn-author {
+  margin: 26px auto 0;
+  justify-content: center;
+}
