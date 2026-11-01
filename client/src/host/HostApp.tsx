@@ -6,7 +6,7 @@ import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
 import { music } from '../lib/music';
 import { trackForGame, type TrackId } from '../lib/tracks';
-import { HostController, type Standing } from './controller';
+import { HostController, INTRO_MS, type Standing } from './controller';
 import type { ScreenState, ScreenStats } from './mirror';
 import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
@@ -528,7 +528,7 @@ function Intro({ game }: { game: GameId }) {
         ))}
       </ol>
       <div class="intro-bar">
-        <div class="intro-bar-fill" />
+        <div class="intro-bar-fill" style={{ animationDuration: `${INTRO_MS}ms` }} />
       </div>
     </div>
   );

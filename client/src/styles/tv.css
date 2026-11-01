@@ -715,7 +715,7 @@ body.tv {
   height: 100%;
   background: var(--yolk);
   transform-origin: left;
-  animation: intro-bar 6s linear both;
+  animation: intro-bar 11s linear both;
 }
 @keyframes intro-bar {
   from {

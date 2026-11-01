@@ -9,6 +9,7 @@ import { canVote, cleanText, freshLine, pick, scoreVotes, shuffle, type VoteResu
 import {
   GS_ANSWER_MAX,
   GS_ANSWER_MS,
+  GS_REVEAL_EXTRA_MS,
   GS_ROUNDS,
   GS_ROUNDS_SHORT,
   GS_TWIST_MAX,
@@ -28,7 +29,7 @@ const D = data as { questions: GsQuestion[]; contexts: GsContext[]; answers: str
 const used = usedSet('gossip');
 
 const TITLE_MS = 4500;
-const SCORES_MS = 7000;
+const SCORES_MS = 10_000;
 
 type Phase = 'title' | 'answer' | 'twist' | 'vote' | 'reveal' | 'scores';
 
@@ -160,7 +161,7 @@ export class GossipGame extends WordGame<Phase> {
     this.setPhase('reveal');
     const ms = this.revealSounds(r);
     for (const i of r.winners) this.later(ms - 4000, () => this.host.buzz(this.entries[i].author, [80, 60, 160]));
-    this.after(ms, () => this.showScores());
+    this.after(ms + GS_REVEAL_EXTRA_MS, () => this.showScores());
     this.update();
   }
 
