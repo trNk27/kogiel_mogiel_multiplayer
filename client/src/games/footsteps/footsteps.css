@@ -1,0 +1,57 @@
+/* ---- Śladami Babci ------------------------------------------------------------------------- */
+/* The HUD, chips and tally come from tiles.css (Kafelki); these are the extras. */
+
+.foot-root .tiles-toast {
+  -webkit-text-stroke: 8px #241015;
+  paint-order: stroke fill;
+}
+.foot-eye {
+  font-size: 64px;
+  padding: 14px 34px 16px;
+}
+.foot-chip-state {
+  font-size: 18px;
+  font-weight: 650;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tiles-chips.n7 .foot-chip-state,
+.tiles-chips.n8 .foot-chip-state {
+  font-size: 15px;
+}
+
+/* The shape's name over the clearing while the trails are compared. */
+.foot-reveal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 200px;
+  text-align: center;
+  font-size: 84px;
+  font-weight: 700;
+  color: #ff5a3c;
+  -webkit-text-stroke: 10px #241015;
+  paint-order: stroke fill;
+  pointer-events: none;
+}
+.foot-reveal small {
+  display: block;
+  font-size: 36px;
+  color: var(--cream);
+  -webkit-text-stroke: 7px #241015;
+}
+
+/* Percentages need a little more room than Kafelki's tile counts. */
+.foot-root .tiles-tally-row {
+  grid-template-columns: 56px 190px 1fr 124px 76px;
+}
+.foot-root .tiles-chip-n {
+  font-size: 34px;
+}
+.foot-root .tiles-chips.n6 .tiles-chip-n,
+.foot-root .tiles-chips.n7 .tiles-chip-n,
+.foot-root .tiles-chips.n8 .tiles-chip-n {
+  font-size: 26px;
+}

@@ -50,6 +50,7 @@ import { howTo as waveHowTo } from '../games/wave/logic';
 import { howTo as telephoneHowTo } from '../games/telephone/logic';
 import { howTo as smokeHowTo } from '../games/smoke/logic';
 import { howTo as cowsHowTo } from '../games/cows/logic';
+import { howTo as footstepsHowTo } from '../games/footsteps/logic';
 
 /**
  * The room this page shows: the real one on the host TV, or a second screen's copy of it (see
@@ -480,6 +481,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return smokeHowTo();
     case 'cows':
       return cowsHowTo(short);
+    case 'footsteps':
+      return footstepsHowTo(short);
     case 'castle':
       return castleHowTo();
     case 'premium':
