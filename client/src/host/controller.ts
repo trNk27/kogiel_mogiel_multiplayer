@@ -86,7 +86,8 @@ const HISTORY_MAX = 30;
 /** A phone hosting a room without a TV keeps its session separately (the /dev page runs several phones in one tab). */
 export const noTvSessionKey = (dev: string | null) => `cp.notvhost${dev ? `.${dev}` : ''}`;
 const SESSION_MAX_AGE = 30 * 60_000;
-const INTRO_MS = 6000;
+/** The how-to-play screen before every game. Keep in step with the bar in Intro (HostApp). */
+export const INTRO_MS = 11_000;
 const TOUR_INTRO_MS = 9000;
 
 interface SavedSession {
