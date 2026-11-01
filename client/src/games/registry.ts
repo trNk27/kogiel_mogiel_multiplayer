@@ -38,6 +38,7 @@ import { WaveGame } from './wave/WaveGame';
 import { TelephoneGame } from './telephone/TelephoneGame';
 import { SmokeGame } from './smoke/SmokeGame';
 import { CowsGame } from './cows/CowsGame';
+import { FootstepsGame } from './footsteps/FootstepsGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
 
@@ -119,6 +120,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new SmokeGame(host, ids);
     case 'cows':
       return new CowsGame(host, ids);
+    case 'footsteps':
+      return new FootstepsGame(host, ids);
     case 'castle':
       return new CastleGame(host, ids);
     case 'premium':
