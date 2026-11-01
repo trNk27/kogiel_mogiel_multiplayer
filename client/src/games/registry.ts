@@ -38,6 +38,10 @@ import { WaveGame } from './wave/WaveGame';
 import { TelephoneGame } from './telephone/TelephoneGame';
 import { SmokeGame } from './smoke/SmokeGame';
 import { CowsGame } from './cows/CowsGame';
+import { GossipGame } from './gossip/GossipGame';
+import { DictionaryGame } from './dictionary/DictionaryGame';
+import { SplitGame } from './split/SplitGame';
+import { SurveyGame } from './survey/SurveyGame';
 import { FootstepsGame } from './footsteps/FootstepsGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
@@ -118,6 +122,14 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new TelephoneGame(host, ids);
     case 'smoke':
       return new SmokeGame(host, ids);
+    case 'survey':
+      return new SurveyGame(host, ids);
+    case 'split':
+      return new SplitGame(host, ids);
+    case 'dictionary':
+      return new DictionaryGame(host, ids);
+    case 'gossip':
+      return new GossipGame(host, ids);
     case 'cows':
       return new CowsGame(host, ids);
     case 'footsteps':

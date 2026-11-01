@@ -1,0 +1,149 @@
+/* ---- Ankieta ------------------------------------------------------------------------- */
+
+.sv-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: inset 0 -5px 0 var(--pc);
+}
+.sv-sub {
+  margin-top: 40px;
+  font-size: 44px;
+  color: var(--cream);
+}
+.sv-big {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 84px;
+  line-height: 1.05;
+  color: var(--yolk);
+  text-shadow: 0 6px 0 var(--beet-deep);
+}
+.sv-mid {
+  font-size: 38px;
+  color: var(--muted);
+}
+.sv-mid b {
+  color: var(--cream);
+}
+.sv-none {
+  text-align: center;
+  margin-top: 120px;
+}
+.sv-guessing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 70px;
+}
+
+/* The guess, big, while the others bet. */
+.sv-guess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+  font-family: var(--font-display);
+}
+.sv-guess small {
+  font-size: 34px;
+  color: var(--muted);
+}
+.sv-guess b {
+  font-size: 200px;
+  line-height: 1;
+  font-weight: 900;
+  color: var(--yolk);
+  text-shadow: 0 10px 0 var(--beet-deep);
+}
+.sv-guess b span {
+  font-size: 70px;
+  color: var(--cream);
+  text-shadow: none;
+}
+
+/* The answers, flipping one by one: anonymous, yes first. */
+.sv-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  margin: 46px auto 0;
+  max-width: 1500px;
+}
+.sv-token {
+  width: 150px;
+  height: 120px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 46px;
+  color: #fff;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.4);
+  animation: sv-flip 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.sv-token.yes {
+  background: #2fb07a;
+}
+.sv-token.no {
+  background: var(--beet);
+}
+@keyframes sv-flip {
+  0% {
+    transform: rotateY(90deg) scale(0.7);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.sv-count {
+  margin-top: 30px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 56px;
+  animation: pop-in 0.5s both;
+}
+.sv-count b {
+  font-size: 96px;
+  color: #5fe0a8;
+}
+.sv-results {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 18px;
+  margin: 26px auto 0;
+  max-width: 1600px;
+  animation: fade-in 0.5s both;
+}
+.sv-res {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 22px 6px 8px;
+  border-radius: 999px;
+  background: var(--panel);
+  box-shadow: inset 0 -5px 0 var(--pc);
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: 28px;
+}
+.sv-res.bad {
+  opacity: 0.6;
+}
+.sv-res-guess {
+  flex-basis: 100%;
+  max-width: 900px;
+  justify-content: center;
+  font-size: 40px;
+}
+.sv-res-guess em {
+  font-style: normal;
+  color: var(--yolk);
+}

@@ -1,0 +1,509 @@
+{
+ "words": [
+  {
+   "word": "Pierogrzmot",
+   "pos": "noun",
+   "id": "d001"
+  },
+  {
+   "word": "Kluskowiec",
+   "pos": "noun",
+   "id": "d002"
+  },
+  {
+   "word": "Śledziołap",
+   "pos": "noun",
+   "id": "d003"
+  },
+  {
+   "word": "Barszczomat",
+   "pos": "noun",
+   "id": "d004"
+  },
+  {
+   "word": "Grzybomierz",
+   "pos": "noun",
+   "id": "d005"
+  },
+  {
+   "word": "Bigosfera",
+   "pos": "noun",
+   "id": "d006"
+  },
+  {
+   "word": "Kompotron",
+   "pos": "noun",
+   "id": "d007"
+  },
+  {
+   "word": "Makowiszcze",
+   "pos": "noun",
+   "id": "d008"
+  },
+  {
+   "word": "Smalcownik",
+   "pos": "noun",
+   "id": "d009"
+  },
+  {
+   "word": "Chrzanomir",
+   "pos": "noun",
+   "id": "d010"
+  },
+  {
+   "word": "Twarożydło",
+   "pos": "noun",
+   "id": "d011"
+  },
+  {
+   "word": "Ziemniakołak",
+   "pos": "noun",
+   "id": "d012"
+  },
+  {
+   "word": "Pączkosław",
+   "pos": "noun",
+   "id": "d013"
+  },
+  {
+   "word": "Kiełbaśnik",
+   "pos": "noun",
+   "id": "d014"
+  },
+  {
+   "word": "Ogóreczniak",
+   "pos": "noun",
+   "id": "d015"
+  },
+  {
+   "word": "Szczawiorek",
+   "pos": "noun",
+   "id": "d016"
+  },
+  {
+   "word": "Kapuściołek",
+   "pos": "noun",
+   "id": "d017"
+  },
+  {
+   "word": "Rzodkiewiszcze",
+   "pos": "noun",
+   "id": "d018"
+  },
+  {
+   "word": "Gęsiopłot",
+   "pos": "noun",
+   "id": "d019"
+  },
+  {
+   "word": "Kurzybroda",
+   "pos": "noun",
+   "id": "d020"
+  },
+  {
+   "word": "Fikołkowiec",
+   "pos": "noun",
+   "id": "d021"
+  },
+  {
+   "word": "Mlaskorożec",
+   "pos": "noun",
+   "id": "d022"
+  },
+  {
+   "word": "Bulgotrąb",
+   "pos": "noun",
+   "id": "d023"
+  },
+  {
+   "word": "Chlupotnica",
+   "pos": "noun",
+   "id": "d024"
+  },
+  {
+   "word": "Babciofon",
+   "pos": "noun",
+   "id": "d025"
+  },
+  {
+   "word": "Dziadkomat",
+   "pos": "noun",
+   "id": "d026"
+  },
+  {
+   "word": "Firankowiec",
+   "pos": "noun",
+   "id": "d027"
+  },
+  {
+   "word": "Kredensaurus",
+   "pos": "noun",
+   "id": "d028"
+  },
+  {
+   "word": "Wersalkoza",
+   "pos": "noun",
+   "id": "d029"
+  },
+  {
+   "word": "Skarpetoza",
+   "pos": "noun",
+   "id": "d030"
+  },
+  {
+   "word": "Laczkowiec",
+   "pos": "noun",
+   "id": "d031"
+  },
+  {
+   "word": "Kalafiorynka",
+   "pos": "noun",
+   "id": "d032"
+  },
+  {
+   "word": "Pyrlandzik",
+   "pos": "noun",
+   "id": "d033"
+  },
+  {
+   "word": "Kotlecisko",
+   "pos": "noun",
+   "id": "d034"
+  },
+  {
+   "word": "Sernikator",
+   "pos": "noun",
+   "id": "d035"
+  },
+  {
+   "word": "Kisielnica",
+   "pos": "noun",
+   "id": "d036"
+  },
+  {
+   "word": "Pierogować",
+   "pos": "verb",
+   "id": "d037"
+  },
+  {
+   "word": "Klusknąć",
+   "pos": "verb",
+   "id": "d038"
+  },
+  {
+   "word": "Bigosić",
+   "pos": "verb",
+   "id": "d039"
+  },
+  {
+   "word": "Grzmotlić",
+   "pos": "verb",
+   "id": "d040"
+  },
+  {
+   "word": "Fikuśnić",
+   "pos": "verb",
+   "id": "d041"
+  },
+  {
+   "word": "Śledziować",
+   "pos": "verb",
+   "id": "d042"
+  },
+  {
+   "word": "Chrząkolić",
+   "pos": "verb",
+   "id": "d043"
+  },
+  {
+   "word": "Mlaskotać",
+   "pos": "verb",
+   "id": "d044"
+  },
+  {
+   "word": "Babciować",
+   "pos": "verb",
+   "id": "d045"
+  },
+  {
+   "word": "Firankować",
+   "pos": "verb",
+   "id": "d046"
+  },
+  {
+   "word": "Kapciować",
+   "pos": "verb",
+   "id": "d047"
+  },
+  {
+   "word": "Plumknąć",
+   "pos": "verb",
+   "id": "d048"
+  },
+  {
+   "word": "Ogórkować",
+   "pos": "verb",
+   "id": "d049"
+  },
+  {
+   "word": "Grzybobrać",
+   "pos": "verb",
+   "id": "d050"
+  },
+  {
+   "word": "Kompotować",
+   "pos": "verb",
+   "id": "d051"
+  },
+  {
+   "word": "Wiercipiętać",
+   "pos": "verb",
+   "id": "d052"
+  },
+  {
+   "word": "Zupkować",
+   "pos": "verb",
+   "id": "d053"
+  },
+  {
+   "word": "Kluchotać",
+   "pos": "verb",
+   "id": "d054"
+  },
+  {
+   "word": "Barszczyć",
+   "pos": "verb",
+   "id": "d055"
+  },
+  {
+   "word": "Makowić",
+   "pos": "verb",
+   "id": "d056"
+  },
+  {
+   "word": "Pierogowaty",
+   "pos": "adjective",
+   "id": "d057"
+  },
+  {
+   "word": "Bulwozgrzytny",
+   "pos": "adjective",
+   "id": "d058"
+  },
+  {
+   "word": "Kluchowiasty",
+   "pos": "adjective",
+   "id": "d059"
+  },
+  {
+   "word": "Smalczysty",
+   "pos": "adjective",
+   "id": "d060"
+  },
+  {
+   "word": "Chrzanowaty",
+   "pos": "adjective",
+   "id": "d061"
+  },
+  {
+   "word": "Firanczasty",
+   "pos": "adjective",
+   "id": "d062"
+  },
+  {
+   "word": "Wersalkowaty",
+   "pos": "adjective",
+   "id": "d063"
+  },
+  {
+   "word": "Kapuściorny",
+   "pos": "adjective",
+   "id": "d064"
+  },
+  {
+   "word": "Grzmotliwy",
+   "pos": "adjective",
+   "id": "d065"
+  },
+  {
+   "word": "Babciasty",
+   "pos": "adjective",
+   "id": "d066"
+  },
+  {
+   "word": "Mlaskocki",
+   "pos": "adjective",
+   "id": "d067"
+  },
+  {
+   "word": "Plumkowaty",
+   "pos": "adjective",
+   "id": "d068"
+  },
+  {
+   "word": "Śledziowaty",
+   "pos": "adjective",
+   "id": "d069"
+  },
+  {
+   "word": "Barszczysty",
+   "pos": "adjective",
+   "id": "d070"
+  },
+  {
+   "word": "Kredensiasty",
+   "pos": "adjective",
+   "id": "d071"
+  },
+  {
+   "word": "Bigosławny",
+   "pos": "adjective",
+   "id": "d072"
+  },
+  {
+   "word": "Ogórczasty",
+   "pos": "adjective",
+   "id": "d073"
+  },
+  {
+   "word": "Kompotliwy",
+   "pos": "adjective",
+   "id": "d074"
+  },
+  {
+   "word": "Fikumikowy",
+   "pos": "adjective",
+   "id": "d075"
+  },
+  {
+   "word": "Laczkowaty",
+   "pos": "adjective",
+   "id": "d076"
+  },
+  {
+   "word": "Dziadkowaty",
+   "pos": "adjective",
+   "id": "d077"
+  },
+  {
+   "word": "Skarpeciasty",
+   "pos": "adjective",
+   "id": "d078"
+  },
+  {
+   "word": "Rzodkwiasty",
+   "pos": "adjective",
+   "id": "d079"
+  },
+  {
+   "word": "Pączkolicy",
+   "pos": "adjective",
+   "id": "d080"
+  }
+ ],
+ "definitions": {
+  "noun": [
+   "A small creature that lives in Babcia's sock drawer",
+   "The last pierogi on the plate that nobody dares to take",
+   "A tool for untangling Christmas lights",
+   "The noise a fridge makes at three in the morning",
+   "A cousin you only ever see at weddings",
+   "The crumbs at the bottom of a biscuit tin",
+   "A hat worn only for funerals and name days",
+   "The dent your bottom leaves in a sofa",
+   "A very small, very angry goose",
+   "A drawer full of keys that open nothing",
+   "The skin on top of hot milk",
+   "A bus that only runs on Sundays"
+  ],
+  "verb": [
+   "To pretend you're asleep so you don't have to help",
+   "To eat soup very loudly on purpose",
+   "To hide the good biscuits from guests",
+   "To nod along without listening",
+   "To dance badly at a wedding with total confidence",
+   "To reheat the same bigos for the fourth day",
+   "To wave at someone who wasn't waving at you",
+   "To leave a party without saying goodbye",
+   "To argue with the TV",
+   "To lose your keys while holding them",
+   "To sniff the milk and drink it anyway",
+   "To blame the dog for a noise you made"
+  ],
+  "adjective": [
+   "Slightly too warm, like a car seat in July",
+   "Looking like you've just been told off by Babcia",
+   "Smelling faintly of cabbage",
+   "Too full to move but still eyeing dessert",
+   "Dressed for a wedding, ready for a nap",
+   "Suspiciously cheerful on a Monday",
+   "Wobbly in a pleasing way, like jelly",
+   "Covered in flour for no clear reason",
+   "Damp, but proud of it",
+   "Ready to argue about football",
+   "Sleepy after a big Sunday lunch",
+   "Sparkly in an embarrassing way"
+  ]
+ },
+ "synonyms": {
+  "noun": [
+   "Thingamajig",
+   "Doodah",
+   "Wotsit",
+   "Gizmo",
+   "Whatchamacallit",
+   "Doohickey",
+   "Gubbins",
+   "Kerfuffle",
+   "Hullabaloo",
+   "Contraption"
+  ],
+  "verb": [
+   "to faff about",
+   "to dilly-dally",
+   "to waffle",
+   "to galumph",
+   "to dawdle",
+   "to fiddle",
+   "to lollygag",
+   "to shilly-shally",
+   "to mope",
+   "to bumble"
+  ],
+  "adjective": [
+   "wobbly",
+   "squiffy",
+   "higgledy-piggledy",
+   "dishevelled",
+   "frazzled",
+   "peckish",
+   "topsy-turvy",
+   "flustered",
+   "scrumptious",
+   "bamboozled"
+  ]
+ },
+ "sentences": {
+  "noun": [
+   "Babcia keeps a {w} in the cupboard, just in case.",
+   "Nobody mentions the {w} at Christmas any more.",
+   "I found a {w} in my soup and said nothing.",
+   "The mayor gave a long speech about the {w}.",
+   "Every village needs at least one {w}."
+  ],
+  "verb": [
+   "Never {w} before breakfast, says Babcia.",
+   "I tried to {w} once, and the neighbours still talk about it.",
+   "If you {w} at a wedding, you dance with the priest.",
+   "Dziadek can {w} for three hours without a break.",
+   "Please don't {w} in the kitchen."
+  ],
+  "adjective": [
+   "After the wedding, everyone felt very {w}.",
+   "That's the most {w} hat I've ever seen.",
+   "Babcia gets {w} when the TV breaks.",
+   "The soup was warm, salty and slightly {w}.",
+   "Nobody wants to look {w} in the family photo."
+  ]
+ }
+}

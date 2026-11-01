@@ -1,0 +1,512 @@
+{
+ "questions": [
+  {
+   "id": "g001",
+   "q": "What did you have for breakfast today?"
+  },
+  {
+   "id": "g002",
+   "q": "Describe your perfect Sunday."
+  },
+  {
+   "id": "g003",
+   "q": "What's in your fridge right now?"
+  },
+  {
+   "id": "g004",
+   "q": "What's your hidden talent?"
+  },
+  {
+   "id": "g005",
+   "q": "Finish this: I've always wanted to…"
+  },
+  {
+   "id": "g006",
+   "q": "What would you shout from the top of a mountain?"
+  },
+  {
+   "id": "g007",
+   "q": "Describe your last holiday in a few words."
+  },
+  {
+   "id": "g008",
+   "q": "What do you say when you stub your toe?"
+  },
+  {
+   "id": "g009",
+   "q": "What's the best advice you've ever been given?"
+  },
+  {
+   "id": "g010",
+   "q": "What's the strangest thing in your bag right now?"
+  },
+  {
+   "id": "g011",
+   "q": "What did you do last weekend?"
+  },
+  {
+   "id": "g012",
+   "q": "What's your favourite smell?"
+  },
+  {
+   "id": "g013",
+   "q": "What would you do with a free afternoon?"
+  },
+  {
+   "id": "g014",
+   "q": "What's the last thing you bought?"
+  },
+  {
+   "id": "g015",
+   "q": "What's your go-to dance move?"
+  },
+  {
+   "id": "g016",
+   "q": "What's your favourite thing about winter?"
+  },
+  {
+   "id": "g017",
+   "q": "What do you always forget to pack?"
+  },
+  {
+   "id": "g018",
+   "q": "What's your secret recipe?"
+  },
+  {
+   "id": "g019",
+   "q": "What's the first thing you do when you get home?"
+  },
+  {
+   "id": "g020",
+   "q": "What would your autobiography be called?"
+  },
+  {
+   "id": "g021",
+   "q": "What's on your bedside table?"
+  },
+  {
+   "id": "g022",
+   "q": "What's your favourite word?"
+  },
+  {
+   "id": "g023",
+   "q": "What's the last thing that made you laugh?"
+  },
+  {
+   "id": "g024",
+   "q": "What's your morning routine?"
+  },
+  {
+   "id": "g025",
+   "q": "Describe your dream house."
+  },
+  {
+   "id": "g026",
+   "q": "What would you name a pet goat?"
+  },
+  {
+   "id": "g027",
+   "q": "What's your favourite thing to cook?"
+  },
+  {
+   "id": "g028",
+   "q": "What do you sing in the shower?"
+  },
+  {
+   "id": "g029",
+   "q": "What's the last thing you googled?"
+  },
+  {
+   "id": "g030",
+   "q": "What's your favourite childhood game?"
+  },
+  {
+   "id": "g031",
+   "q": "What would you put in a time capsule?"
+  },
+  {
+   "id": "g032",
+   "q": "What's the most useful thing you own?"
+  },
+  {
+   "id": "g033",
+   "q": "How do you like your eggs?"
+  },
+  {
+   "id": "g034",
+   "q": "What's your favourite thing about your town?"
+  },
+  {
+   "id": "g035",
+   "q": "What's a skill you're proud of?"
+  },
+  {
+   "id": "g036",
+   "q": "What's your idea of a great party?"
+  },
+  {
+   "id": "g037",
+   "q": "What would you buy with a million złoty?"
+  },
+  {
+   "id": "g038",
+   "q": "What do you collect, or what would you collect?"
+  },
+  {
+   "id": "g039",
+   "q": "What's your favourite family tradition?"
+  },
+  {
+   "id": "g040",
+   "q": "What do you do when you can't sleep?"
+  },
+  {
+   "id": "g041",
+   "q": "What's the best gift you've ever received?"
+  },
+  {
+   "id": "g042",
+   "q": "What's your favourite thing to do in the garden?"
+  },
+  {
+   "id": "g043",
+   "q": "What's your favourite sandwich?"
+  },
+  {
+   "id": "g044",
+   "q": "What's in the boot of your car (or would be)?"
+  },
+  {
+   "id": "g045",
+   "q": "What was your first job?"
+  },
+  {
+   "id": "g046",
+   "q": "What's your favourite way to relax?"
+  },
+  {
+   "id": "g047",
+   "q": "What's a food you can't stand?"
+  },
+  {
+   "id": "g048",
+   "q": "What's your favourite thing about Christmas?"
+  },
+  {
+   "id": "g049",
+   "q": "What do you always order at a restaurant?"
+  },
+  {
+   "id": "g050",
+   "q": "What's your favourite sound?"
+  },
+  {
+   "id": "g051",
+   "q": "What would you do if you were invisible for a day?"
+  },
+  {
+   "id": "g052",
+   "q": "What's your favourite season and why?"
+  },
+  {
+   "id": "g053",
+   "q": "What do you do on a rainy day?"
+  },
+  {
+   "id": "g054",
+   "q": "What's the last thing you fixed?"
+  },
+  {
+   "id": "g055",
+   "q": "Describe yourself in three words."
+  },
+  {
+   "id": "g056",
+   "q": "What's the best thing you've ever eaten?"
+  },
+  {
+   "id": "g057",
+   "q": "What's your favourite thing to wear at home?"
+  },
+  {
+   "id": "g058",
+   "q": "What's your favourite board game?"
+  },
+  {
+   "id": "g059",
+   "q": "What did you want to be when you grew up?"
+  },
+  {
+   "id": "g060",
+   "q": "What's the last film you watched?"
+  },
+  {
+   "id": "g061",
+   "q": "What's your favourite thing to do at a wedding?"
+  },
+  {
+   "id": "g062",
+   "q": "What's your weekend breakfast?"
+  },
+  {
+   "id": "g063",
+   "q": "What's a word you always misspell?"
+  },
+  {
+   "id": "g064",
+   "q": "What's the best thing about your job (or school)?"
+  },
+  {
+   "id": "g065",
+   "q": "What do you keep in your pockets?"
+  },
+  {
+   "id": "g066",
+   "q": "What's your favourite thing to do at the seaside?"
+  },
+  {
+   "id": "g067",
+   "q": "Who's your favourite cartoon character?"
+  },
+  {
+   "id": "g068",
+   "q": "What would you do if you won a cow?"
+  },
+  {
+   "id": "g069",
+   "q": "What's your favourite thing about Babcia's cooking?"
+  },
+  {
+   "id": "g070",
+   "q": "What would you take to a desert island?"
+  },
+  {
+   "id": "g071",
+   "q": "What's your guilty pleasure TV show?"
+  },
+  {
+   "id": "g072",
+   "q": "How do you start your day?"
+  },
+  {
+   "id": "g073",
+   "q": "What's your favourite thing to find in a charity shop?"
+  },
+  {
+   "id": "g074",
+   "q": "What do you do when nobody is watching?"
+  },
+  {
+   "id": "g075",
+   "q": "What's the best name for a dog?"
+  },
+  {
+   "id": "g076",
+   "q": "What would you say to your ten-year-old self?"
+  },
+  {
+   "id": "g077",
+   "q": "What's your favourite thing about the weekend?"
+  },
+  {
+   "id": "g078",
+   "q": "What's in your kitchen drawer?"
+  },
+  {
+   "id": "g079",
+   "q": "What do you do when you're nervous?"
+  },
+  {
+   "id": "g080",
+   "q": "What's your favourite pierogi filling?"
+  }
+ ],
+ "contexts": [
+  {
+   "id": "headline",
+   "label": "Gazeta Wiejska",
+   "ask": "Write the newspaper headline over this quote",
+   "placeholder": "LOCAL MAN…",
+   "fallback": [
+    "LOCAL GOOSE ELECTED MAYOR",
+    "VILLAGE FAIR ENDS IN CHAOS",
+    "MAN STUCK IN WARDROBE FOR THREE DAYS"
+   ]
+  },
+  {
+   "id": "shop",
+   "label": "Overheard at the village shop",
+   "ask": "What did Pani Krysia ask, to get this answer?",
+   "placeholder": "Pani Krysia asked…",
+   "fallback": [
+    "Why is there a cow in your kitchen?",
+    "What happened at the wedding?",
+    "Who ate all the pączki?"
+   ]
+  },
+  {
+   "id": "recipe",
+   "label": "Comment on Babcia’s cooking video",
+   "ask": "Write the title of the video",
+   "placeholder": "How to…",
+   "fallback": [
+    "How to cook for forty cousins",
+    "My secret bigos (do not tell the neighbours)",
+    "Pierogi in ten minutes – gone wrong"
+   ]
+  },
+  {
+   "id": "police",
+   "label": "Police report",
+   "ask": "What is the suspect accused of?",
+   "placeholder": "Suspect accused of…",
+   "fallback": [
+    "Stealing the church bell",
+    "Racing a tractor through the market",
+    "Feeding the mayor's goat"
+   ]
+  },
+  {
+   "id": "dating",
+   "label": "Dating profile",
+   "ask": "Who wrote this profile? (name, age, job)",
+   "placeholder": "Zbigniew, 74, beekeeper…",
+   "fallback": [
+    "Halina, 82, retired champion of the polka",
+    "Stefan, 40, owns three tractors",
+    "Bożena, 29, professional pierogi taster"
+   ]
+  },
+  {
+   "id": "court",
+   "label": "In court",
+   "ask": "What did the judge ask the defendant?",
+   "placeholder": "Where were you on…",
+   "fallback": [
+    "Where were you when the sausages went missing?",
+    "Why did you paint the cow blue?",
+    "Do you have anything to say about the bagpipes?"
+   ]
+  },
+  {
+   "id": "review",
+   "label": "Online review ★☆☆☆☆",
+   "ask": "What is this a review of?",
+   "placeholder": "A hotel, a dentist, a…",
+   "fallback": [
+    "The village dentist",
+    "A hotel with no roof",
+    "Babcia’s new microwave"
+   ]
+  },
+  {
+   "id": "parish",
+   "label": "Parish newsletter",
+   "ask": "Write the announcement this was printed under",
+   "placeholder": "This Sunday…",
+   "fallback": [
+    "This Sunday: the great sausage blessing",
+    "Lost: one goat, answers to Zenek",
+    "Choir practice cancelled, again"
+   ]
+  },
+  {
+   "id": "wedding",
+   "label": "Wedding speech",
+   "ask": "What did the best man say right before this?",
+   "placeholder": "When I first met the bride…",
+   "fallback": [
+    "The groom has something to confess",
+    "I'd like to thank the cows",
+    "Let me tell you about the stag do"
+   ]
+  },
+  {
+   "id": "doctor",
+   "label": "At the doctor’s",
+   "ask": "What did the doctor ask?",
+   "placeholder": "Tell me, how long have you…",
+   "fallback": [
+    "How long have you been barking?",
+    "And what did the goat say?",
+    "When did the humming start?"
+   ]
+  },
+  {
+   "id": "quiz",
+   "label": "TV quiz show",
+   "ask": "What was the question?",
+   "placeholder": "For 1000 złoty:…",
+   "fallback": [
+    "For 1000 złoty: what would you do with a dead fish?",
+    "Name something you shouldn't bring to a wedding",
+    "What's the worst thing to say to the Pope?"
+   ]
+  },
+  {
+   "id": "mum",
+   "label": "Text message from Mum",
+   "ask": "What did Mum text first?",
+   "placeholder": "Mum: …",
+   "fallback": [
+    "Mum: why is the car in the lake?",
+    "Mum: who ate the Christmas ham?",
+    "Mum: what is this smell in your room?"
+   ]
+  },
+  {
+   "id": "guide",
+   "label": "Tourist guidebook tip",
+   "ask": "Which sight is this a tip for?",
+   "placeholder": "The old castle…",
+   "fallback": [
+    "The haunted milk bar",
+    "Europe's smallest zoo",
+    "The castle where the duke lost his trousers"
+   ]
+  },
+  {
+   "id": "history",
+   "label": "History textbook",
+   "ask": "Which famous person said this, and when?",
+   "placeholder": "King … in 1410…",
+   "fallback": [
+    "A king, just before the battle",
+    "The inventor of the sock, in 1802",
+    "A very nervous astronaut"
+   ]
+  }
+ ],
+ "answers": [
+  "I can't tell you, it's a secret",
+  "Something with a lot of garlic",
+  "Lying very still under a blanket",
+  "Shouting at the radio",
+  "Three pierogi and a pickle",
+  "I dance when no one is looking",
+  "A rubber duck and some string",
+  "I sing it very loudly",
+  "Whatever Babcia says",
+  "I ask my neighbour's goat",
+  "My lucky socks",
+  "Absolutely nothing, I'm proud of it",
+  "Forty minutes of stretching",
+  "A small, angry cat",
+  "Mashed potatoes, always",
+  "I hide in the wardrobe",
+  "I whistle the national anthem",
+  "A spoon, just in case",
+  "It involves a lot of cheese",
+  "I count the ceiling tiles",
+  "Too much ketchup",
+  "I pretend I'm a pirate",
+  "My grandad's old hat",
+  "I can't remember, honestly",
+  "Lots and lots of glitter",
+  "The polka, every time",
+  "I eat it straight from the pan",
+  "Running away very fast",
+  "A tiny horse",
+  "Sleeping until noon"
+ ]
+}

@@ -1,0 +1,70 @@
+/* ---- Słownik ------------------------------------------------------------------------- */
+
+.dc-big {
+  font-size: 160px;
+  color: var(--yolk);
+}
+.dc-title .qp-sub i {
+  color: var(--cream);
+}
+/* A dictionary page: the word in bold, part of speech in italics, the official definition under it. */
+.dc-page {
+  text-align: left;
+  max-width: 1300px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+.dc-word {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 64px;
+  line-height: 1.05;
+}
+.dc-word i {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 34px;
+  color: #7a5a4a;
+}
+.dc-def {
+  margin-top: 6px;
+  font-size: 34px;
+  line-height: 1.25;
+}
+.dc-syn {
+  margin-top: 4px;
+  font-size: 28px;
+  color: #5a3a2a;
+}
+.dc-syn b {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--beet);
+}
+.dc-page.small {
+  padding: 16px 40px 18px;
+}
+.dc-page.small .dc-word {
+  font-size: 46px;
+}
+.dc-page.small .dc-word i {
+  font-size: 26px;
+}
+.dc-page.small .dc-def {
+  font-size: 26px;
+}
+.dc-page.small .dc-syn {
+  font-size: 22px;
+}
+.dc-next {
+  color: var(--yolk);
+}
+.dc .qp-entry-text {
+  font-size: 32px;
+}
+.dc .qp-grid.n7 .qp-entry-text,
+.dc .qp-grid.n8 .qp-entry-text {
+  font-size: 26px;
+}
+.dc-splash {
+  bottom: 30px;
+}

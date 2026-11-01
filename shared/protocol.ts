@@ -115,6 +115,10 @@ export type GameId =
   | 'herd'
   | 'wave'
   | 'telephone'
+  | 'survey'
+  | 'split'
+  | 'dictionary'
+  | 'gossip'
   | 'swap'
   | 'smoke'
   | 'cows'
@@ -195,6 +199,10 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'herd', title: 'Zgodni', tagline: 'Answer like everybody else.', minPlayers: 3 },
   { id: 'wave', title: 'Fala', tagline: 'Read the clue. Find the spot.', minPlayers: 2 },
   { id: 'telephone', title: 'Głuchy Telefon', tagline: 'Draw it, guess it, draw that – watch it go wrong.', minPlayers: 3 },
+  { id: 'survey', title: 'Ankieta', tagline: 'How many of you said yes? Guess – or bet on the guess.', minPlayers: 3 },
+  { id: 'split', title: 'Pół na Pół', tagline: 'Finish the dilemma so the room splits in half.', minPlayers: 3 },
+  { id: 'dictionary', title: 'Słownik', tagline: 'Define a made-up word. Then use it.', minPlayers: 3 },
+  { id: 'gossip', title: 'Plotki', tagline: 'Answer honestly. Someone turns it into gossip.', minPlayers: 3 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
   { id: 'cows', title: 'Krówki', tagline: 'Lasso your cows. Drag them home.', minPlayers: 1 },
   { id: 'footsteps', title: 'Śladami Babci', tagline: 'Watch Babcia’s trail. Walk it from memory.', minPlayers: 1 },

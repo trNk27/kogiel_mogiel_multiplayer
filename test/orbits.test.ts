@@ -38,16 +38,19 @@ describe('landing page orbits', () => {
 
   it('stacks planets on different rings by height alone, so they swap only when level', () => {
     const planets = orbitLayout(GAMES.length);
+    // Plain comparisons collected into one list (an expect per pair is too slow for ~45 games × 480 frames).
+    const bad: string[] = [];
     for (let t = 0; t < 120; t += 0.25) {
       const poses = planets.map((p) => planetAt(p, t));
       for (const a of poses)
         for (const b of poses) {
           // The same height means the same size and the same depth, whatever the ring.
-          if (Math.abs(a.y - b.y) < 1e-9) expect(a.scale).toBeCloseTo(b.scale);
+          if (Math.abs(a.y - b.y) < 1e-9 && Math.abs(a.scale - b.scale) >= 0.005) bad.push(`t=${t}: same height, scales ${a.scale} vs ${b.scale}`);
           // Lower on the screen is always in front, and only a real tie ties.
-          if (a.y > b.y + 0.1) expect(zFor(a.y)).toBeGreaterThan(zFor(b.y));
+          if (a.y > b.y + 0.1 && !(zFor(a.y) > zFor(b.y))) bad.push(`t=${t}: y ${a.y} below ${b.y} but not in front`);
         }
     }
+    expect(bad.slice(0, 5)).toEqual([]);
     expect(zFor(-1)).toBeLessThan(Z_TITLE);
     expect(zFor(1)).toBeGreaterThan(Z_TITLE);
   });
