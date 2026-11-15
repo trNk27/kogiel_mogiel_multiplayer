@@ -34,10 +34,12 @@ import { Icon as SurveyIcon } from '../games/survey/icon';
 import { Icon as FootstepsIcon } from '../games/footsteps/icon';
 import { Icon as PremiumIcon } from '../games/premium/icon';
 import { Icon as CastleIcon } from '../games/castle/icon';
+import { Icon as WeseleIcon } from '../games/wesele/icon';
 
 /** Illustrated icons for the games (and the tournament). */
 export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }) {
   if (game === 'tanks') return <TanksIcon size={size} />;
+  if (game === 'wesele') return <WeseleIcon size={size} />;
   if (game === 'mushroom') return <MushroomIcon size={size} />;
   if (game === 'pushy') return <PushyIcon size={size} />;
   if (game === 'gallery') return <GalleryIcon size={size} />;
