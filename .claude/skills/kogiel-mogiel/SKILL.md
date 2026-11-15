@@ -20,13 +20,13 @@ If one of these is genuinely missing and changes the build, ask ONE short questi
 ## 2. Read the house rules
 - Read `README.md` (especially *Design language* and *Local development*) and `CONTRIBUTING.md` in full before writing code.
 - `CONTRIBUTING.md` is the source of truth: its checklist decides which files to create and which shared files to touch. If it disagrees with this skill, CONTRIBUTING.md wins.
-- Check existing games in `client/src/games/` and open issues/PRs (`gh issue list`, `gh pr list`) so you don't duplicate a game. If there's no issue for this idea yet, open one with a short pitch (what happens, what the phone shows, how many players) and link it from the PR.
+- Check existing games in `client/src/games/` and open issues/PRs (with the session's GitHub tools, or `gh issue list` / `gh pr list`) so you don't duplicate a game. If there's no issue for this idea yet, open one with a short pitch (what happens, what the phone shows, how many players) and link it from the PR.
 - Pick a similar existing game and copy its shape rather than inventing a new structure.
 
 ## 3. Branch and build
-- `git checkout main && git pull`, then create a branch like `game/<id>`. Never commit or push to `main`.
-- Your own files: `client/src/games/<id>/` (`<Name>Game.tsx`, `logic.ts` with `howTo(short)`, `icon.tsx`, and `scene.ts` for 3D arena games), `test/<id>.test.ts`, and `data/<id>.json` only if the game has a question/prompt pool.
-- Shared files: one or two lines each, exactly as the checklist says (`shared/protocol.ts`, `client/src/games/registry.ts`, `client/src/host/GameIcon.tsx`, `client/src/host/HostApp.tsx`, `client/src/host/caster.ts` for 3D only, and the games table in `README.md`). Don't refactor shared code.
+- Start from the latest `main` (`git fetch origin main`) on a branch like `game/<id>`. If the session has already given you a branch to work on, use that one instead: some sessions can only push to their own branch. Never commit or push to `main`.
+- Do everything on the checklist in `CONTRIBUTING.md`: your own files, the one-line changes in the shared files (including the music in `tracks.ts` and both README tables), and the phone screen. Don't refactor shared code.
+- For the phone, reuse the generic `ask` or `pad` screen when it fits. Only add your own `PhoneView`/`PhoneMsg` and a `case` in `client/src/phone/views.tsx` when neither does.
 - Handle the short (tournament) version via `host.short`, players dropping out mid-game (`onRemoved`, `onConnection`), and the design rules (phone buttons at least 48 px, short text, icons and colours do the explaining).
 
 ## 4. Check it
@@ -34,11 +34,11 @@ If one of these is genuinely missing and changes the build, ask ONE short questi
 
 ## 5. Show it before sending it
 - `npm run dev`, then open `http://localhost:8787/dev?n=4` (adjust `n`; use `/dev?notv&n=3` for games that also work without a TV).
-- Take screenshots of the TV and the phones at key moments (start, mid-round, results) with a headless browser (install Playwright if needed) and send them to the user.
+- Take screenshots of the TV and the phones at key moments (start, mid-round, results) with a headless browser (use Playwright if it's already installed, as it is in Claude's cloud sessions: don't install it again there, that breaks it) and send them to the user.
 - Ask for changes and iterate (re-run tests/typecheck and re-screenshot) until the user is happy.
 
 ## 6. Open the pull request
-- Commit, push the branch, and open a PR into `main` with `gh pr create`.
+- Commit, push the branch, and open a PR into `main` with the session's GitHub tools (or `gh pr create`).
 - PR description: what the game is, player count, how a round works, any assumptions, the linked issue, and confirmation that `npm test` and `npm run typecheck` pass.
 - Tell the user the PR is open; Manuel gets notified and reviews it. Only he can merge, and a merge goes live straight away.
 
@@ -48,10 +48,8 @@ If one of these is genuinely missing and changes the build, ask ONE short questi
 ## 8. Merge conflicts
 - If the PR says "This branch has conflicts" (usually two games added at once): `git fetch origin && git merge origin/main`, resolve by **keeping both sides** (both games' lines in the shared files), run tests and typecheck, then push.
 
-## If `gh` commands fail
-In some Claude sessions GitHub's GraphQL API is blocked, so `gh pr create` / `gh issue list` return HTTP 403. Use the REST API instead, e.g.
-`gh api repos/trNk27/kogiel_mogiel_multiplayer/pulls -f title=... -f head=<branch> -f base=main -f body=...`
-and `gh api repos/trNk27/kogiel_mogiel_multiplayer/issues`.
+## If GitHub access is refused
+Some sessions block parts of GitHub on purpose (e.g. `gh` returning HTTP 403). Don't work around a block. Use the GitHub tools the session provides instead. If nothing works for issues or the PR, skip that step and tell the user: give them the branch name so they can open the pull request on GitHub themselves (**Contribute → Open pull request**, or the yellow "Compare & pull request" banner).
 
 ## Rules
 - One game per session/branch/PR.

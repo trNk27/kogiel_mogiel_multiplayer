@@ -67,7 +67,21 @@ Pick a short lowercase id for your game, like `clock` or `moles`. Then:
 - [ ] `client/src/host/GameIcon.tsx` – import your icon and add a line for it
 - [ ] `client/src/host/HostApp.tsx` – import your `howTo` and add a `case` to the how-to switch
 - [ ] `client/src/host/caster.ts` – only for 3D scenes: add your scene to the list
+- [ ] `client/src/lib/tracks.ts` – the music: add your id to a `case` in `trackForGame` (`quiz`, `polka`,
+  `race` or `lounge`), or to the `null` case if your game makes its own sounds. Games not listed get the arena track.
 - [ ] `README.md` – a row in the games table, and in the tournament table if your game has a short version
+
+**The phone screen.** Reuse a ready-made one if you can, then there's nothing more to add:
+
+- `ask` (`client/src/phone/ask.tsx`) – a title, a time bar and one input: type an answer, pick an option,
+  a slider, big keys, or a drawing pad. For word, drawing and voting games.
+- `pad` (`client/src/phone/arenaPad.tsx`) – a joystick plus up to two buttons. For arena games, where the action is on the TV.
+
+If neither fits, your game gets its own phone screen (like Wybredna Baja or Podmianka). That needs:
+
+- [ ] `shared/protocol.ts` – a variant in `PhoneView` (what the phone shows) and in `PhoneMsg` (what it sends back)
+- [ ] a component for it, e.g. `client/src/games/<id>/phone.tsx`
+- [ ] `client/src/phone/views.tsx` – import the component and add a `case` to `ViewRouter`
 
 ## Things your game should handle
 
