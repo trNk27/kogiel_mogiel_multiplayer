@@ -1,0 +1,133 @@
+/* ---- Przystań ------------------------------------------------------------------------------- */
+/* The container is `.rally` (full stage, canvas behind); chips, pops and the banner frame come from
+   cookbook.css, the top bar, clock and big calls from floes.css. */
+
+.marina-top .pill {
+  background: rgba(10, 34, 52, 0.82);
+  box-shadow: inset 0 0 0 3px rgba(220, 244, 255, 0.35);
+}
+.marina-top .floes-rule {
+  background: rgba(10, 34, 52, 0.62);
+}
+.marina-count {
+  top: 26px;
+}
+.marina-count b {
+  font-size: 84px;
+  color: #e9f8ff;
+  -webkit-text-stroke-color: #0b2233;
+  text-shadow: 0 10px 0 #0b2233;
+}
+.marina-count small,
+.marina-count .floes-clock {
+  text-shadow: 0 3px 0 #0b2233;
+}
+/* The wind: a big beet pill that leans the way it blows. */
+.marina-wind {
+  font-size: 34px;
+  padding: 6px 26px;
+  border-radius: 999px;
+  background: var(--beet, #c8325a);
+  color: var(--cream);
+  box-shadow: 0 5px 0 #4a1020;
+  animation: marina-gust 1.1s ease-in-out infinite alternate;
+}
+.marina-wind.left {
+  animation-direction: alternate-reverse;
+}
+@keyframes marina-gust {
+  from {
+    translate: -6px 0;
+  }
+  to {
+    translate: 6px 0;
+  }
+}
+.marina-call {
+  color: #ffe08a;
+  -webkit-text-stroke-color: #0b2233;
+  text-shadow: 0 10px 0 #0b2233;
+}
+.marina-intro {
+  position: absolute;
+  left: 50%;
+  top: 700px;
+  translate: -50% 0;
+  font-size: 44px;
+  padding: 10px 34px;
+  border-radius: 999px;
+  background: rgba(10, 34, 52, 0.78);
+  color: var(--cream);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.marina-pop {
+  font-size: 46px;
+}
+.marina-ring {
+  position: absolute;
+  translate: -50% -100%;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.35));
+}
+.marina-chips .cookbook-chip {
+  background: rgba(10, 30, 46, 0.84);
+}
+.marina-done {
+  background: rgba(255, 201, 60, 0.28) !important;
+}
+
+/* Round-over table: who parked where, and what each bonus was worth. */
+.marina-banner {
+  min-width: 1100px;
+}
+.marina-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 auto 14px;
+}
+.marina-row {
+  display: grid;
+  grid-template-columns: 44px minmax(180px, 1fr) 150px 120px 120px 100px 100px 90px;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 22px 3px 12px;
+  border-radius: 999px;
+  background: rgba(251, 240, 217, 0.08);
+  box-shadow: inset 0 0 0 3px var(--pc);
+  font-size: 28px;
+  text-align: center;
+}
+.marina-row.head {
+  background: none;
+  box-shadow: none;
+  font-size: 20px;
+  color: var(--muted);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.marina-row.win {
+  background: rgba(255, 201, 60, 0.22);
+}
+.marina-row .grow {
+  text-align: left;
+}
+.marina-row small {
+  font-size: 20px;
+  color: var(--muted);
+}
+.marina-row b {
+  color: var(--yolk);
+  font-size: 34px;
+}
+.marina-span2 {
+  grid-column: span 2;
+}
+.marina-miss {
+  font-size: 22px;
+  color: var(--muted);
+}
+.marina-bad {
+  color: #ff8a8a;
+}

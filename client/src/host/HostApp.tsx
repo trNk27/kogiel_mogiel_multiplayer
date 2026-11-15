@@ -55,6 +55,7 @@ import { howTo as dictionaryHowTo } from '../games/dictionary/logic';
 import { howTo as splitHowTo } from '../games/split/logic';
 import { howTo as surveyHowTo } from '../games/survey/logic';
 import { howTo as footstepsHowTo } from '../games/footsteps/logic';
+import { howTo as marinaHowTo } from '../games/marina/logic';
 
 /**
  * The room this page shows: the real one on the host TV, or a second screen's copy of it (see
@@ -502,6 +503,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return surveyHowTo(short);
     case 'footsteps':
       return footstepsHowTo(short);
+    case 'marina':
+      return marinaHowTo(short);
     case 'castle':
       return castleHowTo();
     case 'premium':

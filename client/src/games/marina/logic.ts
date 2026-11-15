@@ -29,9 +29,9 @@ export const SHORT_LEVEL = 1;
 /** Open water spans x ∈ [−HALF_W, HALF_W] and z ∈ [QUAY_Z, SHORE_Z]. */
 export const HALF_W = 31;
 export const QUAY_Z = -17;
-export const SHORE_Z = 16;
+export const SHORE_Z = 13.5;
 /** Boats start in a row here, bows towards the quay. */
-export const START_Z = 11.5;
+export const START_Z = 8.5;
 /** Pontoon fingers between berths are this wide; the jetty this wide. */
 export const FINGER_W = 0.5;
 export const JETTY_W = 2.2;
@@ -468,8 +468,8 @@ export function makeLayout(count: number, level: number, rng: Rng, gone: boolean
     });
   for (let tries = 0; buoys.length < L.buoys && tries < 400; tries++) {
     const x = (rng() * 2 - 1) * (HALF_W - 5);
-    const z = QUAY_Z + L.berthLen + 6 + rng() * (START_Z - 5 - (QUAY_Z + L.berthLen + 6));
-    if (jettyX !== null && Math.abs(x - jettyX) < JETTY_W / 2 + L.berthLen + 6 && z < QUAY_Z + jettyLen + 4) continue;
+    const z = QUAY_Z + L.berthLen + 6 + rng() * (START_Z - 6.5 - (QUAY_Z + L.berthLen + 6));
+    if (jettyX !== null && Math.abs(x - jettyX) < JETTY_W / 2 + L.berthLen + 6 && z < QUAY_Z + jettyLen + 7) continue;
     if (!entryClear(x, z)) continue;
     if (buoys.some((b) => Math.hypot(b.x - x, b.z - z) < 7)) continue;
     if (starts.some((s) => Math.hypot(s.x - x, s.z - z) < 5)) continue;
@@ -980,6 +980,7 @@ export class Autopilot {
   private stuck = 0;
   private backing = 0;
   private retreat = false;
+  private seg = 0;
 
   constructor(
     private sim: MarinaSim,
@@ -989,12 +990,19 @@ export class Autopilot {
     const berth = sim.layout.berths[i];
     const f = fwd(berth.a);
     const at = (d: number): V2 => ({ x: berth.x - f.x * d, z: berth.z - f.z * d });
-    if (berth.row === 'quay') this.path = [{ x: b.x, z: b.z }, at(berth.hl + 12), at(berth.hl + 7), at(0)];
+    if (berth.row === 'quay') this.path = [{ x: b.x, z: b.z }, at(berth.hl + 9), at(berth.hl + 7), at(0)];
     else {
       // Beside the jetty: come up from the open water below the lead-in, then turn in.
       const e = at(berth.hl + 5.5);
       const o = at(berth.hl + 9);
       this.path = [{ x: b.x, z: b.z }, { x: o.x, z: o.z + 5 }, e, at(0)];
+      // From the other side of the jetty: round its tip first.
+      const jx = sim.layout.jettyX ?? 0;
+      const side = Math.sign(berth.x - jx);
+      if (Math.sign(b.x - jx) !== side) {
+        const tip = Math.max(...sim.layout.solids.filter((s) => s.kind === 'jetty').map((s) => s.z + s.hl));
+        this.path.splice(1, 0, { x: jx + side * 5, z: tip + 5 });
+      }
     }
     // Steer round buoys on the way (not on the lead-in).
     for (let pass = 0; pass < 8; pass++) {
@@ -1029,8 +1037,10 @@ export class Autopilot {
   /** Closest point on the path: segment index, its fraction, and the distance left to the end. */
   private onPath(x: number, z: number) {
     const P = this.path;
-    let best = { k: 0, t: 0, d: Infinity };
-    for (let k = 0; k < P.length - 1; k++) {
+    let best = { k: this.seg, t: 0, d: Infinity };
+    // Waypoints passed close by count as reached (so the boat never circles one it can't hit).
+    while (this.seg < P.length - 2 && Math.hypot(P[this.seg + 1].x - x, P[this.seg + 1].z - z) < 3.5) this.seg++;
+    for (let k = this.seg; k < P.length - 1; k++) {
       const ax = P[k].x;
       const az = P[k].z;
       const sx = P[k + 1].x - ax;
@@ -1041,6 +1051,7 @@ export class Autopilot {
       const d = Math.hypot(ax + sx * t - x, az + sz * t - z) - k * 0.01;
       if (d <= best.d) best = { k, t, d };
     }
+    this.seg = best.k;
     let left = Math.hypot(P[best.k + 1].x - P[best.k].x, P[best.k + 1].z - P[best.k].z) * (1 - best.t);
     for (let k = best.k + 1; k < P.length - 1; k++) left += Math.hypot(P[k + 1].x - P[k].x, P[k + 1].z - P[k].z);
     return { ...best, left };
@@ -1101,6 +1112,14 @@ export class Autopilot {
       want = headingOf(fB.x * 3 - sB.x * off, fB.z * 3 - sB.z * off);
       vWant = togo > 0.12 ? clamp(togo * 0.33, 0.3, 2) : 0;
     } else {
+      // Slow down for a sharp corner coming up.
+      const P = this.path;
+      if (on.k < P.length - 2) {
+        const c = P[on.k + 1];
+        const a1 = headingOf(c.x - P[on.k].x, c.z - P[on.k].z);
+        const a2 = headingOf(P[on.k + 2].x - c.x, P[on.k + 2].z - c.z);
+        if (Math.abs(angDiff(a1, a2)) > 0.6) vWant = Math.min(vWant, 1.6 + Math.hypot(c.x - b.x, c.z - b.z) * 0.3);
+      }
       const t = this.along(on.k, on.t, clamp(2.5 + sp * 0.6, 2.5, 5));
       want = headingOf(t.x - b.x, t.z - b.z);
     }

@@ -123,6 +123,7 @@ export type GameId =
   | 'smoke'
   | 'cows'
   | 'footsteps'
+  | 'marina'
   | 'castle'
   | 'premium';
 
@@ -206,6 +207,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
   { id: 'cows', title: 'Krówki', tagline: 'Lasso your cows. Drag them home.', minPlayers: 1 },
   { id: 'footsteps', title: 'Śladami Babci', tagline: 'Watch Babcia’s trail. Walk it from memory.', minPlayers: 1 },
+  { id: 'marina', title: 'Przystań', tagline: 'Park your boat. Mind the paint.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   {
     id: 'premium',
