@@ -7,6 +7,15 @@ New games are very welcome. This page explains how to get one from an idea onto 
 **Open an issue first** with a short pitch: what happens, what the phone shows, how many players.
 That way two people don't build the same game, and we can agree on the idea before you put hours into it.
 
+## Building a game with Claude
+
+This repo includes a Claude skill (`.claude/skills/kogiel-mogiel/`) that follows this whole page for you.
+In a Claude Code session on this repo, describe your idea, for example:
+
+> Add a game to Kogiel Mogiel: [what happens, what the TV and phones show, how many players]
+
+Claude builds it, runs the tests, shows you screenshots from `/dev?n=4`, and opens a pull request.
+
 ## How changes get in
 
 1. **Fork** this repo (button top right), or, if you've been added as a collaborator, make a **branch** here.
