@@ -45,6 +45,7 @@ import { DictionaryGame } from './dictionary/DictionaryGame';
 import { SplitGame } from './split/SplitGame';
 import { SurveyGame } from './survey/SurveyGame';
 import { FootstepsGame } from './footsteps/FootstepsGame';
+import { MarinaGame } from './marina/MarinaGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
 
@@ -140,6 +141,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new CowsGame(host, ids);
     case 'footsteps':
       return new FootstepsGame(host, ids);
+    case 'marina':
+      return new MarinaGame(host, ids);
     case 'castle':
       return new CastleGame(host, ids);
     case 'premium':

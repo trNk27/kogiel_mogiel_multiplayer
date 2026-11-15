@@ -32,6 +32,7 @@ import { Icon as DictionaryIcon } from '../games/dictionary/icon';
 import { Icon as SplitIcon } from '../games/split/icon';
 import { Icon as SurveyIcon } from '../games/survey/icon';
 import { Icon as FootstepsIcon } from '../games/footsteps/icon';
+import { Icon as MarinaIcon } from '../games/marina/icon';
 import { Icon as PremiumIcon } from '../games/premium/icon';
 import { Icon as CastleIcon } from '../games/castle/icon';
 import { Icon as WeseleIcon } from '../games/wesele/icon';
@@ -73,6 +74,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
   if (game === 'split') return <SplitIcon size={size} />;
   if (game === 'survey') return <SurveyIcon size={size} />;
   if (game === 'footsteps') return <FootstepsIcon size={size} />;
+  if (game === 'marina') return <MarinaIcon size={size} />;
   if (game === 'premium') return <PremiumIcon size={size} />;
   if (game === 'castle') return <CastleIcon size={size} />;
   if (game === 'trails')
