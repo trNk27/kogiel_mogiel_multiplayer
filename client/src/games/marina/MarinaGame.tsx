@@ -431,8 +431,8 @@ export class MarinaGame implements Game {
     const linking = this.phase === 'ready' || (this.phase === 'play' && now - this.playAt < LINK_MS);
     return (
       <>
-        {this.berthTags(players, linking)}
         {linking && this.links(players)}
+        {this.berthTags(players, linking)}
         <div class="floes-top marina-top">
           <span class="pill">
             Round {this.round} / {this.rounds} · {L.name}
