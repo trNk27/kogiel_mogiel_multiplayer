@@ -48,6 +48,11 @@ If one of these is genuinely missing and changes the build, ask ONE short questi
 ## 8. Merge conflicts
 - If the PR says "This branch has conflicts" (usually two games added at once): `git fetch origin && git merge origin/main`, resolve by **keeping both sides** (both games' lines in the shared files), run tests and typecheck, then push.
 
+## If `gh` commands fail
+In some Claude sessions GitHub's GraphQL API is blocked, so `gh pr create` / `gh issue list` return HTTP 403. Use the REST API instead, e.g.
+`gh api repos/trNk27/kogiel_mogiel_multiplayer/pulls -f title=... -f head=<branch> -f base=main -f body=...`
+and `gh api repos/trNk27/kogiel_mogiel_multiplayer/issues`.
+
 ## Rules
 - One game per session/branch/PR.
 - Never push to or merge into `main`.
