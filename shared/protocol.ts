@@ -125,7 +125,8 @@ export type GameId =
   | 'footsteps'
   | 'castle'
   | 'premium'
-  | 'wesele';
+  | 'wesele'
+  | 'baja';
 
 export interface GameInfo {
   id: GameId;
@@ -164,6 +165,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1 },
   { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1 },
   { id: 'wesele', title: 'Wesele', tagline: 'Shots, twirls with drunk uncles, Gorzko! Survive till 3:00.', minPlayers: 2 },
+  { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi. Guess what she wants.', minPlayers: 1 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
   {
     id: 'mushroom',
@@ -795,6 +797,29 @@ export type PhoneView =
       text?: string;
     }
   /**
+   * Wybredna Baja: build a plate (one option per row, `rows` rows) and feed her. `history` is your
+   * tries this craving (`plate` null if you missed one); `fed` the try you fed her right on.
+   * `changed` lists rows she changed her mind about; `answer` is shown at the reveal.
+   */
+  | {
+      v: 'baja';
+      phase: 'intro' | 'build' | 'taste' | 'mind' | 'reveal';
+      round: number;
+      rounds: number;
+      tryN: number;
+      tries: number;
+      rows: number;
+      endsAt: number;
+      hint: { row: number; opt: number };
+      changed: number[];
+      sent: number[] | null;
+      history: { plate: number[] | null; hits: number }[];
+      fed: number | null;
+      pts: number;
+      total: number;
+      answer: number[] | null;
+    }
+  /**
    * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda,
    * Babcia Mówi): the phone is a joystick plus up to two buttons, and the game itself is on the TV. See `PadButton`.
    */
@@ -1014,6 +1039,8 @@ export type PhoneMsg =
    * clock), or a count (`n`): twirls so far in the dance (sent as they happen), or Gorzko! taps (sent at the end).
    */
   | { t: 'wesele'; key: number; drink?: boolean; at?: number; n?: number }
+  /** Wybredna Baja: your plate for try `tryN` of craving `round` (one option index per row). */
+  | { t: 'feed'; round: number; tryN: number; plate: number[] }
   /** Fajki: reach for the cigarette in front of you. */
   | { t: 'grab' }
   /** Fajki: started pulling on the cigarette (`pull`), or let go: puff quality `q` (0–1) and how it went (`v`, see Verdict). */

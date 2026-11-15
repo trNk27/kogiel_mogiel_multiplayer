@@ -1,0 +1,824 @@
+/* ---- Wybredna Baja (TV) --------------------------------------------------------------------- */
+
+.baja-screen {
+  overflow: hidden;
+}
+/* Baja's grey sofa, a woven cushion texture on the left of the stage. */
+.baja-sofa {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 960px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 6px),
+    radial-gradient(ellipse at 45% 40%, #6b6663 0%, #575250 55%, #3f3a39 100%);
+  border-radius: 0 60px 60px 0;
+  box-shadow: 12px 0 0 rgba(0, 0, 0, 0.3);
+}
+.baja-sofa::after {
+  /* The seam between the back cushion and the seat. */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 120px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 3px;
+}
+
+.baja-top {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  top: 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 5;
+}
+.baja-top .pill {
+  font-size: 30px;
+  padding: 8px 24px;
+  background: rgba(21, 9, 16, 0.8);
+}
+.baja-top .pill.pill-cat {
+  background: var(--yolk);
+  color: var(--ink);
+}
+
+.baja-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 960px;
+  bottom: 0;
+}
+.baja-wrap {
+  position: absolute;
+  left: 300px;
+  bottom: -20px;
+  transform-origin: 50% 90%;
+}
+
+.baja-title {
+  position: absolute;
+  left: 60px;
+  right: 0;
+  top: 140px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 84px;
+  color: var(--yolk);
+  -webkit-text-stroke: 8px #241015;
+  paint-order: stroke fill;
+  text-shadow: 0 8px 0 #241015;
+  z-index: 4;
+}
+
+.baja-bubble {
+  position: absolute;
+  left: 620px;
+  top: 300px;
+  max-width: 320px;
+  padding: 18px 26px;
+  border-radius: 30px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 1.15;
+  box-shadow: var(--drop);
+  z-index: 4;
+}
+.baja-bubble::before {
+  content: '';
+  position: absolute;
+  left: -22px;
+  bottom: 26px;
+  border: 16px solid transparent;
+  border-right: 24px solid var(--cream);
+  border-left: 0;
+}
+
+/* The plate she's tasting, in front of her. */
+.baja-plate {
+  position: absolute;
+  left: 30px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 6;
+  animation: plate-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+@keyframes plate-in {
+  from {
+    transform: translateX(-260px) rotate(-8deg);
+    opacity: 0;
+  }
+}
+.baja-plate-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px 6px 8px;
+  border-radius: 999px;
+  background: var(--pc);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 28px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: var(--drop);
+}
+
+.offering {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: calc(240px * var(--s, 1));
+  height: calc(170px * var(--s, 1));
+  font-size: calc(84px * var(--s, 1));
+}
+.off-food {
+  position: relative;
+  z-index: 2;
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.3));
+}
+.off-food.tiny {
+  display: flex;
+  gap: 0;
+  font-size: 0.45em;
+}
+.off-food.tiny span:nth-child(2) {
+  transform: translateY(-14px) rotate(30deg);
+}
+.off-food.tiny span:nth-child(3) {
+  transform: rotate(-25deg);
+}
+.off-hand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.off-hand .off-food {
+  margin-bottom: -0.45em;
+}
+.off-palm {
+  font-size: 1.15em;
+  line-height: 1;
+}
+.off-bowl {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.off-bowl .off-food {
+  margin-bottom: -0.55em;
+}
+.off-bowl-svg {
+  width: calc(200px * var(--s, 1));
+  height: calc(80px * var(--s, 1));
+  position: relative;
+  z-index: 3;
+}
+.off-floor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.off-boards {
+  width: calc(230px * var(--s, 1));
+  height: calc(34px * var(--s, 1));
+  margin-top: -0.15em;
+  border-radius: 6px;
+  background: repeating-linear-gradient(90deg, #a87442 0 54px, #8a5a30 54px 58px);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+}
+.off-steam,
+.off-frost {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.55em;
+  z-index: 4;
+}
+.off-steam {
+  animation: steam 1.4s ease-in-out infinite;
+}
+@keyframes steam {
+  50% {
+    transform: translateY(-12px);
+    opacity: 0.6;
+  }
+}
+.off-frost {
+  animation: frost 2s linear infinite;
+}
+@keyframes frost {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.off-trick {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 0.55em;
+  z-index: 4;
+  animation: steam 1s ease-in-out infinite;
+}
+
+/* Paws: how many rows she liked. */
+.baja-paws {
+  display: inline-flex;
+  gap: 2px;
+  font-style: normal;
+}
+.baja-paws i {
+  font-style: normal;
+  filter: grayscale(1) brightness(0.45);
+  opacity: 0.45;
+}
+.baja-paws i.on {
+  filter: none;
+  opacity: 1;
+}
+.baja-paws.big {
+  font-size: 46px;
+  gap: 8px;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.75);
+}
+.baja-paws.big i.on {
+  animation: pop-in 0.4s both;
+}
+.baja-paws.big i:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.baja-paws.big i:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.baja-paws.big i:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+/* The answer at the end of a craving. */
+.baja-answer {
+  position: absolute;
+  left: 40px;
+  bottom: 40px;
+  padding: 16px 26px 20px;
+  border-radius: 30px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: var(--drop-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 6;
+}
+.baja-answer small {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+}
+.baja-answer-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 800;
+  font-size: 24px;
+}
+
+.baja-how {
+  position: absolute;
+  left: 1000px;
+  right: 36px;
+  top: 150px;
+  padding: 30px 36px;
+  border-radius: 30px;
+  background: var(--panel);
+  box-shadow: var(--edge), var(--drop);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 32px;
+  z-index: 6;
+}
+.baja-how b {
+  font-family: var(--font-display);
+  font-size: 44px;
+  color: var(--yolk);
+}
+.baja-how + .baja-board {
+  top: 520px;
+}
+.baja-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 28px;
+  font-size: 36px;
+}
+.baja-legend i {
+  font-style: normal;
+}
+
+/* Zoomies and hearts. */
+.baja-zoomies {
+  position: absolute;
+  left: 0;
+  bottom: 10px;
+  z-index: 7;
+  animation: zoom-across 3.4s ease-in-out both;
+}
+@keyframes zoom-across {
+  0% {
+    transform: translateX(-340px);
+  }
+  45% {
+    transform: translateX(760px);
+  }
+  50% {
+    transform: translateX(760px) scaleX(-1);
+  }
+  95% {
+    transform: translateX(-60px) scaleX(-1);
+  }
+  100% {
+    transform: translateX(-340px) scaleX(-1);
+  }
+}
+.baja-run-body {
+  animation: run-bob 0.18s ease-in-out infinite alternate;
+}
+@keyframes run-bob {
+  to {
+    transform: translateY(-8px) rotate(-3deg);
+  }
+}
+.baja-run-legs {
+  filter: blur(2px);
+  animation: legs 0.12s linear infinite alternate;
+}
+@keyframes legs {
+  to {
+    transform: translateX(8px);
+  }
+}
+.baja-hearts span {
+  position: absolute;
+  left: calc(360px + var(--i) * 60px);
+  top: 260px;
+  font-size: 54px;
+  z-index: 5;
+  animation: heart-up 2.4s calc(var(--i) * 0.18s) ease-out both;
+}
+@keyframes heart-up {
+  from {
+    transform: translateY(80px) scale(0.3);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-220px) scale(1.1) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+/* ---- Baja's moods (the svg in art.tsx) ---- */
+
+.baja .baja-head {
+  transform-box: view-box;
+  transform-origin: 300px 430px;
+  animation: breathe 3.2s ease-in-out infinite;
+}
+@keyframes breathe {
+  50% {
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+.baja .baja-lid {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+  animation: blink 4.6s infinite;
+}
+@keyframes blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(0);
+  }
+  95% {
+    transform: scaleY(1);
+  }
+}
+.baja .baja-ear-l,
+.baja .baja-ear-r {
+  transform-box: view-box;
+}
+.baja .baja-ear-l {
+  transform-origin: 220px 240px;
+  animation: ear-twitch 5s 1.2s infinite;
+}
+.baja .baja-ear-r {
+  transform-origin: 380px 240px;
+}
+@keyframes ear-twitch {
+  0%,
+  90%,
+  100% {
+    transform: none;
+  }
+  93% {
+    transform: rotate(-8deg);
+  }
+  96% {
+    transform: rotate(3deg);
+  }
+}
+.baja .baja-tongue {
+  opacity: 0;
+}
+
+.baja-sniff .baja-head {
+  animation: sniff-lean 1s ease-in-out both;
+}
+@keyframes sniff-lean {
+  40%,
+  100% {
+    transform: translateY(18px) scale(1.06);
+  }
+}
+.baja-sniff .baja-nose {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: nose-twitch 0.16s ease-in-out infinite alternate;
+}
+@keyframes nose-twitch {
+  to {
+    transform: translateY(-3px) scale(1.06, 0.94);
+  }
+}
+
+.baja-snub .baja-head {
+  animation: snub 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+@keyframes snub {
+  to {
+    transform: translateX(-36px) translateY(-14px) rotate(-16deg);
+  }
+}
+
+.baja-lick .baja-tongue {
+  animation: lick 0.9s ease-in-out both;
+}
+@keyframes lick {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scaleY(0.4);
+  }
+  30%,
+  60% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) scaleY(0.4);
+  }
+}
+.baja-lick .baja-tongue {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+.baja-lick .baja-head {
+  animation: lick-turn 1.9s ease-in-out both;
+}
+@keyframes lick-turn {
+  0%,
+  55% {
+    transform: none;
+  }
+  100% {
+    transform: translateX(30px) rotate(10deg);
+  }
+}
+
+.baja-spit .baja-mouth {
+  transform-box: view-box;
+  animation: chew 0.3s ease-in-out 3 alternate;
+}
+@keyframes chew {
+  to {
+    transform: translateY(6px);
+  }
+}
+.baja-spit .baja-head {
+  animation: spit 1.9s ease-in-out both;
+}
+@keyframes spit {
+  0%,
+  45% {
+    transform: none;
+  }
+  55% {
+    transform: translateY(-10px) rotate(-6deg);
+  }
+  65% {
+    transform: translateY(8px) scale(1.04);
+  }
+  100% {
+    transform: rotate(4deg);
+  }
+}
+.mood-spit::after {
+  /* The bit she spits out. */
+  content: '\1F4A6';
+  position: absolute;
+  left: 280px;
+  top: 380px;
+  font-size: 56px;
+  opacity: 0;
+  animation: spit-out 1.9s ease-out both;
+}
+@keyframes spit-out {
+  0%,
+  55% {
+    opacity: 0;
+    transform: none;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-220px, 140px) rotate(-40deg);
+  }
+}
+
+.baja-eat .baja-tongue {
+  opacity: 1;
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: pant 0.3s ease-in-out infinite alternate;
+}
+@keyframes pant {
+  to {
+    transform: scaleY(1.15);
+  }
+}
+.baja-eat .baja-head {
+  animation: happy-bob 0.45s ease-in-out infinite alternate;
+}
+@keyframes happy-bob {
+  from {
+    transform: rotate(-5deg);
+  }
+  to {
+    transform: rotate(5deg) translateY(-8px);
+  }
+}
+
+/* ---- Scoreboard ---- */
+
+.baja-board {
+  position: absolute;
+  left: 1000px;
+  right: 36px;
+  top: 150px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+.baja-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 22px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  transition:
+    transform 0.3s,
+    background 0.3s;
+}
+.baja-row.tasting {
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 4px var(--pc);
+  transform: translateX(-14px);
+}
+.baja-row.fed {
+  background: rgba(47, 214, 168, 0.18);
+  box-shadow: inset 0 0 0 3px var(--dill);
+}
+.baja-row.offline {
+  opacity: 0.45;
+}
+.baja-who {
+  width: 180px;
+  flex: none;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: center;
+}
+.baja-who svg {
+  grid-row: span 2;
+}
+.baja-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 26px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.baja-score {
+  font-size: 20px;
+  color: var(--muted);
+}
+.baja-tries {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.baja-try {
+  flex: 1;
+  min-width: 0;
+  height: 76px;
+  border-radius: 14px;
+  background: rgba(251, 240, 217, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  animation: pop-in 0.35s both;
+}
+.baja-try-emoji {
+  font-size: 25px;
+  letter-spacing: -3px;
+  white-space: nowrap;
+}
+.baja-try .baja-paws {
+  font-size: 16px;
+}
+.baja-try.blank {
+  animation: none;
+  background: rgba(251, 240, 217, 0.03);
+}
+.baja-try.next {
+  font-size: 30px;
+  color: var(--muted);
+  box-shadow: inset 0 0 0 3px rgba(251, 240, 217, 0.18);
+}
+.baja-try.next.ready {
+  box-shadow: inset 0 0 0 3px var(--yolk);
+}
+.baja-try.win {
+  background: var(--dill);
+}
+.baja-try.stale {
+  opacity: 0.4;
+}
+.baja-gain {
+  position: absolute;
+  right: -10px;
+  top: -14px;
+  padding: 2px 14px;
+  border-radius: 999px;
+  background: var(--dill);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 26px;
+  animation: pop-in 0.4s both;
+}
+
+/* ---- Phone ---------------------------------------------------------------------------------- */
+
+.bj-pad {
+  gap: 10px;
+  overflow-y: auto;
+}
+.bj-wait {
+  flex: 1;
+}
+.bj-big-emoji {
+  font-size: 72px;
+  line-height: 1;
+}
+.bj-extra {
+  color: var(--yolk);
+  font-weight: 800;
+}
+.bj-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bj-row-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.bj-opts {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+}
+.bj-opt {
+  min-height: 58px;
+  border-radius: 16px;
+  background: var(--panel-2);
+  color: var(--cream);
+  box-shadow: var(--edge), 0 4px 0 rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  transition: transform 0.12s;
+}
+.bj-opt-emoji {
+  font-size: 26px;
+  line-height: 1.1;
+}
+.bj-opt-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+.bj-opt.on {
+  background: var(--yolk);
+  color: var(--ink);
+  transform: translateY(2px);
+}
+.bj-opt.nope {
+  opacity: 0.45;
+}
+.bj-opt.nope .bj-opt-label::after {
+  content: ' ✗';
+}
+.bj-feed {
+  width: 100%;
+  flex: none;
+}
+.bj-answer {
+  font-size: 48px;
+  letter-spacing: 4px;
+}
+.bj-hist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: rgba(251, 240, 217, 0.06);
+}
+.bj-hist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+}
+.bj-hist-row.stale {
+  opacity: 0.4;
+}
+.bj-hist-n {
+  width: 18px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.bj-hist-plate {
+  flex: 1;
+}
+.bj-hist-paws i {
+  font-style: normal;
+  font-size: 15px;
+  filter: grayscale(1) brightness(0.5);
+  opacity: 0.5;
+}
+.bj-hist-paws i.on {
+  filter: none;
+  opacity: 1;
+}
