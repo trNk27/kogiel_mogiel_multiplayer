@@ -34,12 +34,14 @@ import {
   SphereGeometry,
   Vector3,
   type Material,
+  type Object3D,
   type Sprite,
+  type Texture,
 } from 'three';
 import { ArenaStage, box, buildPierogi, flat, groundTexture, nameTag, noise, pixelTexture, type PierogiModel } from '../arena/kit';
 import { Puffs } from '../arena/puffs';
 import { mulberry32 } from '../rng';
-import { BOAT_HL, BOAT_HW, DOCK_HOLD, HALF_W, QUAY_Z, SHORE_Z, fwd, stbd, type Berth, type MarinaSim } from './logic';
+import { BOAT_HL, BOAT_HW, DOCK_HOLD, HALF_W, LEVELS, QUAY_Z, SHORE_Z, corners, fwd, pointInRect, stbd, type Berth, type MarinaSim } from './logic';
 
 export interface PlayerLook {
   name: string;
@@ -65,6 +67,33 @@ interface BoatModel {
   tilt: Group;
   skipper: PierogiModel | null;
   prop: Mesh;
+}
+
+/** Every geometry, material and texture under `root` (each once), for disposing. */
+function disposeTree(root: Object3D, extra: { dispose(): void }[] = []) {
+  const all = new Set<{ dispose(): void }>(extra);
+  root.traverse((o) => {
+    const m = o as Mesh;
+    if (m.geometry) all.add(m.geometry);
+    const mats = m.material ? (Array.isArray(m.material) ? m.material : [m.material]) : [];
+    for (const mat of mats) {
+      all.add(mat);
+      const map = (mat as Material & { map?: Texture | null }).map;
+      if (map) all.add(map);
+    }
+  });
+  for (const d of all) d.dispose();
+}
+
+/** Every material under `root` (for fading a boat to a ghost). */
+function materialsOf(root: Object3D): Material[] {
+  const out = new Set<Material>();
+  root.traverse((o) => {
+    const m = (o as Mesh).material;
+    if (!m) return;
+    for (const x of Array.isArray(m) ? m : [m]) out.add(x);
+  });
+  return [...out];
 }
 
 /** A hull outline in the x/z plane, bow at +z, as a Shape (shape y = −z; see the extrude below). */
@@ -252,17 +281,23 @@ interface Actor {
   /** A little shove when bumped (decays). */
   jolt: number;
   foamAcc: number;
+  /** Every material of the boat (and its tag), for the ghost look while the phone is away. */
+  mats: { m: Material; transparent: boolean; opacity: number }[];
+  ghost: boolean;
+  /** Little discs on the hull's corners near the berth: green inside the lines, red outside. */
+  corners: Mesh[];
 }
 
 interface BerthMark {
   owner: number;
   group: Group;
   fill: MeshBasicMaterial;
-  /** Solid strips round the outline, filling up while the boat holds still. */
+  /** Bright strips round the outline, running round it while the boat holds still. */
   solid: Mesh[];
   flag: Mesh;
   pole: Group;
-  tag: Sprite;
+  /** The coloured posts on the finger tips, either side of the way in. */
+  posts: Group;
   rope: Mesh;
   ropeMat: MeshLambertMaterial;
 }
@@ -277,7 +312,12 @@ interface Ripple {
 
 export class MarinaScene {
   readonly stage: ArenaStage;
-  private keep: <T extends { dispose(): void }>(x: T) => T;
+  /** Disposed with the stage (initialised before the fields below use it). */
+  private kit: { dispose(): void }[] = [];
+  private keep = <T extends { dispose(): void }>(x: T): T => {
+    this.kit.push(x);
+    return x;
+  };
   private actors: Actor[] = [];
   private looks: PlayerLook[];
   /** Everything that changes with the layout (rebuilt every round). */
@@ -300,11 +340,18 @@ export class MarinaScene {
   private wind = { x: 0, z: 0 };
   private time = 0;
   private shake = 0;
+  private cornerIn = this.keep(new MeshBasicMaterial({ color: '#7dff7a', depthTest: false, transparent: true, opacity: 0.95 }));
+  private cornerOut = this.keep(new MeshBasicMaterial({ color: '#ff3b3b', depthTest: false, transparent: true, opacity: 0.95 }));
+  private cornerGeo = this.keep(new CircleGeometry(0.24, 10).rotateX(-Math.PI / 2));
+  private camTarget = new Vector3(0, 0, -3.2);
+  private ropeFrom = new Vector3();
+  private ropeTo = new Vector3();
+  private ropeDir = new Vector3();
+  private static readonly UP = new Vector3(0, 1, 0);
 
   constructor(canvas: HTMLCanvasElement, looks: PlayerLook[]) {
     this.stage = new ArenaStage(canvas, { sky: '#9fd3ec', fog: [90, 220], fov: 36 });
     const stage = this.stage;
-    this.keep = <T extends { dispose(): void }>(x: T) => stage.keep(x);
     this.looks = looks;
     this.light();
     this.buildSky();
@@ -321,10 +368,17 @@ export class MarinaScene {
       const model = buildBoat(l.color, this.keep, { skipper: true, deck: new Color(l.color).lerp(new Color('#ffffff'), 0.35).getStyle() });
       const tag = nameTag(l.name, l.color);
       tag.position.set(0, 3.4, 0);
-      tag.scale.set(5.2, 1.3, 1);
+      tag.scale.set(6, 1.5, 1);
       model.root.add(tag);
       stage.add(model.root);
-      this.actors.push({ model, tag, color: l.color, u: 0, accel: 0, yaw: 0, phase: i * 1.7, docked: -1, jolt: 0, foamAcc: 0 });
+      const marks = [0, 1, 2, 3].map(() => {
+        const m = new Mesh(this.cornerGeo, this.cornerOut);
+        m.renderOrder = 6;
+        m.visible = false;
+        stage.add(m);
+        return m;
+      });
+      this.actors.push({ model, tag, color: l.color, u: 0, accel: 0, yaw: 0, phase: i * 1.7, docked: -1, jolt: 0, foamAcc: 0, mats: materialsOf(model.root).map((m) => ({ m, transparent: m.transparent, opacity: m.opacity })), ghost: false, corners: marks });
     });
   }
 
@@ -577,7 +631,8 @@ export class MarinaScene {
   }
 
   private clearHarbour() {
-    for (const d of this.harbourStuff) d.dispose();
+    // Everything built for the round: what was kept, and whatever hangs in the group (boxes, tags, maps).
+    disposeTree(this.harbour, this.harbourStuff);
     this.harbourStuff = [];
     this.harbour.clear();
     this.marks = [];
@@ -627,7 +682,8 @@ export class MarinaScene {
       H.add(g);
     }
     // Moored boats.
-    const hulls = ['#fbf6ec', '#21406b', '#b7352e', '#e9e2cf'];
+    // Neutral hulls, so no moored boat looks like a player's.
+    const hulls = ['#fbf6ec', '#3a4250', '#8a6446', '#e9e2cf'];
     for (const [j, m] of L.moored.entries()) {
       const model = buildBoat(hulls[m.hue % hulls.length], k, { skipper: false, hl: m.hl, hw: m.hw, sail: m.sail, deck: m.hue === 1 ? '#e8dcc0' : '#d7cdb8' });
       model.root.position.set(m.x, 0, m.z);
@@ -653,11 +709,12 @@ export class MarinaScene {
     for (const [i, b] of L.berths.entries()) {
       const p = sim.boats[i];
       if (!p || p.gone || !this.looks[i]) continue;
-      this.marks.push(this.buildMark(i, b, k));
+      this.marks.push(this.buildMark(i, b, LEVELS[sim.level].fingerLen, k));
     }
     // Flags along the quay show the wind.
     const poleMat = k(flat('#f2efe6'));
-    const flagCols = ['#ffffff', '#d6403a', '#2f6fb0', '#f2c84b'];
+    // White and pale flags only: every bright colour on the water means a player.
+    const flagCols = ['#ffffff', '#e6e1d6', '#ffffff', '#cfd6da'];
     for (let x = -HALF_W + 6; x <= HALF_W - 4; x += 10) {
       const pole = new Mesh(k(new CylinderGeometry(0.06, 0.08, 5, 5)), poleMat);
       pole.position.set(x, QUAY_TOP + 2.5, QUAY_Z - 4.6);
@@ -700,77 +757,109 @@ export class MarinaScene {
     return m;
   }
 
-  /** A berth: dashed floating outline in the player's colour, a tinted fill, a flag and the name on the pier. */
-  private buildMark(owner: number, b: Berth, k: <T extends { dispose(): void }>(x: T) => T): BerthMark {
+  /**
+   * A berth: a tinted box with a bold outline in the player's colour (just inside the lines, so no
+   * pontoon hides it), a coloured post on each finger tip either side of the way in, and a big flag
+   * on the pier. The name goes on as a label over the TV picture (see MarinaGame).
+   */
+  private buildMark(owner: number, b: Berth, fingerLen: number, k: <T extends { dispose(): void }>(x: T) => T): BerthMark {
     const look = this.looks[owner];
     const col = new Color(look.color);
+    const white = new Color('#ffffff');
     const g = new Group();
     g.position.set(b.x, 0, b.z);
     g.rotation.y = b.a;
-    const fill = k(new MeshBasicMaterial({ color: col, transparent: true, opacity: 0.2, depthWrite: false }));
+    const fill = k(new MeshBasicMaterial({ color: col, transparent: true, opacity: 0.22, depthWrite: false }));
     const fillMesh = new Mesh(k(new PlaneGeometry(b.hw * 2, b.hl * 2)), fill);
     fillMesh.rotation.x = -Math.PI / 2;
     fillMesh.position.y = LINE_Y - 0.03;
     fillMesh.renderOrder = 1;
     g.add(fillMesh);
-    // Dashes all round (floats on a line), then solid strips that run round the outline as you hold.
-    const dash = k(flat(look.color, { emissive: col.clone().multiplyScalar(0.35) }));
-    const bright = k(new MeshBasicMaterial({ color: col.clone().lerp(new Color('#ffffff'), 0.35) }));
-    // Each side from its start corner, going round: stern, starboard… (local +x, +z), with the
-    // rotation that turns local +x along it.
+    // The lines: solid, 24 cm wide, their outer edge on the berth's edge.
+    const LW = 0.24;
+    const lineMat = k(new MeshBasicMaterial({ color: col.clone().multiplyScalar(0.92) }));
+    const across = k(new BoxGeometry(b.hw * 2, 0.12, LW));
+    const lengthways = k(new BoxGeometry(LW, 0.12, b.hl * 2 - LW * 2));
+    for (const z of [-1, 1]) {
+      const m = new Mesh(across, lineMat);
+      m.position.set(0, LINE_Y, z * (b.hl - LW / 2));
+      g.add(m);
+    }
+    for (const x of [-1, 1]) {
+      const m = new Mesh(lengthways, lineMat);
+      m.position.set(x * (b.hw - LW / 2), LINE_Y, 0);
+      g.add(m);
+    }
+    // Bright strips over them that run round the outline as the boat holds still: stern, one side,
+    // the pier end, the other side (each from its start corner, turned so local +x runs along it).
+    const bright = k(new MeshBasicMaterial({ color: col.clone().lerp(white, 0.65) }));
+    const hw = b.hw - LW / 2;
+    const hl = b.hl - LW / 2;
     const sides = [
-      { x: -b.hw, z: -b.hl, len: b.hw * 2, rot: 0 },
-      { x: b.hw, z: -b.hl, len: b.hl * 2, rot: -Math.PI / 2 },
-      { x: b.hw, z: b.hl, len: b.hw * 2, rot: Math.PI },
-      { x: -b.hw, z: b.hl, len: b.hl * 2, rot: Math.PI / 2 },
+      { x: -hw, z: -hl, len: hw * 2, rot: 0 },
+      { x: hw, z: -hl, len: hl * 2, rot: -Math.PI / 2 },
+      { x: hw, z: hl, len: hw * 2, rot: Math.PI },
+      { x: -hw, z: hl, len: hl * 2, rot: Math.PI / 2 },
     ];
-    const dashGeo = k(new BoxGeometry(0.42, 0.12, 0.16));
     const solid: Mesh[] = [];
     for (const sd of sides) {
       const dir = { x: Math.cos(sd.rot), z: -Math.sin(sd.rot) };
-      const n = Math.max(2, Math.round(sd.len / 0.75));
-      for (let j = 0; j < n; j++) {
-        const d = ((j + 0.5) / n) * sd.len;
-        const m = new Mesh(dashGeo, dash);
-        m.position.set(sd.x + dir.x * d, LINE_Y, sd.z + dir.z * d);
-        m.rotation.y = sd.rot;
-        g.add(m);
-      }
-      const geo = k(new BoxGeometry(sd.len + 0.2, 0.13, 0.2));
+      const geo = k(new BoxGeometry(sd.len + LW, 0.13, LW + 0.06));
       geo.translate(sd.len / 2, 0, 0);
       const st = new Mesh(geo, bright);
-      st.position.set(sd.x - dir.x * 0.1, LINE_Y + 0.02, sd.z - dir.z * 0.1);
+      st.position.set(sd.x - (dir.x * LW) / 2, LINE_Y + 0.03, sd.z - (dir.z * LW) / 2);
       st.rotation.y = sd.rot;
       st.scale.x = 0.0001;
       g.add(st);
       solid.push(st);
     }
     this.harbour.add(g);
-    // Flag on the pier at the bow end, and the name over it.
+    // Posts on the finger tips, either side of the way in: chunky, in the player's colour, with a
+    // white band and a bright ball on top, so the berth reads from across the room.
+    const posts = new Group();
+    posts.position.copy(g.position);
+    posts.rotation.y = b.a;
+    const postMat = k(flat(look.color, { emissive: col.clone().multiplyScalar(0.25) }));
+    const ballMat = k(new MeshBasicMaterial({ color: col.clone().lerp(white, 0.15) }));
+    const bandMat = k(flat('#fbf6ec'));
+    const postGeo = k(new CylinderGeometry(0.2, 0.22, 1.3, 7));
+    const bandGeo = k(new CylinderGeometry(0.225, 0.225, 0.22, 7));
+    const ballGeo = k(new SphereGeometry(0.36, 8, 6));
+    const tipZ = b.hl - fingerLen + 0.22;
+    for (const side of [-1, 1]) {
+      const p = new Group();
+      p.position.set(side * (b.hw + 0.12), DECK_Y, tipZ);
+      const pole = new Mesh(postGeo, postMat);
+      pole.position.y = 0.65;
+      const band = new Mesh(bandGeo, bandMat);
+      band.position.y = 0.95;
+      const ball = new Mesh(ballGeo, ballMat);
+      ball.position.y = 1.45;
+      p.add(pole, band, ball);
+      posts.add(p);
+    }
+    this.harbour.add(posts);
+    // Flag on the pier at the bow end.
     const f = fwd(b.a);
     const pole = new Group();
     const top = b.row === 'quay' ? QUAY_TOP : DECK_Y;
     pole.position.set(b.bollard.x + f.x * 0.2, top, b.bollard.z + f.z * 0.2);
-    const stick = box(0.12, 3.4, 0.12, k(flat('#f4efe4')));
+    const stick = box(0.14, 4.2, 0.14, k(flat('#f4efe4')));
     pole.add(stick);
     const bollard = new Mesh(k(new CylinderGeometry(0.2, 0.25, 0.5, 7)), k(flat('#2d3138')));
     bollard.position.set(-f.x * 0.45, 0.25, -f.z * 0.45);
     pole.add(bollard);
-    const flag = this.flagMesh(look.color, 1.7, 1.0, k);
-    flag.position.set(0, 2.9, 0);
+    const flag = this.flagMesh(look.color, 2.4, 1.4, k);
+    flag.position.set(0, 3.5, 0);
     pole.add(flag);
     this.flags.push({ mesh: flag, base: 0, phase: owner * 1.1 });
-    // The name floats low over the middle of the berth, so it's plain whose box it is.
-    const tag = nameTag(look.name, look.color, 4.4);
-    tag.position.set(0, 1.3, 0);
-    g.add(tag);
     this.harbour.add(pole);
     // The mooring line, hidden until docked.
     const ropeMat = k(flat('#d8c39a'));
     const rope = new Mesh(k(new CylinderGeometry(0.05, 0.05, 1, 4)), ropeMat);
     rope.visible = false;
     this.harbour.add(rope);
-    return { owner, group: g, fill, solid, flag, pole, tag, rope, ropeMat };
+    return { owner, group: g, fill, solid, flag, pole, posts, rope, ropeMat };
   }
 
   // ---- events ----------------------------------------------------------------------------------------
@@ -781,8 +870,10 @@ export class MarinaScene {
     if (m) {
       m.group.visible = false;
       m.pole.visible = false;
+      m.posts.visible = false;
       m.rope.visible = false;
     }
+    a?.corners.forEach((c) => (c.visible = false));
   }
 
   /** Something hit something: a ripple, spray and a little shake for hard ones. */
@@ -908,7 +999,7 @@ export class MarinaScene {
 
     // Camera: the whole harbour, from above the near breakwater.
     const stage = this.stage;
-    stage.lookAt(new Vector3(0, 0, -3.2), 55, 0.96);
+    stage.lookAt(this.camTarget, 55, 0.96);
     if (this.shake > 0.01) {
       stage.camera.position.x += (Math.random() - 0.5) * this.shake * 0.6;
       stage.camera.position.y += (Math.random() - 0.5) * this.shake * 0.6;
@@ -924,19 +1015,43 @@ export class MarinaScene {
       const root = a.model.root;
       if (!b || b.gone) {
         root.visible = false;
+        for (const m of a.corners) m.visible = false;
         return;
       }
       root.visible = true;
+      // A boat whose phone dropped out is a see-through ghost (others sail through it).
+      if (b.ghost !== a.ghost) {
+        a.ghost = b.ghost;
+        for (const x of a.mats) {
+          x.m.transparent = a.ghost || x.transparent;
+          x.m.opacity = a.ghost ? x.opacity * 0.35 : x.opacity;
+          x.m.depthWrite = !a.ghost;
+          x.m.needsUpdate = true;
+        }
+      }
       const f = fwd(b.a);
       const s = stbd(b.a);
       const u = b.vx * f.x + b.vz * f.z;
       const sp = Math.hypot(b.vx, b.vz);
+      // Close to its berth and slow: show which corners are in (green) and which still stick out (red).
+      const berth = sim.layout.berths[i];
+      const near = !b.docked && !b.ghost && sp < 1.5 && Math.hypot(b.x - berth.x, b.z - berth.z) < berth.hl + 2.5;
+      if (near) {
+        const cs = corners(b);
+        for (let k = 0; k < 4; k++) {
+          const m = a.corners[k];
+          m.visible = true;
+          m.position.set(cs[k].x, 0.7 + this.wave(cs[k].x, cs[k].z), cs[k].z);
+          m.material = pointInRect(cs[k], berth) ? this.cornerIn : this.cornerOut;
+        }
+      } else for (const m of a.corners) m.visible = false;
       const du = (u - a.u) / Math.max(dt, 1e-3);
       a.u = u;
       a.accel += (Math.max(-6, Math.min(6, du)) - a.accel) * Math.min(1, dt * 4);
       a.yaw += (b.w - a.yaw) * Math.min(1, dt * 6);
       a.jolt *= Math.exp(-4 * dt);
       if (a.docked >= 0) a.docked += dt;
+      a.tag.visible = !b.docked;
 
       const bob = Math.sin(t * 1.9 + a.phase) * 0.05 + this.wave(b.x, b.z);
       root.position.set(b.x, bob, b.z);
@@ -1013,7 +1128,6 @@ export class MarinaScene {
       const near = Math.hypot(b.x - berth.x, b.z - berth.z);
       const pulse = b.docked ? 0.42 : b.inLines ? 0.38 + Math.sin(t * 10) * 0.08 : 0.17 + Math.max(0, 1 - near / 14) * 0.12 * (0.5 + 0.5 * Math.sin(t * 4));
       m.fill.opacity += (pulse - m.fill.opacity) * Math.min(1, dt * 8);
-      m.tag.visible = !b.docked;
       // The mooring line from the bow (or stern) to the bollard.
       const a = this.actors[m.owner];
       if (b.docked && a) {
@@ -1023,22 +1137,26 @@ export class MarinaScene {
         const sx = b.x + f.x * end * (BOAT_HL - 0.3);
         const sz = b.z + f.z * end * (BOAT_HL - 0.3);
         const top = berth.row === 'quay' ? QUAY_TOP : DECK_Y;
-        const from = new Vector3(sx, 0.6, sz);
-        const to = new Vector3(berth.bollard.x - fwd(berth.a).x * 0.25, top + 0.4, berth.bollard.z - fwd(berth.a).z * 0.25);
+        const fb = fwd(berth.a);
+        const from = this.ropeFrom.set(sx, 0.6, sz);
+        const to = this.ropeTo.set(berth.bollard.x - fb.x * 0.25, top + 0.4, berth.bollard.z - fb.z * 0.25);
         const k = smooth((a.docked < 0 ? 1 : a.docked) / 0.45);
         to.lerp(from, 1 - k);
-        const mid = from.clone().add(to).multiplyScalar(0.5);
         const len = from.distanceTo(to);
         m.rope.visible = len > 0.05;
-        m.rope.position.copy(mid);
+        m.rope.position.copy(from).add(to).multiplyScalar(0.5);
         m.rope.scale.set(1, len, 1);
-        m.rope.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), to.clone().sub(from).normalize());
+        if (len > 1e-4) m.rope.quaternion.setFromUnitVectors(MarinaScene.UP, this.ropeDir.copy(to).sub(from).normalize());
       } else m.rope.visible = false;
     }
   }
 
   dispose() {
     this.clearHarbour();
+    // The boats (their name tags' textures too) and the shared bits.
+    for (const a of this.actors) disposeTree(a.model.root);
+    for (const d of this.kit) d.dispose();
+    this.kit = [];
     this.puffs.mesh.geometry.dispose();
     (this.puffs.mesh.material as Material).dispose();
     this.confetti.mesh.geometry.dispose();

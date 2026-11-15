@@ -7,6 +7,7 @@ import {
   CLEAN_POINTS,
   DOCK_HOLD,
   DOCK_SPEED,
+  HOLD_DECAY,
   DT,
   HALF_W,
   LAST_BOAT_S,
@@ -364,7 +365,7 @@ describe('collisions', () => {
     B.vx = BUMP_V + 2;
     const ev = run(sim, 2);
     expect(rectRect(A, B)).toBeNull();
-    expect(A.vx).toBeGreaterThan(0.5);
+    expect(A.x).toBeGreaterThan(1);
     const bump = ev.find((e) => e.t === 'bump');
     expect(bump && bump.t === 'bump' && bump.i).toBe(1);
     expect(B.bumps).toBe(1);
@@ -473,16 +474,44 @@ describe('docking', () => {
     expect(held).toBe(0);
   });
 
-  it('the hold starts again if you slip out', () => {
+  it('slipping out eats into the hold quickly; a blip at the threshold does not wipe it', () => {
     const sim = new MarinaSim(1, 0, mulberry32(1));
     sim.begin();
     parkInPlace(sim, 0);
     run(sim, DOCK_HOLD * 0.6);
     const b = sim.boats[0];
-    expect(b.hold).toBeGreaterThan(0);
+    const h0 = b.hold;
+    expect(h0).toBeGreaterThan(0);
+    // A shove: the hold drains at HOLD_DECAY× and is gone well before you could have parked.
     b.vz += 1;
     sim.step();
+    expect(b.hold).toBeCloseTo(h0 - DT * HOLD_DECAY, 5);
+    run(sim, 0.5, () => {
+      b.vx = 0;
+      b.vz = 1;
+    });
     expect(b.hold).toBe(0);
+    expect(b.docked).toBe(false);
+  });
+
+  it('once holding, a little more than DOCK_SPEED still counts (no flicker at the threshold)', () => {
+    const sim = new MarinaSim(1, 0, mulberry32(1));
+    sim.begin();
+    parkInPlace(sim, 0);
+    const b = sim.boats[0];
+    const B = sim.layout.berths[0];
+    const f = fwd(B.a);
+    // Back from the middle, creeping towards the pier at just over the start threshold.
+    b.x -= f.x * 0.5;
+    b.z -= f.z * 0.5;
+    sim.step();
+    expect(b.hold).toBeGreaterThan(0);
+    const v = DOCK_SPEED * 1.2;
+    run(sim, DOCK_HOLD, () => {
+      b.vx = f.x * v;
+      b.vz = f.z * v;
+    });
+    expect(b.docked).toBe(true);
   });
 
   it('only your own berth counts', () => {

@@ -66,7 +66,7 @@
 }
 .marina-ring {
   position: absolute;
-  translate: -50% -100%;
+  translate: -50% -50%;
   pointer-events: none;
   filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.35));
 }
@@ -130,4 +130,73 @@
 }
 .marina-bad {
   color: #ff8a8a;
+}
+
+/* Each berth's name, crisp over the 3D picture, just outside its way in. */
+.marina-berth {
+  position: absolute;
+  translate: -50% -50%;
+  padding: 2px 14px 4px;
+  border-radius: 999px;
+  background: var(--pc);
+  color: #1b0d07;
+  font: 800 26px/1.1 'Fraunces Variable', Georgia, serif;
+  white-space: nowrap;
+  box-shadow:
+    0 0 0 3px #0b2233,
+    0 5px 0 3px #0b2233;
+  opacity: 0.8;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.marina-berth.big {
+  opacity: 1;
+  font-size: 30px;
+  animation: marina-tag-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes marina-tag-pulse {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.12;
+  }
+}
+/* Before the start: a dashed line from every boat to its berth. */
+.marina-links {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.marina-links path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.marina-links .under {
+  stroke: #0b2233;
+  stroke-width: 13;
+  opacity: 0.55;
+}
+.marina-links .dash {
+  stroke-width: 7;
+  stroke-dasharray: 18 14;
+  animation: marina-march 0.7s linear infinite;
+}
+.marina-links .dot {
+  stroke: #0b2233;
+  stroke-width: 4;
+}
+.marina-links.fade {
+  animation: marina-fade 2.6s ease-in forwards;
+}
+@keyframes marina-march {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+@keyframes marina-fade {
+  to {
+    opacity: 0;
+  }
 }

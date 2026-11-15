@@ -54,6 +54,13 @@ export const TUNING = {
   surgeDrag2: 0.06,
   /** … more of it going backwards (the transom pushes water) … */
   asternDrag: 1.6,
+  /**
+   * … plus a "harbour" drag that only matters slowly (extra 1/s, fading out by about this speed): the
+   * boat glides at speed, but once it's crawling it settles in a second instead of drifting on, so a
+   * coarse phone stick can still creep it into the box and stop.
+   */
+  harbourDrag: 1.2,
+  harbourV: 0.8,
   /** … and a lot sideways, so the hull carves. */
   swayDrag1: 2.4,
   swayDrag2: 1.4,
@@ -86,8 +93,11 @@ export const TUNING = {
 /** Parked: all four corners inside the lines, slower than this, turning slower than this … */
 export const DOCK_SPEED = 0.3;
 export const DOCK_YAW = 0.3;
-/** … for this long without a break. */
+/** … for this long. Once the hold has started it carries on up to this much faster (no flicker at the threshold) … */
 export const DOCK_HOLD = 0.9;
+export const DOCK_SLACK = 1.4;
+/** … and a slip (a corner over the line, a nudge) eats into it at this many times the rate rather than wiping it. */
+export const HOLD_DECAY = 3;
 /** An impact this fast (m/s along the contact) costs the clean bonus … */
 export const TOUCH_V = 0.5;
 /** … and this fast is a hard bump: a point off. */
@@ -133,7 +143,7 @@ export interface Level {
 export const LEVELS: readonly Level[] = [
   { name: 'Calm harbour', slotW: 3.9, berthLen: 6.2, fingerLen: 4.4, jetty: false, decor: 3, buoys: 0, wind: 0, roundS: 60 },
   { name: 'Busy marina', slotW: 3.3, berthLen: 5.5, fingerLen: 4.0, jetty: true, decor: 5, buoys: 3, wind: 0, roundS: 70 },
-  { name: 'Windy day', slotW: 3.1, berthLen: 5.2, fingerLen: 3.8, jetty: true, decor: 6, buoys: 4, wind: 0.16, roundS: 75 },
+  { name: 'Windy day', slotW: 3.2, berthLen: 5.2, fingerLen: 3.8, jetty: true, decor: 6, buoys: 4, wind: 0.24, roundS: 75 },
 ];
 
 /** The level played in round `round` (1-based) of a game with `rounds` rounds. */
@@ -415,17 +425,33 @@ export function makeLayout(count: number, level: number, rng: Rng, gone: boolean
   solids.push(...fingers.values());
 
   // Players' berths: shuffled over the used slots, at least two on the jetty when there is one.
+  // Routes should cross, but be about as long as each other (it's a race to park).
   const starts = startRow(count);
   const liveStarts = live.map((i) => starts[i].x);
+  const tipZ = QUAY_Z + jettyLen;
+  const route = (from: { x: number; z: number }, s: Slot) => {
+    const f = fwd(s.a);
+    const ex = s.x - f.x * (s.hl + 3);
+    const ez = s.z - f.z * (s.hl + 3);
+    if (jettyX !== null && s.row !== 'quay' && Math.sign(from.x - jettyX) !== Math.sign(s.x - jettyX)) {
+      // Round the jetty's tip first.
+      const tx = jettyX + Math.sign(s.x - jettyX) * 4;
+      const tz = tipZ + 4;
+      return Math.hypot(tx - from.x, tz - from.z) + Math.hypot(ex - tx, ez - tz) + s.hl + 3;
+    }
+    return Math.hypot(ex - from.x, ez - from.z) + s.hl + 3;
+  };
   let pick: Slot[] = [];
   let bestScore = -Infinity;
-  for (let tries = 0; tries < 24; tries++) {
+  for (let tries = 0; tries < 160; tries++) {
     const cand = shuffle([...used], rng).slice(0, live.length);
     const onJetty = cand.filter((s) => s.row !== 'quay').length;
     const ends = cand.map((s) => s.x);
     const cr = live.length > 1 ? crossings(liveStarts, ends) / ((live.length * (live.length - 1)) / 2) : 0;
-    // Crossing routes, but not simply mirrored; and some turn-in berths on the jetty.
-    let score = -Math.abs(cr - 0.55) + rng() * 0.15;
+    const lens = cand.map((s, k) => route(starts[live[k]], s));
+    const spread = Math.max(...lens) - Math.min(...lens);
+    // Crossing routes, but not simply mirrored; fair lengths; and some turn-in berths on the jetty.
+    let score = -Math.abs(cr - 0.55) - spread / 8 + rng() * 0.15;
     if (jettyX !== null && onJetty < Math.min(2, live.length)) score -= 1;
     if (score > bestScore) {
       bestScore = score;
@@ -513,6 +539,10 @@ export interface Boat extends Rect {
   touches: number;
   bumps: number;
   gone: boolean;
+  /** The phone has dropped out (it may come back): the boat idles and doesn't hold up the round. */
+  away: boolean;
+  /** Passes through other boats (while away, and after coming back until it's clear of them). */
+  ghost: boolean;
   /** Sim time of the last horn. */
   hornAt: number;
 }
@@ -571,6 +601,8 @@ export class MarinaSim {
       touches: 0,
       bumps: 0,
       gone: !!gone[i],
+      away: false,
+      ghost: false,
       hornAt: -1e9,
     }));
     this.solo = this.boats.filter((b) => !b.gone).length <= 1;
@@ -620,6 +652,18 @@ export class MarinaSim {
     b.hold = 0;
   }
 
+  /** The player's phone dropped out (true) or came back (false). */
+  setAway(i: number, away: boolean) {
+    const b = this.boats[i];
+    if (!b || b.away === away) return;
+    b.away = away;
+    if (away) {
+      b.ghost = true;
+      b.cmdRudder = b.cmdThrottle = 0;
+      b.hold = 0;
+    }
+  }
+
   speed(i: number) {
     const b = this.boats[i];
     return b ? Math.hypot(b.vx, b.vz) : 0;
@@ -634,6 +678,7 @@ export class MarinaSim {
       this.tick++;
     }
     const h = DT / SUBSTEPS;
+    this.updateGhosts();
     for (let s = 0; s < SUBSTEPS; s++) {
       for (const b of this.boats) if (!b.gone && !b.docked) this.drive(b, h, live);
       this.collide(ev, live);
@@ -649,11 +694,20 @@ export class MarinaSim {
     return ev;
   }
 
+  /** A boat that came back stays a ghost until it no longer overlaps any other boat. */
+  private updateGhosts() {
+    for (const b of this.boats) {
+      if (!b.ghost || b.away || b.gone) continue;
+      b.ghost = this.boats.some((o) => o !== b && !o.gone && Math.hypot(o.x - b.x, o.z - b.z) < 2 * Math.hypot(BOAT_HL, BOAT_HW) && rectRect(b, o) !== null);
+    }
+  }
+
   /** One substep of a boat's own motion: engine, rudder, drag, keel, wind. */
   private drive(b: Boat, h: number, live: boolean) {
     const T = TUNING;
-    const wantT = live && this.phase === 'play' ? b.cmdThrottle : 0;
-    const wantR = live && this.phase === 'play' ? b.cmdRudder : 0;
+    const on = live && this.phase === 'play' && !b.away;
+    const wantT = on ? b.cmdThrottle : 0;
+    const wantR = on ? b.cmdRudder : 0;
     b.throttle += clamp(wantT - b.throttle, -T.throttleRate * h, T.throttleRate * h);
     b.rudder += clamp(wantR - b.rudder, -T.rudderRate * h, T.rudderRate * h);
     const f = fwd(b.a);
@@ -674,7 +728,7 @@ export class MarinaSim {
 
     const thr = b.throttle;
     let au = thr >= 0 ? thr * T.thrustAhead : thr * T.thrustAstern;
-    au -= (u < 0 ? T.surgeDrag1 * T.asternDrag : T.surgeDrag1) * u + T.surgeDrag2 * u * Math.abs(u);
+    au -= (u < 0 ? T.surgeDrag1 * T.asternDrag : T.surgeDrag1) * u + T.surgeDrag2 * u * Math.abs(u) + T.harbourDrag * Math.exp(-Math.abs(u) / T.harbourV) * u;
     let av = -(T.swayDrag1 * v + T.swayDrag2 * v * Math.abs(v));
 
     // Water over the rudder: the boat's own way, plus the propeller's wash when going ahead.
@@ -724,7 +778,7 @@ export class MarinaSim {
       for (let j = i + 1; j < boats.length; j++) {
         const A = boats[i];
         const B = boats[j];
-        if (A.gone || B.gone || (A.docked && B.docked)) continue;
+        if (A.gone || B.gone || A.ghost || B.ghost || (A.docked && B.docked)) continue;
         if (Math.hypot(A.x - B.x, A.z - B.z) > 2 * R) continue;
         const c = rectRect(A, B);
         if (!c) continue;
@@ -837,8 +891,9 @@ export class MarinaSim {
       if (b.gone || b.docked) continue;
       const berth = this.layout.berths[i];
       b.inLines = rectInside(b, berth);
-      const still = Math.hypot(b.vx, b.vz) < DOCK_SPEED && Math.abs(b.w) < DOCK_YAW;
-      if (b.inLines && still) {
+      const slack = b.hold > 0 ? DOCK_SLACK : 1;
+      const still = Math.hypot(b.vx, b.vz) < DOCK_SPEED * slack && Math.abs(b.w) < DOCK_YAW * slack;
+      if (b.inLines && still && !b.away) {
         b.hold += DT;
         if (b.hold >= DOCK_HOLD - 1e-9) {
           b.docked = true;
@@ -851,13 +906,15 @@ export class MarinaSim {
           b.throttle = b.rudder = 0;
           ev.push({ t: 'dock', i, place: b.place });
         }
-      } else b.hold = 0;
+      } else b.hold = Math.max(0, b.hold - DT * HOLD_DECAY);
     }
   }
 
   private checkOver(ev: MarinaEvent[]) {
-    const left = this.boats.map((b, i) => (!b.gone && !b.docked ? i : -1)).filter((i) => i >= 0);
-    if (this.liveCount === 0 || left.length === 0) return true;
+    // Boats whose phone dropped out don't hold the round up (once somebody has parked).
+    const left = this.boats.map((b, i) => (!b.gone && !b.docked && !b.away ? i : -1)).filter((i) => i >= 0);
+    if (this.liveCount === 0) return true;
+    if (left.length === 0 && this.dockedCount > 0) return true;
     if (!this.lastCalled && left.length === 1 && this.liveCount >= 2) {
       this.lastCalled = true;
       this.limit = Math.min(this.limit, this.time + LAST_BOAT_S);
@@ -980,11 +1037,17 @@ export class Autopilot {
   private stuck = 0;
   private backing = 0;
   private retreat = false;
+  /** Backing well out (after being stuck crooked in the box), not just a little. */
+  private deep = false;
+  /** Seconds sitting still outside the lines. */
+  private stall = 0;
   private seg = 0;
 
   constructor(
     private sim: MarinaSim,
     readonly i: number,
+    /** How hurried it is (1: careful; more is faster on the way and into the box). */
+    private pace = 1,
   ) {
     const b = sim.boats[i];
     const berth = sim.layout.berths[i];
@@ -1101,7 +1164,7 @@ export class Autopilot {
     const on = this.onPath(b.x, b.z);
     const lastSeg = on.k === this.path.length - 2;
     let want: number;
-    let vWant = clamp(on.left * 0.42, 0.25, 4.5);
+    let vWant = clamp(on.left * 0.42 * this.pace, 0.25, 4.5 * this.pace);
     const leadIn = lastSeg && along > -(berth.hl + 6);
     if (leadIn) {
       // On the lead-in: aim along the berth's centre line, damping sideways drift (and wind).
@@ -1110,7 +1173,7 @@ export class Autopilot {
       const cap = togo > berth.hl + 2 ? 2.5 : 1.1;
       const off = clamp(lat + latV * 1.4 + this.integ, -cap, cap);
       want = headingOf(fB.x * 3 - sB.x * off, fB.z * 3 - sB.z * off);
-      vWant = togo > 0.12 ? clamp(togo * 0.33, 0.3, 2) : 0;
+      vWant = togo > 0.12 ? clamp(togo * 0.33 * this.pace, 0.3, 2 * this.pace) : 0;
     } else {
       // Slow down for a sharp corner coming up.
       const P = this.path;
@@ -1159,8 +1222,15 @@ export class Autopilot {
     }
     // Coming in too far off the line to fit: back out and try again.
     if (leadIn && !b.inLines && along > -berth.hl - 0.5 && Math.abs(lat) > berth.hw - b.hw + 0.35) this.retreat = true;
+    // Sitting still outside the lines for a while (wedged crooked between the fingers): back right out.
+    if (!b.inLines && sp < 0.15) this.stall += DT;
+    else this.stall = 0;
+    if (this.stall > 2.5 && leadIn) {
+      this.stall = 0;
+      this.retreat = this.deep = true;
+    }
     if (this.retreat && !b.inLines) {
-      if (along < -(Math.abs(lat) > berth.hw - b.hw ? berth.hl + 4 : 0.8) || !leadIn) this.retreat = false;
+      if (along < -(this.deep || Math.abs(lat) > berth.hw - b.hw ? berth.hl + 4 : 0.8) || !leadIn) this.retreat = this.deep = false;
       else {
         thr = -0.5;
         rud = clamp(4 * err, -1, 1);
