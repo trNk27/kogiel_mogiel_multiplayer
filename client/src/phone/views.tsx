@@ -33,6 +33,7 @@ import type { Me, Send } from './PhoneApp';
 import { KitchenPad } from './kitchen';
 import { Stars } from '../lib/stars';
 import { SwapPad } from './swap';
+import { WeselePad } from '../games/wesele/phone';
 import { BajaPad } from '../games/baja/phone';
 import { TimeBar } from './timebar';
 import { RallyPad } from './rally';
@@ -102,6 +103,8 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
       return <ParadePad view={view} me={me} send={send} offset={offset} key={view.round} />;
     case 'swap':
       return <SwapPad view={view} me={me} send={send} offset={offset} key={view.round} />;
+    case 'wesele':
+      return <WeselePad view={view} me={me} send={send} offset={offset} key={`${view.key}-${view.phase}`} />;
     case 'baja':
       return <BajaPad view={view} me={me} send={send} offset={offset} key={`${view.round}-${view.tryN}`} />;
     case 'smoke':

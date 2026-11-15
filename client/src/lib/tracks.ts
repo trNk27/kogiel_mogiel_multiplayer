@@ -410,6 +410,7 @@ export function trackForGame(game: string): TrackId | null {
   switch (game) {
     case 'chairs':
     case 'bells':
+    case 'wesele':
       return null;
     case 'quiz':
     case 'ballpark':

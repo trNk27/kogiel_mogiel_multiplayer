@@ -125,6 +125,7 @@ export type GameId =
   | 'footsteps'
   | 'castle'
   | 'premium'
+  | 'wesele'
   | 'baja';
 
 export interface GameInfo {
@@ -163,6 +164,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi. Spare the sock.', minPlayers: 1 },
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1 },
   { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1 },
+  { id: 'wesele', title: 'Wesele', tagline: 'Shots, twirls with drunk uncles, Gorzko! Survive till 3:00.', minPlayers: 2 },
   { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi. Guess what she wants.', minPlayers: 1 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
   {
@@ -772,6 +774,29 @@ export type PhoneView =
       res: { correct: boolean; answer: number; added: string; removed: string; removedSrc: string; pts: number; total: number } | null;
     }
   /**
+   * Wesele: what your phone shows right now. `key` changes with every new task (phones reset their
+   * input and answers carry it back). Times are host clock ms. `drunk` 0–5 makes the phone harder to use.
+   */
+  | {
+      v: 'wesele';
+      phase: 'intro' | 'shot' | 'dance' | 'pair' | 'gorzko' | 'result' | 'wait' | 'out' | 'end';
+      key: number;
+      song: number;
+      songs: number;
+      clock: string;
+      drunk: number;
+      total: number;
+      endsAt: number;
+      done: boolean;
+      dance?: { startAt: number; endAt: number; need: number; attempt: number };
+      pair?: { title: string; button: string; partner: string; partnerColor: ColorId | null; nowAt: number; attempt: number };
+      gorzko?: { startAt: number; endAt: number };
+      /** How the last task went for you. */
+      result?: { big: string; text: string; good: boolean; pts: number; drank: number };
+      /** Why you're waiting (e.g. "Your partner is dancing with Wujek"). */
+      text?: string;
+    }
+  /**
    * Wybredna Baja: build a plate (one option per row, `rows` rows) and feed her. `history` is your
    * tries this craving (`plate` null if you missed one); `fed` the try you fed her right on.
    * `changed` lists rows she changed her mind about; `answer` is shown at the reveal.
@@ -1009,6 +1034,11 @@ export type PhoneMsg =
   | { t: 'fork'; r: number; ms: number }
   /** Pierogi Parade: your count in round `r` (sent while it changes). */
   | { t: 'count'; r: number; n: number }
+  /**
+   * Wesele, for task `key`: drank the shot, when you let go in the pair game (`at`, ms after "NOW!", host
+   * clock), or a count (`n`): twirls so far in the dance (sent as they happen), or Gorzko! taps (sent at the end).
+   */
+  | { t: 'wesele'; key: number; drink?: boolean; at?: number; n?: number }
   /** Wybredna Baja: your plate for try `tryN` of craving `round` (one option index per row). */
   | { t: 'feed'; round: number; tryN: number; plate: number[] }
   /** Fajki: reach for the cigarette in front of you. */
