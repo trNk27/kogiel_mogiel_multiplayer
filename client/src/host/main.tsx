@@ -5,16 +5,17 @@ import '../styles/base.css';
 import '../styles/tv.css';
 import { HostApp } from './HostApp';
 import { HostController } from './controller';
+import { looksLikePhone } from './device';
 
 /**
  * One link for everybody: a phone opening "/" is sent to the controller page,
- * while laptops, TVs and tablets get the host screen. "/?host" forces hosting.
+ * while laptops, TVs and tablets get the host screen. "/?host" forces hosting
+ * (the join page's "Use this screen as the TV" link), and keeps doing so on a reload.
  */
 const params = new URLSearchParams(location.search);
-const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
 const forceHost = params.has('host') || params.has('autohost') || params.has('new');
 
-if (isPhone && !forceHost && !HostController.savedSession()) {
+if (looksLikePhone() && !forceHost) {
   location.replace(`/join${params.get('code') ? `?code=${encodeURIComponent(params.get('code')!)}` : ''}`);
 } else {
   const controller = new HostController();

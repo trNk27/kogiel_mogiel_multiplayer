@@ -253,6 +253,8 @@ function MirrorPanel({ onClose }: { onClose: () => void }) {
 
 function Landing({ busy, error }: { busy: boolean; error?: string }) {
   const saved = HostController.savedSession();
+  // A phone only lands here by mistake (or on purpose via "/?host"): give it a way to the join page.
+  const touch = matchMedia('(pointer: coarse)').matches;
   return (
     <div class="screen landing">
       <Orbits />
@@ -277,6 +279,11 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
         </div>
         {error && <p class="landing-error">{error}</p>}
       </div>
+      {touch && (
+        <a class="btn btn-big btn-yolk landing-phone" href="/join">
+          📱 On a phone? Join a room or play without a TV
+        </a>
+      )}
       <p class="landing-notv">
         No TV? Open <b>{location.host}</b> on a phone → <b>Play without a TV</b> · Far away?{' '}
         <a class="landing-link" href="/screen">

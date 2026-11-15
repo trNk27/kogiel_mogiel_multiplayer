@@ -344,6 +344,17 @@ body.tv {
   color: var(--yolk);
   font-weight: 800;
 }
+.landing-phone {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 20000;
+  font-size: 40px;
+  padding: 20px 56px;
+  white-space: nowrap;
+  text-decoration: none;
+}
 .landing-error {
   color: var(--beet);
   font-size: 30px;
