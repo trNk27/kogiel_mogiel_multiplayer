@@ -1,5 +1,6 @@
-# Builds and tests every push; only pushes to main deploy to Cloudflare Workers (the live site),
-# so work on other branches can't replace what's live.
+# Tests and builds every pull request (including ones from forks) and every push to main;
+# only pushes to main deploy to Cloudflare Workers (the live site), so a pull request can't
+# replace what's live. Pull requests from forks don't get the secrets below at all.
 # Needs two repository secrets (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN   – API token made from the "Edit Cloudflare Workers" template
 #   CLOUDFLARE_ACCOUNT_ID  – your Cloudflare account ID
@@ -7,6 +8,8 @@ name: Deploy to Cloudflare
 
 on:
   push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -27,7 +30,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Deploy
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
