@@ -1,5 +1,5 @@
 import type { JSX } from 'preact';
-import type { GameId, HostToPhone, LobbyOptions, PhoneMsg, PhoneView } from '../../../shared/protocol';
+import type { AiResponse, AiTask, GameId, HostToPhone, LobbyOptions, PhoneMsg, PhoneView } from '../../../shared/protocol';
 import type { Player } from '../host/controller';
 
 /** What the host offers a running game. */
@@ -21,6 +21,10 @@ export interface GameHost {
   readonly noTv: boolean;
   /** The VIP's player id (games with their own menus let the VIP drive them). */
   vipId?(): string | null;
+  /** Ask the AI bot to do something (via the worker, which holds the key). null if it failed or AI isn't set up. */
+  ai?(task: AiTask, signal?: AbortSignal): Promise<AiResponse | null>;
+  /** AI bots can be switched on (the worker has a key). */
+  readonly aiAvailable?: boolean;
 }
 
 export interface CoopLevel {

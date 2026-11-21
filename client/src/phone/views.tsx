@@ -189,6 +189,9 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         {(view.selected === 'trails' || tour) && (
           <Toggle label={tour ? 'Trails power-ups' : 'Power-ups'} on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
+        {view.selected === 'telephone' && view.ai && (
+          <Toggle label="🤖 DeepSeek bot plays too" hint="Writes, draws and guesses along with you" on={view.options.telBot} onChange={(v) => send({ t: 'option', key: 'telBot', value: v })} />
+        )}
         {view.selected === 'rally' && <TrackPicker value={view.options.track} onChange={(v) => send({ t: 'option', key: 'track', value: v })} />}
         {(view.selected === 'rally' || view.selected === 'premium' || tour) && (
           <Toggle

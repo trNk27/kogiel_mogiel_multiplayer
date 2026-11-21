@@ -25,6 +25,8 @@ const MAX_HOST_MESSAGE = 96 * 1024;
 /** A second screen only says hello and sends WebRTC signalling (an SDP answer is a few KB). */
 const MAX_SCREEN_MESSAGE = 32 * 1024;
 const OPEN = 1;
+/** AI bot calls a room may make per hour (a game of Głuchy Telefon with the bot uses about 6). */
+const AI_CALLS_PER_HOUR = 120;
 
 /**
  * One Durable Object per room. It is a thin relay between the TV (host) and the phones.
@@ -72,6 +74,22 @@ export class RoomDO extends DurableObject<Env> {
 
   async exists(): Promise<boolean> {
     return !!this.hostKey && !this.isIdle();
+  }
+
+  /** Recent AI calls (timestamps), kept in memory only: losing them on eviction just resets the budget. */
+  private aiCalls: number[] = [];
+
+  /**
+   * May this TV make an AI call? Only the room's host (it holds the secret key), and only so many
+   * per hour, so a leaked room can't run up the DeepSeek bill.
+   */
+  async aiTicket(hostKey: string): Promise<'ok' | 'forbidden' | 'busy'> {
+    if (!this.hostKey || this.isIdle() || hostKey !== this.hostKey) return 'forbidden';
+    const now = Date.now();
+    this.aiCalls = this.aiCalls.filter((t) => now - t < 3600_000);
+    if (this.aiCalls.length >= AI_CALLS_PER_HOUR) return 'busy';
+    this.aiCalls.push(now);
+    return 'ok';
   }
 
   // ---- WebSocket upgrade ----------------------------------------------------

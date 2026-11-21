@@ -18,6 +18,9 @@ import {
   isColorId,
   sanitizeName,
   type ColorId,
+  type AiResponse,
+  type AiStatusResponse,
+  type AiTask,
   type CreateRoomResponse,
   type GameId,
   type HostToPhone,
@@ -137,6 +140,8 @@ export class HostController implements GameHost {
   /** Party mode: the vote for the next game, while it's on. */
   vote: VoteRoom | null = null;
   gamesPlayed = 0;
+  /** The worker has an AI key (checked once per connect), so AI bots can be offered. */
+  aiAvailable = false;
   /** Who's VIP now: it passes to the next player (in joining order) after every game. */
   private vip: string | null = null;
   /** Party points per finished game, oldest first – for the standings chart. */
@@ -260,7 +265,40 @@ export class HostController implements GameHost {
     }
   }
 
+  /** Ask the worker once whether AI bots are set up. */
+  private checkAi() {
+    if (this.aiAvailable) return;
+    fetch('/api/ai')
+      .then((r) => (r.ok ? (r.json() as Promise<AiStatusResponse>) : { enabled: false }))
+      .then((r) => {
+        if (!r.enabled || this.aiAvailable) return;
+        this.aiAvailable = true;
+        this.refreshLobby();
+        this.changed();
+      })
+      .catch(() => {});
+  }
+
+  /** GameHost: one AI task, done by the worker with this room's key. null if it failed. */
+  async ai(task: AiTask, signal?: AbortSignal): Promise<AiResponse | null> {
+    if (!this.aiAvailable || !this.code) return null;
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ...task, code: this.code, key: this.hostKey }),
+        signal,
+      });
+      if (!res.ok) return null;
+      const out = (await res.json()) as AiResponse;
+      return out.error ? null : out;
+    } catch {
+      return null;
+    }
+  }
+
   private connect() {
+    this.checkAi();
     this.socket?.close();
     this.socket = new ReconnectingSocket<ServerToHost, HostToServer>({
       url: () => wsUrl(`/ws/${this.code}?role=host&key=${encodeURIComponent(this.hostKey)}`),
@@ -428,7 +466,7 @@ export class HostController implements GameHost {
         return;
       case 'option':
         if (!isVip) return;
-        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items' || m.key === 'tourShort' || m.key === 'tourParty') this.options = { ...this.options, [m.key]: !!m.value };
+        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items' || m.key === 'tourShort' || m.key === 'tourParty' || m.key === 'telBot') this.options = { ...this.options, [m.key]: !!m.value };
         else if (m.key === 'tourGames') {
           const v = Math.round(Number(m.value));
           if (!(v >= TOURNAMENT_MIN_GAMES && v <= TOURNAMENT_MAX_GAMES)) return;
@@ -790,6 +828,7 @@ export class HostController implements GameHost {
           players: vip ? this.summaries() : [],
           playerCount: this.players.size,
           vipName: this.players.get(this.vipId() ?? '')?.name ?? '',
+          ...(this.aiAvailable ? { ai: true } : {}),
         };
       case 'intro': {
         const t = this.tournament;

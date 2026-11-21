@@ -301,6 +301,8 @@ export interface LobbyOptions {
   tourOff: GameId[];
   /** Tournament party mode: before every game, walk onto one of three games to vote for it. */
   tourParty: boolean;
+  /** Głuchy Telefon: a DeepSeek bot takes a seat (needs DEEPSEEK_API_KEY on the worker). */
+  telBot: boolean;
 }
 
 export const DEFAULT_OPTIONS: LobbyOptions = {
@@ -315,6 +317,7 @@ export const DEFAULT_OPTIONS: LobbyOptions = {
   tourShort: true,
   tourOff: [],
   tourParty: false,
+  telBot: false,
 };
 
 /**
@@ -604,6 +607,8 @@ export type PhoneView =
       players: PlayerSummary[];
       playerCount: number;
       vipName: string;
+      /** The worker has an AI key, so AI bots can be switched on. */
+      ai?: boolean;
     }
   | { v: 'wait'; title: string; text?: string; icon?: string }
   | {
@@ -1218,3 +1223,29 @@ export const CLOSE = {
   /** A room already has MAX_SCREENS second screens. */
   full: 4409,
 } as const;
+
+// ---------------------------------------------------------------------------
+// AI bot (POST /api/ai): the TV asks the worker, which holds the DeepSeek key.
+// ---------------------------------------------------------------------------
+
+export type AiTask =
+  /** Write a silly sentence to start a chain. */
+  | { task: 'write' }
+  /** Draw a sentence (the answer comes back as strokes, drawn by the AI as SVG). */
+  | { task: 'draw'; prompt: string }
+  /** Say in a few words what a drawing shows. */
+  | { task: 'describe'; strokes: Stroke[] };
+
+export type AiRequest = AiTask & { code: string; key: string };
+
+export interface AiResponse {
+  text?: string;
+  strokes?: Stroke[];
+  /** The SVG the AI drew (for debugging). */
+  svg?: string;
+  error?: string;
+}
+
+export interface AiStatusResponse {
+  enabled: boolean;
+}

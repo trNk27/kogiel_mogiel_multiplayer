@@ -1,5 +1,5 @@
 import sentences from '../../../../data/telephone.json';
-import { colorHex, type AskInput, type AskView, type ColorId, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
+import { PLAYER_COLORS, colorHex, type AiTask, type AskInput, type AskView, type ColorId, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { usedSet } from '../usedStore';
 import { Doodle } from '../toty/art';
@@ -7,6 +7,7 @@ import { Leaderboard, TimerRing } from '../../host/components';
 import { Pierogi } from '../../lib/art';
 import { sound } from '../../lib/sound';
 import {
+  BOT_ID,
   DRAW_ANYTHING,
   TEL_MAX_TEXT,
   TEL_VOTE_MS,
@@ -38,6 +39,11 @@ const ALL_IN_MS = 1200;
 
 type Phase = 'step' | 'pass' | 'show' | 'vote' | 'votes' | 'final';
 
+/** What the bot is called on the TV and phones. */
+const BOT_NAME = 'DeepSeek 🤖';
+/** The bot hands in at least this long before the step's deadline (or gives up). */
+const BOT_MARGIN_MS = 1500;
+
 const KIND_ICON: Record<StepKind, string> = { write: '✍️', draw: '🎨', describe: '💬' };
 const KIND_VERB: Record<StepKind, string> = { write: 'Writing…', draw: 'Drawing…', describe: 'Guessing…' };
 
@@ -55,12 +61,25 @@ export class TelephoneGame implements Game {
   private shown = 0;
   private result: ChainVotes = { counts: [], points: {}, voters: [] };
   private finished = false;
+  /** The AI bot plays a seat (the VIP switched it on, and the worker has a key). */
+  private readonly bot: boolean;
+  private botColor: ColorId = 'sourcream';
+  /** The bot's call in flight, so it can be cancelled when the step ends. */
+  private botCall: AbortController | null = null;
+  /** The bot couldn't hand anything in this step: don't wait for it. */
+  private botGaveUp = false;
 
   constructor(
     private host: GameHost,
     public ids: string[],
   ) {
-    this.tel = new Telephone(seating(ids), host.short);
+    this.bot = !!(host.options.telBot && host.aiAvailable && host.ai && !host.noTv);
+    const bots = this.bot ? [BOT_ID] : [];
+    this.tel = new Telephone(seating(ids, Math.random, bots), host.short, bots);
+    if (this.bot) {
+      const taken = new Set(ids.map((id) => host.player(id)?.color));
+      this.botColor = PLAYER_COLORS.find((c) => !taken.has(c.id))?.id ?? 'sourcream';
+    }
   }
 
   start() {
@@ -71,6 +90,7 @@ export class TelephoneGame implements Game {
 
   dispose() {
     clearTimeout(this.timer);
+    this.botCall?.abort();
   }
 
   private after(ms: number, fn: () => void) {
@@ -88,6 +108,7 @@ export class TelephoneGame implements Game {
   }
 
   private connected(id: string) {
+    if (id === BOT_ID) return this.bot && !this.botGaveUp;
     return !!this.player(id)?.connected;
   }
 
@@ -108,10 +129,55 @@ export class TelephoneGame implements Game {
     this.after(ms + GRACE_MS, () => this.endStep());
     this.update();
     this.maybeAdvance();
+    this.runBot();
+  }
+
+  // ---- the AI bot -----------------------------------------------------------------------
+
+  /** Let the bot do its part of this step: write, draw or guess (through the worker). */
+  private runBot() {
+    this.botCall?.abort();
+    this.botCall = null;
+    this.botGaveUp = false;
+    if (!this.bot || !this.host.ai) return;
+    const t = this.tel.task(BOT_ID);
+    if (!t) return;
+    const key = this.key;
+    const step = this.tel.step;
+    // A blank page to describe: make something up, like a player would.
+    const blank = t.kind === 'describe' && !t.pic?.length;
+    const task: AiTask =
+      t.kind === 'write' || blank
+        ? { task: 'write' }
+        : t.kind === 'draw'
+          ? { task: 'draw', prompt: t.prompt || 'anything you like' }
+          : { task: 'describe', strokes: t.pic ?? [] };
+    const call = new AbortController();
+    this.botCall = call;
+    const stop = window.setTimeout(() => call.abort(), Math.max(3000, this.endsAt - Date.now() - BOT_MARGIN_MS));
+    this.host
+      .ai(task, call.signal)
+      .then((res) => {
+        clearTimeout(stop);
+        if (this.phase !== 'step' || this.key !== key || this.tel.step !== step || this.tel.has(BOT_ID)) return;
+        let ok = false;
+        if (t.kind === 'draw') ok = !!res?.strokes?.length && this.tel.submit(BOT_ID, { strokes: res.strokes });
+        else if (res?.text) ok = this.tel.submit(BOT_ID, { text: res.text });
+        // Writing the first sentence never fails: roll the dice instead.
+        if (!ok && t.kind === 'write') ok = this.tel.submit(BOT_ID, { auto: this.nextSentence() });
+        if (ok) sound.lockIn();
+        else this.botGaveUp = true;
+        this.update();
+        this.maybeAdvance();
+      })
+      .finally(() => {
+        if (this.botCall === call) this.botCall = null;
+      });
   }
 
   private endStep() {
     if (this.phase !== 'step') return;
+    this.botCall?.abort();
     this.tel.endStep(() => this.nextSentence());
     if (this.tel.done) {
       this.startShow();
@@ -351,10 +417,12 @@ export class TelephoneGame implements Game {
   }
 
   private name(id: string | undefined) {
+    if (id === BOT_ID) return BOT_NAME;
     return (id && this.player(id)?.name) || '?';
   }
 
   private color(id: string | undefined): ColorId {
+    if (id === BOT_ID) return this.botColor;
     return (id && this.player(id)?.color) || 'sourcream';
   }
 
@@ -579,6 +647,9 @@ export class TelephoneGame implements Game {
       .map((id) => this.player(id))
       .filter((p) => !!p)
       .map((p) => ({ id: p.id, name: p.name, color: p.color, score: scores[p.id] ?? 0, note: `${Math.round((scores[p.id] ?? 0) / TEL_VOTE_POINTS)} votes` }));
+    if (this.bot && BOT_ID in scores) {
+      rows.push({ id: BOT_ID, name: BOT_NAME, color: this.botColor, score: scores[BOT_ID], note: `${Math.round(scores[BOT_ID] / TEL_VOTE_POINTS)} votes · just for fun` });
+    }
     return (
       <div class="screen bp-scores" key="final">
         <h2 class="screen-title">Every chain is back home!</h2>

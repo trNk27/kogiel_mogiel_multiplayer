@@ -152,10 +152,15 @@ export class Telephone {
   /** votes[c]: voter → entry index. */
   readonly votes: Map<string, number>[];
 
+  /** Seats played by an AI bot: they write, draw and guess, but don't vote. */
+  readonly bots: ReadonlySet<string>;
+
   constructor(
     readonly seats: readonly string[],
     short = false,
+    bots: Iterable<string> = [],
   ) {
+    this.bots = new Set(bots);
     this.steps = stepCount(seats.length, short);
     this.chains = seats.map(() => []);
     this.votes = seats.map(() => new Map());
@@ -293,7 +298,7 @@ export class Telephone {
 
   /** `voter` can vote on `chain` at all. */
   canVote(chain: number, voter: string): boolean {
-    return !this.left.has(voter) && this.seatOf(voter) >= 0 && this.canPick(chain, voter).some(Boolean);
+    return !this.left.has(voter) && !this.bots.has(voter) && this.seatOf(voter) >= 0 && this.canPick(chain, voter).some(Boolean);
   }
 
   /** Players who still have to vote on `chain`. */
@@ -334,10 +339,13 @@ export class Telephone {
   }
 }
 
-/** A random seating, so the chains pass in a fresh order each game. */
-export function seating(ids: readonly string[], rng: Rng = Math.random): string[] {
-  return shuffle([...ids], rng);
+/** A random seating, so the chains pass in a fresh order each game. Bots sit at random places among the players. */
+export function seating(ids: readonly string[], rng: Rng = Math.random, bots: readonly string[] = []): string[] {
+  return shuffle([...ids, ...bots], rng);
 }
+
+/** The seat id of the AI bot in Głuchy Telefon (never a phone's id: those have no colon). */
+export const BOT_ID = 'bot:deepseek';
 
 /** Pick `n` starting sentences not used lately. Mutates `used`. */
 export function pickSentences(pool: readonly TelSentence[], used: Set<string>, n: number, rng: Rng = Math.random): string[] {

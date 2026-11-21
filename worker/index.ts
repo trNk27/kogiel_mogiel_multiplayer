@@ -1,9 +1,18 @@
-import { CODE_ALPHABET, CODE_LENGTH, CODE_RE, type CreateRoomResponse, type IceServersResponse, type RoomInfoResponse } from '../shared/protocol';
+import {
+  CODE_ALPHABET,
+  CODE_LENGTH,
+  CODE_RE,
+  type AiStatusResponse,
+  type CreateRoomResponse,
+  type IceServersResponse,
+  type RoomInfoResponse,
+} from '../shared/protocol';
+import { aiEnabled, readAiRequest, runAi, type AiEnv } from './ai';
 import { RoomDO } from './room';
 
 export { RoomDO };
 
-export interface Env {
+export interface Env extends AiEnv {
   ROOMS: DurableObjectNamespace<RoomDO>;
   ASSETS: Fetcher;
   /**
@@ -95,6 +104,24 @@ export default {
     // STUN/TURN servers for the second screens' video.
     if (path === '/api/ice' && request.method === 'GET') {
       return json(await iceServers(env));
+    }
+
+    // AI bot: is there a key? (the lobby only offers the bot if there is)
+    if (path === '/api/ai' && request.method === 'GET') {
+      return json({ enabled: aiEnabled(env) } satisfies AiStatusResponse);
+    }
+
+    // AI bot: one task for the room's TV (checked against the host key, and rate-limited per room).
+    if (path === '/api/ai' && request.method === 'POST') {
+      if (!aiEnabled(env)) return json({ error: 'AI is not set up' }, 503);
+      const req = await readAiRequest(request);
+      if (!req) return json({ error: 'Bad request' }, 400);
+      const code = req.code.toUpperCase();
+      if (!CODE_RE.test(code)) return json({ error: 'Bad room code' }, 400);
+      const ticket = await room(env, code).aiTicket(req.key);
+      if (ticket === 'forbidden') return json({ error: 'Forbidden' }, 403);
+      if (ticket === 'busy') return json({ error: 'Too many AI calls, try again later' }, 429);
+      return json(await runAi(env, req));
     }
 
     // WebSocket into a room: /ws/ABCD?role=host&key=…, ?role=player&id=… or ?role=screen&id=…
