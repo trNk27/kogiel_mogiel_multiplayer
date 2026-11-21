@@ -1,22 +1,33 @@
 /**
  * The AI bot's brain: the TV posts a task to /api/ai, and this calls DeepSeek with the worker's
- * secret key (set with `npx wrangler secret put DEEPSEEK_API_KEY`). DeepSeek's chat API only reads
- * text, so the bot "looks at" a drawing as SVG, and draws by writing SVG that becomes doodle strokes.
+ * secret key (set with `npx wrangler secret put DEEPSEEK_API_KEY`). The bot looks at a drawing with
+ * a DeepSeek vision model (the TV sends it as a small picture); if no vision model answers, it reads
+ * the drawing as SVG text instead. It draws by writing SVG that becomes doodle strokes.
  */
 import { DOODLE_COLORS, type AiRequest, type AiResponse, type Stroke } from '../shared/protocol';
 import { strokesToSvg, svgToStrokes } from '../shared/svgStrokes';
 
 const DEEPSEEK_URL = 'https://api.deepseek.com/chat/completions';
 const DEFAULT_MODEL = 'deepseek-chat';
+/**
+ * Vision models to try, in order (DEEPSEEK_VISION_MODEL first if set). DeepSeek has used more than
+ * one id for its image-reading model, so the first that answers is remembered and used from then on.
+ */
+const VISION_MODELS = ['deepseek-flash', 'deepseek-v4-flash-vision-exp'];
+let visionModel: string | null = null;
 /** Longest sentence or guess (the game cuts at 60 characters too). */
 const MAX_TEXT = 60;
-/** Largest drawing accepted from the TV (MAX_DOODLE_POINTS points is ~25 KB of JSON). */
-const MAX_BODY = 96 * 1024;
+/** Largest request accepted from the TV: a drawing (~25 KB of JSON at most) plus its picture (≤ 80 KB). */
+const MAX_BODY = 160 * 1024;
+const MAX_IMAGE = 100_000;
+const IMAGE_RE = /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/;
 
 export interface AiEnv {
   DEEPSEEK_API_KEY?: string;
   /** Optional: another DeepSeek model id. */
   DEEPSEEK_MODEL?: string;
+  /** Optional: the DeepSeek model that reads pictures (tried before the built-in guesses). */
+  DEEPSEEK_VISION_MODEL?: string;
 }
 
 export function aiEnabled(env: AiEnv): boolean {
@@ -29,7 +40,20 @@ const THEMES = [
   'music', 'a farm', 'a supermarket', 'ghosts', 'robots', 'a school', 'the mountains', 'a birthday', 'dinosaurs', 'pierogi',
 ];
 
-async function chat(env: AiEnv, system: string, user: string, opts: { maxTokens: number; temperature: number; timeoutMs: number }): Promise<string> {
+type Content = string | ({ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } })[];
+
+class HttpError extends Error {
+  constructor(readonly status: number) {
+    super(`DeepSeek answered ${status}`);
+  }
+}
+
+async function chat(
+  env: AiEnv,
+  system: string,
+  user: Content,
+  opts: { maxTokens: number; temperature: number; timeoutMs: number; model?: string },
+): Promise<string> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), opts.timeoutMs);
   try {
@@ -38,7 +62,7 @@ async function chat(env: AiEnv, system: string, user: string, opts: { maxTokens:
       signal: ctl.signal,
       headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: env.DEEPSEEK_MODEL || DEFAULT_MODEL,
+        model: opts.model || env.DEEPSEEK_MODEL || DEFAULT_MODEL,
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: user },
@@ -48,7 +72,7 @@ async function chat(env: AiEnv, system: string, user: string, opts: { maxTokens:
         stream: false,
       }),
     });
-    if (!res.ok) throw new Error(`DeepSeek answered ${res.status}`);
+    if (!res.ok) throw new HttpError(res.status);
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     return data.choices?.[0]?.message?.content ?? '';
   } finally {
@@ -97,8 +121,46 @@ async function write(env: AiEnv): Promise<AiResponse> {
   return text ? { text } : { error: 'empty' };
 }
 
-async function describe(env: AiEnv, strokes: Stroke[]): Promise<AiResponse> {
+const LOOK =
+  'This is the drawing you were handed. Guess what sentence the artist was drawing. ' +
+  'Reply with your guess only: a short caption of 3 to 8 words, no quotes.';
+
+/** Look at the picture with a vision model. '' if none of them would take it. */
+async function look(env: AiEnv, image: string): Promise<string> {
+  const models = [...new Set([visionModel, env.DEEPSEEK_VISION_MODEL, ...VISION_MODELS].filter((m): m is string => !!m))];
+  for (const model of models) {
+    try {
+      const out = await chat(
+        env,
+        GAME,
+        [
+          { type: 'image_url', image_url: { url: image } },
+          { type: 'text', text: LOOK },
+        ],
+        { model, maxTokens: 60, temperature: 0.7, timeoutMs: 25_000 },
+      );
+      visionModel = model;
+      return cleanLine(out);
+    } catch (e) {
+      // A model that doesn't exist or won't take images says 400/404/422: try the next one.
+      // Anything else (timeout, 401, 429, 5xx) won't get better with another model name.
+      if (!(e instanceof HttpError) || ![400, 404, 422].includes(e.status)) throw e;
+      if (visionModel === model) visionModel = null;
+    }
+  }
+  return '';
+}
+
+async function describe(env: AiEnv, strokes: Stroke[], image?: string): Promise<AiResponse> {
   if (!strokes.length) return { error: 'blank' };
+  if (image) {
+    try {
+      const text = await look(env, image);
+      if (text) return { text };
+    } catch {
+      // Fall back to reading the strokes.
+    }
+  }
   const svg = strokesToSvg(strokes);
   const out = await chat(
     env,
@@ -135,7 +197,7 @@ async function draw(env: AiEnv, prompt: string): Promise<AiResponse> {
 export async function runAi(env: AiEnv, req: AiRequest): Promise<AiResponse> {
   try {
     if (req.task === 'write') return await write(env);
-    if (req.task === 'describe') return await describe(env, Array.isArray(req.strokes) ? req.strokes : []);
+    if (req.task === 'describe') return await describe(env, Array.isArray(req.strokes) ? req.strokes : [], req.image);
     if (req.task === 'draw') return await draw(env, cleanLine(String(req.prompt ?? '')) || 'anything you like');
     return { error: 'bad task' };
   } catch (e) {
@@ -153,7 +215,10 @@ export async function readAiRequest(request: Request): Promise<AiRequest | null>
     const body = JSON.parse(text) as AiRequest;
     if (typeof body?.code !== 'string' || typeof body.key !== 'string') return null;
     if (body.task !== 'write' && body.task !== 'draw' && body.task !== 'describe') return null;
-    if (body.task === 'describe' && !isStrokes(body.strokes)) return null;
+    if (body.task === 'describe') {
+      if (!isStrokes(body.strokes)) return null;
+      if (body.image !== undefined && (typeof body.image !== 'string' || body.image.length > MAX_IMAGE || !IMAGE_RE.test(body.image))) delete body.image;
+    }
     return body;
   } catch {
     return null;

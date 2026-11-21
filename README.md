@@ -419,8 +419,11 @@ model (default `deepseek-chat`).
 
 How it works: the TV posts each task to `POST /api/ai` with its room code and secret host key; the
 Worker checks the key with the room (at most 120 calls per room an hour) and calls DeepSeek, so the
-API key never reaches a browser. DeepSeek's API only reads text, so the bot *looks at* a drawing as
-SVG (every stroke a polyline with its pen colour) and *draws* by answering with an SVG doodle, which
+API key never reaches a browser. To *look at* a drawing, the TV turns it into a small PNG/JPEG and
+the bot sends it to a DeepSeek vision model (`deepseek-flash`, then `deepseek-v4-flash-vision-exp`;
+the first that answers is remembered, and `DEEPSEEK_VISION_MODEL` can name another). If no vision
+model takes it, the bot reads the drawing as SVG text instead (every stroke a polyline with its pen
+colour), which works much less well. It *draws* by answering with an SVG doodle, which
 `shared/svgStrokes.ts` turns into the game's pen strokes (paths, curves, circles, rects… mapped onto
 the eight pens and three widths). If DeepSeek is slow or fails, the bot hands in nothing for that
 step (or rolls the dice for its first sentence), like a player whose time ran out.

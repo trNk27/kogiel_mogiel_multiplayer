@@ -1233,8 +1233,11 @@ export type AiTask =
   | { task: 'write' }
   /** Draw a sentence (the answer comes back as strokes, drawn by the AI as SVG). */
   | { task: 'draw'; prompt: string }
-  /** Say in a few words what a drawing shows. */
-  | { task: 'describe'; strokes: Stroke[] };
+  /**
+   * Say in a few words what a drawing shows. `image` is the drawing as a small PNG/JPEG data: URL
+   * for a vision model; the strokes are the fallback (read as SVG text) if that doesn't work.
+   */
+  | { task: 'describe'; strokes: Stroke[]; image?: string };
 
 export type AiRequest = AiTask & { code: string; key: string };
 
