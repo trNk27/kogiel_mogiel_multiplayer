@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DOODLE_SPACE, MAX_DOODLE_POINTS, type Stroke } from '../shared/protocol';
 import { nearestColor, strokesToSvg, svgToStrokes } from '../shared/svgStrokes';
 import { BOT_ID, Telephone, seating } from '../client/src/games/telephone/logic';
-import { cleanLine, extractSvg } from '../worker/ai';
+import { cleanLine, extractSvg, readAiRequest, runAi } from '../worker/ai';
 
 describe('svgToStrokes', () => {
   it('reads the basic shapes and scales the viewBox into the canvas', () => {
@@ -106,5 +106,59 @@ describe('AI answer cleaning', () => {
   it('finds the svg in a chatty answer', () => {
     expect(extractSvg('Sure!\n```svg\n<svg viewBox="0 0 10 10"><line/></svg>\n```')).toBe('<svg viewBox="0 0 10 10"><line/></svg>');
     expect(extractSvg('nope')).toBe('');
+  });
+});
+
+describe('the bot looking at a drawing', () => {
+  const env = { DEEPSEEK_API_KEY: 'test' };
+  const image = 'data:image/png;base64,iVBORw0KGgo=';
+  const strokes: Stroke[] = [[0, 1, 100, 100, 900, 900]];
+
+  /** A fake DeepSeek: `answer(model, hasImage)` returns an HTTP status or a reply. */
+  function fake(answer: (model: string, hasImage: boolean) => number | string) {
+    const calls: { model: string; hasImage: boolean }[] = [];
+    vi.stubGlobal('fetch', async (_url: string, init: { body: string }) => {
+      const body = JSON.parse(init.body) as { model: string; messages: { content: unknown }[] };
+      const hasImage = Array.isArray(body.messages[1].content);
+      calls.push({ model: body.model, hasImage });
+      const a = answer(body.model, hasImage);
+      if (typeof a === 'number') return new Response('{}', { status: a });
+      return new Response(JSON.stringify({ choices: [{ message: { content: a } }] }), { status: 200 });
+    });
+    return calls;
+  }
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('sends the picture to a vision model, trying the next id if one is unknown', async () => {
+    const calls = fake((model) => (model === 'deepseek-v4-flash-vision-exp' ? '"A diagonal line."' : 400));
+    expect(await runAi(env, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' })).toEqual({ text: 'A diagonal line' });
+    expect(calls.map((c) => c.model)).toEqual(['deepseek-flash', 'deepseek-v4-flash-vision-exp']);
+    expect(calls.every((c) => c.hasImage)).toBe(true);
+    // The id that worked is used first from now on.
+    calls.length = 0;
+    await runAi(env, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' });
+    expect(calls.map((c) => c.model)).toEqual(['deepseek-v4-flash-vision-exp']);
+  });
+
+  it('falls back to reading the strokes as SVG when no vision model answers', async () => {
+    const calls = fake((_m, hasImage) => (hasImage ? 404 : 'A stick'));
+    expect(await runAi({ ...env, DEEPSEEK_VISION_MODEL: 'nope' }, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' })).toEqual({ text: 'A stick' });
+    expect(calls.at(-1)).toEqual({ model: 'deepseek-chat', hasImage: false });
+  });
+
+  it('only accepts small PNG/JPEG data URLs from the TV', async () => {
+    const req = (img: string) =>
+      readAiRequest(new Request('http://x/api/ai', { method: 'POST', body: JSON.stringify({ code: 'ABCD', key: 'k', task: 'describe', strokes, image: img }) }));
+    const has = async (img: string) => {
+      const r = await req(img);
+      return r === null ? null : 'image' in r;
+    };
+    expect(await has(image)).toBe(true);
+    expect(await has('https://elsewhere.example/x.png')).toBe(false);
+    // Too big a picture is dropped (the strokes still go through)…
+    expect(await has(`data:image/png;base64,${'A'.repeat(120_000)}`)).toBe(false);
+    // …and too big a request is refused.
+    expect(await has(`data:image/png;base64,${'A'.repeat(200_000)}`)).toBe(null);
   });
 });

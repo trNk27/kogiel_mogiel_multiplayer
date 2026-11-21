@@ -1,5 +1,5 @@
 import sentences from '../../../../data/telephone.json';
-import { PLAYER_COLORS, colorHex, type AiTask, type AskInput, type AskView, type ColorId, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
+import { PLAYER_COLORS, colorHex, type AiTask, type AskInput, type AskView, type Stroke, type ColorId, type PhoneMsg, type PhoneView } from '../../../../shared/protocol';
 import type { Game, GameHost } from '../types';
 import { usedSet } from '../usedStore';
 import { Doodle } from '../toty/art';
@@ -23,6 +23,7 @@ import {
   type StepKind,
   type TelSentence,
 } from './logic';
+import { snapshot } from './snapshot';
 import './telephone.css';
 
 const POOL = sentences as TelSentence[];
@@ -151,7 +152,7 @@ export class TelephoneGame implements Game {
         ? { task: 'write' }
         : t.kind === 'draw'
           ? { task: 'draw', prompt: t.prompt || 'anything you like' }
-          : { task: 'describe', strokes: t.pic ?? [] };
+          : { task: 'describe', strokes: t.pic ?? [], ...withImage(t.pic ?? []) };
     const call = new AbortController();
     this.botCall = call;
     const stop = window.setTimeout(() => call.abort(), Math.max(3000, this.endsAt - Date.now() - BOT_MARGIN_MS));
@@ -697,6 +698,12 @@ export class TelephoneGame implements Game {
 }
 
 const LEFT_LABEL = 'Left the game';
+
+/** The drawing as a picture for the bot's vision model, if the browser can make one. */
+function withImage(strokes: Stroke[]): { image?: string } {
+  const image = snapshot(strokes);
+  return image ? { image } : {};
+}
 
 /** A random doodle for the debug filler: a few wobbly loops and a sun. */
 function scribble(): number[][] {
