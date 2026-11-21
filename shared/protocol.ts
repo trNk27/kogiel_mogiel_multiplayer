@@ -301,9 +301,12 @@ export interface LobbyOptions {
   tourOff: GameId[];
   /** Tournament party mode: before every game, walk onto one of three games to vote for it. */
   tourParty: boolean;
-  /** Głuchy Telefon: a DeepSeek bot takes a seat (needs DEEPSEEK_API_KEY on the worker). */
-  telBot: boolean;
+  /** Głuchy Telefon: how many DeepSeek bots take a seat, 0 to 4 (needs DEEPSEEK_API_KEY on the worker). */
+  telBots: number;
 }
+
+/** Głuchy Telefon: most AI bots the VIP can seat. */
+export const TEL_MAX_BOTS = 4;
 
 export const DEFAULT_OPTIONS: LobbyOptions = {
   powerups: false,
@@ -317,7 +320,7 @@ export const DEFAULT_OPTIONS: LobbyOptions = {
   tourShort: true,
   tourOff: [],
   tourParty: false,
-  telBot: false,
+  telBots: 0,
 };
 
 /**

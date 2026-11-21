@@ -2,7 +2,7 @@
  * Głuchy Telefon – the pure rules: who works on which chain at every step, what they are handed,
  * timeouts and placeholders, and the favourite-entry votes. No DOM; driven by TelephoneGame.
  */
-import { DOODLE_COLORS, DOODLE_SPACE, DOODLE_WIDTHS, MAX_DOODLE_POINTS, type Stroke } from '../../../../shared/protocol';
+import { DOODLE_COLORS, DOODLE_SPACE, DOODLE_WIDTHS, MAX_DOODLE_POINTS, TEL_MAX_BOTS, type Stroke } from '../../../../shared/protocol';
 import type { Rng } from '../rng';
 import { pickQuestions, shuffle } from '../quiz/logic';
 
@@ -344,8 +344,25 @@ export function seating(ids: readonly string[], rng: Rng = Math.random, bots: re
   return shuffle([...ids, ...bots], rng);
 }
 
-/** The seat id of the AI bot in Głuchy Telefon (never a phone's id: those have no colon). */
-export const BOT_ID = 'bot:deepseek';
+export { TEL_MAX_BOTS };
+/** What the bots are called, in order. */
+export const BOT_NAMES = ['Zenek 🤖', 'Halinka 🤖', 'Mietek 🤖', 'Grażynka 🤖'] as const;
+
+/** The seat ids of `n` AI bots (never a phone's id: those have no colon). */
+export function botIds(n: number): string[] {
+  const k = Math.max(0, Math.min(TEL_MAX_BOTS, Math.floor(Number(n) || 0)));
+  return Array.from({ length: k }, (_, i) => `bot:${i + 1}`);
+}
+
+export function isBot(id: string | undefined): boolean {
+  return !!id && id.startsWith('bot:');
+}
+
+/** A bot's name on the TV and phones. */
+export function botName(id: string): string {
+  const i = Number(id.slice(4)) - 1;
+  return BOT_NAMES[i] ?? `Bot ${i + 1} 🤖`;
+}
 
 /** Pick `n` starting sentences not used lately. Mutates `used`. */
 export function pickSentences(pool: readonly TelSentence[], used: Set<string>, n: number, rng: Rng = Math.random): string[] {

@@ -25,8 +25,8 @@ const MAX_HOST_MESSAGE = 96 * 1024;
 /** A second screen only says hello and sends WebRTC signalling (an SDP answer is a few KB). */
 const MAX_SCREEN_MESSAGE = 32 * 1024;
 const OPEN = 1;
-/** AI bot calls a room may make per hour (a game of Głuchy Telefon with the bot uses about 6). */
-const AI_CALLS_PER_HOUR = 120;
+/** AI bot calls a room may make per hour (a game of Głuchy Telefon with 4 bots uses up to 24). */
+const AI_CALLS_PER_HOUR = 300;
 
 /**
  * One Durable Object per room. It is a thin relay between the TV (host) and the phones.

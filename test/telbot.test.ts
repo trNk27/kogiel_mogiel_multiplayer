@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DOODLE_SPACE, MAX_DOODLE_POINTS, type Stroke } from '../shared/protocol';
 import { nearestColor, strokesToSvg, svgToStrokes } from '../shared/svgStrokes';
-import { BOT_ID, Telephone, seating } from '../client/src/games/telephone/logic';
+import { TEL_MAX_BOTS, Telephone, botIds, botName, isBot, seating } from '../client/src/games/telephone/logic';
 import { cleanLine, extractSvg, readAiRequest, runAi } from '../worker/ai';
 
 describe('svgToStrokes', () => {
@@ -72,27 +72,37 @@ describe('strokesToSvg', () => {
   });
 });
 
-describe('the bot in Głuchy Telefon', () => {
-  it('takes a seat, plays every step but never votes', () => {
-    const seats = seating(['a', 'b', 'c'], Math.random, [BOT_ID]);
-    const t = new Telephone(seats, false, [BOT_ID]);
-    expect(t.steps).toBe(4);
+describe('bots in Głuchy Telefon', () => {
+  it('seats 0 to 4 bots with their own ids and names', () => {
+    expect(botIds(0)).toEqual([]);
+    expect(botIds(2)).toEqual(['bot:1', 'bot:2']);
+    expect(botIds(99)).toHaveLength(TEL_MAX_BOTS);
+    expect(botIds(-1)).toEqual([]);
+    expect(new Set(botIds(4).map(botName)).size).toBe(4);
+    expect(botIds(4).every(isBot)).toBe(true);
+    expect(isBot('Ab3dEf9h')).toBe(false);
+  });
+
+  it('bots play every step but never vote', () => {
+    const bots = botIds(4);
+    const seats = seating(['a', 'b', 'c'], Math.random, bots);
+    const t = new Telephone(seats, false, bots);
+    expect(t.n).toBe(7);
+    expect(t.steps).toBe(6);
     while (!t.done) {
-      expect(t.pending()).toContain(BOT_ID);
+      for (const id of bots) expect(t.pending()).toContain(id);
       for (const id of t.pending()) {
         expect(t.kind === 'draw' ? t.submit(id, { strokes: [[0, 1, 1, 1]] }) : t.submit(id, { text: `hi from ${id}` })).toBe(true);
       }
       t.endStep();
     }
-    const botChain = seats.indexOf(BOT_ID);
-    expect(t.canVote(botChain, BOT_ID)).toBe(false);
-    expect(t.pendingVoters(0)).not.toContain(BOT_ID);
-    // Players can vote for the bot's entries.
-    const other = (botChain + 1) % 4;
-    const i = t.chains[other].findIndex((e) => e.by === BOT_ID);
-    const voter = t.active.find((id) => id !== BOT_ID)!;
-    expect(t.vote(other, voter, i)).toBe(true);
-    expect(t.scores()[BOT_ID]).toBe(100);
+    for (let c = 0; c < t.n; c++) for (const id of bots) expect(t.canVote(c, id)).toBe(false);
+    expect(t.pendingVoters(0).sort()).toEqual(['a', 'b', 'c']);
+    // Players can vote for a bot's entry.
+    const chain = seats.indexOf('bot:1');
+    const i = t.chains[chain].findIndex((e) => e.by === 'bot:1');
+    expect(t.vote(chain, 'a', i)).toBe(true);
+    expect(t.scores()['bot:1']).toBe(100);
   });
 });
 
