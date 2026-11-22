@@ -167,14 +167,14 @@ describe('the bot looking at a drawing', () => {
   const image = 'data:image/png;base64,iVBORw0KGgo=';
   const strokes: Stroke[] = [[0, 1, 100, 100, 900, 900]];
 
-  type Sent = { model: string; content: string | { type: string; source?: { media_type: string; data: string }; text?: string }[] };
+  type Sent = { model: string; system?: string; content: string | { type: string; source?: { media_type: string; data: string }; text?: string }[] };
 
   /** A fake Claude API: records each request and answers with `reply`. */
   function fake(reply: (sent: Sent) => { content: unknown[]; stop_reason?: string } | number) {
     const calls: Sent[] = [];
     vi.stubGlobal('fetch', async (_url: unknown, init: { body: string }) => {
-      const body = JSON.parse(init.body) as { model: string; messages: { content: Sent['content'] }[] };
-      const sent = { model: body.model, content: body.messages[0].content };
+      const body = JSON.parse(init.body) as { model: string; system?: string; messages: { content: Sent['content'] }[] };
+      const sent = { model: body.model, system: body.system, content: body.messages[0].content };
       calls.push(sent);
       const r = reply(sent);
       if (typeof r === 'number') return new Response('{"type":"error","error":{"type":"x","message":"x"}}', { status: r });
@@ -193,6 +193,15 @@ describe('the bot looking at a drawing', () => {
     expect(calls[0].model).toBe('claude-haiku-5-5');
     const blocks = calls[0].content as Exclude<Sent['content'], string>;
     expect(blocks[0]).toMatchObject({ type: 'image', source: { media_type: 'image/png', data: 'iVBORw0KGgo=' } });
+  });
+
+  it('knows Baja the orange pomchi in every task', async () => {
+    const calls = fake(() => ({ content: [{ type: 'text', text: 'Baja eats a pierogi' }] }));
+    await runAi(env, { task: 'write', code: 'ABCD', key: 'k' });
+    await runAi(env, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' });
+    await runAi(env, { task: 'draw', prompt: 'Baja on a bike', code: 'ABCD', key: 'k' });
+    expect(calls).toHaveLength(3);
+    for (const c of calls) expect(c.system).toMatch(/Baja, an orange pomchi/);
   });
 
   it('reads the strokes as SVG when the TV sent no picture', async () => {
