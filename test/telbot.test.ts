@@ -195,13 +195,13 @@ describe('the bot looking at a drawing', () => {
     expect(blocks[0]).toMatchObject({ type: 'image', source: { media_type: 'image/png', data: 'iVBORw0KGgo=' } });
   });
 
-  it('knows Baja the orange Pomeranian in every task', async () => {
+  it('knows Baja the orange pomchi in every task', async () => {
     const calls = fake(() => ({ content: [{ type: 'text', text: 'Baja eats a pierogi' }] }));
     await runAi(env, { task: 'write', code: 'ABCD', key: 'k' });
     await runAi(env, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' });
     await runAi(env, { task: 'draw', prompt: 'Baja on a bike', code: 'ABCD', key: 'k' });
     expect(calls).toHaveLength(3);
-    for (const c of calls) expect(c.system).toMatch(/Baja, an orange Pomeranian/);
+    for (const c of calls) expect(c.system).toMatch(/Baja, an orange pomchi/);
   });
 
   it('reads the strokes as SVG when the TV sent no picture', async () => {
