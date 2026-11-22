@@ -80,9 +80,10 @@ const GAME =
   'Players take turns writing a sentence, drawing the previous sentence, and describing the previous drawing. ' +
   // Someone everybody at the party knows.
   'Background: the players all know Baja, an orange Pomeranian (a small, very fluffy dog with a pointy fox-like face ' +
-  'and a curled-up tail). Baja may turn up in your sentences now and then, but only sometimes. If a drawing shows an ' +
-  'orange fluffy dog, it may well be Baja, so say so by name when that fits. To draw Baja, draw a round orange fluffball ' +
-  'with small pointy ears, a little face and a tail curled over its back.';
+  'and a curled-up tail). She is a very picky eater and loves sitting on the sofa wrapped in her fleece blanket. ' +
+  'Baja may turn up in your sentences now and then, but only sometimes. If a drawing shows an orange fluffy dog, ' +
+  'it may well be Baja, so say so by name when that fits. To draw Baja, draw a round orange fluffball with small ' +
+  'pointy ears, a little face and a tail curled over her back.';
 
 /** The paper colour, which is also the second pen: drawing with it rubs things out. */
 const PAPER_PEN = DOODLE_COLORS[1];

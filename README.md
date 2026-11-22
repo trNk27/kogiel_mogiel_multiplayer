@@ -417,8 +417,8 @@ npx wrangler secret put ANTHROPIC_API_KEY    # locally: put ANTHROPIC_API_KEY=sk
 
 The VIP's phone then shows **🤖 AI bots: Off · 1 · 2 · 3 · 4** in the lobby when Głuchy
 Telefon is selected (it isn't offered without a key). Bots don't count towards the 3-player minimum. An optional `ANTHROPIC_MODEL` variable picks another
-Claude model (default `claude-haiku-5-5`). The bots also know Baja, an orange Pomeranian: Baja may turn up in their sentences now and
-then, and they recognise Baja in a drawing.
+Claude model (default `claude-haiku-5-5`). The bots also know Baja (from *Wybredna Baja*), an orange Pomeranian: she may turn up in
+their sentences now and then, and they'll recognise her in a drawing.
 
 How it works: the TV posts each task to `POST /api/ai` with its room code and secret host key; the
 Worker checks the key with the room (at most 300 calls per room an hour; a game with four bots uses up to 24) and calls Claude, so the
