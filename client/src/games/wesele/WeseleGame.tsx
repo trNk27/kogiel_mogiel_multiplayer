@@ -9,6 +9,7 @@ import type { Game, GameHost } from '../types';
 import { ARENA_SCALE } from '../arena/kit';
 import { TimerRing } from '../../host/components';
 import { Pierogi } from '../../lib/art';
+import { music } from '../../lib/music';
 import { sound } from '../../lib/sound';
 import {
   CHALLENGES,
@@ -144,6 +145,8 @@ export class WeseleGame implements Game {
   moves: number[] = [];
   inputAt = 0;
   beat = 600;
+  /** The train's beats are the music's (false: the TV claps them itself). */
+  synced = false;
   zurek = false;
   title = '';
   private rng: Rng;
@@ -389,9 +392,13 @@ export class WeseleGame implements Game {
       this.inputAt = goAt + this.moves.length * MOVE_SHOW_MS + 700;
       endAt = this.inputAt + MOVES_MS;
     } else if (ch === 'train') {
-      this.beat = trainBeatMs(this.song, this.songs);
-      // The dots roll in for two beats before the first one.
-      goAt = now + LEAD_MS + this.beat * 2;
+      // In time with the band: the beats are the kick drum, starting on the first beat of a bar.
+      // The dots roll in for two beats before the first one. Without music (sound not started yet), the
+      // TV claps the beat instead.
+      const grid = music.nextBar('disco', now + LEAD_MS + 1000);
+      this.synced = !!grid;
+      this.beat = grid ? grid.beatMs : trainBeatMs(this.song, this.songs);
+      goAt = grid ? Math.round(grid.at) : now + LEAD_MS + this.beat * 2;
       endAt = goAt + (TRAIN_BEATS - 1) * this.beat + TRAIN_MISS_MS;
     }
     this.newTask(who);
@@ -399,7 +406,7 @@ export class WeseleGame implements Game {
     this.goAt = goAt;
     this.endAt = endAt;
     this.setPhase('play', endAt - now);
-    if (ch === 'train') for (let k = 0; k < TRAIN_BEATS; k++) this.at(goAt + k * this.beat - now, () => this.phase === 'play' && clap(k));
+    if (ch === 'train' && !this.synced) for (let k = 0; k < TRAIN_BEATS; k++) this.at(goAt + k * this.beat - now, () => this.phase === 'play' && clap(k));
     this.at(endAt - now + LATE_MS, () => this.finishPlay());
     this.update();
   }
@@ -1050,7 +1057,7 @@ function TrainLane({ game }: { game: WeseleGame }) {
         if (t > lead * 1.5 || t < -400) return null;
         return <span class="wes-lane-dot" style={{ left: `${120 + (t / lead) * 520}px`, opacity: t < 0 ? 0.3 : 1 }} />;
       })}
-      <div class="wes-lane-label">🚂 Tap on every beat!</div>
+      <div class="wes-lane-label">🚂 {game.synced ? 'Tap on every kick drum!' : 'Tap on every clap!'}</div>
     </div>
   );
 }

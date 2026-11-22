@@ -123,6 +123,34 @@ class Music {
     this.timer = undefined;
   }
 
+  /**
+   * When the first bar of the playing track starts at or after `after` (Date.now() ms), as heard from the
+   * speakers, and how long a beat is. For games that want players to tap along with the music. Null if
+   * that track isn't playing right now (audio not started yet, another track, or a swung one).
+   */
+  nextBar(id: TrackId, after: number): { at: number; beatMs: number } | null {
+    const ctx = sound.context;
+    const t = this.track;
+    if (!ctx || ctx.state !== 'running' || !t || t.id !== id || !this.mix || t.def.swing) return null;
+    const beat = 60 / t.def.bpm;
+    const bar = beat * t.def.beatsPerBar;
+    // Context time → page time, via the output timestamp (which includes the speakers' latency) when there is one.
+    const ts = ctx.getOutputTimestamp?.();
+    let toMs: (ct: number) => number;
+    if (ts && ts.contextTime && ts.performanceTime) {
+      const pageMinusPerf = Date.now() - performance.now();
+      toMs = (ct) => pageMinusPerf + ts.performanceTime! + (ct - ts.contextTime!) * 1000;
+    } else {
+      const lat = ctx.outputLatency || ctx.baseLatency || 0;
+      const now = Date.now();
+      const nowCt = ctx.currentTime;
+      toMs = (ct) => now + (ct + lat - nowCt) * 1000;
+    }
+    const afterCt = this.loopStart + ((after - toMs(this.loopStart)) / 1000);
+    const k = Math.max(0, Math.ceil((afterCt - this.loopStart) / bar - 1e-6));
+    return { at: toMs(this.loopStart + k * bar), beatMs: beat * 1000 };
+  }
+
   private prepared(id: TrackId): Prepared {
     if (!this.cache.has(id)) this.cache.set(id, prepare(id));
     return this.cache.get(id)!;

@@ -146,7 +146,7 @@ export const CHALLENGES: Record<ChallengeId, ChallengeInfo> = {
     emoji: '🚂',
     name: 'Pociąg',
     en: 'The conga train',
-    how: 'Tap on every beat as the dots hit the ring',
+    how: 'Tap on the beat of the music as the dots hit the ring',
     win: 'Best rhythm',
     lose: 'Worst rhythm',
   },
@@ -390,7 +390,7 @@ export function gradeMoves(ms: Record<string, number | null>) {
 // ---- Pociąg (the conga train, a rhythm game) ---------------------------------------------------------
 
 export const TRAIN_BEATS = 8;
-/** Time between beats, ms: a little faster later in the night. */
+/** Time between beats, ms, when the band isn't playing (normally the train follows the music's beat). */
 export function trainBeatMs(song: number, songs: number): number {
   const t = songs > 1 ? (song - 1) / (songs - 1) : 0.5;
   return Math.round(620 - 120 * t);
