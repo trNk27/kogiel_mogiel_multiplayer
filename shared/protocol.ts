@@ -79,6 +79,9 @@ export const ANSWER_STYLES = [
 // Games
 // ---------------------------------------------------------------------------
 
+/** Wesele's challenges. */
+export type WeseleChallenge = 'twirl' | 'pair' | 'gorzko' | 'pour' | 'kaczuchy' | 'train';
+
 export type GameId =
   | 'trails'
   | 'quiz'
@@ -165,7 +168,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi. Spare the sock.', minPlayers: 1 },
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1 },
   { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1 },
-  { id: 'wesele', title: 'Wesele', tagline: 'Shots, twirls with drunk uncles, Gorzko! Survive till 3:00.', minPlayers: 2 },
+  { id: 'wesele', title: 'Wesele', tagline: 'A 3D disco polo wedding: win challenges, dodge the shots, last till 3:00.', minPlayers: 2 },
   { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi. Guess what she wants.', minPlayers: 1 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
   {
@@ -789,7 +792,7 @@ export type PhoneView =
    */
   | {
       v: 'wesele';
-      phase: 'intro' | 'shot' | 'dance' | 'pair' | 'gorzko' | 'result' | 'wait' | 'out' | 'end';
+      phase: 'intro' | 'song' | 'toast' | 'play' | 'result' | 'wait' | 'out' | 'end';
       key: number;
       song: number;
       songs: number;
@@ -798,12 +801,30 @@ export type PhoneView =
       total: number;
       endsAt: number;
       done: boolean;
-      dance?: { startAt: number; endAt: number; need: number; attempt: number };
-      pair?: { title: string; button: string; partner: string; partnerColor: ColorId | null; nowAt: number; attempt: number };
-      gorzko?: { startAt: number; endAt: number };
-      /** How the last task went for you. */
-      result?: { big: string; text: string; good: boolean; pts: number; drank: number };
-      /** Why you're waiting (e.g. "Your partner is dancing with Wujek"). */
+      /** The song's title, and whether the żurek is being served. */
+      title?: string;
+      zurek?: boolean;
+      /** The toast: what you picked (null: not yet). */
+      toast?: 'drink' | 'kompot' | null;
+      /**
+       * The challenge you're playing. `goAt`/`endAt` bound the timed part. `need` twirls; `line` to pour
+       * to; `len` moves to repeat from `inputAt`; train `beat` ms × `beats`; pair partner and task.
+       */
+      ch?: {
+        id: WeseleChallenge;
+        goAt: number;
+        endAt: number;
+        need?: number;
+        line?: number;
+        len?: number;
+        inputAt?: number;
+        beat?: number;
+        beats?: number;
+        pair?: { title: string; button: string; partner: string; partnerColor: ColorId | null };
+      };
+      /** How the last task went for you: won, safe, drank (or passed out). */
+      result?: { verdict: 'win' | 'safe' | 'drink' | 'out' | 'toast' | 'kompot' | 'end'; big: string; text: string; pts: number };
+      /** Why you're waiting. */
       text?: string;
     }
   /**
@@ -1045,10 +1066,11 @@ export type PhoneMsg =
   /** Pierogi Parade: your count in round `r` (sent while it changes). */
   | { t: 'count'; r: number; n: number }
   /**
-   * Wesele, for task `key`: drank the shot, when you let go in the pair game (`at`, ms after "NOW!", host
-   * clock), or a count (`n`): twirls so far in the dance (sent as they happen), or Gorzko! taps (sent at the end).
+   * Wesele, for task `key`: your toast `choice`, or a challenge result `v` (twirls, taps, pour level,
+   * ms after NOW!, ms taken for the moves, average ms off the beat). `live` updates (so the TV can show
+   * progress) don't count as your answer. `moves` are the duck-dance moves you tapped.
    */
-  | { t: 'wesele'; key: number; drink?: boolean; at?: number; n?: number }
+  | { t: 'wesele'; key: number; choice?: 'drink' | 'kompot'; v?: number; live?: boolean; moves?: number[] }
   /** Wybredna Baja: your plate for try `tryN` of craving `round` (one option index per row). */
   | { t: 'feed'; round: number; tryN: number; plate: number[] }
   /** Fajki: reach for the cigarette in front of you. */

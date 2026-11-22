@@ -42,6 +42,7 @@ import { RopeScene } from '../games/rope/scene';
 import { PotatoScene } from '../games/potato/scene';
 import { FloesScene } from '../games/floes/scene';
 import { ChairsScene } from '../games/chairs/scene';
+import { WeseleScene } from '../games/wesele/scene';
 import { ChickScene } from '../games/chickens/scene';
 import { CrownScene } from '../games/crown/scene';
 import { CoinsScene } from '../games/coins/scene';
@@ -78,6 +79,7 @@ const VIEWS: Ctor[] = [
   PotatoScene,
   FloesScene,
   ChairsScene,
+  WeseleScene,
   ChickScene,
   CrownScene,
   CoinsScene,
