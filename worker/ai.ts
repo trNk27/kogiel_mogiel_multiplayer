@@ -36,14 +36,14 @@ async function chat(
   env: AiEnv,
   system: string,
   content: string | Anthropic.ContentBlockParam[],
-  opts: { maxTokens: number; timeoutMs: number },
+  opts: { maxTokens: number; timeoutMs: number; effort?: 'low' | 'medium' | 'high' },
 ): Promise<string> {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: opts.timeoutMs });
   const res = await client.messages.create({
     model: env.ANTHROPIC_MODEL || DEFAULT_MODEL,
     max_tokens: opts.maxTokens,
-    // A party game: answer quickly rather than think long.
-    output_config: { effort: 'low' },
+    // A party game: answer quickly rather than think long (drawing gets a bit more thought).
+    output_config: { effort: opts.effort ?? 'low' },
     system,
     messages: [{ role: 'user', content }],
   });
@@ -116,18 +116,21 @@ async function describe(env: AiEnv, strokes: Stroke[], image?: string): Promise<
 }
 
 async function draw(env: AiEnv, prompt: string): Promise<AiResponse> {
-  const palette = DOODLE_COLORS.filter((c) => c !== PAPER_PEN).join(', ');
+  const palette = DOODLE_COLORS.join(', ');
   const out = await chat(
     env,
     GAME +
-      ' When you draw, you answer with one SVG doodle and nothing else. Rules: viewBox="0 0 1000 1000"; ' +
-      `the paper is cream (${PAPER_PEN}); ` +
-      'use only <path>, <polyline>, <line>, <circle>, <ellipse> and <rect>; everything is a pen line (fill="none"); ' +
-      `stroke colours only from this palette: ${palette}; stroke-width 10, 24 or 48; ` +
-      'no <text>, no letters or numbers, no transform attributes, no gradients; at most 40 elements. ' +
-      'Draw it like a quick, recognisable cartoon that fills most of the canvas.',
+      ' When you draw, you answer with one SVG and nothing else. It is drawn with a felt-tip set, so: ' +
+      `viewBox="0 0 1000 1000"; the paper is cream (${PAPER_PEN}); ` +
+      'use <path>, <polygon>, <polyline>, <line>, <circle>, <ellipse>, <rect>, and <g> to share stroke/fill settings; ' +
+      `colours only from this palette: ${palette} (the cream one is the paper colour: use it for white parts, like eyes or teeth, drawn on top of other colours); ` +
+      'outlines with stroke-width 10 (details), 24 (normal) or 48 (bold); shapes can be filled with a palette colour ' +
+      '(fills are coloured in with a thick pen, so keep filled areas at least 40 wide and draw small details as lines on top); ' +
+      'later elements are drawn over earlier ones, so fill big areas first, then outlines and details; ' +
+      'no <text>, no letters or numbers, no transform attributes, no gradients, no opacity; at most 80 elements. ' +
+      'Make it a clear, colourful cartoon that fills most of the canvas, with enough detail that someone could guess the sentence.',
     `Draw this: “${prompt}”`,
-    { maxTokens: 8000, timeoutMs: 60_000 },
+    { maxTokens: 16000, timeoutMs: 65_000, effort: 'medium' },
   );
   const svg = extractSvg(out);
   const strokes = svg ? svgToStrokes(svg) : [];
