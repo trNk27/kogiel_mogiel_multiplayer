@@ -38,6 +38,7 @@ import { createGame } from '../games/registry';
 import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { sound } from '../lib/sound';
 import { placesFor } from './standings';
+import { currentVip } from './vip';
 import { awardGame, cleanTourOff, hasNext, newTournament, nextGame, nextVote, setVoted, tournamentPlaces, type Tournament } from './tournament';
 import { VoteRoom } from './vote/VoteRoom';
 import { MirrorHost } from './mirror';
@@ -143,7 +144,7 @@ export class HostController implements GameHost {
   gamesPlayed = 0;
   /** The worker has an AI key (checked once per connect), so AI bots can be offered. */
   aiAvailable = false;
-  /** Who's VIP now: it passes to the next player (in joining order) after every game. */
+  /** Whose turn it is to be VIP (null until the first game ends): it passes to the next player in joining order after every game. */
   private vip: string | null = null;
   /** Party points per finished game, oldest first – for the standings chart. */
   history: PartyEntry[] = [];
@@ -785,12 +786,9 @@ export class HostController implements GameHost {
 
   // ---- views ------------------------------------------------------------------
 
-  /** The VIP: whoever's turn it is, or the first to join if that player has left. */
+  /** The VIP: whoever's turn it is, or the first to join if that player has left ("Mani" in the first round; see vip.ts). */
   vipId(): string | null {
-    if (this.vip && this.players.has(this.vip)) return this.vip;
-    let best: Player | null = null;
-    for (const p of this.players.values()) if (!best || p.joinedAt < best.joinedAt) best = p;
-    return best?.id ?? null;
+    return currentVip(this.players.values(), this.vip);
   }
 
   /** After a game the VIP passes to the next player in joining order (skipping anyone who's away). */
