@@ -211,9 +211,100 @@ function pathPoints(d: string): Pt[][] {
 }
 
 /**
+ * A filled area coloured in the way a player would: rows of thick pen strokes, clipped to the shape
+ * (even-odd rule across all its subpaths) over the pen's whole height, so the round ends stay inside
+ * curved and slanted edges. Tips too narrow for the pen are coloured in with the thin pen. In doodle space.
+ */
+export function fillStrokes(shapes: readonly Pt[][], color: number): { rows: Stroke[]; edges: Stroke[] } {
+  const polys = shapes.filter((p) => p.length > 2);
+  if (!polys.length) return { rows: [], edges: [] };
+  let minY = Infinity;
+  let maxY = -Infinity;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  for (const p of polys)
+    for (const [x, y] of p) {
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+    }
+  const size = Math.min(maxX - minX, maxY - minY);
+  if (!(size > 0)) return { rows: [], edges: [] };
+
+  /** Where the row at height y is inside the shape, as [left, right] pairs. */
+  const spansAt = (y: number): Pt[] => {
+    const xs: number[] = [];
+    for (const p of polys) {
+      for (let i = 0; i < p.length; i++) {
+        const [x1, y1] = p[i];
+        const [x2, y2] = p[(i + 1) % p.length];
+        if (y1 === y2 || y < Math.min(y1, y2) || y >= Math.max(y1, y2)) continue;
+        xs.push(x1 + ((y - y1) / (y2 - y1)) * (x2 - x1));
+      }
+    }
+    xs.sort((m, n) => m - n);
+    const out: Pt[] = [];
+    for (let i = 0; i + 1 < xs.length; i += 2) out.push([xs[i], xs[i + 1]]);
+    return out;
+  };
+  /** The part of span [l, r] that is also inside the shape at height y (null if none). */
+  const within = ([l, r]: Pt, y: number): Pt | null => {
+    let best: Pt | null = null;
+    for (const [a, b] of spansAt(y)) {
+      const o: Pt = [Math.max(l, a), Math.min(r, b)];
+      if (o[1] > o[0] && (!best || o[1] - o[0] > best[1] - best[0])) best = o;
+    }
+    return best;
+  };
+
+  // The widest pen that fits the shape; rows a little closer than the pen is thick so no paper shows.
+  let w = DOODLE_WIDTHS.length - 1;
+  while (w > 0 && DOODLE_WIDTHS[w] * 1.5 > size) w--;
+  const pen = DOODLE_WIDTHS[w];
+  const half = pen / 2;
+  const thin = DOODLE_WIDTHS[0];
+  const bands = Math.max(1, Math.round((maxY - minY - pen) / (pen * 0.8)) + 1);
+  const step = bands > 1 ? (maxY - minY - pen) / (bands - 1) : 0;
+  const rows: Stroke[] = [];
+  const edges: Stroke[] = [];
+  const line = (pw: number, l: number, r: number, y: number, to = rows) =>
+    to.push([color, pw, Math.round(l), Math.round(y), Math.round(Math.max(l, r)), Math.round(y)]);
+  for (let i = 0; i < bands; i++) {
+    const y = bands > 1 ? minY + half + i * step : (minY + maxY) / 2;
+    for (const span of spansAt(y)) {
+      // The thick row only goes where the shape is at the pen's top and bottom edge as well…
+      const top = within(span, y - half * 0.9);
+      const bottom = top && within(top, y + half * 0.9);
+      const thick = bottom && bottom[1] - bottom[0] >= pen ? ([bottom[0] + half, bottom[1] - half] as Pt) : null;
+      if (thick) line(w, thick[0], thick[1], y);
+      // …and the thin pen colours in what it leaves between it and the edge (the edge line covers the last few pixels).
+      for (let ty = y - half + thin / 2; ty <= y + half - thin / 2 + 0.01; ty += thin * 0.8) {
+        const s = within(span, ty);
+        if (!s) continue;
+        const [a, b] = [s[0] + thin / 2, s[1] - thin / 2];
+        if (!thick) {
+          if (b - a > -thin / 4) line(0, a, b, ty);
+          continue;
+        }
+        const dx = Math.sqrt(Math.max(0, half * half - (ty - y) ** 2));
+        if (thick[0] - dx - a > thin * 0.6) line(0, a, thick[0] - dx + thin / 2, ty, edges);
+        if (b - (thick[1] + dx) > thin * 0.6) line(0, thick[1] + dx - thin / 2, b, ty, edges);
+      }
+    }
+  }
+  return { rows, edges };
+}
+
+/** Pen settings a shape takes from its <g> groups and the <svg> itself. */
+const INHERITED = ['stroke', 'stroke-width', 'fill'] as const;
+
+/**
  * Turn an SVG (as an AI writes it) into doodle strokes. Understands path, polyline, polygon, line,
- * circle, ellipse and rect; fills are drawn as outlines, transforms are ignored. The picture is
- * scaled from its viewBox into the doodle canvas. Returns [] if nothing drawable is found.
+ * circle, ellipse and rect, and pen settings inherited from <g> groups; transforms are ignored. A
+ * filled shape is coloured in with rows of thick pen (only when a fill colour is actually written:
+ * SVG's default black fill would turn every outline into a blob), and its outline is drawn on top.
+ * The picture is scaled from its viewBox into the doodle canvas. Returns [] if nothing drawable is found.
  */
 export function svgToStrokes(svg: string): Stroke[] {
   const root = svg.match(/<svg\b([^>]*)>/i);
@@ -223,14 +314,26 @@ export function svgToStrokes(svg: string): Stroke[] {
   const scale = DOODLE_SPACE / Math.max(vw, vh);
   const offX = (DOODLE_SPACE - vw * scale) / 2;
   const offY = (DOODLE_SPACE - vh * scale) / 2;
-  const rootStroke = ra.stroke;
-  const rootWidth = ra['stroke-width'];
+  const toCanvas = ([x, y]: Pt): Pt => [
+    Math.max(0, Math.min(DOODLE_SPACE, Math.round((x - vx) * scale + offX))),
+    Math.max(0, Math.min(DOODLE_SPACE, Math.round((y - vy) * scale + offY))),
+  ];
 
-  const out: Stroke[] = [];
-  let points = 0;
-  for (const m of svg.matchAll(/<(path|polyline|polygon|line|circle|ellipse|rect)\b([^>]*?)\/?>/gi)) {
-    const tag = m[1].toLowerCase();
-    const a = attrs(m[2]);
+  const pick = (a: Record<string, string>) => Object.fromEntries(INHERITED.filter((k) => a[k] !== undefined).map((k) => [k, a[k]]));
+  const groups: Record<string, string>[] = [pick(ra)];
+  /** Everything in drawing order; the thin edges of fills are the first thing dropped if points run short. */
+  const all: { stroke: Stroke; extra?: boolean }[] = [];
+  const add = (stroke: Stroke, extra = false) => all.push({ stroke, extra });
+  for (const m of svg.matchAll(/<(\/?)(g|path|polyline|polygon|line|circle|ellipse|rect)\b([^>]*?)(\/?)>/gi)) {
+    const tag = m[2].toLowerCase();
+    if (tag === 'g') {
+      if (m[1]) {
+        if (groups.length > 1) groups.pop();
+      } else if (!m[4]) groups.push({ ...groups[groups.length - 1], ...pick(attrs(m[3])) });
+      continue;
+    }
+    if (m[1]) continue;
+    const a = { ...groups[groups.length - 1], ...attrs(m[3]) };
     let shapes: Pt[][] = [];
     if (tag === 'path') shapes = pathPoints(a.d ?? '');
     else if (tag === 'polyline' || tag === 'polygon') {
@@ -251,23 +354,34 @@ export function svgToStrokes(svg: string): Stroke[] {
       const [x, y, w, h] = [num(a.x), num(a.y), num(a.width), num(a.height)];
       if (w > 0 && h > 0) shapes = [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]];
     }
-    const paint = a.stroke && a.stroke !== 'none' ? a.stroke : a.fill && a.fill !== 'none' ? a.fill : rootStroke;
-    const color = nearestColor(paint);
-    const width = nearestWidth(num(a['stroke-width'] ?? rootWidth, DOODLE_WIDTHS[1] / scale) * scale);
-    for (const pts of shapes) {
-      if (!pts.length || points >= MAX_DOODLE_POINTS) continue;
-      const stroke: Stroke = [color, width];
-      for (const [x, y] of pts.slice(0, MAX_DOODLE_POINTS - points)) {
-        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-        stroke.push(
-          Math.max(0, Math.min(DOODLE_SPACE, Math.round((x - vx) * scale + offX))),
-          Math.max(0, Math.min(DOODLE_SPACE, Math.round((y - vy) * scale + offY))),
-        );
-      }
-      if (stroke.length < 4) continue;
-      points += (stroke.length - 2) / 2;
-      out.push(stroke);
+    shapes = shapes.map((pts) => pts.filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y)).map(toCanvas)).filter((p) => p.length);
+    if (!shapes.length) continue;
+
+    const filled = tag !== 'line' && rgbOf(a.fill) !== null;
+    const hasStroke = rgbOf(a.stroke) !== null;
+    if (filled) {
+      const { rows, edges } = fillStrokes(shapes, nearestColor(a.fill));
+      for (const s of rows) add(s);
+      for (const s of edges) add(s, true);
     }
+    // The outline: in its own pen; for a fill without one, a thin edge in the fill colour keeps the
+    // shape crisp. stroke="none" with no fill draws nothing; no stroke at all is a black line, as before.
+    if (!hasStroke && !filled && a.stroke === 'none') continue;
+    const color = nearestColor(hasStroke ? a.stroke : filled ? a.fill : undefined);
+    const width = filled && !hasStroke ? 0 : nearestWidth(num(a['stroke-width'], DOODLE_WIDTHS[1] / scale) * scale);
+    for (const pts of shapes) add([color, width, ...pts.flat()]);
+  }
+  const size = (s: Stroke) => (s.length - 2) / 2;
+  const total = all.reduce((n, e) => n + size(e.stroke), 0);
+  const keep = total > MAX_DOODLE_POINTS ? all.filter((e) => !e.extra) : all;
+  const out: Stroke[] = [];
+  let points = 0;
+  for (const { stroke } of keep) {
+    // Still too many: cut short where the points run out.
+    const n = Math.min(size(stroke), MAX_DOODLE_POINTS - points);
+    if (n < 1) break;
+    points += n;
+    out.push(stroke.slice(0, 2 + n * 2));
   }
   return out;
 }

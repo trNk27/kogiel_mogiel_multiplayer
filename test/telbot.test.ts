@@ -43,6 +43,49 @@ describe('svgToStrokes', () => {
     expect(svgToStrokes('<svg><text>hi</text></svg>')).toEqual([]);
   });
 
+  it('colours in filled shapes with rows of thick pen, inside the shape', () => {
+    const strokes = svgToStrokes('<svg viewBox="0 0 1000 1000"><rect x="100" y="100" width="400" height="300" fill="#4f9dff"/></svg>');
+    const rows = strokes.filter((s) => s[1] === 2);
+    expect(rows.length).toBeGreaterThan(5);
+    for (const s of rows) {
+      expect(s[0]).toBe(5);
+      expect(Math.min(s[2], s[4])).toBeGreaterThanOrEqual(124);
+      expect(Math.max(s[2], s[4])).toBeLessThanOrEqual(476);
+    }
+    // No paper shows between the rows.
+    const ys = rows.map((s) => s[3]).sort((a, b) => a - b);
+    for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBeLessThan(48);
+    // …and a thin edge in the same colour keeps the corners sharp.
+    expect(strokes.at(-1)!.slice(0, 2)).toEqual([5, 0]);
+  });
+
+  it('leaves the hole in a ring empty', () => {
+    const ring = svgToStrokes('<svg viewBox="0 0 1000 1000"><path fill="#ffd23f" stroke="none" d="M0 0 H1000 V1000 H0 Z M400 400 H600 V600 H400 Z"/></svg>');
+    const across = ring.filter((s) => s[1] === 2 && s.length === 6 && s[3] > 420 && s[3] < 580);
+    expect(across.length).toBeGreaterThan(0);
+    // Rows beside the hole stop at its edge (keeping the pen's half-width clear of it).
+    for (const s of across) expect(s[4] <= 400 - 24 || s[2] >= 600 + 24).toBe(true);
+  });
+
+  it("doesn't fill shapes that never asked for it, and takes pen settings from groups", () => {
+    const strokes = svgToStrokes(`<svg viewBox="0 0 1000 1000">
+      <circle cx="500" cy="500" r="300" stroke="#2a120a"/>
+      <g stroke="#ff3d6e" stroke-width="48" fill="none"><line x1="0" y1="0" x2="10" y2="10"/><circle cx="500" cy="500" r="100"/></g>
+      <g fill="#2fd6a8"><rect x="0" y="0" width="200" height="200"/></g>
+    </svg>`);
+    expect(strokes[0][0]).toBe(0);
+    expect(strokes.slice(1, 3).map((s) => s.slice(0, 2))).toEqual([[2, 2], [2, 2]]);
+    expect(strokes.slice(3).every((s) => s[0] === 4)).toBe(true);
+    expect(strokes.length).toBeGreaterThan(4);
+  });
+
+  it('drops the fine edges of fills before it drops the details drawn last', () => {
+    const blobs = Array.from({ length: 30 }, (_, i) => `<circle cx="${100 + (i % 6) * 160}" cy="${100 + Math.floor(i / 6) * 180}" r="90" fill="#ff8a2a"/>`).join('');
+    const strokes = svgToStrokes(`<svg viewBox="0 0 1000 1000">${blobs}<line x1="10" y1="990" x2="990" y2="990" stroke="#b27bff"/></svg>`);
+    expect(strokes.reduce((n, s) => n + (s.length - 2) / 2, 0)).toBeLessThanOrEqual(MAX_DOODLE_POINTS);
+    expect(strokes.at(-1)![0]).toBe(7);
+  });
+
   it('maps colours to the nearest pen', () => {
     expect(nearestColor('#000')).toBe(0);
     expect(nearestColor('white')).toBe(1);

@@ -425,7 +425,7 @@ API key never reaches a browser. To *look at* a drawing, the TV turns it into a 
 the bot sends Claude that picture. If the TV couldn't make one, the bot reads the drawing as SVG text
 instead (every stroke a polyline with its pen colour), which works much less well. It *draws* by answering with an SVG doodle, which
 `shared/svgStrokes.ts` turns into the game's pen strokes (paths, curves, circles, rects… mapped onto
-the eight pens and three widths). If Claude is slow or fails, the bot hands in nothing for that
+the eight pens and three widths; filled shapes are coloured in with rows of thick pen, like a player would). If Claude is slow or fails, the bot hands in nothing for that
 step (or rolls the dice for its first sentence), like a player whose time ran out.
 
 ## Deploying from a computer (free plan, no credit card)
