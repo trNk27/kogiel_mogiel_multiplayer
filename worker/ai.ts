@@ -36,14 +36,14 @@ async function chat(
   env: AiEnv,
   system: string,
   content: string | Anthropic.ContentBlockParam[],
-  opts: { maxTokens: number; timeoutMs: number; effort?: 'low' | 'medium' | 'high' },
+  opts: { maxTokens: number; timeoutMs: number },
 ): Promise<string> {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: opts.timeoutMs });
   const res = await client.messages.create({
     model: env.ANTHROPIC_MODEL || DEFAULT_MODEL,
     max_tokens: opts.maxTokens,
-    // A party game: answer quickly rather than think long (drawing gets a bit more thought).
-    output_config: { effort: opts.effort ?? 'low' },
+    // Haiku's default, as in chat: enough thought for good drawings and guesses, still well inside a round.
+    output_config: { effort: 'medium' },
     system,
     messages: [{ role: 'user', content }],
   });
@@ -89,7 +89,7 @@ async function write(env: AiEnv): Promise<AiResponse> {
     GAME,
     `Write ONE short, silly, concrete sentence (4 to 8 words) for the next player to draw. Something about ${theme}. ` +
       'It must be drawable and funny. Reply with the sentence only.',
-    { maxTokens: 1024, timeoutMs: 20_000 },
+    { maxTokens: 4000, timeoutMs: 35_000 },
   );
   const text = cleanLine(out);
   return text ? { text } : { error: 'empty' };
@@ -110,7 +110,7 @@ async function describe(env: AiEnv, strokes: Stroke[], image?: string): Promise<
       `with its pen colour. The paper is ${PAPER_PEN}, so strokes in that colour are rubbed-out parts: ignore them. ` +
       `Work out what it shows (look at the shapes, their positions and colours), then: ${GUESS}\n\n` +
       strokesToSvg(strokes);
-  const out = await chat(env, GAME, content, { maxTokens: 1024, timeoutMs: 28_000 });
+  const out = await chat(env, GAME, content, { maxTokens: 4000, timeoutMs: 32_000 });
   const text = cleanLine(out);
   return text ? { text } : { error: 'empty' };
 }
@@ -130,7 +130,7 @@ async function draw(env: AiEnv, prompt: string): Promise<AiResponse> {
       'no <text>, no letters or numbers, no transform attributes, no gradients, no opacity; at most 80 elements. ' +
       'Make it a clear, colourful cartoon that fills most of the canvas, with enough detail that someone could guess the sentence.',
     `Draw this: “${prompt}”`,
-    { maxTokens: 16000, timeoutMs: 65_000, effort: 'medium' },
+    { maxTokens: 16000, timeoutMs: 65_000 },
   );
   const svg = extractSvg(out);
   const strokes = svg ? svgToStrokes(svg) : [];
