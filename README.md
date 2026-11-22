@@ -30,7 +30,7 @@ the notch) are added around controls, never taken out of them.
 | **Szpieg** | A spy (*szpieg*) is hiding among you, like *The Chameleon*. Every phone shows the category and the secret word – except the spy’s, which shows only the category. Round a candlelit table everyone gives a one-word clue in turn, then votes. If the spy gets the most votes they get one guess at the word out of 16: right, and they steal the round. One round per player (up to 6), 32 categories. | 3–8 |
 | **Zgodni** | “In agreement”, like *Herd Mentality*: everyone types an answer to an open question (“A Polish city”, “Something Babcia always says”), and on a 3D meadow the answers run to signposts, where similar spellings herd together (diacritics, plurals, number words and small typos don’t matter). The single biggest herd scores a point each; a tie scores nobody. Exactly one player on their own gets the **Różowa Krowa** (pink cow), which costs 2 points at the end. 10 questions from 261. | 3–8 |
 | **Fala** | “The wave”, our take on *Wavelength*. One player is the Psychic and secretly sees a target on a spectrum (“Cold ↔ Hot”, “Babcia would approve ↔ Babcia would faint”). They type a clue; everyone else slides to where they think the target is. Within 4 scores 4, within 10 scores 3, within 17 scores 2, and the Psychic gets the average. Everyone is the Psychic once or twice (4–8 rounds). 160 spectra. | 2–8 |
-| **Głuchy Telefon** | The whisper game (“deaf telephone”), like *Gartic Phone*. Everyone writes a silly sentence; it’s passed on and drawn, the next player describes the drawing, the next draws that, and so on, everyone working at once. Then the TV replays every chain step by step so you can watch it go wrong, and the room votes for its favourite entry in each: 100 per vote. 193 starter sentences for **🎲 Pick for me**. Optionally up to four **🤖 DeepSeek bots** take seats too (see *AI bots* below). | 3–8 |
+| **Głuchy Telefon** | The whisper game (“deaf telephone”), like *Gartic Phone*. Everyone writes a silly sentence; it’s passed on and drawn, the next player describes the drawing, the next draws that, and so on, everyone working at once. Then the TV replays every chain step by step so you can watch it go wrong, and the room votes for its favourite entry in each: 100 per vote. 193 starter sentences for **🎲 Pick for me**. Optionally up to four **🤖 AI bots** (Claude Haiku) take seats too (see *AI bots* below). | 3–8 |
 | **Ankieta** | “The survey”, our take on *Guesspionage* – except the survey is the people in the room. Everyone secretly answers a yes/no question on their phone (“Have you ever eaten pierogi for breakfast?”). Then the **surveyor** guesses how many said yes, and everyone else bets: **more**, **exactly** or **fewer**? The answers flip over on the TV, anonymous, yes first. A spot-on guess is worth 1000 (less the further off, scaled to the size of the room); a right more/fewer bet 300, a right “exactly” 600. Everyone is the surveyor once (up to 6 rounds). 147 questions. | 3–8 |
 | **Pół na Pół** | “Half and half”, our take on *Split the Room*. Everyone gets their own dilemma with a blank (“You can fly, but ___. Would you take the power?”) and fills it in. Then the dilemmas go up one by one and everyone else votes **yes or no**. The author scores for **how evenly the room splits**: a perfect half-and-half is worth 1000, everyone agreeing nothing. Two rounds, the second pays double. 112 dilemmas, and **🎲 Fill it for me** has 50 of Babcia's. | 3–8 |
 | **Słownik** | “The dictionary”, our take on *Dictionarium*. A made-up word goes up (*Pierogrzmot, noun*). Everyone writes a **definition** and the room votes; the winner becomes official. Then everyone writes a **synonym** for it and votes, then uses the word **in a sentence** (any form of it counts, but it has to be there) and votes. 100 per vote, +200 for the best of each stage. Two words. 80 invented words. | 3–8 |
@@ -334,7 +334,7 @@ client/src/phone/castle.tsx  Malbork Castle on the phone: the bow (pull back, ai
 client/src/host/tournament.ts    picking the tournament's games and its points table, party mode's choices and draw
 client/src/host/vote/*      party mode's vote: walking onto a game (logic.ts), the village square (scene.ts), TV view (VoteRoom.tsx)
 shared/svgStrokes.ts        SVG ⇄ doodle strokes (the AI bot reads and draws SVG)
-worker/ai.ts                the AI bot: /api/ai tasks and the DeepSeek prompts (key in DEEPSEEK_API_KEY)
+worker/ai.ts                the AI bot: /api/ai tasks and the Claude prompts (key in ANTHROPIC_API_KEY)
 data/trivia.json            200 quiz questions
 data/ballpark.json          140 estimation questions
 data/toty.json              162 "who's most likely to…" questions (66 with a doodle prompt)
@@ -403,31 +403,29 @@ Share that single URL:
 
 ### AI bots in Głuchy Telefon
 
-Up to four DeepSeek bots (Zenek, Halinka, Mietek and Grażynka 🤖) can play Głuchy Telefon with you:
+Up to four AI bots (Zenek, Halinka, Mietek and Grażynka 🤖), played by Claude Haiku 5.5, can play Głuchy Telefon with you:
 each writes a starting sentence, draws the sentences it is handed and guesses what the drawings show,
 and each gets its own chain. They don't vote, and the votes they get show on the final scores just
 for fun (they don't count towards the party standings). Bots wear the colours nobody has picked; in
 a full room they share the last one.
 
-To switch it on, give the Worker a DeepSeek API key (<https://platform.deepseek.com/api_keys>):
+To switch it on, give the Worker a Claude API key (<https://platform.claude.com/settings/keys>):
 
 ```bash
-npx wrangler secret put DEEPSEEK_API_KEY     # locally: put DEEPSEEK_API_KEY=sk-… in .dev.vars
+npx wrangler secret put ANTHROPIC_API_KEY    # locally: put ANTHROPIC_API_KEY=sk-ant-… in .dev.vars
 ```
 
-The VIP's phone then shows **🤖 DeepSeek bots: Off · 1 · 2 · 3 · 4** in the lobby when Głuchy
-Telefon is selected (it isn't offered without a key). Bots don't count towards the 3-player minimum. An optional `DEEPSEEK_MODEL` variable picks another
-model (default `deepseek-chat`).
+The VIP's phone then shows **🤖 AI bots: Off · 1 · 2 · 3 · 4** in the lobby when Głuchy
+Telefon is selected (it isn't offered without a key). Bots don't count towards the 3-player minimum. An optional `ANTHROPIC_MODEL` variable picks another
+Claude model (default `claude-haiku-5-5`).
 
 How it works: the TV posts each task to `POST /api/ai` with its room code and secret host key; the
-Worker checks the key with the room (at most 300 calls per room an hour; a game with four bots uses up to 24) and calls DeepSeek, so the
+Worker checks the key with the room (at most 300 calls per room an hour; a game with four bots uses up to 24) and calls Claude, so the
 API key never reaches a browser. To *look at* a drawing, the TV turns it into a small PNG/JPEG and
-the bot sends it to a DeepSeek vision model (`deepseek-flash`, then `deepseek-v4-flash-vision-exp`;
-the first that answers is remembered, and `DEEPSEEK_VISION_MODEL` can name another). If no vision
-model takes it, the bot reads the drawing as SVG text instead (every stroke a polyline with its pen
-colour), which works much less well. It *draws* by answering with an SVG doodle, which
+the bot sends Claude that picture. If the TV couldn't make one, the bot reads the drawing as SVG text
+instead (every stroke a polyline with its pen colour), which works much less well. It *draws* by answering with an SVG doodle, which
 `shared/svgStrokes.ts` turns into the game's pen strokes (paths, curves, circles, rects… mapped onto
-the eight pens and three widths). If DeepSeek is slow or fails, the bot hands in nothing for that
+the eight pens and three widths). If Claude is slow or fails, the bot hands in nothing for that
 step (or rolls the dice for its first sentence), like a player whose time ran out.
 
 ## Deploying from a computer (free plan, no credit card)
