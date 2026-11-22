@@ -40,7 +40,7 @@ export interface TrackDef {
   parts: PartDef[];
 }
 
-export type TrackId = 'lobby' | 'quiz' | 'polka' | 'arena' | 'race' | 'lounge';
+export type TrackId = 'lobby' | 'quiz' | 'polka' | 'arena' | 'race' | 'lounge' | 'disco';
 
 // ---------------------------------------------------------------------------
 // Notes and chords
@@ -324,7 +324,42 @@ const lounge: TrackDef = {
   ],
 };
 
-export const TRACKS: Record<TrackId, TrackDef> = { lobby, quiz, polka, arena, race, lounge };
+// ---------------------------------------------------------------------------
+// Wesele: "Pierogi w Rytmie Disco" – disco polo for the wedding hall, in A minor. Four on the floor,
+// open hats on the off-beats, an octave-bouncing synth bass and a cheap-keyboard square lead.
+// ---------------------------------------------------------------------------
+
+const DISCO_CHORDS = ['Am', 'F', 'G', 'C', 'Am', 'F', 'G', 'E7', 'F', 'G', 'C', 'Am', 'Dm', 'G', 'E7', 'Am'];
+const disco: TrackDef = {
+  name: 'Pierogi w Rytmie Disco',
+  bpm: 126,
+  steps: 2,
+  beatsPerBar: 4,
+  bars: 16,
+  pump: 0.4,
+  echo: { beats: 0.75, feedback: 0.3 },
+  parts: [
+    { inst: 'bass', vol: 0.32, seq: bass(DISCO_CHORDS, '1! 8 1 8 1! 8 1 8') },
+    { inst: 'pad', vol: 0.045, seq: comp(DISCO_CHORDS, 'x - - - - - - -') },
+    { inst: 'pluck', vol: 0.07, pan: -0.35, seq: comp(DISCO_CHORDS, '. x . x! . x . x!') },
+    {
+      inst: 'lead',
+      vol: 0.11,
+      pan: 0.1,
+      echo: 0.2,
+      seq: `
+        A4 - C5 - E5 - D5 C5 | C5 - A4 - F4 - A4 . | B4 - D5 - G5 - F5 E5 | E5 - - - C5 - . . |
+        A4 - C5 - E5 - A5 G5 | F5 - E5 - D5 - C5 . | D5 - B4 - G4 - B4 D5 | G#4 - B4 - E5 - - . |
+        A5! - A5 G5 F5 - A5 - | G5! - G5 F5 E5 - D5 - | E5! - E5 D5 C5 - E5 - | A5 - - - E5 - . . |
+        F5! - F5 E5 D5 - F5 - | D5 - E5 F5 G5 - B4 - | E5 - G#5 - B5 - D6 - | C6>A5! - - - - - . . |`,
+    },
+    { inst: 'pluck', vol: 0.06, pan: 0.4, echo: 0.3, seq: rep('. . . . . . . .', 8) + ' | ' + arp(DISCO_CHORDS.slice(8), '1 2 3 2 4 3 2 3', 69) },
+    { inst: 'drums', vol: 0.5, seq: rep('k o k+c! o k o k+c! o', 7) + ' | k o k+c! o k o s! s | ' + rep('k o k+c! o k o k+c! o', 7) + ' | k o k+c! o s s! c! c!' },
+    { inst: 'drums', vol: 0.26, pan: 0.25, steps: 4, seq: rep('x? x? x x? x? x? x x? x? x? x x? x? x? x x?', 16) },
+  ],
+};
+
+export const TRACKS: Record<TrackId, TrackDef> = { lobby, quiz, polka, arena, race, lounge, disco };
 
 // ---------------------------------------------------------------------------
 // Parsing
@@ -410,8 +445,9 @@ export function trackForGame(game: string): TrackId | null {
   switch (game) {
     case 'chairs':
     case 'bells':
-    case 'wesele':
       return null;
+    case 'wesele':
+      return 'disco';
     case 'quiz':
     case 'ballpark':
     case 'swap':
