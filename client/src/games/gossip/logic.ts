@@ -10,9 +10,9 @@ import { derange, shuffle } from '../wordkit/logic';
 
 export const GS_ANSWER_MAX = 60;
 export const GS_TWIST_MAX = 70;
-export const GS_ANSWER_MS = 50_000;
-export const GS_TWIST_MS = 60_000;
-export const GS_VOTE_MS = 25_000;
+export const GS_ANSWER_MS = 75_000;
+export const GS_TWIST_MS = 90_000;
+export const GS_VOTE_MS = 35_000;
 /** Extra time on the vote reveal on top of the usual hold: there are many twists and authors to read. */
 export const GS_REVEAL_EXTRA_MS = 12_000;
 export const GS_ROUNDS = 2;

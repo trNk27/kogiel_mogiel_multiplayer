@@ -239,7 +239,7 @@ export class WaveGame implements Game {
           title: m.clue === NO_CLUE ? `${pName} gave no clue – guess!` : `“${m.clue}”`,
           text: `Where does it sit between ${sp.left} and ${sp.right}?`,
           endsAt: this.endsAt,
-          input: { k: 'slider', min: 0, max: 100, step: 1, start: 50, left: `← ${sp.left}`, right: `${sp.right} →`, sent: m.guesses.get(id) ?? null, button: 'Lock in' },
+          input: { k: 'slider', min: 0, max: 100, step: 1, start: 50, left: `← ${sp.left}`, right: `${sp.right} →`, sent: m.guesses.get(id) ?? null, button: 'Lock in', dial: true },
         });
       case 'reveal':
       case 'scores': {
@@ -354,6 +354,8 @@ export class WaveGame implements Game {
           )}
         </div>
         <div class="wv-dial-row">
+          <div class="wv-num left">0</div>
+          <div class="wv-num right">100</div>
           <div class="wv-end left card-paper">
             <span class="wv-arrow">←</span>
             {sp.left}
@@ -419,7 +421,7 @@ export class WaveGame implements Game {
           {/* the shutter: covers the face until the reveal, then swings down out of sight */}
           <g clip-path="url(#wv-top)">
             <g class="wv-shutter" style={{ transformOrigin: `${CX}px ${CY}px` }}>
-              <path d={`M${CX - R + 4} ${CY} A${R - 4} ${R - 4} 0 0 1 ${CX + R - 4} ${CY} Z`} fill="#3a1e2b" />
+              <path d={`M${CX - R - 4} ${CY} A${R + 4} ${R + 4} 0 0 1 ${CX + R + 4} ${CY} Z`} fill="#3a1e2b" />
               {[0, 1, 2, 3, 4, 5].map((k) => (
                 <path d={`M${CX - R + 40 + k * 66} ${CY} A${R - 40 - k * 66} ${R - 40 - k * 66} 0 0 1 ${CX + R - 40 - k * 66} ${CY}`} fill="none" stroke="rgba(251,240,217,.08)" stroke-width="16" />
               ))}

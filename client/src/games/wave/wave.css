@@ -89,6 +89,22 @@
   text-align: center;
   overflow-wrap: anywhere;
 }
+.wv-num {
+  position: absolute;
+  top: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 96px;
+  line-height: 1;
+  color: var(--yolk);
+  text-shadow: 0 6px 0 rgba(0, 0, 0, 0.4);
+}
+.wv-num.left {
+  left: 40px;
+}
+.wv-num.right {
+  right: 40px;
+}
 .wv-end.left {
   left: 0;
   transform: rotate(-2deg);
