@@ -7,6 +7,7 @@ import {
   MAX_PLAYERS,
   RALLY_TRACKS,
   SIEGE_MODES,
+  TEL_MAX_BOTS,
   TOURNAMENT_CANDIDATES,
   TOURNAMENT_MAX_GAMES,
   TOURNAMENT_MIN_GAMES,
@@ -190,7 +191,19 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
           <Toggle label={tour ? 'Trails power-ups' : 'Power-ups'} on={view.options.powerups} onChange={(v) => send({ t: 'option', key: 'powerups', value: v })} />
         )}
         {view.selected === 'telephone' && view.ai && (
-          <Toggle label="🤖 DeepSeek bot plays too" hint="Writes, draws and guesses along with you" on={view.options.telBot} onChange={(v) => send({ t: 'option', key: 'telBot', value: v })} />
+          <div class="segmented-wrap">
+            <div class="toggle-text">
+              <b>🤖 DeepSeek bots</b>
+              <small>They write, draw and guess along with you</small>
+            </div>
+            <div class="segmented">
+              {Array.from({ length: TEL_MAX_BOTS + 1 }, (_, n) => (
+                <button class={view.options.telBots === n ? 'on' : ''} onClick={() => send({ t: 'option', key: 'telBots', value: n })}>
+                  <b>{n === 0 ? 'Off' : n}</b>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         {view.selected === 'rally' && <TrackPicker value={view.options.track} onChange={(v) => send({ t: 'option', key: 'track', value: v })} />}
         {(view.selected === 'rally' || view.selected === 'premium' || tour) && (

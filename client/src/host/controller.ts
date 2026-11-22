@@ -3,6 +3,7 @@ import {
   DEFAULT_OPTIONS,
   DIFFICULTIES,
   SIEGE_MODES,
+  TEL_MAX_BOTS,
   KITCHEN_LEVELS,
   MAX_PLAYERS,
   RECONNECT_GRACE_MS,
@@ -466,7 +467,7 @@ export class HostController implements GameHost {
         return;
       case 'option':
         if (!isVip) return;
-        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items' || m.key === 'tourShort' || m.key === 'tourParty' || m.key === 'telBot') this.options = { ...this.options, [m.key]: !!m.value };
+        if (m.key === 'powerups' || m.key === 'sound' || m.key === 'items' || m.key === 'tourShort' || m.key === 'tourParty') this.options = { ...this.options, [m.key]: !!m.value };
         else if (m.key === 'tourGames') {
           const v = Math.round(Number(m.value));
           if (!(v >= TOURNAMENT_MIN_GAMES && v <= TOURNAMENT_MAX_GAMES)) return;
@@ -476,6 +477,12 @@ export class HostController implements GameHost {
           const off = cleanTourOff(m.value, TOURNAMENT_CANDIDATES);
           if (!off) return;
           this.options = { ...this.options, tourOff: off };
+          sound.tick();
+        }
+        else if (m.key === 'telBots') {
+          const v = Math.round(Number(m.value));
+          if (!(v >= 0 && v <= TEL_MAX_BOTS)) return;
+          this.options = { ...this.options, telBots: v };
           sound.tick();
         }
         else if (m.key === 'track') {
