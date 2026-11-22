@@ -120,41 +120,56 @@ describe('AI answer cleaning', () => {
 });
 
 describe('the bot looking at a drawing', () => {
-  const env = { DEEPSEEK_API_KEY: 'test' };
+  const env = { ANTHROPIC_API_KEY: 'test' };
   const image = 'data:image/png;base64,iVBORw0KGgo=';
   const strokes: Stroke[] = [[0, 1, 100, 100, 900, 900]];
 
-  /** A fake DeepSeek: `answer(model, hasImage)` returns an HTTP status or a reply. */
-  function fake(answer: (model: string, hasImage: boolean) => number | string) {
-    const calls: { model: string; hasImage: boolean }[] = [];
-    vi.stubGlobal('fetch', async (_url: string, init: { body: string }) => {
-      const body = JSON.parse(init.body) as { model: string; messages: { content: unknown }[] };
-      const hasImage = Array.isArray(body.messages[1].content);
-      calls.push({ model: body.model, hasImage });
-      const a = answer(body.model, hasImage);
-      if (typeof a === 'number') return new Response('{}', { status: a });
-      return new Response(JSON.stringify({ choices: [{ message: { content: a } }] }), { status: 200 });
+  type Sent = { model: string; content: string | { type: string; source?: { media_type: string; data: string }; text?: string }[] };
+
+  /** A fake Claude API: records each request and answers with `reply`. */
+  function fake(reply: (sent: Sent) => { content: unknown[]; stop_reason?: string } | number) {
+    const calls: Sent[] = [];
+    vi.stubGlobal('fetch', async (_url: unknown, init: { body: string }) => {
+      const body = JSON.parse(init.body) as { model: string; messages: { content: Sent['content'] }[] };
+      const sent = { model: body.model, content: body.messages[0].content };
+      calls.push(sent);
+      const r = reply(sent);
+      if (typeof r === 'number') return new Response('{"type":"error","error":{"type":"x","message":"x"}}', { status: r });
+      const msg = { id: 'msg_1', type: 'message', role: 'assistant', model: body.model, stop_reason: 'end_turn', usage: {}, ...r };
+      return new Response(JSON.stringify(msg), { status: 200, headers: { 'content-type': 'application/json' } });
     });
     return calls;
   }
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it('sends the picture to a vision model, trying the next id if one is unknown', async () => {
-    const calls = fake((model) => (model === 'deepseek-v4-flash-vision-exp' ? '"A diagonal line."' : 400));
+  it('shows Claude Haiku the picture and keeps only the text of its answer', async () => {
+    const calls = fake(() => ({ content: [{ type: 'thinking', thinking: '', signature: 's' }, { type: 'text', text: '"A diagonal line."' }] }));
     expect(await runAi(env, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' })).toEqual({ text: 'A diagonal line' });
-    expect(calls.map((c) => c.model)).toEqual(['deepseek-flash', 'deepseek-v4-flash-vision-exp']);
-    expect(calls.every((c) => c.hasImage)).toBe(true);
-    // The id that worked is used first from now on.
-    calls.length = 0;
-    await runAi(env, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' });
-    expect(calls.map((c) => c.model)).toEqual(['deepseek-v4-flash-vision-exp']);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].model).toBe('claude-haiku-5-5');
+    const blocks = calls[0].content as Exclude<Sent['content'], string>;
+    expect(blocks[0]).toMatchObject({ type: 'image', source: { media_type: 'image/png', data: 'iVBORw0KGgo=' } });
   });
 
-  it('falls back to reading the strokes as SVG when no vision model answers', async () => {
-    const calls = fake((_m, hasImage) => (hasImage ? 404 : 'A stick'));
-    expect(await runAi({ ...env, DEEPSEEK_VISION_MODEL: 'nope' }, { task: 'describe', strokes, image, code: 'ABCD', key: 'k' })).toEqual({ text: 'A stick' });
-    expect(calls.at(-1)).toEqual({ model: 'deepseek-chat', hasImage: false });
+  it('reads the strokes as SVG when the TV sent no picture', async () => {
+    const calls = fake(() => ({ content: [{ type: 'text', text: 'A stick' }] }));
+    expect(await runAi(env, { task: 'describe', strokes, code: 'ABCD', key: 'k' })).toEqual({ text: 'A stick' });
+    expect(calls[0].content).toEqual(expect.stringContaining('<polyline'));
+    expect(calls[0].content).toEqual(expect.stringContaining('rubbed-out'));
+  });
+
+  it('turns a refusal or a failed call into an error', async () => {
+    fake(() => ({ content: [], stop_reason: 'refusal' }));
+    expect(await runAi(env, { task: 'write', code: 'ABCD', key: 'k' })).toEqual({ error: 'refused' });
+    fake(() => 400);
+    expect((await runAi(env, { task: 'write', code: 'ABCD', key: 'k' })).error).toBeTruthy();
+  });
+
+  it('draws with an SVG that becomes strokes', async () => {
+    fake(() => ({ content: [{ type: 'text', text: '<svg viewBox="0 0 1000 1000"><circle cx="500" cy="500" r="200" stroke="#ffd23f" stroke-width="24"/></svg>' }] }));
+    const res = await runAi(env, { task: 'draw', prompt: 'the sun', code: 'ABCD', key: 'k' });
+    expect(res.strokes).toHaveLength(1);
   });
 
   it('only accepts small PNG/JPEG data URLs from the TV', async () => {

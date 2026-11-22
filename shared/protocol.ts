@@ -301,7 +301,7 @@ export interface LobbyOptions {
   tourOff: GameId[];
   /** Tournament party mode: before every game, walk onto one of three games to vote for it. */
   tourParty: boolean;
-  /** Głuchy Telefon: how many DeepSeek bots take a seat, 0 to 4 (needs DEEPSEEK_API_KEY on the worker). */
+  /** Głuchy Telefon: how many AI bots take a seat, 0 to 4 (needs ANTHROPIC_API_KEY on the worker). */
   telBots: number;
 }
 
@@ -1228,7 +1228,7 @@ export const CLOSE = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// AI bot (POST /api/ai): the TV asks the worker, which holds the DeepSeek key.
+// AI bot (POST /api/ai): the TV asks the worker, which holds the Claude API key.
 // ---------------------------------------------------------------------------
 
 export type AiTask =

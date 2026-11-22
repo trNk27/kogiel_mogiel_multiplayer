@@ -193,7 +193,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         {view.selected === 'telephone' && view.ai && (
           <div class="segmented-wrap">
             <div class="toggle-text">
-              <b>🤖 DeepSeek bots</b>
+              <b>🤖 AI bots</b>
               <small>They write, draw and guess along with you</small>
             </div>
             <div class="segmented">

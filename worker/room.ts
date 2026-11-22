@@ -81,7 +81,7 @@ export class RoomDO extends DurableObject<Env> {
 
   /**
    * May this TV make an AI call? Only the room's host (it holds the secret key), and only so many
-   * per hour, so a leaked room can't run up the DeepSeek bill.
+   * per hour, so a leaked room can't run up the Claude API bill.
    */
   async aiTicket(hostKey: string): Promise<'ok' | 'forbidden' | 'busy'> {
     if (!this.hostKey || this.isIdle() || hostKey !== this.hostKey) return 'forbidden';
