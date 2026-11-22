@@ -77,6 +77,8 @@ The VIP can also start a **Tournament**: five random games in a row by default, 
 2. Phones scan the QR code, or go to `/join` and type the 4-letter code. Then they enter a name and pick a pierogi colour.
 3. The **first player to join is the VIP**. The VIP picks the game, toggles options, starts rounds,
    ends a game early (⋯ menu) and can remove players, all from their phone.
+   (For testing: a player called **Mani** is VIP of the first round instead, whenever they join;
+   after that game the VIP passes on from Mani as usual.)
 4. After each game the TV shows a podium and the **party standings** (3/2/1 points for the top three
    places; in the co-op games, Pierogi Panic and Malbork Castle, everyone gets 1 point per star, averaged over the levels played in Pierogi Panic). After a few
    seconds the podium gives way to a **standings screen**: the table starts as it stood before the game, the bars
