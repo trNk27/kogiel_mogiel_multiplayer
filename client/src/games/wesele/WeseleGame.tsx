@@ -745,7 +745,7 @@ export class WeseleGame implements Game {
         {this.phase === 'play' && (this.ch === 'twirl' || this.ch === 'gorzko' || this.ch === 'pour') && <StartCall key={`s${this.key}`} at={this.goAt} go={this.ch === 'twirl' ? 'TWIRL! 🌀' : this.ch === 'pour' ? 'POUR! 🍾' : 'TAP! TAP! TAP!'} />}
         {this.phase === 'play' && this.ch === 'pair' && <NowCall key={`n${this.key}`} nowAt={this.goAt} />}
 
-        {this.ids.map((_, i) => this.pop(i))}
+        {this.popSpots().map((at, i) => this.pop(i, at))}
 
         <div class="wes-chips">
           {this.ids.map((_, i) => {
@@ -773,11 +773,26 @@ export class WeseleGame implements Game {
     );
   }
 
+  /** Where each guest's label goes: over their head, nudged up so neighbours' labels don't overlap. */
+  private popSpots() {
+    const spots = this.ids.map((_, i) => (this.guests[i].gone ? null : (this.scene?.headAt(i) ?? null)));
+    const placed: { x: number; y: number }[] = [];
+    const order = spots.map((_, i) => i).sort((a, b) => (spots[b]?.y ?? 0) - (spots[a]?.y ?? 0));
+    for (const i of order) {
+      const at = spots[i];
+      if (!at || !at.visible) continue;
+      let y = at.y;
+      while (placed.some((p) => Math.abs(p.x - at.x) < 190 && Math.abs(p.y - y) < 54)) y -= 56;
+      placed.push({ x: at.x, y });
+      spots[i] = { ...at, y };
+    }
+    return spots;
+  }
+
   /** What floats over a guest's head: live progress while playing, the verdict after. */
-  private pop(i: number) {
+  private pop(i: number, at: { x: number; y: number; visible: boolean } | null) {
     const g = this.guests[i];
     if (g.gone) return null;
-    const at = this.scene?.headAt(i);
     if (!at || !at.visible) return null;
     const style = { left: `${at.x}px`, top: `${at.y}px` };
     const o = this.outcome[i];

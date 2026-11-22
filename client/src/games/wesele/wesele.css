@@ -241,8 +241,8 @@
   z-index: 20;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 40px;
-  padding: 4px 16px;
+  font-size: 36px;
+  padding: 2px 14px;
   border-radius: 14px;
   white-space: nowrap;
   background: var(--cream);
@@ -262,7 +262,6 @@
 }
 .wes-pop.o-win {
   background: var(--yolk);
-  font-size: 46px;
 }
 .wes-pop.o-safe {
   background: var(--dill);
@@ -271,7 +270,6 @@
 .wes-pop.o-out {
   background: var(--beet);
   color: var(--cream);
-  font-size: 46px;
   animation: drink-shake 0.5s 0.3s 2;
 }
 .wes-pop.o-toast {

@@ -760,7 +760,7 @@ export class WeseleScene {
       }
       if (ch === 'kaczuchy') {
         const x = FLOOR.x + (k - (n - 1) / 2) * Math.min(2.3, 11.5 / Math.max(1, n));
-        return { x, z: FLOOR.z + 2.2, face: 0 };
+        return { x, z: FLOOR.z + 3.1, face: 0 };
       }
       if (ch === 'train') {
         const u = this.trainU(game) - (k + 1) * 0.55;
@@ -968,7 +968,7 @@ export class WeseleScene {
       mode = 'twirl';
     } else if (live && ch === 'kaczuchy') {
       tx = FLOOR.x;
-      tz = FLOOR.z - 2.4;
+      tz = FLOOR.z - 0.4;
       face = 0;
       mode = 'demo';
     } else if (ph === 'play' && ch === 'train') {
@@ -1086,6 +1086,7 @@ export class WeseleScene {
     a.bottle.visible = false;
     a.zzz.visible = false;
     a.tag.material.opacity = 1;
+    a.tag.visible = true;
     a.model.shadow.visible = !spot.seated;
 
     // Drunk looks: rosy cheeks, the tie round the head from 4.
@@ -1109,7 +1110,8 @@ export class WeseleScene {
       body.scale.set(1, 1 + Math.sin(time * 2 + i) * 0.03, 1);
       a.tag.material.opacity = 0.5;
       a.zzz.visible = true;
-      a.zzz.position.set(a.pos.x + 0.6, 1.5 + Math.sin(time * 2 + i) * 0.15, a.pos.z);
+      a.zzz.position.set(a.pos.x + 0.6, 2.2 + Math.sin(time * 2 + i) * 0.15, a.pos.z);
+      a.tag.visible = false;
       return;
     }
 
