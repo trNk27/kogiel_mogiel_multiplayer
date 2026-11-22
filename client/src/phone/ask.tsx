@@ -146,6 +146,7 @@ function AskSlider({ view, input, send }: InputProps<'slider'>) {
   useEffect(() => setValue(mid), [view.key]);
   if (input.sent !== null) return <Waiting label="You locked in" value={`${input.sent}${input.unit ?? ''}`} />;
   const share = (value - input.min) / Math.max(1e-9, input.max - input.min);
+  if (input.dial) return <AskDial view={view} input={input} send={send} value={value} setValue={setValue} share={share} />;
   return (
     <div class="ask-slider">
       <div class="ask-slider-value">
@@ -162,6 +163,82 @@ function AskSlider({ view, input, send }: InputProps<'slider'>) {
         style={{ '--fill': `${(share * 100).toFixed(1)}%` }}
         onInput={(e) => setValue(Number((e.target as HTMLInputElement).value))}
       />
+      <div class="ask-slider-ends">
+        <span>{input.left}</span>
+        <span>{input.right}</span>
+      </div>
+      <button class="btn btn-big btn-yolk" onClick={() => send({ t: 'ask', key: view.key, n: value })}>
+        {input.button ?? 'Lock in'}
+      </button>
+    </div>
+  );
+}
+
+// Half-dial geometry (SVG units): min on the left, max on the right, the middle straight up.
+const DX = 160;
+const DY = 160;
+const DR = 140;
+const dialPt = (share: number, r: number): [number, number] => {
+  const a = Math.PI * (1 - share);
+  return [DX + r * Math.cos(a), DY - r * Math.sin(a)];
+};
+
+/** The slider as a half circle: drag (or tap) anywhere on it to point the needle. */
+function AskDial({ view, input, send, value, setValue, share }: InputProps<'slider'> & { value: number; setValue: (n: number) => void; share: number }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const pick = (e: PointerEvent) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const box = svg.getBoundingClientRect();
+    const x = ((e.clientX - box.left) / box.width) * 320 - DX;
+    const y = DY - ((e.clientY - box.top) / box.height) * 180;
+    // Below the hub: snap to whichever end is nearer.
+    const a = Math.atan2(Math.max(0, y), x);
+    const s = 1 - a / Math.PI;
+    const raw = input.min + s * (input.max - input.min);
+    const n = Math.max(input.min, Math.min(input.max, Math.round(raw / input.step) * input.step));
+    if (n !== value) navigator.vibrate?.(4);
+    setValue(n);
+  };
+  const ticks = [];
+  for (let k = 0; k <= 20; k++) {
+    const big = k % 5 === 0;
+    const [x1, y1] = dialPt(k / 20, DR - (big ? 16 : 9));
+    const [x2, y2] = dialPt(k / 20, DR);
+    ticks.push(<line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#241015" stroke-width={big ? 3 : 1.5} stroke-linecap="round" opacity=".6" />);
+  }
+  const [nx, ny] = dialPt(share, DR - 6);
+  const [tx, ty] = dialPt(share, DR + 0);
+  return (
+    <div class="ask-slider ask-dial">
+      <div class="ask-slider-value">
+        {value}
+        {input.unit ?? ''}
+      </div>
+      <svg
+        ref={svgRef}
+        class={`ask-dial-svg ${dragging ? 'dragging' : ''}`}
+        viewBox="0 0 320 180"
+        onPointerDown={(e) => {
+          (e.currentTarget as Element).setPointerCapture(e.pointerId);
+          setDragging(true);
+          pick(e);
+        }}
+        onPointerMove={(e) => dragging && pick(e)}
+        onPointerUp={() => setDragging(false)}
+        onPointerCancel={() => setDragging(false)}
+      >
+        <path d={`M${DX - DR - 10} ${DY} A${DR + 10} ${DR + 10} 0 0 1 ${DX + DR + 10} ${DY} Z`} fill="#2a120a" />
+        <path d={`M${DX - DR} ${DY} A${DR} ${DR} 0 0 1 ${DX + DR} ${DY} Z`} fill="#fff4dc" />
+        {ticks}
+        <line x1={DX} y1={DY} x2={nx} y2={ny} stroke="#241015" stroke-width="9" stroke-linecap="round" />
+        <line x1={DX} y1={DY} x2={nx} y2={ny} stroke="var(--ask-accent, #ffc93c)" stroke-width="4" stroke-linecap="round" />
+        <circle cx={tx} cy={ty} r="15" fill="#fff4dc" stroke="#241015" stroke-width="4" />
+        <rect x={DX - DR - 14} y={DY} width={2 * DR + 28} height="16" rx="4" fill="#2a120a" />
+        <circle cx={DX} cy={DY} r="13" fill="#2a120a" />
+        <circle cx={DX} cy={DY} r="7" fill="#ffc93c" />
+      </svg>
       <div class="ask-slider-ends">
         <span>{input.left}</span>
         <span>{input.right}</span>

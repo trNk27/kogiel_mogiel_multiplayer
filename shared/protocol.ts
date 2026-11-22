@@ -956,8 +956,11 @@ export type AskInput =
    * `sub` is a small line under an option's label; `color` its background.
    */
   | { k: 'choice'; options: { label: string; sub?: string; color?: string; off?: boolean }[]; picked: number | null; grid?: boolean }
-  /** A slider (sent as `{ t: 'ask', key, n }` on "Lock in"). `left`/`right` label the two ends. */
-  | { k: 'slider'; min: number; max: number; step: number; start?: number; left?: string; right?: string; unit?: string; sent: number | null; button?: string }
+  /**
+   * A slider (sent as `{ t: 'ask', key, n }` on "Lock in"). `left`/`right` label the two ends. With
+   * `dial`, it's a half circle you drag a needle around instead (min on the left, max on the right).
+   */
+  | { k: 'slider'; min: number; max: number; step: number; start?: number; left?: string; right?: string; unit?: string; sent: number | null; button?: string; dial?: boolean }
   /**
    * Big keys: every tap is sent straight away as `{ t: 'ask', key, i }` (e.g. Dzwonki's bells).
    * `off` greys them all out; `lit` lights one key (e.g. while the host plays a tune back).
