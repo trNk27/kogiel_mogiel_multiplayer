@@ -77,12 +77,14 @@ export function StandingsRace({ rows, title, sub }: { rows: RaceRow[]; title: st
   const max = Math.max(1, ...rows.map((r) => r.after));
   // Before anybody had a lead, everyone "shared first": no ▲▼ for the first game.
   const level = rows.every((r) => r.before === rows[0].before);
+  const compact = rows.length > 8;
+  const rowH = compact ? Math.floor(592 / rows.length) : ROW_H;
 
   return (
-    <div class="race card-paper">
+    <div class={`race card-paper ${compact ? 'compact' : ''}`}>
       <div class="party-title">{title}</div>
       {sub && <div class="party-sub">{sub}</div>}
-      <div class="race-rows" style={{ height: rows.length * ROW_H }}>
+      <div class="race-rows" style={{ height: rows.length * rowH }}>
         {rows.map((r, i) => {
           const slot = phase >= 2 ? newSlot.get(i)! : oldSlot.get(i)!;
           const value = phase >= 1 ? r.after : r.before;
@@ -90,12 +92,12 @@ export function StandingsRace({ rows, title, sub }: { rows: RaceRow[]; title: st
           const move = level ? 0 : oldPlaces[i] - newPlaces[i];
           const place = phase >= 2 ? newPlaces[i] : oldPlaces[i];
           return (
-            <div class={`race-row ${place === 1 && phase >= 2 ? 'lead' : ''}`} key={r.id} style={{ top: slot * ROW_H, '--pc': colorHex(r.color) }}>
+            <div class={`race-row ${place === 1 && phase >= 2 ? 'lead' : ''}`} key={r.id} style={{ height: rowH, top: slot * rowH, '--pc': colorHex(r.color) }}>
               <span class="race-rank">{place}</span>
               <span class={`race-move ${phase >= 2 && move ? (move > 0 ? 'up' : 'down') : ''}`}>
                 {phase >= 2 && move > 0 ? `▲${move}` : phase >= 2 && move < 0 ? `▼${-move}` : ''}
               </span>
-              <Pierogi color={colorHex(r.color)} size={50} mood={phase >= 2 && move > 0 ? 'wow' : 'happy'} />
+              <Pierogi color={colorHex(r.color)} size={compact ? 36 : 50} mood={phase >= 2 && move > 0 ? 'wow' : 'happy'} />
               <span class="race-main">
                 <span class="race-name">{r.name}</span>
                 <span class="race-track">
@@ -161,16 +163,17 @@ export function ScoreChart({ series, games, title }: { series: ChartSeries[]; ga
   for (let v = 0; v <= top; v += step) grid.push(v);
   // Leaders are drawn last so their lines sit on top.
   const drawn = [...series].sort((a, b) => a.values[steps] - b.values[steps]);
+  const many = series.length > 8;
   const labelYs = spread(
     series.map((s) => y(s.values[steps])),
-    30,
+    many ? 24 : 30,
     PAD.t,
     PAD.t + ih,
   );
   const icon = steps > 12 ? 0 : steps > 8 ? 40 : 52;
 
   return (
-    <div class="chart card-dark">
+    <div class={`chart card-dark ${many ? 'many' : ''}`}>
       <div class="chart-title">{title}</div>
       <div class="chart-plot" style={{ width: CW, height: CH }}>
         <svg width={CW} height={CH} viewBox={`0 0 ${CW} ${CH}`} role="img" aria-label={title}>

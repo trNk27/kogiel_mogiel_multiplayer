@@ -198,7 +198,7 @@ export class QuizGame implements Game {
                 {revealed && (
                   <span class="quiz-pickers">
                     {pickers.map((p) => (
-                      <Pierogi color={colorHex(p.color)} size={58} mood={correct ? 'wow' : 'dead'} />
+                      <Pierogi color={colorHex(p.color)} size={pickers.length > 5 ? 40 : 58} mood={correct ? 'wow' : 'dead'} />
                     ))}
                   </span>
                 )}
@@ -207,13 +207,13 @@ export class QuizGame implements Game {
             );
           })}
         </div>
-        <div class="answer-strip">
+        <div class={`answer-strip ${players.length > 8 ? 'compact' : ''}`}>
           {players.map((p) => {
             const answered = this.answers.has(p.id);
             const pts = this.gained[p.id];
             return (
               <div class={`answer-chip ${answered ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                <Pierogi color={colorHex(p.color)} size={60} mood={!p.connected ? 'sleep' : answered ? 'happy' : 'wow'} />
+                <Pierogi color={colorHex(p.color)} size={players.length > 8 ? 48 : 60} mood={!p.connected ? 'sleep' : answered ? 'happy' : 'wow'} />
                 <span>{p.name}</span>
                 {revealed ? <b class={pts ? 'gain' : 'nogain'}>{pts ? `+${pts}` : '0'}</b> : <b>{answered ? 'Locked in' : '…'}</b>}
               </div>

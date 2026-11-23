@@ -54,7 +54,7 @@ const TITLE_MS = 4500;
 const SHOW_MS = 3800;
 const FINAL_SHOW_MS = 5500;
 const SCORES_MS = 7500;
-const LETTERS = 'ABCDEFGH';
+const LETTERS = 'ABCDEFGHIJKL';
 
 type Phase = 'title' | 'write' | 'show' | 'vote' | 'reveal' | 'fshow' | 'fvote' | 'freveal' | 'scores';
 
@@ -109,7 +109,7 @@ export class QuipGame implements Game {
     private host: GameHost,
     public ids: string[],
   ) {
-    this.layout = layoutFor(host.short);
+    this.layout = layoutFor(host.short, ids.length);
     for (const id of ids) this.scores[id] = 0;
   }
 
@@ -351,15 +351,20 @@ export class QuipGame implements Game {
     return finalVotesFor(id, this.entries, this.jinxed) - (this.fvotes.get(id)?.length ?? 0);
   }
 
+  private get finalVoteMs() {
+    return this.entries.length > 8 ? 40_000 : QP_FINAL_VOTE_MS;
+  }
+
   private startFinalVote() {
     if (this.phase !== 'fshow') return;
     if (!this.ids.some((id) => this.votesLeft(id) > 0)) {
       this.startFinalReveal();
       return;
     }
-    this.setPhase('fvote', QP_FINAL_VOTE_MS);
+    const ms = this.finalVoteMs;
+    this.setPhase('fvote', ms);
     sound.bell();
-    this.after(QP_FINAL_VOTE_MS + 500, () => this.startFinalReveal());
+    this.after(ms + 500, () => this.startFinalReveal());
     this.update();
   }
 
@@ -602,13 +607,15 @@ export class QuipGame implements Game {
 
   /** Everyone's pierogi, name and score along the bottom; `done` ticks them off. */
   private strip(done?: (id: string) => boolean) {
+    const players = this.players();
+    const many = players.length > 8;
     return (
-      <div class="qp-strip">
-        {this.players().map((p) => {
+      <div class={`qp-strip ${many ? 'many' : ''}`}>
+        {players.map((p) => {
           const ok = done?.(p.id);
           return (
             <div class={`qp-chip ${ok ? 'done' : ''} ${p.connected ? '' : 'offline'}`} style={{ '--pc': colorHex(p.color) }}>
-              <Pierogi color={colorHex(p.color)} size={46} mood={!p.connected ? 'sleep' : ok ? 'happy' : 'happy'} />
+              <Pierogi color={colorHex(p.color)} size={many ? 36 : 46} mood={!p.connected ? 'sleep' : ok ? 'happy' : 'happy'} />
               <span class="qp-chip-name">{p.name}</span>
               <b class="qp-chip-score">{(this.scores[p.id] ?? 0).toLocaleString('en-US')}</b>
               {ok && <i class="qp-chip-tick">✓</i>}
@@ -640,6 +647,8 @@ export class QuipGame implements Game {
 
   private renderTitle() {
     const final = this.isFinal;
+    const players = this.players();
+    const many = players.length > 8;
     return (
       <div class={`screen qp-title ${final ? 'final' : ''}`} key={`title${this.round}`}>
         <div class="qp-kicker">Riposta</div>
@@ -652,9 +661,9 @@ export class QuipGame implements Game {
               : 'Two new prompts · every vote counts double!'}
         </p>
         {this.mult > 1 && <div class="qp-mult pop-in">×{this.mult}</div>}
-        <div class="qp-title-row">
-          {this.players().map((p, i) => (
-            <Pierogi color={colorHex(p.color)} size={110} mood="wow" class="bob" style={{ animationDelay: `${i * -0.3}s` }} />
+        <div class={`qp-title-row ${many ? 'many' : ''}`}>
+          {players.map((p, i) => (
+            <Pierogi color={colorHex(p.color)} size={many ? 74 : 110} mood="wow" class="bob" style={{ animationDelay: `${i * -0.3}s` }} />
           ))}
         </div>
       </div>
@@ -664,6 +673,8 @@ export class QuipGame implements Game {
   private renderWrite() {
     const final = this.isFinal;
     const total = final ? QP_FINAL_WRITE_MS : this.layout.writeMs;
+    const players = this.players();
+    const many = players.length > 8;
     return (
       <div class="screen qp" key={`w${this.round}`}>
         {this.top(total, <div class="pill">Write!</div>)}
@@ -678,15 +689,15 @@ export class QuipGame implements Game {
             <p class="qp-sub">Funny beats clever. Stuck? Tap 🎲 and Babcia answers for you.</p>
           </>
         )}
-        <div class="qp-chips">
-          {this.players().map((p) => {
+        <div class={`qp-chips ${many ? 'many' : ''}`}>
+          {players.map((p) => {
             const slots = this.slots(p.id);
             const open = this.pending(p.id);
             const doneCount = open < 0 ? slots.length : slots.indexOf(open);
             const done = open < 0;
             return (
               <div class={`answer-chip ${done ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                <Pierogi color={colorHex(p.color)} size={72} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} class={done ? '' : 'bob'} />
+                <Pierogi color={colorHex(p.color)} size={many ? 56 : 72} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} class={done ? '' : 'bob'} />
                 <span>{p.name}</span>
                 <b>{done ? 'Done!' : final ? 'Writing…' : `${doneCount} / ${slots.length}`}</b>
               </div>
@@ -731,13 +742,13 @@ export class QuipGame implements Game {
                         {voters.length} vote{voters.length === 1 ? '' : 's'} · {pct}%
                       </span>
                     </div>
-                    <div class="qp-voters">
+                    <div class={`qp-voters ${voters.length > 5 ? 'many' : ''}`}>
                       {voters.map((v) => {
                         const p = this.host.player(v);
                         const k = popOrder.indexOf(v);
                         return p ? (
                           <span class="qp-voter" style={{ animationDelay: `${QP_POP_START_MS + Math.max(0, k) * QP_POP_STEP_MS}ms` }}>
-                            <Pierogi color={colorHex(p.color)} size={58} mood="happy" />
+                            <Pierogi color={colorHex(p.color)} size={voters.length > 5 ? 42 : 58} mood="happy" />
                             <small>{p.name}</small>
                           </span>
                         ) : null;
@@ -794,7 +805,7 @@ export class QuipGame implements Game {
     const r = this.phase === 'freveal' ? this.fresult : null;
     const total = r ? r.voters.reduce((s, v) => s + v.length, 0) : 0;
     const authorsDelay = r ? finalAuthorsAt(total) : 0;
-    const cols = this.entries.length <= 4 ? Math.max(1, this.entries.length) : Math.ceil(this.entries.length / 2);
+    const cols = this.entries.length <= 4 ? Math.max(1, this.entries.length) : this.entries.length <= 8 ? Math.ceil(this.entries.length / 2) : Math.ceil(this.entries.length / 3);
     // Pop the votes in one entry after another.
     const startOf: number[] = [];
     if (r) r.voters.reduce((acc, v, i) => ((startOf[i] = acc), acc + v.length), 0);
@@ -802,7 +813,7 @@ export class QuipGame implements Game {
     const voters = this.ids.filter((id) => finalVotesFor(id, this.entries, this.jinxed) > 0);
     return (
       <div class={`screen qp qp-final ${this.phase}`} key={`f${this.round}`}>
-        {this.top(voting ? QP_FINAL_VOTE_MS : null)}
+        {this.top(voting ? this.finalVoteMs : null)}
         <div class="qp-prompt card-paper small">{this.finalPrompt}</div>
         <div class={`qp-grid n${this.entries.length}`} style={{ '--cols': cols }}>
           {this.entries.map((e, i) => {
@@ -824,13 +835,13 @@ export class QuipGame implements Game {
                         const p = this.host.player(v);
                         return p ? (
                           <span class="qp-voter" style={{ animationDelay: `${QP_POP_START_MS + (startOf[i] + k) * QP_FINAL_POP_MS}ms` }}>
-                            <Pierogi color={colorHex(p.color)} size={40} mood="happy" />
+                            <Pierogi color={colorHex(p.color)} size={this.entries.length > 8 ? 32 : 40} mood="happy" />
                           </span>
                         ) : null;
                       })}
                     </div>
                     <div class="qp-author small" style={{ animationDelay: `${authorsDelay}ms`, '--pc': colorHex(author?.color ?? 'sourcream') }}>
-                      <Pierogi color={colorHex(author?.color ?? 'sourcream')} size={52} mood={pts ? 'wow' : 'dead'} />
+                      <Pierogi color={colorHex(author?.color ?? 'sourcream')} size={this.entries.length > 8 ? 40 : 52} mood={pts ? 'wow' : 'dead'} />
                       <span class="qp-author-name">
                         {author?.name ?? '?'}
                         {!this.here(e.author) && <small> (left)</small>}

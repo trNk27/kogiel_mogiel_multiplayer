@@ -37,11 +37,21 @@ const SAFETY = data.safety as string[];
 const ids = (n: number) => Array.from({ length: n }, (_, i) => `p${i + 1}`);
 
 describe('layout and text', () => {
-  it('has a full game of two rounds and a short one of one', () => {
+  it('has a full game of two rounds up to 8 (one from 9 up) and a short one of one', () => {
     expect(layoutFor(false)).toEqual({ rounds: 2, writeMs: QP_WRITE_MS });
+    expect(layoutFor(false, 8)).toEqual({ rounds: 2, writeMs: QP_WRITE_MS });
+    expect(layoutFor(false, 9)).toEqual({ rounds: 1, writeMs: QP_WRITE_MS });
+    expect(layoutFor(false, 12)).toEqual({ rounds: 1, writeMs: QP_WRITE_MS });
     expect(layoutFor(true)).toEqual({ rounds: 1, writeMs: QP_WRITE_MS_SHORT });
+    expect(layoutFor(true, 12)).toEqual({ rounds: 1, writeMs: QP_WRITE_MS_SHORT });
     expect(QP_WRITE_MS).toBe(80_000);
     expect(QP_MAX).toBe(45);
+  });
+  it('pairs 12 players cleanly', () => {
+    const p12 = ids(12);
+    const pairs = pairUp(p12, mulberry32(4));
+    expect(pairs).toHaveLength(12);
+    for (const id of p12) expect(slotsFor(id, pairs)).toHaveLength(2);
   });
   it('pays double in round 2 and never less than 1', () => {
     expect(multiplier(1)).toBe(1);

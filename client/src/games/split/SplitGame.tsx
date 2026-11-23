@@ -9,13 +9,12 @@ import { GRACE_MS, WordGame } from '../wordkit/WordGame';
 import { cleanText, freshLine, shuffle } from '../wordkit/logic';
 import {
   PN_MAX,
-  PN_ROUNDS,
-  PN_ROUNDS_SHORT,
   PN_VOTE_MS,
   PN_WRITE_MS,
   PN_WRITE_MS_SHORT,
   filled,
   multiplier,
+  roundsFor,
   scoreSplit,
   splitAround,
   type PnScenario,
@@ -33,7 +32,8 @@ const SCORES_MS = 7000;
 /** The reveal: voters hop onto YES and NO, then the author and their points. */
 const POP_START_MS = 700;
 const POP_STEP_MS = 330;
-const authorsAt = (n: number) => POP_START_MS + n * POP_STEP_MS + 600;
+const popStep = (n: number) => Math.min(POP_STEP_MS, Math.floor(2400 / Math.max(1, n)));
+const authorsAt = (n: number) => POP_START_MS + n * popStep(n) + 600;
 const revealMs = (n: number) => authorsAt(n) + 4500;
 
 type Phase = 'title' | 'write' | 'show' | 'vote' | 'reveal' | 'scores';
@@ -60,7 +60,7 @@ export class SplitGame extends WordGame<Phase> {
 
   constructor(host: GameHost, ids: string[]) {
     super(host, ids, 'title');
-    this.rounds = host.short ? PN_ROUNDS_SHORT : PN_ROUNDS;
+    this.rounds = roundsFor(ids.length, host.short);
     this.writeMs = host.short ? PN_WRITE_MS_SHORT : PN_WRITE_MS;
   }
 
@@ -163,7 +163,8 @@ export class SplitGame extends WordGame<Phase> {
     this.addPoints({ [d.author]: r.points });
     this.setPhase('reveal');
     const n = r.yes.length + r.no.length;
-    for (let k = 0; k < n; k++) this.later(POP_START_MS + k * POP_STEP_MS, () => sound.note(500 + k * 50, 0.09, { type: 'sine', vol: 0.13, slide: 260 }));
+    const step = popStep(n);
+    for (let k = 0; k < n; k++) this.later(POP_START_MS + k * step, () => sound.note(500 + k * 50, 0.09, { type: 'sine', vol: 0.13, slide: 260 }));
     this.later(authorsAt(n), () => (r.perfect ? sound.fanfare() : r.points ? sound.reveal() : sound.wrong()));
     if (r.perfect) this.later(authorsAt(n), () => this.host.buzz(d.author, [80, 60, 80, 60, 200]));
     this.after(revealMs(n), () => this.nextDilemma());
@@ -328,6 +329,7 @@ export class SplitGame extends WordGame<Phase> {
     const d = this.current!;
     const r = this.phase === 'reveal' ? this.result : null;
     const n = r ? r.yes.length + r.no.length : 0;
+    const step = popStep(n);
     const at = authorsAt(n);
     const order = [...this.votes.keys()];
     const side = (list: string[], yes: boolean) => (
@@ -336,10 +338,10 @@ export class SplitGame extends WordGame<Phase> {
         <div class="pn-side-count" style={{ animationDelay: `${at - 300}ms` }}>
           {list.length}
         </div>
-        <div class="qp-voters">
+        <div class={`qp-voters ${list.length > 5 ? 'many' : ''}`}>
           {list.map((v) => (
-            <span class="qp-voter" style={{ animationDelay: `${POP_START_MS + Math.max(0, order.indexOf(v)) * POP_STEP_MS}ms` }} key={v}>
-              <Pierogi color={this.color(v)} size={58} mood={yes ? 'happy' : 'dead'} />
+            <span class="qp-voter" style={{ animationDelay: `${POP_START_MS + Math.max(0, order.indexOf(v)) * step}ms` }} key={v}>
+              <Pierogi color={this.color(v)} size={list.length > 5 ? 42 : 58} mood={yes ? 'happy' : 'dead'} />
               <small>{this.name(v)}</small>
             </span>
           ))}

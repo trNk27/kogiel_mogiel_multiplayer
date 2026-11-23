@@ -125,15 +125,20 @@ export class DictionaryGame extends WordGame<Phase> {
     return freshLine(filledPool, taken);
   }
 
+  private get voteMs() {
+    return this.entries.length > 8 ? 30_000 : DC_VOTE_MS;
+  }
+
   private endWrite() {
     if (this.phase !== 'write') return;
     for (const id of this.ids) if (!this.written.has(id)) this.written.set(id, { text: this.babcia(), auto: true });
     this.entries = shuffle(this.ids.map((author) => ({ author, ...this.written.get(author)! })));
     this.votes.clear();
-    this.setPhase('vote', DC_VOTE_MS);
+    const ms = this.voteMs;
+    this.setPhase('vote', ms);
     sound.bell();
     this.entries.forEach((_, i) => this.later(600 + i * 260, () => sound.plop()));
-    this.after(DC_VOTE_MS + GRACE_MS, () => this.startReveal());
+    this.after(ms + GRACE_MS, () => this.startReveal());
     this.update();
   }
 
@@ -328,7 +333,7 @@ export class DictionaryGame extends WordGame<Phase> {
     const total = r ? r.voters.reduce((s, v) => s + v.length, 0) : 0;
     return (
       <div class={`screen qp dc ${this.phase}`} key={`v${this.key}`}>
-        {this.top(this.label(), r ? null : DC_VOTE_MS, <div class="pill">Best {STAGE_NAMES[this.stage].toLowerCase()}?</div>)}
+        {this.top(this.label(), r ? null : this.voteMs, <div class="pill">Best {STAGE_NAMES[this.stage].toLowerCase()}?</div>)}
         {this.page(true)}
         {this.entryGrid(this.entries, r, { appear: !r })}
         {!r && (

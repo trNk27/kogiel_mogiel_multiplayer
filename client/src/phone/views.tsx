@@ -4,7 +4,6 @@ import {
   DIFFICULTIES,
   GAMES,
   KITCHEN_LEVELS,
-  MAX_PLAYERS,
   RALLY_TRACKS,
   SIEGE_MODES,
   TEL_MAX_BOTS,
@@ -13,6 +12,7 @@ import {
   TOURNAMENT_MIN_GAMES,
   TOURNAMENT_MIN_PLAYERS,
   gamesFor,
+  gameMaxPlayers,
   rallyTrack,
   colorHex,
   difficultyName,
@@ -150,7 +150,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
     : tournamentProblem(connected, view.players.length, noTv, view.options.tourOff);
   const tourCount = tournamentLength(view.options.tourGames, tournamentPool(connected, view.players.length, view.options.tourOff).length);
   const canStart = problem === null;
-  const max = noTv ? MAX_PLAYERS : selected?.maxPlayers;
+  const max = selected ? gameMaxPlayers(selected, noTv) : undefined;
   return (
     <div class="pv pv-lobby">
       {noTv && <Invite room={me.room ?? ''} />}
@@ -164,21 +164,28 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         )}
         {gamesFor(noTv)
           .filter((g) => g.standalone)
-          .map((g) => (
-            <button class={`pgame pgame-premium ${g.id === view.selected ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
-              <GameIcon game={g.id} size={54} />
-              <span>
-                <b>{g.title}</b>
-                <small>A game of its own: Grand Prix, four cars</small>
-              </span>
+          .map((g) => {
+            const unfit = view.players.length > gameMaxPlayers(g, noTv);
+            return (
+              <button class={`pgame pgame-premium ${g.id === view.selected ? 'selected' : ''} ${unfit ? 'unfit' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
+                <GameIcon game={g.id} size={54} />
+                <span>
+                  <b>{g.title}</b>
+                  <small>A game of its own: Grand Prix, four cars</small>
+                </span>
+              </button>
+            );
+          })}
+        {gamesFor(noTv).filter((g) => !g.standalone).map((g) => {
+          const unfit = view.players.length > gameMaxPlayers(g, noTv);
+          return (
+            <button class={`pgame ${g.id === view.selected ? 'selected' : ''} ${unfit ? 'unfit' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
+              {!noTv && g.maxPlayers === 12 && <span class="pgame-max">12</span>}
+              <GameIcon game={g.id} size={46} />
+              <b>{g.title}</b>
             </button>
-          ))}
-        {gamesFor(noTv).filter((g) => !g.standalone).map((g) => (
-          <button class={`pgame ${g.id === view.selected ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
-            <GameIcon game={g.id} size={46} />
-            <b>{g.title}</b>
-          </button>
-        ))}
+          );
+        })}
       </div>
       <div class="pgame-detail">
         <b>{selected ? selected.title : 'Tournament'}</b>

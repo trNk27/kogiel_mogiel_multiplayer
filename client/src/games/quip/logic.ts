@@ -34,9 +34,10 @@ export interface QpLayout {
   writeMs: number;
 }
 
-/** Full game: two rounds (the second pays double) and the final. Tournament: one round and the final. */
-export function layoutFor(short: boolean): QpLayout {
-  return short ? { rounds: 1, writeMs: QP_WRITE_MS_SHORT } : { rounds: 2, writeMs: QP_WRITE_MS };
+/** Full game: two rounds up to 8 players (one from 9 up) and the final. Tournament: one round and the final. */
+export function layoutFor(short: boolean, players?: number): QpLayout {
+  if (short) return { rounds: 1, writeMs: QP_WRITE_MS_SHORT };
+  return { rounds: players !== undefined && players >= 9 ? 1 : 2, writeMs: QP_WRITE_MS };
 }
 
 /** Round `round` (1-based) pays this many times the points. */

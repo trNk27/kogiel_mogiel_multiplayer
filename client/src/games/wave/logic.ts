@@ -36,10 +36,10 @@ export function howTo(short: boolean): string[] {
   ];
 }
 
-/** Full game: two turns as Psychic each, 4 to 8 rounds. Short: one turn each, 2 to 4 rounds. */
+/** Full game: two turns each up to 4, 8 rounds for 5–8, one turn each for 9–12. Short: one turn each, 2 to 4 rounds. */
 export function roundsFor(players: number, short = false): number {
   const n = Math.max(1, Math.floor(players));
-  return short ? Math.min(4, Math.max(2, n)) : Math.min(8, Math.max(4, 2 * n));
+  return short ? Math.min(4, Math.max(2, n)) : Math.min(Math.max(8, Math.min(12, n)), Math.max(4, 2 * n));
 }
 
 /** Who is the Psychic in each round: the players in turn, from the first. */

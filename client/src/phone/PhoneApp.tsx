@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   CLOSE,
   MAX_NAME_LENGTH,
+  MAX_PLAYERS,
   PLAYER_COLORS,
   colorHex,
   normalizeCode,
@@ -29,7 +30,7 @@ const AUTO_NOTV = AUTO && params.has('notv');
 type Stage =
   | { s: 'form'; error?: string }
   | { s: 'connecting' }
-  | { s: 'color'; taken: ColorId[]; full: boolean; inGame: boolean; error?: string }
+  | { s: 'color'; taken: ColorId[]; full: boolean; inGame: boolean; max?: number; error?: string }
   | { s: 'in' }
   | { s: 'gone'; title: string; text: string };
 
@@ -108,7 +109,7 @@ export function PhoneApp() {
             break;
           case 'hello': {
             setView(null);
-            setStage({ s: 'color', taken: m.taken, full: m.full, inGame: m.inGame });
+            setStage({ s: 'color', taken: m.taken, full: m.full, inGame: m.inGame, max: m.max });
             // Dev phones join automatically; so does a player the TV forgot (e.g. after the TV
             // reloaded) as long as their old colour is still free.
             const st = storedRef.current;
@@ -313,7 +314,7 @@ export function PhoneApp() {
         {stage.full ? (
           <div class="notice card-paper">
             <b>Room is full</b>
-            <span>8 players max.</span>
+            <span>{stage.max ?? MAX_PLAYERS} players max.</span>
           </div>
         ) : (
           <div class="color-grid">
@@ -321,7 +322,7 @@ export function PhoneApp() {
               const taken = stage.taken.includes(c.id);
               return (
                 <button class={`color-btn ${taken ? 'taken' : ''}`} disabled={taken} onClick={() => pickColor(c.id)} style={{ '--pc': c.hex }}>
-                  <Pierogi color={taken ? '#5a4040' : c.hex} size={84} mood={taken ? 'sleep' : 'happy'} />
+                  <Pierogi color={taken ? '#5a4040' : c.hex} size={66} mood={taken ? 'sleep' : 'happy'} />
                   <span>{c.name}</span>
                 </button>
               );

@@ -72,6 +72,16 @@
   margin: 46px auto 0;
   max-width: 1500px;
 }
+.sv-tokens.many {
+  gap: 12px;
+  margin-top: 28px;
+}
+.sv-tokens.many .sv-token {
+  width: 124px;
+  height: 96px;
+  border-radius: 18px;
+  font-size: 32px;
+}
 .sv-token {
   width: 150px;
   height: 120px;
@@ -121,6 +131,17 @@
   margin: 26px auto 0;
   max-width: 1600px;
   animation: fade-in 0.5s both;
+}
+.sv-results.many {
+  gap: 10px 12px;
+  margin-top: 18px;
+}
+.sv-results.many .sv-res {
+  padding: 4px 16px 4px 6px;
+  font-size: 22px;
+}
+.sv-results.many .sv-res-guess {
+  font-size: 34px;
 }
 .sv-res {
   display: flex;

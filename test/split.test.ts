@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import data from '../data/split.json';
-import { PN_SPLIT_POINTS, filled, howTo, multiplier, scoreSplit, splitAround, splitPoints } from '../client/src/games/split/logic';
+import { PN_ROUNDS, PN_ROUNDS_SHORT, PN_SPLIT_POINTS, filled, howTo, multiplier, roundsFor, scoreSplit, splitAround, splitPoints } from '../client/src/games/split/logic';
 
 describe('Pół na Pół data', () => {
   const d = data as { scenarios: { id: string; text: string; ask: string }[]; fills: string[] };
@@ -41,7 +41,15 @@ describe('Pół na Pół scoring', () => {
     expect(splitPoints(2, 5)).toBe(PN_SPLIT_POINTS);
     expect(splitPoints(1, 2, 2)).toBe(PN_SPLIT_POINTS * 2);
     expect(splitPoints(1, 1)).toBe(0);
-    for (let v = 2; v <= 7; v++) for (let y = 0; y <= v; y++) expect(splitPoints(y, v) % 50).toBe(0);
+    for (let v = 2; v <= 11; v++) for (let y = 0; y <= v; y++) expect(splitPoints(y, v) % 50).toBe(0);
+  });
+
+  it('plays 2 rounds up to 8 players and 1 round for 9–12 or short', () => {
+    expect(roundsFor(3)).toBe(PN_ROUNDS);
+    expect(roundsFor(8)).toBe(PN_ROUNDS);
+    expect(roundsFor(9)).toBe(PN_ROUNDS_SHORT);
+    expect(roundsFor(12)).toBe(PN_ROUNDS_SHORT);
+    expect(roundsFor(4, true)).toBe(PN_ROUNDS_SHORT);
   });
 
   it('counts votes, ignoring the author', () => {

@@ -33,7 +33,7 @@ const GRACE_MS = 2500;
 const REVEAL_STEP_MS = 3200;
 const TRUTH_MS = 6000;
 const SCORES_MS = 7000;
-const LETTERS = 'ABCDEFGHIJ';
+const LETTERS = 'ABCDEFGHIJKL';
 const used = usedSet('bazgroly');
 
 type Phase = 'draw' | 'lie' | 'guess' | 'reveal' | 'scores';
@@ -166,13 +166,18 @@ export class BazgrolyGame implements Game {
     return shuffle(POOL.map((p) => p.prompt).filter((p) => !taken.has(titleKey(p))));
   }
 
+  private get guessMs() {
+    return this.options.length > 8 ? 25_000 : BZ_GUESS_MS;
+  }
+
   private startGuess() {
     if (this.phase !== 'lie') return;
     this.options = buildOptions(this.truth, Object.fromEntries(this.lies), this.decoys());
     this.phase = 'guess';
-    this.endsAt = Date.now() + BZ_GUESS_MS;
+    const ms = this.guessMs;
+    this.endsAt = Date.now() + ms;
     sound.reveal();
-    this.after(BZ_GUESS_MS, () => this.startReveal());
+    this.after(ms, () => this.startReveal());
     this.update();
   }
 
@@ -350,6 +355,7 @@ export class BazgrolyGame implements Game {
     );
 
     if (this.phase === 'draw') {
+      const many = players.length > 8;
       return (
         <div class="screen bz" key={`d${this.round}`}>
           <div class="quiz-top">
@@ -360,12 +366,12 @@ export class BazgrolyGame implements Game {
           </div>
           <h2 class="bz-title">Draw your secret prompt!</h2>
           <p class="bz-sub">Then fake a title for everyone else’s</p>
-          <div class="bz-chips">
+          <div class={`bz-chips ${many ? 'many' : ''}`}>
             {players.map((p) => {
               const done = this.drawings.has(p.id);
               return (
                 <div class={`answer-chip ${done ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                  <Pierogi color={colorHex(p.color)} size={64} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
+                  <Pierogi color={colorHex(p.color)} size={many ? 52 : 64} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
                   <span>{p.name}</span>
                   <b>{done ? 'Done' : 'Drawing…'}</b>
                 </div>
@@ -408,6 +414,7 @@ export class BazgrolyGame implements Game {
     );
 
     if (this.phase === 'lie') {
+      const many = players.length > 8;
       return (
         <div class="screen bz" key={`l${this.round}.${this.qi}`}>
           {top(BZ_LIE_MS)}
@@ -416,13 +423,13 @@ export class BazgrolyGame implements Game {
             <div class="bz-side">
               <div class="bz-ask card-paper">What is this?</div>
               <p class="bz-sub left">Write a fake title on your phone. Fool the others into picking it!</p>
-              <div class="bz-chips">
+              <div class={`bz-chips ${many ? 'many' : ''}`}>
                 {players.map((p) => {
                   const isArtist = p.id === this.artist;
                   const done = this.lies.has(p.id);
                   return (
                     <div class={`answer-chip ${done || isArtist ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                      <Pierogi color={colorHex(p.color)} size={56} mood={!p.connected ? 'sleep' : isArtist ? 'happy' : done ? 'happy' : 'wow'} />
+                      <Pierogi color={colorHex(p.color)} size={many ? 46 : 56} mood={!p.connected ? 'sleep' : isArtist ? 'happy' : done ? 'happy' : 'wow'} />
                       <span>{p.name}</span>
                       <b>{isArtist ? 'Artist' : done ? 'Done' : 'Lying…'}</b>
                     </div>
@@ -438,7 +445,7 @@ export class BazgrolyGame implements Game {
     if (this.phase === 'guess') {
       return (
         <div class="screen bz" key={`g${this.round}.${this.qi}`}>
-          {top(BZ_GUESS_MS)}
+          {top(this.guessMs)}
           <div class="bz-body">
             {art}
             <div class="bz-side">
@@ -517,7 +524,7 @@ export class BazgrolyGame implements Game {
                           const p = this.host.player(pid);
                           return p ? (
                             <span class="bz-picker">
-                              <Pierogi color={colorHex(p.color)} size={56} mood={o.truth ? 'wow' : 'dead'} />
+                              <Pierogi color={colorHex(p.color)} size={this.options.length > 8 ? 38 : 56} mood={o.truth ? 'wow' : 'dead'} />
                               <small>{p.name}</small>
                             </span>
                           ) : null;

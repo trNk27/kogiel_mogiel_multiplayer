@@ -178,13 +178,13 @@ export class ForkGame implements Game {
                 </>
               ))}
             </div>
-            <div class="fork-board">
+            <div class={`fork-board ${rows.length > 8 ? 'cols2' : ''}`}>
               {rows.map(({ p, ms }) => {
                 const pts = this.roundPts[p.id] ?? 0;
                 return (
                   <div class={`fork-row ${ms !== null && ms >= 0 ? 'good' : ms === null ? 'none' : 'foul'}`}>
                     <span class="fork-place">{this.places[p.id] ?? '–'}</span>
-                    <Pierogi color={colorHex(p.color)} size={56} mood={ms !== null && ms >= 0 ? (this.places[p.id] === 1 ? 'wow' : 'happy') : 'dead'} />
+                    <Pierogi color={colorHex(p.color)} size={rows.length > 8 ? 44 : 56} mood={ms !== null && ms >= 0 ? (this.places[p.id] === 1 ? 'wow' : 'happy') : 'dead'} />
                     <span class="fork-name">{p.name}</span>
                     <span class="fork-time">{stabLabel(ms)}</span>
                     <b class={`fork-pts ${pts > 0 ? 'gain' : pts < 0 ? 'loss' : ''}`}>{pts > 0 ? `+${pts}` : pts < 0 ? pts : '0'}</b>
@@ -196,12 +196,12 @@ export class ForkGame implements Game {
           </div>
         )}
         {!revealed && (
-          <div class="answer-strip">
+          <div class={`answer-strip ${players.length > 8 ? 'compact' : ''}`}>
             {players.map((p) => {
               const done = this.stabs.has(p.id);
               return (
                 <div class={`answer-chip ${done ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                  <Pierogi color={colorHex(p.color)} size={60} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
+                  <Pierogi color={colorHex(p.color)} size={players.length > 8 ? 48 : 60} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
                   <span>{p.name}</span>
                   <b>{done ? 'Stabbed!' : `${this.scores[p.id] ?? 0} pts`}</b>
                 </div>

@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { GAMES, TOURNAMENT_CANDIDATES, TOURNAMENT_GAMES, gameInfo, tournamentLength, tournamentPoints, tournamentPool, tournamentProblem, type GameId } from '../shared/protocol';
+import {
+  DEFAULT_MAX_PLAYERS,
+  GAMES,
+  MAX_PLAYERS,
+  PLAYER_COLORS,
+  TOURNAMENT_CANDIDATES,
+  TOURNAMENT_GAMES,
+  gameInfo,
+  gameMaxPlayers,
+  playerCountProblem,
+  tournamentLength,
+  tournamentPoints,
+  tournamentPool,
+  tournamentProblem,
+  type GameId,
+} from '../shared/protocol';
 import { awardGame, cleanTourOff, newTournament, nextGame, runningTotals, tournamentPlaces } from '../client/src/host/tournament';
 import { spread } from '../client/src/host/Scoreboard';
 import { mulberry32 } from '../client/src/games/rng';
@@ -10,7 +25,7 @@ import { roundsFor } from '../client/src/games/bazgroly/logic';
 
 describe('tournament pool', () => {
   it('never offers co-op games', () => {
-    for (let n = 1; n <= 8; n++) expect(tournamentPool(n, n)).not.toContain('kitchen');
+    for (let n = 1; n <= 12; n++) expect(tournamentPool(n, n)).not.toContain('kitchen');
   });
 
   it('only offers games the room can start', () => {
@@ -18,18 +33,46 @@ describe('tournament pool', () => {
     expect(tournamentPool(3, 3)).toContain('toty');
     expect(tournamentPool(4, 4)).toContain('rally');
     expect(tournamentPool(5, 5)).not.toContain('rally');
+    expect(tournamentPool(8, 8)).toContain('trails');
+    expect(tournamentPool(9, 9)).not.toContain('trails');
   });
 
-  it('has enough games for any room of 2 to 8', () => {
-    for (let n = 2; n <= 8; n++) {
+  it('has enough games for any room of 2 to 12', () => {
+    for (let n = 2; n <= MAX_PLAYERS; n++) {
       expect(tournamentPool(n, n).length).toBeGreaterThanOrEqual(TOURNAMENT_GAMES);
       expect(tournamentProblem(n, n)).toBeNull();
     }
   });
 
+  it('supports exactly the 16 non-action games up to 12 players and keeps noTv at 8', () => {
+    const upgraded = ['quiz', 'ballpark', 'toty', 'bazgroly', 'fork', 'parade', 'swap', 'quip', 'spy', 'herd', 'wave', 'telephone', 'survey', 'split', 'dictionary', 'gossip'].sort();
+    expect(tournamentPool(12, 12).sort()).toEqual(upgraded);
+    expect(gameMaxPlayers(gameInfo('quiz'))).toBe(12);
+    expect(gameMaxPlayers(gameInfo('rally'))).toBe(4);
+    expect(gameMaxPlayers(gameInfo('rally'), true)).toBe(DEFAULT_MAX_PLAYERS);
+    expect(gameMaxPlayers(gameInfo('mushroom'), true)).toBe(DEFAULT_MAX_PLAYERS);
+    expect(playerCountProblem(gameInfo('quiz'), 12, 12)).toBeNull();
+    expect(playerCountProblem(gameInfo('tanks'), 9, 9)).toMatch(/up to 8/);
+    expect(playerCountProblem(gameInfo('rally'), 9, 9, true)).toMatch(/up to 8/);
+  });
+
   it('needs two players and a TV', () => {
     expect(tournamentProblem(1, 1)).toMatch(/at least 2/);
     expect(tournamentProblem(4, 4, true)).toMatch(/TV/);
+  });
+});
+
+describe('player colours and chef sprites', () => {
+  it('provides 15 distinct colours, each with front/back/side WebP chef sprites', () => {
+    expect(PLAYER_COLORS).toHaveLength(15);
+    expect(new Set(PLAYER_COLORS.map((c) => c.id)).size).toBe(15);
+    expect(new Set(PLAYER_COLORS.map((c) => c.hex.toLowerCase())).size).toBe(15);
+    const files = new Set(Object.keys(import.meta.glob('../client/public/sprites/kitchen/chef-*.webp')));
+    for (const c of PLAYER_COLORS) {
+      for (const pose of ['front', 'back', 'side']) {
+        expect(files.has(`../client/public/sprites/kitchen/chef-${c.id}-${pose}.webp`)).toBe(true);
+      }
+    }
   });
 });
 
@@ -110,7 +153,7 @@ describe('short versions', () => {
 
   it('every competitive game is in the pool somewhere', () => {
     const all = new Set<GameId>();
-    for (let n = 1; n <= 8; n++) for (const g of tournamentPool(n, n)) all.add(g);
+    for (let n = 1; n <= MAX_PLAYERS; n++) for (const g of tournamentPool(n, n)) all.add(g);
     expect([...all].sort()).toEqual(GAMES.filter((g) => !g.coop && !g.standalone).map((g) => g.id).sort());
   });
 });

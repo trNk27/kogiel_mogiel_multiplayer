@@ -1,20 +1,22 @@
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import '@fontsource-variable/fraunces/soft.css';
+import { DEFAULT_MAX_PLAYERS, MAX_PLAYERS } from '../../../shared/protocol';
 import '../styles/base.css';
 
 /**
  * /dev – the host plus N simulated phones on one screen.
- *   /dev?n=4        number of phones (1–8)
+ *   /dev?n=4        number of phones (1–12, or 1–8 with ?notv)
  *   /dev?code=ABCD  attach phones to an existing room instead of creating one
  *   /dev?notv       no TV: the first phone starts the party and hosts it
  */
 const params = new URLSearchParams(location.search);
 const NOTV = params.has('notv');
-const NAMES = ['Babcia', 'Dziadek', 'Kasia', 'Tomek', 'Ola', 'Bartek', 'Zosia', 'Kuba'];
+const CAP = NOTV ? DEFAULT_MAX_PLAYERS : MAX_PLAYERS;
+const NAMES = ['Babcia', 'Dziadek', 'Kasia', 'Tomek', 'Ola', 'Bartek', 'Zosia', 'Kuba', 'Olek', 'Hania', 'Borys', 'Iga'];
 
 function Dev() {
-  const [n, setN] = useState(() => Math.min(8, Math.max(1, Number(params.get('n')) || 4)));
+  const [n, setN] = useState(() => Math.min(CAP, Math.max(1, Number(params.get('n')) || 4)));
   const [code, setCode] = useState(params.get('code') ?? '');
   const [run] = useState(() => Date.now().toString(36));
 
@@ -33,7 +35,7 @@ function Dev() {
         <span>Room: {code || '…'}</span>
         <label>
           Phones{' '}
-          <input type="number" min={1} max={8} value={n} onInput={(e) => setN(Math.min(8, Math.max(1, Number((e.target as HTMLInputElement).value) || 1)))} />
+          <input type="number" min={1} max={CAP} value={n} onInput={(e) => setN(Math.min(CAP, Math.max(1, Number((e.target as HTMLInputElement).value) || 1)))} />
         </label>
         <span class="muted">Click a phone, then use ← → / A D to steer or pedal, space to stab a pierogi or count one (↓ brakes and space fires items in a no-TV rally). Arena games: arrows / WASD move, space and shift are the two buttons (Skakanka: space jumps; Babcia Mówi: space white, shift red; Petarda: ← → pick, space pushes; Krówki: space throws the lasso and lets go; Bule: ← → aim, hold space to throw; Kurnik: shift shoves; Minutnik: space stops the timer; Śladami Babci: space says Done; Przystań: ↑ ahead, ↓ astern, ← → rudder, space toots). Word games and Dzwonki: tap the phone. Fajki: space grabs, hold ↓ to puff. Malbork Castle: ← → aim, hold space to draw, let go to shoot, shift for a volley.</span>
       </div>

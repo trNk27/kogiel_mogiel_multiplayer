@@ -237,6 +237,28 @@
   justify-content: center;
   gap: 14px;
 }
+.wv-chips.compact {
+  gap: 6px;
+}
+.wv-chips.compact .wv-chip {
+  width: 136px;
+  grid-template-columns: 42px 1fr;
+  column-gap: 6px;
+  padding: 5px 8px 6px;
+}
+.wv-chips.compact .wv-chip-name {
+  font-size: 19px;
+}
+.wv-chips.compact .wv-chip-status {
+  font-size: 15px;
+}
+.wv-chips.compact .wv-chip-score {
+  top: -11px;
+  right: -6px;
+  min-width: 38px;
+  padding: 0 7px 1px;
+  font-size: 20px;
+}
 .wv-chip {
   position: relative;
   width: 190px;

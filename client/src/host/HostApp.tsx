@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
-import { GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, siegeMode, type GameId, type Selection } from '../../../shared/protocol';
+import { DEFAULT_MAX_PLAYERS, GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, gameMaxPlayers, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, siegeMode, type GameId, type Selection } from '../../../shared/protocol';
 import { KogielGlass, Logo, Pierogi } from '../lib/art';
-import { Orbits } from './Orbits';
+import { Orbits } from './OrbitsView';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
 import { music } from '../lib/music';
@@ -338,14 +338,14 @@ function Lobby() {
             if (!p)
               return (
                 <div class="player-slot empty" key={`e${i}`}>
-                  <Pierogi color="rgba(255,244,220,.12)" size={92} mood="sleep" />
+                  <Pierogi color="rgba(255,244,220,.12)" size={68} mood="sleep" />
                   {i === 0 && <span>First in = VIP</span>}
                 </div>
               );
             return (
               <div class={`player-slot ${p.connected ? '' : 'offline'}`} key={p.id} style={{ '--pc': colorHex(p.color) }}>
                 {p.vip && <span class="vip-badge">VIP</span>}
-                <Pierogi color={colorHex(p.color)} size={110} mood={p.connected ? 'happy' : 'sleep'} class="bob" />
+                <Pierogi color={colorHex(p.color)} size={84} mood={p.connected ? 'happy' : 'sleep'} class="bob" />
                 <span class="player-name">{p.name}</span>
                 {!p.connected && <span class="player-status">reconnecting…</span>}
               </div>
@@ -354,12 +354,17 @@ function Lobby() {
         </div>
 
         <div class="game-picker">
-          {(['tournament', ...GAMES.map((g) => g.id)] as Selection[]).map((id) => (
-            <div class={`game-card ${id === 'tournament' ? 'tour' : id === 'premium' ? 'premium' : ''} ${id === c.selected ? 'selected' : ''}`} key={id}>
-              <GameIcon game={id} size={64} />
-              <div class="game-card-title">{id === 'tournament' ? 'Tournament' : gameInfo(id).title}</div>
-            </div>
-          ))}
+          {(['tournament', ...GAMES.map((g) => g.id)] as Selection[]).map((id) => {
+            const info = id === 'tournament' ? null : gameInfo(id);
+            const unfit = info ? players.length > gameMaxPlayers(info) : false;
+            return (
+              <div class={`game-card ${id === 'tournament' ? 'tour' : id === 'premium' ? 'premium' : ''} ${id === c.selected ? 'selected' : ''} ${unfit ? 'unfit' : ''}`} key={id}>
+                {info?.maxPlayers === 12 && <span class="game-card-max">12</span>}
+                <GameIcon game={id} size={64} />
+                <div class="game-card-title">{id === 'tournament' ? 'Tournament' : info!.title}</div>
+              </div>
+            );
+          })}
         </div>
         <SelectedGame sel={c.selected} />
         <div class="lobby-hint">
@@ -395,7 +400,7 @@ function SelectedGame({ sel }: { sel: Selection }) {
   }
   const g = gameInfo(sel);
   const flags: string[] = [];
-  if (g.maxPlayers) flags.push(`Up to ${g.maxPlayers} players`);
+  if (g.maxPlayers || controller.players.size > DEFAULT_MAX_PLAYERS) flags.push(`Up to ${gameMaxPlayers(g)} players`);
   if (g.coop) flags.push('Co-op');
   if (sel === 'rally') flags.push(`${rallyTrack(o.track).name} · ${o.items ? 'items' : 'no items'}`);
   if (sel === 'premium') flags.push(`Grand Prix or single tracks · ${o.items ? 'items' : 'no items'}`);
@@ -573,12 +578,13 @@ function Podium({ standings, unit = '' }: { standings: Standing[]; unit?: string
 
 function RestOfField({ standings, unit = '' }: { standings: Standing[]; unit?: string }) {
   if (standings.length <= 3) return null;
+  const many = standings.length > 8;
   return (
-    <div class="results-rest card-dark">
+    <div class={`results-rest card-dark ${many ? 'many' : ''}`}>
       {standings.slice(3).map((st) => (
         <div class="results-rest-row">
           <span class="party-rank">{st.place}</span>
-          <Pierogi color={colorHex(st.color)} size={40} />
+          <Pierogi color={colorHex(st.color)} size={many ? 32 : 40} />
           <span class="grow">{st.name}</span>
           <b>
             {st.score.toLocaleString('en-US')}
@@ -592,14 +598,15 @@ function RestOfField({ standings, unit = '' }: { standings: Standing[]; unit?: s
 
 function PartyTable({ sub }: { sub: string }) {
   const party = [...controller.players.values()].sort((a, b) => b.party - a.party);
+  const many = party.length > 8;
   return (
-    <div class="party-table card-paper">
+    <div class={`party-table card-paper ${many ? 'many' : ''}`}>
       <div class="party-title">Party standings</div>
       <div class="party-sub">{sub}</div>
       {party.map((p, i) => (
         <div class="party-row">
           <span class="party-rank">{i + 1}</span>
-          <Pierogi color={colorHex(p.color)} size={44} />
+          <Pierogi color={colorHex(p.color)} size={many ? 34 : 44} />
           <span class="grow">{p.name}</span>
           <b>{p.party}</b>
         </div>
@@ -682,14 +689,15 @@ function TourTable({ title }: { title: string }) {
   const t = controller.tournament;
   if (!t) return null;
   const rows = [...controller.players.values()].map((p) => ({ p, pts: t.points[p.id] ?? 0, gained: t.gained[p.id] ?? 0 })).sort((a, b) => b.pts - a.pts);
+  const many = rows.length > 8;
   return (
-    <div class="party-table card-paper">
+    <div class={`party-table card-paper ${many ? 'many' : ''}`}>
       <div class="party-title">{title}</div>
       <div class="party-sub">{TOURNAMENT_POINTS.filter((p) => p > 0).join(' · ')} per game</div>
       {rows.map(({ p, pts, gained }) => (
         <div class="party-row">
           <span class="party-rank">{1 + rows.filter((o) => o.pts > pts).length}</span>
-          <Pierogi color={colorHex(p.color)} size={44} />
+          <Pierogi color={colorHex(p.color)} size={many ? 34 : 44} />
           <span class="grow">{p.name}</span>
           {gained > 0 && <span class="tour-gain">+{gained}</span>}
           <b>{pts}</b>

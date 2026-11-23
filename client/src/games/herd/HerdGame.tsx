@@ -491,7 +491,7 @@ export class HerdGame implements Game {
         {o && (this.phase === 'reveal' || this.phase === 'verdict' || this.phase === 'cow') && this.signs()}
         {(this.phase === 'verdict' || this.phase === 'cow') && o && this.verdictRibbon(o)}
         {this.phase === 'verdict' && this.pluses()}
-        <div class="cookbook-chips herd-chips">
+        <div class={`cookbook-chips herd-chips ${this.ids.length > 8 ? 'compact' : ''}`}>
           {this.ids.map((id, n) => {
             const p = players[n];
             if (!p) return null;
@@ -501,14 +501,14 @@ export class HerdGame implements Game {
             const pts = this.match.scores[id] ?? 0;
             return (
               <div class={`cookbook-chip herd-chip ${answering && done ? 'done' : ''} ${gain ? 'gain' : ''}`} style={{ '--pc': colorHex(p.color) }}>
-                <Pierogi color={colorHex(p.color)} size={46} mood={!p.connected ? 'sleep' : gain ? 'wow' : answering && !done ? 'wow' : 'happy'} />
+                <Pierogi color={colorHex(p.color)} size={this.ids.length > 8 ? 36 : 46} mood={!p.connected ? 'sleep' : gain ? 'wow' : answering && !done ? 'wow' : 'happy'} />
                 <span class="cookbook-chip-text">
                   <b>{p.name}</b>
                   <small>
                     {pts} pierogi{status ? ` · ${status}` : ''}
                   </small>
                 </span>
-                {this.match.cow === id && <CowIcon size={44} />}
+                {this.match.cow === id && <CowIcon size={this.ids.length > 8 ? 36 : 44} />}
               </div>
             );
           })}
@@ -622,13 +622,13 @@ export class HerdGame implements Game {
       <div class="trails-banner cookbook-banner herd-final pop-in">
         <div class="trails-banner-small">That’s all {this.total} questions</div>
         <div class="trails-banner-big cookbook-banner-big">{rows.length && rows.filter((r) => r.score === best).length === 1 ? `${rows[0].p!.name} thinks most like the herd!` : 'The herd has spoken!'}</div>
-        <div class="cookbook-banner-list">
+        <div class={`cookbook-banner-list ${rows.length > 8 ? 'many' : ''}`}>
           {rows.map((r) => {
             const pen = this.match.penalty(r.id);
             const cow = this.match.cow === r.id;
             return (
               <div class={`cookbook-banner-row ${r.score === best ? 'win' : ''}`} style={{ '--pc': colorHex(r.p!.color) }}>
-                <Pierogi color={colorHex(r.p!.color)} size={38} mood={cow ? 'dead' : r.score === best ? 'wow' : 'happy'} />
+                <Pierogi color={colorHex(r.p!.color)} size={rows.length > 8 ? 32 : 38} mood={cow ? 'dead' : r.score === best ? 'wow' : 'happy'} />
                 <span class="grow">{r.p!.name}</span>
                 {cow && (
                   <span class="herd-final-cow">

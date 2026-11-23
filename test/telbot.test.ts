@@ -131,7 +131,7 @@ describe('bots in Głuchy Telefon', () => {
     const seats = seating(['a', 'b', 'c'], Math.random, bots);
     const t = new Telephone(seats, false, bots);
     expect(t.n).toBe(7);
-    expect(t.steps).toBe(6);
+    expect(t.steps).toBe(7);
     while (!t.done) {
       for (const id of bots) expect(t.pending()).toContain(id);
       for (const id of t.pending()) {
@@ -146,6 +146,14 @@ describe('bots in Głuchy Telefon', () => {
     const i = t.chains[chain].findIndex((e) => e.by === 'bot:1');
     expect(t.vote(chain, 'a', i)).toBe(true);
     expect(t.scores()['bot:1']).toBe(100);
+  });
+
+  it('caps a 12-player + 4-bot room at 8 steps per chain', () => {
+    const humans = Array.from({ length: 12 }, (_, i) => `p${i}`);
+    const bots = botIds(4);
+    const t = new Telephone(seating(humans, Math.random, bots), false, bots);
+    expect(t.n).toBe(16);
+    expect(t.steps).toBe(8);
   });
 });
 

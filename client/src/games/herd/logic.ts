@@ -321,22 +321,47 @@ export function homeSpots(n: number): Spot[] {
 
 /**
  * Where the herds gather, in reveal order: one row for up to 4 herds, two rows (back row first) for
- * more. x runs across the meadow, z towards the camera.
+ * 5–8, and three rows for more. x runs across the meadow, z towards the camera.
  */
 export function herdSpots(n: number): Spot[] {
-  const rows = n <= 4 ? [n] : [Math.ceil(n / 2), Math.floor(n / 2)];
+  if (n <= 0) return [];
+  const rows =
+    n <= 4
+      ? [n]
+      : n <= 8
+        ? [Math.ceil(n / 2), Math.floor(n / 2)]
+        : (() => {
+            const r0 = Math.ceil(n / 3);
+            const r1 = Math.ceil((n - r0) / 2);
+            return [r0, r1, n - r0 - r1];
+          })();
+  const zs = rows.length === 1 ? [-1.2] : rows.length === 2 ? [-4.6, 1.6] : [-6.2, -2.0, 2.2];
   const out: Spot[] = [];
   rows.forEach((count, r) => {
-    const z = rows.length === 1 ? -1.2 : r === 0 ? -4.6 : 1.6;
+    const z = zs[r];
     const w = count <= 2 ? 15 : 25;
     for (let i = 0; i < count; i++) out.push({ x: count === 1 ? 0 : -w / 2 + (w * i) / (count - 1), z });
   });
   return out;
 }
 
-/** Offsets for the members of a herd of `n` round its spot: a ring, with one in the middle from 6 up. */
+/** Offsets for the members of a herd of `n` round its spot: a ring (plus centre from 6 up, or two rings from 9 up). */
 export function clusterOffsets(n: number): Spot[] {
   if (n <= 1) return [{ x: 0, z: 0 }];
+  if (n >= 9) {
+    const out: Spot[] = [];
+    for (let k = 0; k < 3; k++) {
+      const a = Math.PI / 2 + (k / 3) * Math.PI * 2;
+      out.push({ x: Math.cos(a) * 0.85 * 1.25, z: Math.sin(a) * 0.85 * 0.8 });
+    }
+    const outer = n - 3;
+    const r = Math.max(1.9, outer * 0.24);
+    for (let k = 0; k < outer; k++) {
+      const a = Math.PI / 2 + (k / outer) * Math.PI * 2;
+      out.push({ x: Math.cos(a) * r * 1.25, z: Math.sin(a) * r * 0.8 });
+    }
+    return out;
+  }
   const centre = n >= 6;
   const ring = centre ? n - 1 : n;
   const r = Math.max(0.95, ring * 0.27);
@@ -351,5 +376,7 @@ export function clusterOffsets(n: number): Spot[] {
 
 /** How far a herd's members spread from its spot (for the sign and the glow). */
 export function clusterRadius(n: number): number {
-  return n <= 1 ? 0.8 : Math.max(0.95, (n >= 6 ? n - 1 : n) * 0.27) * 1.25 + 0.8;
+  if (n <= 1) return 0.8;
+  if (n >= 9) return Math.max(1.9, (n - 3) * 0.24) * 1.25 + 0.8;
+  return Math.max(0.95, (n >= 6 ? n - 1 : n) * 0.27) * 1.25 + 0.8;
 }

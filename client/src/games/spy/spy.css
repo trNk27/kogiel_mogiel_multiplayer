@@ -94,6 +94,12 @@
   padding-top: 70px;
   min-height: 0;
 }
+.spy-table.rows2 {
+  flex-wrap: wrap;
+  align-content: flex-start;
+  padding-top: 28px;
+  row-gap: 26px;
+}
 /* A tablecloth with a scalloped, paper-cut edge; the pierogi sit behind it. */
 .spy-cloth {
   position: absolute;
@@ -111,6 +117,29 @@
 }
 .spy-table.laps1 .spy-cloth {
   top: 300px;
+}
+.spy-table.rows2 .spy-cloth {
+  top: 100px;
+}
+.spy-table.rows2 .spy-votes {
+  top: -34px;
+}
+.spy-table.rows2 .spy-avatar {
+  height: 82px;
+}
+.spy-table.rows2 .spy-name {
+  font-size: 24px;
+  margin-top: 2px;
+}
+.spy-table.rows2 .spy-score {
+  font-size: 18px;
+}
+.spy-table.rows2 .spy-clues {
+  margin-top: 12px;
+  gap: 6px;
+}
+.spy-table.rows2 .spy-clue {
+  height: 54px;
 }
 .spy-seat {
   position: relative;
@@ -468,6 +497,15 @@
   grid-template-columns: repeat(2, minmax(300px, 1fr));
   gap: 10px 22px;
   text-align: left;
+}
+.spy-banner-list.many {
+  margin: 14px auto 6px;
+  gap: 6px 14px;
+}
+.spy-banner-list.many .spy-banner-row {
+  padding: 4px 14px;
+  font-size: 24px;
+  gap: 10px;
 }
 .spy-banner-row {
   display: flex;

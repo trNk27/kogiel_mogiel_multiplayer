@@ -66,6 +66,12 @@
   gap: 26px;
   margin-top: 40px;
 }
+.qp-title-row.many {
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 1480px;
+}
 
 /* Writing */
 .qp-head {
@@ -82,6 +88,14 @@
 }
 .qp-chips .answer-chip {
   width: 190px;
+}
+.qp-chips.many {
+  gap: 12px;
+}
+.qp-chips.many .answer-chip {
+  width: 150px;
+  padding: 8px 4px 10px;
+  font-size: 20px;
 }
 
 /* The prompt card */
@@ -231,6 +245,16 @@
   gap: 2px 10px;
   min-height: 84px;
 }
+.qp-voters.many {
+  gap: 2px 6px;
+  min-height: 68px;
+}
+.qp-voters.many .qp-voter {
+  width: 64px;
+}
+.qp-voters.many .qp-voter small {
+  font-size: 15px;
+}
 .qp-voters.small {
   min-height: 44px;
   gap: 0 2px;
@@ -366,6 +390,18 @@
   justify-content: center;
   gap: 12px;
 }
+.qp-strip.many {
+  gap: 6px;
+}
+.qp-strip.many .qp-chip {
+  gap: 5px;
+  padding: 3px 10px 3px 6px;
+  font-size: 19px;
+  max-width: 136px;
+}
+.qp-strip.many .qp-chip-name {
+  max-width: 68px;
+}
 .qp-chip {
   position: relative;
   display: flex;
@@ -452,6 +488,56 @@
 .qp-grid.n7 .qp-entry-text,
 .qp-grid.n8 .qp-entry-text {
   font-size: 32px;
+}
+.qp-grid.n9,
+.qp-grid.n10,
+.qp-grid.n11,
+.qp-grid.n12 {
+  gap: 14px 16px;
+  margin: 18px 10px 0;
+}
+.qp-grid.n9 .qp-entry,
+.qp-grid.n10 .qp-entry,
+.qp-grid.n11 .qp-entry,
+.qp-grid.n12 .qp-entry {
+  min-height: 136px;
+  padding: 14px 16px 12px;
+  gap: 4px;
+}
+.qp-grid.n9 .qp-entry-text,
+.qp-grid.n10 .qp-entry-text,
+.qp-grid.n11 .qp-entry-text,
+.qp-grid.n12 .qp-entry-text {
+  font-size: 24px;
+}
+.qp-grid.n9 .qp-letter,
+.qp-grid.n10 .qp-letter,
+.qp-grid.n11 .qp-letter,
+.qp-grid.n12 .qp-letter {
+  top: -12px;
+  left: -8px;
+  width: 42px;
+  height: 42px;
+  font-size: 24px;
+}
+.qp-grid.n9 .qp-voters.small,
+.qp-grid.n10 .qp-voters.small,
+.qp-grid.n11 .qp-voters.small,
+.qp-grid.n12 .qp-voters.small {
+  min-height: 34px;
+}
+.qp-grid.n9 .qp-author.small .qp-author-name,
+.qp-grid.n10 .qp-author.small .qp-author-name,
+.qp-grid.n11 .qp-author.small .qp-author-name,
+.qp-grid.n12 .qp-author.small .qp-author-name {
+  font-size: 22px;
+  max-width: 170px;
+}
+.qp-grid.n9 .qp-author.small .qp-pts,
+.qp-grid.n10 .qp-author.small .qp-pts,
+.qp-grid.n11 .qp-author.small .qp-pts,
+.qp-grid.n12 .qp-author.small .qp-pts {
+  font-size: 26px;
 }
 .qp-letter {
   position: absolute;

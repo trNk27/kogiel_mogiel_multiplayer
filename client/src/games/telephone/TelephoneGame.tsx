@@ -494,7 +494,7 @@ export class TelephoneGame implements Game {
         {this.track()}
         <h2 class="bz-title tel-title">{title}</h2>
         <p class="bz-sub">{sub}</p>
-        <div class={`tel-ring ${passing ? 'passing' : ''}`}>
+        <div class={`tel-ring ${passing ? 'passing' : ''} ${this.tel.seats.length > 8 ? 'many' : ''}`}>
           {this.tel.seats.map((id) => {
             const gone = this.tel.left.has(id);
             const done = !passing && this.tel.has(id) && !gone;
@@ -502,7 +502,7 @@ export class TelephoneGame implements Game {
             return (
               <div class={`answer-chip tel-chip ${done ? 'done' : ''} ${!this.connected(id) || gone ? 'offline' : ''}`}>
                 <div class="tel-paper">{KIND_ICON[kind]}</div>
-                <Pierogi color={colorHex(this.color(id))} size={64} mood={gone || !this.connected(id) ? 'sleep' : done ? 'happy' : 'wow'} />
+                <Pierogi color={colorHex(this.color(id))} size={this.tel.seats.length > 8 ? 50 : 64} mood={gone || !this.connected(id) ? 'sleep' : done ? 'happy' : 'wow'} />
                 <span>{this.name(id)}</span>
                 <b>{status || ' '}</b>
               </div>
@@ -624,9 +624,9 @@ export class TelephoneGame implements Game {
                 {results && count > 0 && (
                   <div class="tel-votes pop-in">
                     <b>+{count * TEL_VOTE_POINTS}</b>
-                    <span class="tel-voters">
+                    <span class={`tel-voters ${this.result.voters[i].length > 5 ? 'many' : ''}`}>
                       {this.result.voters[i].map((v) => (
-                        <Pierogi color={colorHex(this.color(v))} size={36} mood="wow" />
+                        <Pierogi color={colorHex(this.color(v))} size={this.result.voters[i].length > 5 ? 28 : 36} mood="wow" />
                       ))}
                     </span>
                   </div>

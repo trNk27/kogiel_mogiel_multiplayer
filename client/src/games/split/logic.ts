@@ -16,6 +16,11 @@ export const PN_ROUNDS_SHORT = 1;
 /** Points for a perfect split (times the round's multiplier). */
 export const PN_SPLIT_POINTS = 1000;
 
+/** Full game: two rounds up to 8 players (one from 9 up); tournament plays one round. */
+export function roundsFor(players: number, short = false): number {
+  return short || players >= 9 ? PN_ROUNDS_SHORT : PN_ROUNDS;
+}
+
 export interface PnScenario {
   id: string;
   /** With exactly one "___" for the player to fill in. */

@@ -230,7 +230,8 @@ export function TyVote({ view, send, offset }: Props<'tyVote'>) {
       </div>
     );
   }
-  const size = view.players.length > 6 ? 96 : 118;
+  const many = view.players.length > 8;
+  const size = many ? 76 : view.players.length > 6 ? 96 : 118;
   return (
     <div class="pv ty-vote">
       <div class="ty-q">
@@ -241,7 +242,7 @@ export function TyVote({ view, send, offset }: Props<'tyVote'>) {
         <div>{view.question}</div>
       </div>
       <TimeBar endsAt={view.endsAt} offset={offset} />
-      <div class="ty-faces">
+      <div class={`ty-faces ${many ? 'many' : ''}`}>
         {view.players.map((p) => (
           <button
             class="ty-face-btn"
@@ -300,7 +301,7 @@ export function TyPick({ view, send, offset }: Props<'tyPick'>) {
     <div class="pv ty-pick">
       <div class="section-label">Best doodle? 📺</div>
       <TimeBar endsAt={view.endsAt} offset={offset} />
-      <div class="ty-letters">
+      <div class={`ty-letters ${view.letters.length > 8 ? 'many' : ''}`}>
         {view.letters.map((l, i) => (
           <button
             class={`ty-letter-btn ${i === view.mine ? 'mine' : ''}`}

@@ -130,7 +130,8 @@ export class WaveGame implements Game {
     const result = this.m.result!;
     sound.drumroll(1.1);
     const guessers = Object.keys(result.guesses);
-    guessers.forEach((_, i) => this.later(2100 + i * 260, () => sound.plop()));
+    const armStepMs = Math.min(260, Math.floor(1800 / Math.max(1, guessers.length)));
+    guessers.forEach((_, i) => this.later(2100 + i * armStepMs, () => sound.plop()));
     this.later(SHOW_POINTS_MS, () => {
       this.pointsOut = true;
       const best = Math.max(0, ...guessers.map((id) => result.points[id] ?? 0));
@@ -446,13 +447,16 @@ export class WaveGame implements Game {
             if (!p) return null;
             const g = r!.guesses[id];
             const pts = pointsFor(g, t);
-            const len = R - 70 - Math.min(5, tiers[i]) * 72;
+            const many = guessers.length > 7;
+            const stepS = Math.min(0.26, 1.8 / Math.max(1, guessers.length));
+            const delay = `${(1.9 + i * stepS).toFixed(2)}s`;
+            const len = R - (many ? 64 : 70) - Math.min(5, tiers[i]) * (many ? 58 : 72);
             return (
-              <div class="wv-arm" style={{ '--rot': `${(g - 50) * 1.8}deg`, '--len': `${len}px`, '--pc': colorHex(p.color), left: `${CX}px`, top: `${CY}px`, animationDelay: `${1.9 + i * 0.26}s` }}>
+              <div class="wv-arm" style={{ '--rot': `${(g - 50) * 1.8}deg`, '--len': `${len}px`, '--pc': colorHex(p.color), left: `${CX}px`, top: `${CY}px`, animationDelay: delay }}>
                 <div class="wv-arm-line" />
-                <div class="wv-arm-tip" style={{ animationDelay: `${1.9 + i * 0.26}s` }}>
+                <div class="wv-arm-tip" style={{ animationDelay: delay }}>
                   <span class="wv-arm-name">{p.name}</span>
-                  <Pierogi color={colorHex(p.color)} size={74} mood={this.pointsOut ? (pts >= 3 ? 'wow' : pts > 0 ? 'happy' : 'dead') : 'happy'} />
+                  <Pierogi color={colorHex(p.color)} size={many ? 56 : 74} mood={this.pointsOut ? (pts >= 3 ? 'wow' : pts > 0 ? 'happy' : 'dead') : 'happy'} />
                 </div>
               </div>
             );
@@ -464,8 +468,9 @@ export class WaveGame implements Game {
   private chips() {
     const m = this.m;
     const r = m.result;
+    const many = m.ids.length > 8;
     return (
-      <div class="wv-chips">
+      <div class={`wv-chips ${many ? 'compact' : ''}`}>
         {m.ids.map((id) => {
           const p = this.host.player(id);
           if (!p) return null;
@@ -487,7 +492,7 @@ export class WaveGame implements Game {
           const score = (m.scores[id] ?? 0) - (m.phase === 'reveal' && !this.pointsOut ? r?.points[id] ?? 0 : 0);
           return (
             <div class={`wv-chip ${cls} ${p.connected ? '' : 'offline'}`} style={{ '--pc': colorHex(p.color) }}>
-              <Pierogi color={colorHex(p.color)} size={58} mood={!p.connected ? 'sleep' : isPsychic || locked ? 'wow' : 'happy'} />
+              <Pierogi color={colorHex(p.color)} size={many ? 42 : 58} mood={!p.connected ? 'sleep' : isPsychic || locked ? 'wow' : 'happy'} />
               <span class="wv-chip-name">{p.name}</span>
               <span class="wv-chip-status">{status || ' '}</span>
               <b class="wv-chip-score">

@@ -18,7 +18,7 @@ import './wordkit.css';
 
 /** Phones hand in what's typed just before the deadline; give it time to arrive. */
 export const GRACE_MS = 1800;
-const LETTERS = 'ABCDEFGH';
+const LETTERS = 'ABCDEFGHIJKL';
 
 export type Mood = 'happy' | 'wow' | 'dead' | 'sleep';
 
@@ -235,13 +235,15 @@ export abstract class WordGame<P extends string> implements Game {
 
   /** Everyone's pierogi, name and score along the bottom; `done` ticks them off. */
   protected strip(done?: (id: string) => boolean) {
+    const players = this.players();
+    const many = players.length > 8;
     return (
-      <div class="qp-strip">
-        {this.players().map((p) => {
+      <div class={`qp-strip ${many ? 'many' : ''}`}>
+        {players.map((p) => {
           const ok = done?.(p.id);
           return (
             <div class={`qp-chip ${ok ? 'done' : ''} ${p.connected ? '' : 'offline'}`} style={{ '--pc': colorHex(p.color) }} key={p.id}>
-              <Pierogi color={colorHex(p.color)} size={46} mood={!p.connected ? 'sleep' : 'happy'} />
+              <Pierogi color={colorHex(p.color)} size={many ? 36 : 46} mood={!p.connected ? 'sleep' : 'happy'} />
               <span class="qp-chip-name">{p.name}</span>
               <b class="qp-chip-score">{(this.scores[p.id] ?? 0).toLocaleString('en-US')}</b>
               {ok && <i class="qp-chip-tick">✓</i>}
@@ -255,15 +257,16 @@ export abstract class WordGame<P extends string> implements Game {
   /** A big title card between rounds. */
   protected titleCard(big: string, sub: string, opts: { mult?: number; final?: boolean; who?: string[] } = {}) {
     const who = opts.who ?? this.ids;
+    const many = who.length > 8;
     return (
       <div class={`screen qp-title ${opts.final ? 'final' : ''}`} key={`title${this.key}`}>
         <div class="qp-kicker">{this.title}</div>
         <h1 class="qp-big">{big}</h1>
         <p class="qp-sub">{sub}</p>
         {opts.mult && opts.mult > 1 && <div class="qp-mult pop-in">×{opts.mult}</div>}
-        <div class="qp-title-row">
+        <div class={`qp-title-row ${many ? 'many' : ''}`}>
           {who.map((id, i) => (
-            <Pierogi color={this.color(id)} size={110} mood="wow" class="bob" style={{ animationDelay: `${i * -0.3}s` }} key={id} />
+            <Pierogi color={this.color(id)} size={many ? 74 : 110} mood="wow" class="bob" style={{ animationDelay: `${i * -0.3}s` }} key={id} />
           ))}
         </div>
       </div>
@@ -272,18 +275,20 @@ export abstract class WordGame<P extends string> implements Game {
 
   /** Everyone writing on their phone: a heading, a card, and a chip per player. */
   protected writeScreen(label: string, total: number, head: ComponentChildren, sub: string, done: (id: string) => boolean, status?: (id: string) => string, card?: ComponentChildren) {
+    const players = this.players();
+    const many = players.length > 8;
     return (
       <div class="screen qp" key={`w${this.key}`}>
         {this.top(label, total, <div class="pill">Write!</div>)}
         {card}
         <h2 class={`qp-head ${card ? 'wk-head-small' : ''}`}>{head}</h2>
         <p class="qp-sub">{sub}</p>
-        <div class="qp-chips">
-          {this.players().map((p) => {
+        <div class={`qp-chips ${many ? 'many' : ''}`}>
+          {players.map((p) => {
             const ok = done(p.id);
             return (
               <div class={`answer-chip ${ok ? 'done' : ''} ${p.connected ? '' : 'offline'}`} key={p.id}>
-                <Pierogi color={colorHex(p.color)} size={72} mood={!p.connected ? 'sleep' : ok ? 'happy' : 'wow'} class={ok ? '' : 'bob'} />
+                <Pierogi color={colorHex(p.color)} size={many ? 56 : 72} mood={!p.connected ? 'sleep' : ok ? 'happy' : 'wow'} class={ok ? '' : 'bob'} />
                 <span>{p.name}</span>
                 <b>{ok ? 'Done!' : (status?.(p.id) ?? 'Writing…')}</b>
               </div>
@@ -299,7 +304,7 @@ export abstract class WordGame<P extends string> implements Game {
    * after another, then the authors and their points show, and the winners light up.
    */
   protected entryGrid(entries: readonly GridEntry[], result: VoteResult | null, opts: { appear?: boolean } = {}) {
-    const cols = entries.length <= 4 ? Math.max(1, entries.length) : Math.ceil(entries.length / 2);
+    const cols = entries.length <= 4 ? Math.max(1, entries.length) : entries.length <= 8 ? Math.ceil(entries.length / 2) : Math.ceil(entries.length / 3);
     const startOf: number[] = [];
     if (result) result.voters.reduce((acc, v, i) => ((startOf[i] = acc), acc + v.length), 0);
     const total = result ? result.voters.reduce((s, v) => s + v.length, 0) : 0;
@@ -324,12 +329,12 @@ export abstract class WordGame<P extends string> implements Game {
                   <div class="qp-voters small">
                     {result.voters[i].map((v, k) => (
                       <span class="qp-voter" style={{ animationDelay: `${POP_START_MS + (startOf[i] + k) * POP_STEP_MS}ms` }} key={v}>
-                        <Pierogi color={this.color(v)} size={40} mood="happy" />
+                        <Pierogi color={this.color(v)} size={entries.length > 8 ? 32 : 40} mood="happy" />
                       </span>
                     ))}
                   </div>
                   <div class="qp-author small" style={{ animationDelay: `${authorsAt}ms`, '--pc': this.color(e.author) }}>
-                    <Pierogi color={this.color(e.author)} size={52} mood={pts ? 'wow' : 'dead'} />
+                    <Pierogi color={this.color(e.author)} size={entries.length > 8 ? 40 : 52} mood={pts ? 'wow' : 'dead'} />
                     <span class="qp-author-name">
                       {this.name(e.author)}
                       {!this.here(e.author) && <small> (left)</small>}

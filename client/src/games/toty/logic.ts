@@ -29,7 +29,7 @@ export interface TyLayout {
 export const TY_FULL: TyLayout = { questions: TY_QUESTIONS, doodleAfter: TY_DOODLE_AFTER, selfieMs: TY_SELFIE_MS };
 /** Tournament version: four questions with one doodle round after question 2, and less time for selfies. */
 export const TY_SHORT: TyLayout = { questions: 4, doodleAfter: [1], selfieMs: 45_000 };
-export const TY_LETTERS = 'ABCDEFGH';
+export const TY_LETTERS = 'ABCDEFGHIJKL';
 
 /**
  * Pick the questions for one game. The ones followed by a doodle round must have a

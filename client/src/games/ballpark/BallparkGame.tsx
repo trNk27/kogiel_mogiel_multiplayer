@@ -235,12 +235,12 @@ export class BallparkGame implements Game {
             {q.unit && q.unit !== 'year' && <div class="bp-unit">Answer in {q.unit}</div>}
           </div>
           <div class="bp-hint">Guess on your phone · close, but not over</div>
-          <div class="answer-strip">
+          <div class={`answer-strip ${players.length > 8 ? 'compact' : ''}`}>
             {players.map((p) => {
               const done = this.guesses.has(p.id);
               return (
                 <div class={`answer-chip ${done ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                  <Pierogi color={colorHex(p.color)} size={60} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
+                  <Pierogi color={colorHex(p.color)} size={players.length > 8 ? 48 : 60} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
                   <span>{p.name}</span>
                   <b>{done ? 'Guessed' : 'Thinking…'}</b>
                 </div>
@@ -253,6 +253,7 @@ export class BallparkGame implements Game {
 
     const revealed = this.phase === 'reveal';
     const win = revealed ? winningSlot(this.slots, q.answer) : -1;
+    const rows2 = this.slots.length > 9;
     return (
       <div class="screen bp" key={`b${this.index}`}>
         {header}
@@ -263,7 +264,7 @@ export class BallparkGame implements Game {
             <span class="bp-answer-value">{withUnit(q.answer, q.unit)}</span>
           </div>
         )}
-        <div class={`bp-slots ${revealed ? 'revealed' : ''}`} style={{ '--n': this.slots.length }}>
+        <div class={`bp-slots ${revealed ? 'revealed' : ''} ${rows2 ? 'rows2' : ''}`} style={{ '--n': rows2 ? Math.ceil(this.slots.length / 2) : this.slots.length }}>
           {this.slots.map((slot, i) => {
             const bettors = players.filter((p) => this.bets.get(p.id) === i);
             const guessers = players.filter((p) => slot.value !== null && this.guesses.get(p.id) === slot.value);
@@ -289,7 +290,7 @@ export class BallparkGame implements Game {
                 </div>
                 <div class="bp-bets">
                   {bettors.map((p) => (
-                    <Pierogi color={colorHex(p.color)} size={64} mood={revealed ? (i === win ? 'wow' : 'dead') : 'happy'} />
+                    <Pierogi color={colorHex(p.color)} size={rows2 ? 42 : 64} mood={revealed ? (i === win ? 'wow' : 'dead') : 'happy'} />
                   ))}
                 </div>
               </div>
@@ -297,12 +298,12 @@ export class BallparkGame implements Game {
           })}
         </div>
         {revealed ? (
-          <div class="answer-strip">
+          <div class={`answer-strip ${players.length > 8 ? 'compact' : ''}`}>
             {players.map((p) => {
               const r = this.result[p.id];
               return (
                 <div class={`answer-chip ${r?.points ? 'done' : ''}`}>
-                  <Pierogi color={colorHex(p.color)} size={60} mood={r?.points ? 'wow' : 'happy'} />
+                  <Pierogi color={colorHex(p.color)} size={players.length > 8 ? 48 : 60} mood={r?.points ? 'wow' : 'happy'} />
                   <span>{p.name}</span>
                   <b class={r?.points ? 'gain' : 'nogain'}>
                     {r?.points ? `+${r.points}` : '0'}

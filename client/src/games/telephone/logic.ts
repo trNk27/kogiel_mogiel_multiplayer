@@ -20,7 +20,7 @@ export const TEL_MAX_TEXT = 60;
 /** Points per vote for your entry. */
 export const TEL_VOTE_POINTS = 100;
 /** At most this many steps per chain (the first sentence included). */
-export const TEL_FULL_STEPS = 6;
+export const TEL_FULL_STEPS = 8;
 export const TEL_SHORT_STEPS = 4;
 /** Most points kept from one drawing (the phone's pad stops there too), so a `pic` view stays small. */
 export const TEL_MAX_POINTS = MAX_DOODLE_POINTS;

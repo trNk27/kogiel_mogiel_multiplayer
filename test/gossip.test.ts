@@ -18,8 +18,8 @@ describe('Plotki data', () => {
   });
 
   it('every setting has an instruction and fallbacks that fit', () => {
-    // Enough settings for everyone to get a different one with 8 players.
-    expect(D.contexts.length).toBeGreaterThanOrEqual(8);
+    // Enough settings for everyone to get a different one with 12 players.
+    expect(D.contexts.length).toBeGreaterThanOrEqual(12);
     expect(new Set(D.contexts.map((c) => c.id)).size).toBe(D.contexts.length);
     for (const c of D.contexts) {
       expect(c.label && c.ask && c.placeholder).toBeTruthy();
@@ -32,7 +32,7 @@ describe('Plotki data', () => {
 
 describe('Plotki rules', () => {
   it('everyone twists someone else’s answer, in a different setting', () => {
-    for (let n = 3; n <= 8; n++)
+    for (let n = 3; n <= 12; n++)
       for (let s = 0; s < 8; s++) {
         const a = assign(n, D.contexts.length, mulberry32(s));
         expect(a).toHaveLength(n);

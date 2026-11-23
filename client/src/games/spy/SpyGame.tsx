@@ -381,6 +381,7 @@ export class SpyGame implements Game {
           endsAt: this.endsAt,
           input: {
             k: 'choice',
+            grid: r.candidates(id).length > 6,
             picked: null,
             options: r.candidates(id).map((c) => {
               const p = this.host.player(c);
@@ -460,7 +461,10 @@ export class SpyGame implements Game {
     const r = this.r;
     const seats = r.seats.filter((id) => r.ids.includes(id));
     const n = Math.max(1, seats.length);
-    const seatW = Math.min(300, Math.floor((TABLE_W - SEAT_GAP * (n - 1)) / n));
+    const rows2 = n > 8;
+    const cols = rows2 ? Math.ceil(n / 2) : n;
+    const gap = rows2 ? 14 : SEAT_GAP;
+    const seatW = Math.min(300, Math.floor((TABLE_W - gap * (cols - 1)) / cols));
     const unmasked = (this.phase === 'reveal' && this.revealStage === 'unmask') || this.phase === 'guess' || (this.phase === 'result' && this.outcome !== 'void');
     const timer = (total: number) => (
       <TimerRing key={`${this.phase}.${this.round}.${r.turn}.${this.key}`} endsAt={this.endsAt} total={total} size={120} onTick={(s) => s <= 5 && s > 0 && sound.tick()} />
@@ -485,7 +489,7 @@ export class SpyGame implements Game {
           <div class="grow" />
           {showTimer && timer(total)}
         </div>
-        {this.phase === 'guess' ? this.guessView() : this.tableView(seats, seatW, unmasked)}
+        {this.phase === 'guess' ? this.guessView() : this.tableView(seats, seatW, unmasked, rows2, cols)}
         <div class="spy-foot">{this.footText()}</div>
         {this.phase === 'result' && this.banner(seats)}
       </div>
@@ -573,23 +577,27 @@ export class SpyGame implements Game {
     }
   }
 
-  private tableView(seats: string[], seatW: number, unmasked: boolean) {
+  private tableView(seats: string[], seatW: number, unmasked: boolean, rows2: boolean, cols: number) {
     const r = this.r;
     const n = seats.length;
+    const gap = rows2 ? 14 : SEAT_GAP;
     const voting = this.phase === 'reveal' || this.phase === 'result';
     const shownVotes = this.phase === 'result' ? this.revealVotes : this.revealVotes.slice(0, this.shown);
     const tallyOn = (this.phase === 'reveal' && this.revealStage !== 'intro' && this.revealStage !== 'votes') || this.phase === 'result';
     return (
       <>
         {this.head()}
-        <div class={`spy-table laps${r.laps}`} style={{ '--seat-w': `${seatW}px`, '--seat-gap': `${SEAT_GAP}px` }}>
+        <div class={`spy-table laps${r.laps} ${rows2 ? 'rows2' : ''}`} style={{ '--seat-w': `${seatW}px`, '--seat-gap': `${gap}px` }}>
           <div class="spy-cloth" />
           {seats.map((id, i) => {
             const p = this.host.player(id);
             const color = colorHex(p?.color ?? 'sourcream');
             const current = this.phase === 'clue' && r.current === id;
             const isSpy = unmasked && id === r.spy;
-            const x = (i - (n - 1) / 2) * (seatW + SEAT_GAP);
+            const col = rows2 ? i % cols : i;
+            const rowLen = rows2 ? (i < cols ? cols : n - cols) : n;
+            const x = (col - (rowLen - 1) / 2) * (seatW + gap);
+            const fy = rows2 ? (i < cols ? -140 : -340) : -260;
             const mine = shownVotes.filter(([, t]) => t === id);
             const top = tallyOn && !!r.tally && r.tally.top.includes(id);
             const mood = !p?.connected ? 'sleep' : isSpy ? (r.caught ? 'dead' : 'wow') : current ? 'wow' : unmasked ? 'happy' : 'happy';
@@ -604,8 +612,8 @@ export class SpyGame implements Game {
                     mine.map(([voter]) => {
                       const v = this.host.player(voter);
                       return v ? (
-                        <span class="spy-token" key={voter} style={{ '--fx': `${-x}px`, '--fy': '-260px' }}>
-                          <Pierogi color={colorHex(v.color)} size={40} />
+                        <span class="spy-token" key={voter} style={{ '--fx': `${-x}px`, '--fy': `${fy}px` }}>
+                          <Pierogi color={colorHex(v.color)} size={rows2 ? 32 : 40} />
                         </span>
                       ) : null;
                     })}
@@ -618,7 +626,7 @@ export class SpyGame implements Game {
                     </span>
                   )}
                   {current && <span class="spy-bubble">…</span>}
-                  <Pierogi color={color} size={Math.min(130, seatW * 0.62)} mood={mood} class={current ? 'bob' : ''} />
+                  <Pierogi color={color} size={Math.min(rows2 ? 92 : 130, seatW * 0.62)} mood={mood} class={current ? 'bob' : ''} />
                   {isSpy && <Disguise />}
                 </div>
                 <div class="spy-name">{p?.name ?? '?'}</div>
@@ -628,7 +636,7 @@ export class SpyGame implements Game {
                     const c = r.clues.find((x) => x.id === id && x.lap === lap);
                     if (!c) return <div class={`spy-clue empty ${current && r.lap === lap ? 'now' : ''}`} key={`e${lap}`} />;
                     const len = [...c.text].length;
-                    const size = Math.max(18, Math.min(42, Math.floor((seatW - 34) / (0.62 * Math.max(1, len)))));
+                    const size = Math.max(16, Math.min(rows2 ? 28 : 42, Math.floor((seatW - 34) / (0.62 * Math.max(1, len)))));
                     return (
                       <div class={`spy-clue card-paper ${c.skipped ? 'skipped' : ''}`} key={`c${lap}`} style={{ fontSize: `${size}px` }}>
                         {c.text}
@@ -708,13 +716,13 @@ export class SpyGame implements Game {
         {this.outcome === 'void' ? (
           <div class="trails-banner-small">No points this round.</div>
         ) : (
-          <div class="spy-banner-list">
+          <div class={`spy-banner-list ${order.length > 8 ? 'many' : ''}`}>
             {order.map((id) => {
               const p = this.host.player(id);
               const pts = this.roundPts[id] ?? 0;
               return p ? (
                 <div class={`spy-banner-row ${pts > 0 ? 'win' : ''}`} style={{ '--pc': colorHex(p.color) }} key={id}>
-                  <Pierogi color={colorHex(p.color)} size={38} mood={pts > 0 ? 'wow' : 'dead'} />
+                  <Pierogi color={colorHex(p.color)} size={order.length > 8 ? 32 : 38} mood={pts > 0 ? 'wow' : 'dead'} />
                   <span class="grow">
                     {p.name}
                     {id === r.spy ? ' 🕵️' : ''}

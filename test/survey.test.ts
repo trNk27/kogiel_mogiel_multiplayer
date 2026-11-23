@@ -51,7 +51,7 @@ describe('Ankieta scoring', () => {
     expect(guessPoints(0, 0, 0)).toBe(0);
     // One off counts for less in a bigger room.
     expect(guessPoints(4, 5, 8)).toBeGreaterThan(guessPoints(2, 3, 4));
-    for (const n of [3, 4, 5, 6, 7, 8]) for (let g = 0; g <= n; g++) expect(guessPoints(g, 1, n) % 50).toBe(0);
+    for (const n of [3, 4, 5, 6, 7, 8, 12]) for (let g = 0; g <= n; g++) expect(guessPoints(g, 1, n) % 50).toBe(0);
   });
 
   it('bets: more, exactly, fewer', () => {
