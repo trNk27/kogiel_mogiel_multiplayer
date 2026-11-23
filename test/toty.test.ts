@@ -4,6 +4,7 @@ import { MAX_DOODLE_POINTS, MAX_PHOTO_CHARS } from '../shared/protocol';
 import { mulberry32 } from '../client/src/games/rng';
 import {
   TY_DOODLE_AFTER,
+  TY_LETTERS,
   TY_QUESTIONS,
   TY_VOTE_POINTS,
   isPhotoData,
@@ -112,5 +113,6 @@ describe('to ty data', () => {
       expect(q.question.length).toBeLessThanOrEqual(80);
       if ('draw' in q) expect(q.draw).toContain('{name}');
     }
+    expect(TY_LETTERS).toHaveLength(12);
   });
 });

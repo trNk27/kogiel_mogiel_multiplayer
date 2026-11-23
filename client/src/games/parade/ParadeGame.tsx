@@ -246,12 +246,12 @@ export class ParadeGame implements Game {
           </b>
           <span>{colour.name} pierogi</span>
         </div>
-        <div class="fork-board parade-board">
+        <div class={`fork-board parade-board ${rows.length > 8 ? 'cols2' : ''}`}>
           {rows.map(({ p, n }) => {
             const pts = this.roundPts[p.id] ?? 0;
             return (
               <div class={`fork-row ${pts > 0 ? 'good' : 'none'}`}>
-                <Pierogi color={colorHex(p.color)} size={56} mood={n === answer ? 'wow' : pts > 0 ? 'happy' : 'dead'} />
+                <Pierogi color={colorHex(p.color)} size={rows.length > 8 ? 44 : 56} mood={n === answer ? 'wow' : pts > 0 ? 'happy' : 'dead'} />
                 <span class="fork-name">{p.name}</span>
                 <span class="fork-time">
                   {n === null ? 'No count' : `counted ${n}`}

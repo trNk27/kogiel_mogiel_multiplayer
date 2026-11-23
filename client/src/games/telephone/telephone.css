@@ -65,6 +65,23 @@
   gap: 18px;
   margin-top: 10px;
 }
+.tel-ring.many {
+  gap: 12px 10px;
+  max-width: 1620px;
+  margin: 4px auto 0;
+}
+.tel-ring.many .tel-chip {
+  width: 146px;
+  padding: 20px 4px 10px;
+  font-size: 20px;
+}
+.tel-ring.many .tel-paper {
+  top: -16px;
+  width: 42px;
+  height: 42px;
+  margin-left: -21px;
+  font-size: 24px;
+}
 .tel-chip {
   position: relative;
   padding-top: 26px;
@@ -428,6 +445,20 @@
 .tel-grid.n6 .tel-small.tel-draw .tel-pic {
   width: 220px;
 }
+.tel-grid.n7,
+.tel-grid.n8 {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 22px;
+  padding: 0 10px;
+}
+.tel-grid.n7 .tel-small.tel-draw .tel-pic,
+.tel-grid.n8 .tel-small.tel-draw .tel-pic {
+  width: 176px;
+}
+.tel-grid.n7 .tel-small .tel-text,
+.tel-grid.n8 .tel-small .tel-text {
+  font-size: 26px;
+}
 .tel-votes {
   position: absolute;
   right: -12px;
@@ -452,6 +483,9 @@
 }
 .tel-voters svg + svg {
   margin-left: -10px;
+}
+.tel-voters.many svg + svg {
+  margin-left: -12px;
 }
 .tel-vote-hint {
   margin-top: auto;

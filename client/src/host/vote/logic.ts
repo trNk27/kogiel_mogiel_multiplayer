@@ -25,7 +25,7 @@ export const BACK_Z = -5.2;
 export const FRONT_Z = 5.6;
 /** The mats in front of the stalls, and how far apart the stalls stand. */
 export const MAT_Z = -2.2;
-export const MAT_R = 2.0;
+export const MAT_R = 2.45;
 export const MAT_GAP = 7;
 /** Where players start: a row near the front. */
 export const START_Z = 3.8;

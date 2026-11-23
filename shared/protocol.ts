@@ -21,7 +21,10 @@ export const CODE_LENGTH = 4;
 export const CODE_RE = /^[ABCDEFGHJKLMNPRSTUVWXYZ]{4}$/;
 export const PLAYER_ID_RE = /^[A-Za-z0-9_-]{8,40}$/;
 
-export const MAX_PLAYERS = 8;
+/** Most players a TV room holds. */
+export const MAX_PLAYERS = 12;
+/** Default cap for games that don't declare maxPlayers, and for phone-only (no-TV) rooms. */
+export const DEFAULT_MAX_PLAYERS = 8;
 export const MAX_NAME_LENGTH = 12;
 /** How long the host keeps a disconnected player's slot (ms). */
 export const RECONNECT_GRACE_MS = 60_000;
@@ -43,15 +46,23 @@ export function sanitizeName(raw: string): string {
 // Player colours (named after Polish food, of course)
 // ---------------------------------------------------------------------------
 
+/**
+ * Player colours: at least MAX_PLAYERS + 1 of them, and every pair clearly apart (CIEDE2000 ≥ 18,
+ * checked in test/colors.test.ts), because a colour is how players find themselves on the TV.
+ */
 export const PLAYER_COLORS = [
   { id: 'beetroot', name: 'Beetroot', hex: '#ff3d6e' },
   { id: 'paprika', name: 'Paprika', hex: '#ff8a2a' },
+  { id: 'caramel', name: 'Krówka', hex: '#a06a48' },
   { id: 'yolk', name: 'Egg Yolk', hex: '#ffd23f' },
   { id: 'pickle', name: 'Pickle', hex: '#a3e048' },
+  { id: 'chive', name: 'Chive', hex: '#2a9a3a' },
   { id: 'dill', name: 'Dill', hex: '#2fd6a8' },
+  { id: 'mint', name: 'Mint', hex: '#38e8f5' },
   { id: 'blueberry', name: 'Blueberry', hex: '#4f9dff' },
   { id: 'plum', name: 'Plum', hex: '#b27bff' },
   { id: 'raspberry', name: 'Raspberry', hex: '#ff7ad1' },
+  { id: 'poppy', name: 'Poppy Seed', hex: '#9e9e9e' },
   { id: 'sourcream', name: 'Sour Cream', hex: '#fff4dc' },
 ] as const;
 
@@ -137,11 +148,11 @@ export interface GameInfo {
   title: string;
   tagline: string;
   minPlayers: number;
-  /** Most players the game takes with a TV (default MAX_PLAYERS). */
+  /** Most players the game takes with a TV (default DEFAULT_MAX_PLAYERS). */
   maxPlayers?: number;
   /**
    * Games that work without a TV (every phone shows its own screen) have a tagline for that mode.
-   * Without a TV there's no split screen, so the player limit is MAX_PLAYERS.
+   * Without a TV there's no split screen, so the player limit is DEFAULT_MAX_PLAYERS.
    */
   noTv?: string;
   /** Co-op games (everybody wins or loses together) are left out of tournaments. */
@@ -152,8 +163,8 @@ export interface GameInfo {
 
 export const GAMES: readonly GameInfo[] = [
   { id: 'trails', title: 'Trails', tagline: 'Steer your noodle. Touch nothing.', minPlayers: 2 },
-  { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1 },
-  { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1 },
+  { id: 'quiz', title: 'Quiz', tagline: '10 questions. Fast fingers win.', minPlayers: 1, maxPlayers: 12 },
+  { id: 'ballpark', title: 'Ballpark', tagline: 'Guess the number. Bet on the closest.', minPlayers: 1, maxPlayers: 12 },
   { id: 'kitchen', title: 'Pierogi Panic', tagline: 'Co-op cooking against the clock.', minPlayers: 1, coop: true },
   {
     id: 'rally',
@@ -162,12 +173,12 @@ export const GAMES: readonly GameInfo[] = [
     maxPlayers: 4,
     noTv: 'Racing on every phone. Up to 8 cars.',
   },
-  { id: 'toty', title: 'To Ty!', tagline: 'Selfies, votes and doodles.', minPlayers: 3 },
-  { id: 'bazgroly', title: 'Bazgroły', tagline: 'Draw it. Fake it. Spot the real title.', minPlayers: 3 },
+  { id: 'toty', title: 'To Ty!', tagline: 'Selfies, votes and doodles.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'bazgroly', title: 'Bazgroły', tagline: 'Draw it. Fake it. Spot the real title.', minPlayers: 3, maxPlayers: 12 },
   { id: 'pedal', title: 'Tour de Pierogi', tagline: 'Left, right, left – as fast as you can.', minPlayers: 1 },
-  { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi. Spare the sock.', minPlayers: 1 },
-  { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1 },
-  { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1 },
+  { id: 'fork', title: 'Fork Fight', tagline: 'Stab the pierogi. Spare the sock.', minPlayers: 1, maxPlayers: 12 },
+  { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1, maxPlayers: 12 },
+  { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1, maxPlayers: 12 },
   { id: 'wesele', title: 'Wesele', tagline: 'A 3D disco polo wedding: win challenges, dodge the shots, last till 3:00.', minPlayers: 2 },
   { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi. Guess what she wants.', minPlayers: 1 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
@@ -202,15 +213,15 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'clock', title: 'Minutnik', tagline: 'Stop the kitchen timer by feel.', minPlayers: 1 },
   { id: 'boules', title: 'Bule', tagline: 'Roll closest to the little pierogi.', minPlayers: 1 },
   { id: 'bells', title: 'Dzwonki', tagline: 'Ring the tune back. It keeps getting longer.', minPlayers: 1 },
-  { id: 'quip', title: 'Riposta', tagline: 'Funniest answer wins the vote.', minPlayers: 3 },
-  { id: 'spy', title: 'Szpieg', tagline: 'Everyone knows the word. Except the spy.', minPlayers: 3 },
-  { id: 'herd', title: 'Zgodni', tagline: 'Answer like everybody else.', minPlayers: 3 },
-  { id: 'wave', title: 'Fala', tagline: 'Read the clue. Find the spot.', minPlayers: 2 },
-  { id: 'telephone', title: 'Głuchy Telefon', tagline: 'Draw it, guess it, draw that – watch it go wrong.', minPlayers: 3 },
-  { id: 'survey', title: 'Ankieta', tagline: 'How many of you said yes? Guess – or bet on the guess.', minPlayers: 3 },
-  { id: 'split', title: 'Pół na Pół', tagline: 'Finish the dilemma so the room splits in half.', minPlayers: 3 },
-  { id: 'dictionary', title: 'Słownik', tagline: 'Define a made-up word. Then use it.', minPlayers: 3 },
-  { id: 'gossip', title: 'Plotki', tagline: 'Answer honestly. Someone turns it into gossip.', minPlayers: 3 },
+  { id: 'quip', title: 'Riposta', tagline: 'Funniest answer wins the vote.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'spy', title: 'Szpieg', tagline: 'Everyone knows the word. Except the spy.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'herd', title: 'Zgodni', tagline: 'Answer like everybody else.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'wave', title: 'Fala', tagline: 'Read the clue. Find the spot.', minPlayers: 2, maxPlayers: 12 },
+  { id: 'telephone', title: 'Głuchy Telefon', tagline: 'Draw it, guess it, draw that – watch it go wrong.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'survey', title: 'Ankieta', tagline: 'How many of you said yes? Guess – or bet on the guess.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'split', title: 'Pół na Pół', tagline: 'Finish the dilemma so the room splits in half.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'dictionary', title: 'Słownik', tagline: 'Define a made-up word. Then use it.', minPlayers: 3, maxPlayers: 12 },
+  { id: 'gossip', title: 'Plotki', tagline: 'Answer honestly. Someone turns it into gossip.', minPlayers: 3, maxPlayers: 12 },
   { id: 'smoke', title: 'Fajki', tagline: 'Grab your colour. Puff it right.', minPlayers: 1 },
   { id: 'cows', title: 'Krówki', tagline: 'Lasso your cows. Drag them home.', minPlayers: 1 },
   { id: 'footsteps', title: 'Śladami Babci', tagline: 'Watch Babcia’s trail. Walk it from memory.', minPlayers: 1 },
@@ -272,12 +283,17 @@ export function tournamentProblem(connected: number, inRoom: number, noTv = fals
   return null;
 }
 
+/** Most players this game accepts in the given room mode. */
+export function gameMaxPlayers(info: GameInfo, noTv = false): number {
+  return noTv ? DEFAULT_MAX_PLAYERS : (info.maxPlayers ?? DEFAULT_MAX_PLAYERS);
+}
+
 /** Why a game can't start with this many players in the room, or null if it can. */
 export function playerCountProblem(info: GameInfo, connected: number, inRoom: number, noTv = false): string | null {
   if (noTv && !info.noTv) return `${info.title} needs a TV.`;
   if (connected < info.minPlayers) return `${info.title} needs at least ${info.minPlayers} players.`;
-  const max = noTv ? MAX_PLAYERS : info.maxPlayers;
-  if (max && inRoom > max) return `${info.title} is for up to ${max} players.`;
+  const max = gameMaxPlayers(info, noTv);
+  if (inRoom > max) return `${info.title} is for up to ${max} players.`;
   return null;
 }
 
@@ -1104,7 +1120,7 @@ export type PhoneMsg =
 
 export type HostToPhone =
   /** Sent to a phone the host does not know yet (or no longer knows). */
-  | { t: 'hello'; taken: ColorId[]; full: boolean; inGame: boolean }
+  | { t: 'hello'; taken: ColorId[]; full: boolean; inGame: boolean; max?: number }
   | { t: 'joinError'; reason: string; taken: ColorId[] }
   /** `now` is the host's clock when sending, so phones can convert `endsAt` deadlines. */
   | { t: 'view'; view: PhoneView; me: { name: string; color: ColorId; vip: boolean }; now: number; noTv?: boolean }

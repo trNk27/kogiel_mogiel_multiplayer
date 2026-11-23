@@ -288,4 +288,15 @@ describe('players leaving', () => {
     expect(s.void).toBe(false);
     expect(s.outcome()).toBe('escaped');
   });
+
+  it('plays a 12-player round cleanly', () => {
+    const p12 = Array.from({ length: 12 }, (_, i) => `p${i + 1}`);
+    const r = new SpyRound(p12, 'p12', CAT, 0);
+    expect(r.candidates('p1')).toHaveLength(11);
+    for (let i = 0; i < 12; i++) expect(r.giveClue(r.current!, `word${i}`).ok).toBe(true);
+    expect(r.cluesDone).toBe(true);
+    for (const id of p12.slice(0, 11)) expect(r.vote(id, 'p12')).toBe(true);
+    r.lock();
+    expect(r.caught).toBe(true);
+  });
 });

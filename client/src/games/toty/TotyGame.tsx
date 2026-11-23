@@ -380,6 +380,8 @@ export class TotyGame implements Game {
     );
 
     if (this.phase === 'selfie') {
+      const many = players.length > 8;
+      const faceSize = many ? 176 : 260;
       return (
         <div class="screen ty">
           <div class="quiz-top">
@@ -388,15 +390,15 @@ export class TotyGame implements Game {
             {timer(this.layout.selfieMs)}
           </div>
           <h2 class="ty-title">Selfie time – pull a face!</h2>
-          <div class="ty-selfies">
+          <div class={`ty-selfies ${many ? 'many' : ''}`}>
             {players.map((p) => {
               const done = this.selfieDone.has(p.id);
               return (
                 <div class={`ty-selfie ${done ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
                   {done ? (
-                    <Face color={p.color} photo={this.photo(p.id)} size={260} mood="wow" class="pop-in" />
+                    <Face color={p.color} photo={this.photo(p.id)} size={faceSize} mood="wow" class="pop-in" />
                   ) : (
-                    <div class="ty-face ty-face-wait" style={{ width: 260, height: 260, '--pc': colorHex(p.color) }}>
+                    <div class="ty-face ty-face-wait" style={{ width: faceSize, height: faceSize, '--pc': colorHex(p.color) }}>
                       <span>📸</span>
                     </div>
                   )}
@@ -422,6 +424,7 @@ export class TotyGame implements Game {
 
     if (this.phase === 'vote' || this.phase === 'voteReveal') {
       const reveal = this.phase === 'voteReveal';
+      const many = players.length > 8;
       const { counts, winners } = this.tally;
       const names = winners.map((w) => this.tyPlayer(w).name);
       return (
@@ -434,28 +437,28 @@ export class TotyGame implements Game {
             <div class="grow" />
             {!reveal && timer(TY_VOTE_MS)}
           </div>
-          <div class={`ty-question card-paper ${reveal ? 'small' : ''}`}>{this.q.question}</div>
+          <div class={`ty-question card-paper ${reveal || many ? 'small' : ''}`}>{this.q.question}</div>
           {reveal && (
             <div class={`ty-banner pop-in ${winners.length ? '' : 'none'}`}>
               {winners.length ? `To ty, ${joinNames(names)}!` : 'Nobody agreed!'}
               <small>{winners.length ? (winners.length > 1 ? 'That’s you – it’s a tie!' : 'That’s you!') : 'Everyone picked someone different.'}</small>
             </div>
           )}
-          <div class={`ty-row ${reveal ? 'reveal' : ''}`}>
+          <div class={`ty-row ${reveal ? 'reveal' : ''} ${many ? 'many' : ''}`}>
             {players.map((p, i) => {
               const voted = this.votes.has(p.id);
               const won = reveal && winners.includes(p.id);
               const voters = reveal ? players.filter((v) => this.votes.get(v.id) === p.id) : [];
               return (
                 <div class={`ty-cand ${won ? 'won' : ''} ${reveal && !won ? 'lost' : ''}`} style={{ animationDelay: `${i * 70}ms` }}>
-                  <Face color={p.color} photo={this.photo(p.id)} size={players.length > 6 ? 170 : 200} mood={won ? 'wow' : 'happy'} />
+                  <Face color={p.color} photo={this.photo(p.id)} size={many ? 118 : players.length > 6 ? 170 : 200} mood={won ? 'wow' : 'happy'} />
                   <span class="ty-name">{p.name}</span>
                   {reveal ? (
                     <>
                       <span class="ty-count">{counts[p.id] ?? 0}</span>
                       <div class="ty-voters">
                         {voters.map((v) => (
-                          <Pierogi color={colorHex(v.color)} size={40} />
+                          <Pierogi color={colorHex(v.color)} size={many ? 32 : 40} />
                         ))}
                       </div>
                       {this.roundPoints[p.id] ? (
@@ -478,6 +481,7 @@ export class TotyGame implements Game {
 
     const d = this.doodle!;
     if (this.phase === 'draw') {
+      const many = players.length > 8;
       return (
         <div class="screen ty ty-draw" key={`d${this.index}`}>
           <div class="quiz-top">
@@ -490,12 +494,12 @@ export class TotyGame implements Game {
             <div class="ty-draw-side">
               <div class="ty-prompt card-paper">{d.prompt}</div>
               <p class="muted">Draw on {d.subject.name}’s photo on your phone.</p>
-              <div class="ty-progress">
+              <div class={`ty-progress ${many ? 'compact' : ''}`}>
                 {players.map((p) => {
                   const done = d.doodles.has(p.id);
                   return (
                     <div class={`answer-chip ${done ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                      <Pierogi color={colorHex(p.color)} size={56} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
+                      <Pierogi color={colorHex(p.color)} size={many ? 46 : 56} mood={!p.connected ? 'sleep' : done ? 'happy' : 'wow'} />
                       <span>{p.name}</span>
                       <b>{done ? 'Done' : 'Drawing…'}</b>
                     </div>
@@ -525,7 +529,7 @@ export class TotyGame implements Game {
             <small>Nobody drew anything. Pencils ready for next time…</small>
           </div>
         ) : (
-          <div class={`ty-gallery n${Math.min(n, 8)}`}>
+          <div class={`ty-gallery n${Math.min(n, 12)}`}>
             {d.gallery.map((artistId, i) => {
               const artist = this.tyPlayer(artistId);
               const won = reveal && best > 0 && d.counts[i] === best;

@@ -105,6 +105,17 @@
   pointer-events: none;
   z-index: 3;
 }
+.vote-tickets.many {
+  gap: 8px;
+}
+.vote-tickets.many .vote-ticket {
+  width: 112px;
+  padding: 6px 4px 5px;
+}
+.vote-tickets.many .vote-ticket small {
+  max-width: 102px;
+  font-size: 17px;
+}
 .vote-ticket {
   display: flex;
   flex-direction: column;

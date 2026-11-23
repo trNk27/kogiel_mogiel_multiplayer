@@ -5,6 +5,7 @@ import {
   SIEGE_MODES,
   TEL_MAX_BOTS,
   KITCHEN_LEVELS,
+  DEFAULT_MAX_PLAYERS,
   MAX_PLAYERS,
   RECONNECT_GRACE_MS,
   TOURNAMENT_CANDIDATES,
@@ -438,12 +439,18 @@ export class HostController implements GameHost {
     if (changed) this.changed();
   }
 
+  maxPlayers(): number {
+    return this.noTv ? DEFAULT_MAX_PLAYERS : MAX_PLAYERS;
+  }
+
   private greet(id: string) {
     this.pending.add(id);
+    const max = this.maxPlayers();
     this.sendTo([id], {
       t: 'hello',
       taken: this.takenColors(),
-      full: this.players.size >= MAX_PLAYERS,
+      full: this.players.size >= max,
+      max,
       inGame: this.screen.s !== 'lobby',
     });
   }
@@ -544,7 +551,7 @@ export class HostController implements GameHost {
     const taken = this.takenColors();
     let reason = '';
     if (!name) reason = 'Please enter a name.';
-    else if (this.players.size >= MAX_PLAYERS) reason = `This room is full (${MAX_PLAYERS} players max).`;
+    else if (this.players.size >= this.maxPlayers()) reason = `This room is full (${this.maxPlayers()} players max).`;
     else if (!isColorId(color)) reason = 'Please pick a colour.';
     else if (taken.includes(color)) reason = 'Someone just grabbed that colour – pick another!';
     else if ([...this.players.values()].some((p) => p.name.toLowerCase() === name.toLowerCase()))

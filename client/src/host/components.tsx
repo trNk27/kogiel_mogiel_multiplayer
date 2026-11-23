@@ -65,12 +65,13 @@ export interface BoardRow {
 export function Leaderboard({ rows, max }: { rows: BoardRow[]; max?: number }) {
   const sorted = [...rows].sort((a, b) => b.score - a.score);
   const top = Math.max(1, max ?? sorted[0]?.score ?? 1);
+  const cols2 = sorted.length > 8;
   return (
-    <div class="board">
+    <div class={`board ${cols2 ? 'cols2' : ''}`}>
       {sorted.map((r, i) => (
         <div class="board-row" key={r.id} style={{ animationDelay: `${i * 70}ms` }}>
           <div class="board-place">{1 + sorted.filter((o) => o.score > r.score).length}</div>
-          <Pierogi color={colorHex(r.color)} size={64} />
+          <Pierogi color={colorHex(r.color)} size={cols2 ? 44 : 64} />
           <div class="board-name">{r.name}</div>
           <div class="board-bar">
             <div class="board-fill" style={{ width: `${Math.max(2, (r.score / top) * 100)}%`, background: colorHex(r.color) }} />

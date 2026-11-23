@@ -136,16 +136,17 @@ describe('targets and clues', () => {
 });
 
 describe('rounds and rotation', () => {
-  it('plays 2 × players rounds (4..8), short: players (2..4)', () => {
+  it('plays 2 × players rounds (4..8 up to 8, 9..12 up to 12), short: players (2..4)', () => {
     const full = [2, 3, 4, 5, 6, 7, 8].map((n) => roundsFor(n));
     expect(full).toEqual([4, 6, 8, 8, 8, 8, 8]);
-    const short = [2, 3, 4, 5, 6, 7, 8].map((n) => roundsFor(n, true));
-    expect(short).toEqual([2, 3, 4, 4, 4, 4, 4]);
+    expect([9, 10, 11, 12].map((n) => roundsFor(n))).toEqual([9, 10, 11, 12]);
+    const short = [2, 3, 4, 5, 6, 7, 8, 12].map((n) => roundsFor(n, true));
+    expect(short).toEqual([2, 3, 4, 4, 4, 4, 4, 4]);
     expect(roundsFor(1)).toBe(4);
     expect(roundsFor(1, true)).toBe(2);
   });
   it('rotates the Psychic through the players in order, once or twice each', () => {
-    for (let n = 2; n <= 8; n++) {
+    for (let n = 2; n <= 12; n++) {
       const plan = psychicPlan(ids(n), roundsFor(n));
       plan.forEach((p, r) => expect(p).toBe(`p${r % n}`));
       const counts = ids(n).map((id) => plan.filter((p) => p === id).length);

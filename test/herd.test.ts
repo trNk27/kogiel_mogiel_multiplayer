@@ -347,7 +347,7 @@ describe('pasture layout', () => {
       expect(new Set(spots.map((s) => s.x.toFixed(2))).size).toBe(n);
     }
   });
-  it('has a herd spot per herd, one row up to 4, two rows beyond', () => {
+  it('has a herd spot per herd, one row up to 4, two rows 5–8, three rows 9–12', () => {
     for (let n = 1; n <= 8; n++) {
       const spots = herdSpots(n);
       expect(spots).toHaveLength(n);
@@ -355,15 +355,22 @@ describe('pasture layout', () => {
       expect(zs.size).toBe(n <= 4 ? 1 : 2);
       for (const s of spots) expect(Math.abs(s.x)).toBeLessThanOrEqual(13);
     }
+    for (let n = 9; n <= 12; n++) {
+      const spots = herdSpots(n);
+      expect(spots).toHaveLength(n);
+      expect(new Set(spots.map((s) => s.z)).size).toBe(3);
+      for (const s of spots) expect(Math.abs(s.x)).toBeLessThanOrEqual(13);
+    }
     expect(herdSpots(0)).toEqual([]);
   });
-  it('has an offset per herd member, distinct', () => {
-    for (let n = 1; n <= 8; n++) {
+  it('has an offset per herd member, distinct, up to 12', () => {
+    for (let n = 1; n <= 12; n++) {
       const o = clusterOffsets(n);
       expect(o).toHaveLength(n);
       expect(new Set(o.map((p) => `${p.x.toFixed(2)},${p.z.toFixed(2)}`)).size).toBe(n);
     }
     expect(clusterRadius(8)).toBeGreaterThan(clusterRadius(2));
+    expect(clusterRadius(12)).toBeGreaterThan(clusterRadius(8));
     expect(clusterRadius(1)).toBeGreaterThan(0);
   });
 });

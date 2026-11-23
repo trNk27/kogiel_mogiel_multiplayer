@@ -2,8 +2,9 @@
 import colorsys, sys
 import numpy as np
 from PIL import Image
-COLORS = {'beetroot': '#ff3d6e', 'paprika': '#ff8a2a', 'yolk': '#ffd23f', 'pickle': '#a3e048', 'dill': '#2fd6a8',
-          'blueberry': '#4f9dff', 'plum': '#b27bff', 'raspberry': '#ff7ad1'}
+COLORS = {'beetroot': '#ff3d6e', 'paprika': '#ff8a2a', 'caramel': '#a06a48', 'yolk': '#ffd23f',
+          'pickle': '#a3e048', 'chive': '#2a9a3a', 'dill': '#2fd6a8', 'mint': '#38e8f5',
+          'blueberry': '#4f9dff', 'plum': '#b27bff', 'raspberry': '#ff7ad1', 'poppy': '#9e9e9e'}
 
 def rgb_to_hls(a):
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
@@ -24,18 +25,30 @@ def hls_to_rgb(h, l, s):
     return np.stack([f(0), f(8), f(4)], -1)
 
 def recolor(src, hexcol, out):
-    im = Image.open(src).convert('RGB')
-    a = np.asarray(im).astype(np.float64) / 255
+    raw = Image.open(src)
+    has_alpha = 'A' in raw.getbands()
+    im = raw.convert('RGBA')
+    rgba = np.asarray(im).astype(np.float64) / 255
+    a = rgba[..., :3]
+    alpha = rgba[..., 3]
     h, l, s = rgb_to_hls(a)
     # The dough: yellowish, not too dark, not white.
     body = (h > 0.06) & (h < 0.17) & (s > 0.25) & (l > 0.45) & (l < 0.93)
+    if has_alpha:
+        body = body & (alpha > 0.05)
     tr, tg, tb = (int(hexcol[i:i + 2], 16) / 255 for i in (1, 3, 5))
     th, tl, ts = colorsys.rgb_to_hls(tr, tg, tb)
     ml = np.median(l[body])
     nl = np.clip(tl + (l - ml) * 1.1, 0.05, 0.97)
     rgb = hls_to_rgb(np.full_like(h, th), nl, np.full_like(s, min(1, ts)))
     a2 = np.where(body[..., None], rgb, a)
-    Image.fromarray((a2 * 255).round().astype(np.uint8)).save(out)
+    out_arr = (np.dstack([a2, alpha]) * 255).round().astype(np.uint8) if has_alpha else (a2 * 255).round().astype(np.uint8)
+    out_im = Image.fromarray(out_arr, 'RGBA' if has_alpha else 'RGB')
+    if out.lower().endswith('.webp'):
+        out_im.save(out, 'WEBP', quality=90, method=6)
+    else:
+        out_im.save(out)
+    return int(body.sum())
 
 if __name__ == '__main__':
     for pose in ('front', 'back', 'side'):

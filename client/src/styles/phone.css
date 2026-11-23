@@ -202,13 +202,13 @@ body.phone-body input {
 .color-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
   margin-top: 6px;
 }
 .color-btn {
   border-radius: 20px;
-  padding: 12px 4px 10px;
-  min-height: 112px;
+  padding: 8px 4px 7px;
+  min-height: 82px;
   background: color-mix(in srgb, var(--pc) 16%, var(--panel));
   box-shadow:
     inset 0 0 0 3px var(--pc),
@@ -217,10 +217,10 @@ body.phone-body input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   font-family: var(--font-display);
   font-weight: 850;
-  font-size: 15px;
+  font-size: 14px;
 }
 .color-btn:active {
   transform: translateY(4px);
@@ -360,6 +360,7 @@ body.phone-body input {
   gap: 8px;
 }
 .pgame {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -373,7 +374,28 @@ body.phone-body input {
   color: rgba(251, 240, 217, 0.85);
   transition:
     transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4),
-    background 0.15s;
+    background 0.15s,
+    opacity 0.2s;
+}
+.pgame.unfit {
+  opacity: 0.4;
+}
+.pgame-max {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(255, 210, 63, 0.22);
+  color: var(--yolk);
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.pgame.selected .pgame-max {
+  background: var(--yolk);
+  color: var(--ink);
 }
 .pgame b {
   font-family: var(--font-display);
@@ -1190,6 +1212,9 @@ body.phone-body input {
 .segmented button.on small {
   color: rgba(36, 16, 21, 0.7);
 }
+.segmented button:disabled {
+  opacity: 0.3;
+}
 .k-stick-chef {
   width: 86px;
   height: 86px;
@@ -1287,6 +1312,15 @@ body.phone-body input {
   justify-items: center;
   padding: 14px 4px;
   overflow-y: auto;
+}
+.ty-faces.many {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 6px;
+  padding: 8px 2px;
+}
+.ty-faces.many .ty-face-btn {
+  gap: 6px;
+  font-size: 15px;
 }
 .ty-face-btn {
   appearance: none;
@@ -1407,6 +1441,14 @@ body.phone-body input {
   gap: 12px;
   align-content: start;
   padding-top: 8px;
+}
+.ty-letters.many {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.ty-letters.many .ty-letter-btn {
+  min-height: 74px;
+  font-size: 36px;
 }
 .ty-letter-btn {
   appearance: none;

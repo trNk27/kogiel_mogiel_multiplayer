@@ -10,6 +10,24 @@
 .wk-grid.revealed .qp-entry {
   min-height: 0;
 }
+.wk-grid.n9 .qp-entry,
+.wk-grid.n10 .qp-entry,
+.wk-grid.n11 .qp-entry,
+.wk-grid.n12 .qp-entry {
+  min-height: 128px;
+}
+.wk-grid.n9 .wk-entry-head,
+.wk-grid.n10 .wk-entry-head,
+.wk-grid.n11 .wk-entry-head,
+.wk-grid.n12 .wk-entry-head {
+  font-size: 17px;
+}
+.wk-grid.n9 .wk-entry-foot,
+.wk-grid.n10 .wk-entry-foot,
+.wk-grid.n11 .wk-entry-foot,
+.wk-grid.n12 .wk-entry-foot {
+  font-size: 18px;
+}
 .wk-entry-head {
   font-family: var(--font-body);
   font-weight: 800;

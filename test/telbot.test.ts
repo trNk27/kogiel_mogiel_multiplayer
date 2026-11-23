@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DOODLE_SPACE, MAX_DOODLE_POINTS, type Stroke } from '../shared/protocol';
 import { nearestColor, strokesToSvg, svgToStrokes } from '../shared/svgStrokes';
-import { TEL_MAX_BOTS, Telephone, botIds, botName, isBot, seating } from '../client/src/games/telephone/logic';
+import { TEL_MAX_BOTS, Telephone, botIds, botName, botsFor, isBot, seating } from '../client/src/games/telephone/logic';
+import { MAX_PLAYERS } from '../shared/protocol';
 import { cleanLine, extractSvg, readAiRequest, runAi } from '../worker/ai';
 
 describe('svgToStrokes', () => {
@@ -121,6 +122,13 @@ describe('bots in Głuchy Telefon', () => {
     expect(botIds(2)).toEqual(['bot:1', 'bot:2']);
     expect(botIds(99)).toHaveLength(TEL_MAX_BOTS);
     expect(botIds(-1)).toEqual([]);
+    // Bots only fill seats up to MAX_PLAYERS.
+    expect(botsFor(4, 4)).toBe(4);
+    expect(botsFor(9, 4)).toBe(3);
+    expect(botsFor(MAX_PLAYERS, 4)).toBe(0);
+    expect(botsFor(3, 99)).toBe(TEL_MAX_BOTS);
+    expect(botsFor(3, -2)).toBe(0);
+    for (let n = 3; n <= MAX_PLAYERS; n++) expect(n + botsFor(n, TEL_MAX_BOTS)).toBeLessThanOrEqual(MAX_PLAYERS);
     expect(new Set(botIds(4).map(botName)).size).toBe(4);
     expect(botIds(4).every(isBot)).toBe(true);
     expect(isBot('Ab3dEf9h')).toBe(false);
@@ -131,7 +139,7 @@ describe('bots in Głuchy Telefon', () => {
     const seats = seating(['a', 'b', 'c'], Math.random, bots);
     const t = new Telephone(seats, false, bots);
     expect(t.n).toBe(7);
-    expect(t.steps).toBe(6);
+    expect(t.steps).toBe(7);
     while (!t.done) {
       for (const id of bots) expect(t.pending()).toContain(id);
       for (const id of t.pending()) {
@@ -146,6 +154,14 @@ describe('bots in Głuchy Telefon', () => {
     const i = t.chains[chain].findIndex((e) => e.by === 'bot:1');
     expect(t.vote(chain, 'a', i)).toBe(true);
     expect(t.scores()['bot:1']).toBe(100);
+  });
+
+  it('caps a 12-player + 4-bot room at 8 steps per chain', () => {
+    const humans = Array.from({ length: 12 }, (_, i) => `p${i}`);
+    const bots = botIds(4);
+    const t = new Telephone(seating(humans, Math.random, bots), false, bots);
+    expect(t.n).toBe(16);
+    expect(t.steps).toBe(8);
   });
 });
 

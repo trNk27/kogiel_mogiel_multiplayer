@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { tournamentPool } from '../shared/protocol';
 import { awardGame, drawVote, hasNext, newTournament, nextGame, nextVote, partyChoices, setVoted } from '../client/src/host/tournament';
 import { mulberry32 } from '../client/src/games/rng';
-import { CHOSEN_S, DT, SETTLED_S, SPIN_S, VOTE_S, VoteSim, matAt, matPos, spinPath } from '../client/src/host/vote/logic';
+import { CHOSEN_S, DT, MAT_R, SETTLED_S, SPIN_S, VOTE_S, VoteSim, matAt, matPos, spinPath } from '../client/src/host/vote/logic';
 
 const ids = ['a', 'b', 'c', 'd'];
 
@@ -172,5 +172,19 @@ describe('the vote room', () => {
     run(sim, DT);
     sim.remove(1);
     expect(sim.votes()).toEqual([null, null]);
+  });
+
+  it('fits all 12 players onto a single stall mat', () => {
+    expect(MAT_R).toBeGreaterThanOrEqual(2.4);
+    const sim = new VoteSim(12, 3, mulberry32(7));
+    const m = matPos(1, 3);
+    for (let i = 0; i < 12; i++) {
+      const ring = i < 3 ? 0.7 : 1.8;
+      const a = i < 3 ? (i / 3) * Math.PI * 2 : ((i - 3) / 9) * Math.PI * 2;
+      sim.players[i].x = m.x + Math.cos(a) * ring;
+      sim.players[i].z = m.z + Math.sin(a) * ring;
+    }
+    run(sim, 0.25);
+    expect(sim.counts()).toEqual([0, 12, 0]);
   });
 });

@@ -67,13 +67,13 @@ describe('howTo', () => {
 });
 
 describe('rotation', () => {
-  it('caps the steps at 6 (4 in the short version)', () => {
-    expect([3, 4, 5, 6, 7, 8].map((n) => stepCount(n))).toEqual([3, 4, 5, 6, 6, 6]);
-    expect([3, 4, 5, 6, 7, 8].map((n) => stepCount(n, true))).toEqual([3, 4, 4, 4, 4, 4]);
+  it('caps the steps at 8 (4 in the short version)', () => {
+    expect([3, 4, 5, 6, 7, 8, 9, 12].map((n) => stepCount(n))).toEqual([3, 4, 5, 6, 7, 8, 8, 8]);
+    expect([3, 4, 5, 6, 7, 8, 12].map((n) => stepCount(n, true))).toEqual([3, 4, 4, 4, 4, 4, 4]);
   });
 
   for (const short of [false, true]) {
-    for (let n = 3; n <= 8; n++) {
+    for (let n = 3; n <= 12; n++) {
       it(`${n} players${short ? ' (short)' : ''}: nobody twice in a chain, everybody busy every step`, () => {
         const steps = stepCount(n, short);
         for (let c = 0; c < n; c++) {
@@ -99,7 +99,7 @@ describe('rotation', () => {
           expect(chain).toHaveLength(steps);
           expect(new Set(chain.map((e) => e.by)).size).toBe(steps);
         }
-        if (n <= (short ? 4 : 6)) {
+        if (n <= (short ? 4 : 8)) {
           // everyone touched every chain once
           for (const id of ids(n)) expect(t.chains.every((ch) => ch.some((e) => e.by === id))).toBe(true);
         }
@@ -263,12 +263,12 @@ describe('votes', () => {
     expect(t.scores(-1)).toEqual({ p0: 0, p1: 0, p2: 0, p3: 0 });
   });
 
-  it('players with nothing to pick (7–8 players, shorter chains) can still vote for anyone', () => {
-    const t = played(8);
-    expect(t.chains[0]).toHaveLength(6);
-    const outsider = ids(8).find((id) => !t.chains[0].some((e) => e.by === id))!;
+  it('players with nothing to pick (9–12 players, shorter chains) can still vote for anyone', () => {
+    const t = played(12);
+    expect(t.chains[0]).toHaveLength(8);
+    const outsider = ids(12).find((id) => !t.chains[0].some((e) => e.by === id))!;
     expect(t.canPick(0, outsider).every(Boolean)).toBe(true);
-    expect(t.pendingVoters(0)).toHaveLength(8);
+    expect(t.pendingVoters(0)).toHaveLength(12);
   });
 
   it('votes for a removed player’s entry earn nothing, and removed players stop voting', () => {

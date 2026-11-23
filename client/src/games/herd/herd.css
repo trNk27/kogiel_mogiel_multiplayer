@@ -312,6 +312,23 @@
 .herd-chips {
   bottom: 40px;
 }
+.herd-chips.compact {
+  left: 48px;
+  right: 48px;
+  gap: 8px;
+  bottom: 24px;
+}
+.herd-chips.compact .cookbook-chip {
+  min-width: 152px;
+  padding: 4px 14px 4px 10px;
+  gap: 8px;
+}
+.herd-chips.compact .cookbook-chip-text b {
+  font-size: 22px;
+}
+.herd-chips.compact .cookbook-chip-text small {
+  font-size: 15px;
+}
 .herd-chip.done {
   background: rgba(30, 80, 60, 0.85);
 }
@@ -326,6 +343,19 @@
 
 .herd-final {
   z-index: 5;
+}
+.herd-final .cookbook-banner-list.many {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 18px;
+  max-width: 1080px;
+}
+.herd-final .cookbook-banner-list.many .cookbook-banner-row {
+  font-size: 24px;
+  padding: 3px 16px 3px 10px;
+}
+.herd-final .cookbook-banner-list.many .cookbook-banner-row b {
+  font-size: 28px;
 }
 .herd-final-cow {
   display: inline-flex;

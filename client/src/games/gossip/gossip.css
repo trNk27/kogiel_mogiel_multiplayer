@@ -15,6 +15,18 @@
 .gs .qp-grid.n8 .qp-entry-text {
   font-size: 26px;
 }
+.gs .qp-grid.n9 .qp-entry-text,
+.gs .qp-grid.n10 .qp-entry-text,
+.gs .qp-grid.n11 .qp-entry-text,
+.gs .qp-grid.n12 .qp-entry-text {
+  font-size: 20px;
+}
+.gs .qp-grid.n9 .wk-entry-foot,
+.gs .qp-grid.n10 .wk-entry-foot,
+.gs .qp-grid.n11 .wk-entry-foot,
+.gs .qp-grid.n12 .wk-entry-foot {
+  font-size: 17px;
+}
 .gs .wk-entry-foot {
   font-size: 22px;
 }

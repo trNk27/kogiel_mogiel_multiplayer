@@ -229,7 +229,7 @@ export class SwapGame implements Game {
           )}
           <div class="grow" />
           {result && (
-            <div class="swap-reveal-scores">
+            <div class={`swap-reveal-scores ${players.length > 8 ? 'many' : ''}`}>
               {players.map((p) => (
                 <span class={(this.roundPts[p.id] ?? 0) > 0 ? 'gain' : ''} style={{ '--pc': colorHex(p.color) }}>
                   {p.name} <b>{(this.roundPts[p.id] ?? 0) > 0 ? `+${this.roundPts[p.id]}` : '0'}</b>
@@ -259,7 +259,7 @@ export class SwapGame implements Game {
                       {result && (
                         <div class="swap-pickers">
                           {pickers.map((p) => (
-                            <Pierogi color={colorHex(p.color)} size={42} mood={isNew ? 'wow' : 'dead'} />
+                            <Pierogi color={colorHex(p.color)} size={pickers.length > 5 ? 32 : 42} mood={isNew ? 'wow' : 'dead'} />
                           ))}
                         </div>
                       )}
@@ -280,10 +280,10 @@ export class SwapGame implements Game {
         </div>
 
         {this.phase === 'pick' && (
-          <div class="swap-status">
+          <div class={`swap-status ${players.length > 8 ? 'compact' : ''}`}>
             {players.map((p) => (
               <div class={`answer-chip ${this.picks.has(p.id) ? 'done' : ''} ${p.connected ? '' : 'offline'}`}>
-                <Pierogi color={colorHex(p.color)} size={52} mood={this.picks.has(p.id) ? 'happy' : 'wow'} />
+                <Pierogi color={colorHex(p.color)} size={players.length > 8 ? 42 : 52} mood={this.picks.has(p.id) ? 'happy' : 'wow'} />
                 <span>{p.name}</span>
               </div>
             ))}

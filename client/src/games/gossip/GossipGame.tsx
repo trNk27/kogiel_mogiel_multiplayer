@@ -124,6 +124,10 @@ export class GossipGame extends WordGame<Phase> {
     return pick(this.context(twister).fallback);
   }
 
+  private get voteMs() {
+    return this.entries.length > 8 ? 45_000 : GS_VOTE_MS;
+  }
+
   private startVote() {
     if (this.phase !== 'twist') return;
     const twisters = this.ids.filter((id) => this.jobs.has(id));
@@ -141,10 +145,11 @@ export class GossipGame extends WordGame<Phase> {
       };
     });
     this.votes.clear();
-    this.setPhase('vote', GS_VOTE_MS);
+    const ms = this.voteMs;
+    this.setPhase('vote', ms);
     sound.bell();
     this.entries.forEach((_, i) => this.later(600 + i * 260, () => sound.plop()));
-    this.after(GS_VOTE_MS + GRACE_MS, () => this.startReveal());
+    this.after(ms + GRACE_MS, () => this.startReveal());
     this.update();
   }
 
@@ -313,7 +318,7 @@ export class GossipGame extends WordGame<Phase> {
         const total = r ? r.voters.reduce((s, v) => s + v.length, 0) : 0;
         return (
           <div class={`screen qp gs ${this.phase}`} key={`v${this.key}`}>
-            {this.top(this.label(), r ? null : GS_VOTE_MS, <div class="pill">Best gossip?</div>)}
+            {this.top(this.label(), r ? null : this.voteMs, <div class="pill">Best gossip?</div>)}
             {this.entryGrid(this.entries, r, { appear: !r })}
             {!r && (
               <div class="bp-hint qp-hint">

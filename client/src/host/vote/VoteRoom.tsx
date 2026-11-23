@@ -245,7 +245,7 @@ export class VoteRoom {
         })}
 
         {sim.phase !== 'vote' && (
-          <div class="vote-tickets pop-in">
+          <div class={`vote-tickets pop-in ${players.length > 8 ? 'many' : ''}`}>
             {sim.tickets.map((c, k) => {
               const owner = sim.owners[k];
               const p = owner >= 0 ? players[owner] : undefined;

@@ -65,6 +65,12 @@
 .dc .qp-grid.n8 .qp-entry-text {
   font-size: 26px;
 }
+.dc .qp-grid.n9 .qp-entry-text,
+.dc .qp-grid.n10 .qp-entry-text,
+.dc .qp-grid.n11 .qp-entry-text,
+.dc .qp-grid.n12 .qp-entry-text {
+  font-size: 22px;
+}
 .dc-splash {
   bottom: 30px;
 }

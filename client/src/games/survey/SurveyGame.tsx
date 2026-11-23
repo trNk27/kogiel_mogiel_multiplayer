@@ -372,7 +372,7 @@ export class SurveyGame extends WordGame<Phase> {
           <div class="sv-big sv-none">Nobody answered – no points!</div>
         ) : (
           <>
-            <div class="sv-tokens">
+            <div class={`sv-tokens ${r.total > 8 ? 'many' : ''}`}>
               {tokens.map((y, k) => (
                 <div class={`sv-token ${y ? 'yes' : 'no'}`} style={{ animationDelay: `${FLIP_START_MS + k * FLIP_STEP_MS}ms` }} key={k}>
                   <span>{y ? 'YES' : 'NO'}</span>
@@ -382,7 +382,7 @@ export class SurveyGame extends WordGame<Phase> {
             <div class="sv-count" style={{ animationDelay: `${at}ms` }}>
               <b>{r.yes}</b> of {r.total} said yes
             </div>
-            <div class="sv-results" style={{ animationDelay: `${at + 600}ms` }}>
+            <div class={`sv-results ${r.total > 8 ? 'many' : ''}`} style={{ animationDelay: `${at + 600}ms` }}>
               <div class={`sv-res sv-res-guess ${guesserPts ? 'good' : 'bad'}`} style={{ '--pc': this.color(this.surveyor) }}>
                 <Pierogi color={this.color(this.surveyor)} size={64} mood={guesserPts ? 'wow' : 'dead'} />
                 <span>

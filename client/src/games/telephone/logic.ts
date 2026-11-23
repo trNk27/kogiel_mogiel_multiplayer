@@ -2,7 +2,7 @@
  * Głuchy Telefon – the pure rules: who works on which chain at every step, what they are handed,
  * timeouts and placeholders, and the favourite-entry votes. No DOM; driven by TelephoneGame.
  */
-import { DOODLE_COLORS, DOODLE_SPACE, DOODLE_WIDTHS, MAX_DOODLE_POINTS, TEL_MAX_BOTS, type Stroke } from '../../../../shared/protocol';
+import { DOODLE_COLORS, DOODLE_SPACE, DOODLE_WIDTHS, MAX_DOODLE_POINTS, MAX_PLAYERS, TEL_MAX_BOTS, type Stroke } from '../../../../shared/protocol';
 import type { Rng } from '../rng';
 import { pickQuestions, shuffle } from '../quiz/logic';
 
@@ -20,7 +20,7 @@ export const TEL_MAX_TEXT = 60;
 /** Points per vote for your entry. */
 export const TEL_VOTE_POINTS = 100;
 /** At most this many steps per chain (the first sentence included). */
-export const TEL_FULL_STEPS = 6;
+export const TEL_FULL_STEPS = 8;
 export const TEL_SHORT_STEPS = 4;
 /** Most points kept from one drawing (the phone's pad stops there too), so a `pic` view stays small. */
 export const TEL_MAX_POINTS = MAX_DOODLE_POINTS;
@@ -352,6 +352,12 @@ export const BOT_NAMES = ['Zenek 🤖', 'Halinka 🤖', 'Mietek 🤖', 'Grażynk
 export function botIds(n: number): string[] {
   const k = Math.max(0, Math.min(TEL_MAX_BOTS, Math.floor(Number(n) || 0)));
   return Array.from({ length: k }, (_, i) => `bot:${i + 1}`);
+}
+
+/** How many bots join `humans` players when the VIP asked for `wanted`: never more seats than MAX_PLAYERS. */
+export function botsFor(humans: number, wanted: number): number {
+  const k = Math.max(0, Math.min(TEL_MAX_BOTS, Math.floor(Number(wanted) || 0)));
+  return Math.max(0, Math.min(k, MAX_PLAYERS - humans));
 }
 
 export function isBot(id: string | undefined): boolean {
