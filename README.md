@@ -409,8 +409,8 @@ Share that single URL:
 Up to four AI bots (Zenek, Halinka, Mietek and Grażynka 🤖), played by Claude Haiku 5.5, can play Głuchy Telefon with you:
 each writes a starting sentence, draws the sentences it is handed and guesses what the drawings show,
 and each gets its own chain. They don't vote, and the votes they get show on the final scores just
-for fun (they don't count towards the party standings). Bots wear the colours nobody has picked; in
-a full room they share the last one.
+for fun (they don't count towards the party standings). Bots wear the colours nobody has picked, and
+only take empty seats: players and bots together never go past 12, so a room of 10 gets at most 2.
 
 To switch it on, give the Worker a Claude API key (<https://platform.claude.com/settings/keys>):
 

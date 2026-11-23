@@ -46,21 +46,23 @@ export function sanitizeName(raw: string): string {
 // Player colours (named after Polish food, of course)
 // ---------------------------------------------------------------------------
 
+/**
+ * Player colours: at least MAX_PLAYERS + 1 of them, and every pair clearly apart (CIEDE2000 ≥ 18,
+ * checked in test/colors.test.ts), because a colour is how players find themselves on the TV.
+ */
 export const PLAYER_COLORS = [
   { id: 'beetroot', name: 'Beetroot', hex: '#ff3d6e' },
-  { id: 'cherry', name: 'Cherry', hex: '#ff594f' },
   { id: 'paprika', name: 'Paprika', hex: '#ff8a2a' },
-  { id: 'caramel', name: 'Krówka', hex: '#e2a568' },
+  { id: 'caramel', name: 'Krówka', hex: '#a06a48' },
   { id: 'yolk', name: 'Egg Yolk', hex: '#ffd23f' },
   { id: 'pickle', name: 'Pickle', hex: '#a3e048' },
-  { id: 'chive', name: 'Chive', hex: '#3bd16f' },
+  { id: 'chive', name: 'Chive', hex: '#2a9a3a' },
   { id: 'dill', name: 'Dill', hex: '#2fd6a8' },
   { id: 'mint', name: 'Mint', hex: '#38e8f5' },
   { id: 'blueberry', name: 'Blueberry', hex: '#4f9dff' },
-  { id: 'cornflower', name: 'Cornflower', hex: '#7c8cff' },
   { id: 'plum', name: 'Plum', hex: '#b27bff' },
   { id: 'raspberry', name: 'Raspberry', hex: '#ff7ad1' },
-  { id: 'peach', name: 'Apricot', hex: '#ffb088' },
+  { id: 'poppy', name: 'Poppy Seed', hex: '#9e9e9e' },
   { id: 'sourcream', name: 'Sour Cream', hex: '#fff4dc' },
 ] as const;
 

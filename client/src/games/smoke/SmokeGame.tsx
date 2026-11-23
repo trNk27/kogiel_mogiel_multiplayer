@@ -8,6 +8,7 @@ import {
   FALL_MS,
   SUSPENSE_MS,
   crownHops,
+  decoyColors,
   finaleTimes,
   type FinaleTimes,
   MIN_PUFF_GAP_MS,
@@ -121,8 +122,8 @@ export class SmokeGame implements Game {
     const n = ids.length;
     this.angles = ids.map((_, i) => Math.PI / 2 + (i * 2 * Math.PI) / n);
     const mine = ids.map((id) => colorHex(host.player(id)?.color ?? 'sourcream'));
-    const decoys = PLAYER_COLORS.map((c) => c.hex).filter((h) => !mine.includes(h));
-    this.colors = [...mine, ...decoys.slice(0, Math.max(0, 4 - mine.length))];
+    const decoys = decoyColors(mine, PLAYER_COLORS.map((c) => c.hex), Math.max(0, 4 - mine.length));
+    this.colors = [...mine, ...decoys];
     const k = slotCount(n);
     this.slots = [];
     for (let i = 0; i < k; i++) this.slots.push(refillColor(this.colors, this.slots, Math.random));

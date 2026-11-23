@@ -1212,6 +1212,9 @@ body.phone-body input {
 .segmented button.on small {
   color: rgba(36, 16, 21, 0.7);
 }
+.segmented button:disabled {
+  opacity: 0.3;
+}
 .k-stick-chef {
   width: 86px;
   height: 86px;

@@ -63,10 +63,11 @@ describe('tournament pool', () => {
 });
 
 describe('player colours and chef sprites', () => {
-  it('provides 15 distinct colours, each with front/back/side WebP chef sprites', () => {
-    expect(PLAYER_COLORS).toHaveLength(15);
-    expect(new Set(PLAYER_COLORS.map((c) => c.id)).size).toBe(15);
-    expect(new Set(PLAYER_COLORS.map((c) => c.hex.toLowerCase())).size).toBe(15);
+  it('provides a colour for every player plus a spare, each with front/back/side WebP chef sprites', () => {
+    const n = PLAYER_COLORS.length;
+    expect(n).toBeGreaterThan(MAX_PLAYERS);
+    expect(new Set(PLAYER_COLORS.map((c) => c.id)).size).toBe(n);
+    expect(new Set(PLAYER_COLORS.map((c) => c.hex.toLowerCase())).size).toBe(n);
     const files = new Set(Object.keys(import.meta.glob('../client/public/sprites/kitchen/chef-*.webp')));
     for (const c of PLAYER_COLORS) {
       for (const pose of ['front', 'back', 'side']) {

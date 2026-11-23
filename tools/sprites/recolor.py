@@ -2,10 +2,9 @@
 import colorsys, sys
 import numpy as np
 from PIL import Image
-COLORS = {'beetroot': '#ff3d6e', 'cherry': '#ff594f', 'paprika': '#ff8a2a', 'caramel': '#e2a568',
-          'yolk': '#ffd23f', 'pickle': '#a3e048', 'chive': '#3bd16f', 'dill': '#2fd6a8',
-          'mint': '#38e8f5', 'blueberry': '#4f9dff', 'cornflower': '#7c8cff', 'plum': '#b27bff',
-          'raspberry': '#ff7ad1', 'peach': '#ffb088'}
+COLORS = {'beetroot': '#ff3d6e', 'paprika': '#ff8a2a', 'caramel': '#a06a48', 'yolk': '#ffd23f',
+          'pickle': '#a3e048', 'chive': '#2a9a3a', 'dill': '#2fd6a8', 'mint': '#38e8f5',
+          'blueberry': '#4f9dff', 'plum': '#b27bff', 'raspberry': '#ff7ad1', 'poppy': '#9e9e9e'}
 
 def rgb_to_hls(a):
     r, g, b = a[..., 0], a[..., 1], a[..., 2]

@@ -153,6 +153,43 @@ export function refillColor(colors: readonly string[], onTray: readonly (string 
   return pick[Math.floor(rnd() * pick.length)];
 }
 
+/** A hex colour in CIELAB, for telling how far apart two colours look. */
+function lab(hex: string): [number, number, number] {
+  const [r, g, b] = [1, 3, 5]
+    .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  const f = (v: number) => (v > 0.008856 ? Math.cbrt(v) : 7.787 * v + 16 / 116);
+  const fx = f((r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047);
+  const fy = f(r * 0.2126 + g * 0.7152 + b * 0.0722);
+  const fz = f((r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+/**
+ * Decoy colours for a small table (`count` of them, from `palette`): each one the colour that looks
+ * least like the players' colours and the decoys picked so far, so nobody mistakes a decoy for theirs.
+ */
+export function decoyColors(mine: readonly string[], palette: readonly string[], count: number): string[] {
+  const key = (h: string) => h.toLowerCase();
+  const taken = new Set(mine.map(key));
+  const chosen = mine.map(lab);
+  const out: string[] = [];
+  const left = palette.filter((h) => !taken.has(key(h)));
+  while (out.length < count && left.length) {
+    let best = 0;
+    let bestD = -1;
+    left.forEach((h, i) => {
+      const p = lab(h);
+      const d = chosen.length ? Math.min(...chosen.map((q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]))) : 0;
+      if (d > bestD) (best = i), (bestD = d);
+    });
+    const [h] = left.splice(best, 1);
+    out.push(h);
+    chosen.push(lab(h));
+  }
+  return out;
+}
+
 /** Tray speed (radians per second, signed) for a stretch of the game: faster and twistier as it goes. */
 export function traySpeed(progress: number, rnd: () => number): number {
   const base = 0.65 + 0.75 * Math.max(0, Math.min(1, progress));

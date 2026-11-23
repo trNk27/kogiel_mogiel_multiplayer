@@ -13,6 +13,7 @@ import {
   TEL_VOTE_POINTS,
   Telephone,
   botIds,
+  botsFor,
   botName,
   isBot,
   pickSentences,
@@ -75,7 +76,7 @@ export class TelephoneGame implements Game {
     public ids: string[],
   ) {
     const ai = !!(host.aiAvailable && host.ai && !host.noTv);
-    this.bots = ai ? botIds(host.options.telBots) : [];
+    this.bots = ai ? botIds(botsFor(ids.length, host.options.telBots)) : [];
     this.tel = new Telephone(seating(ids, Math.random, this.bots), host.short, this.bots);
     // Each bot gets a colour nobody is wearing (they share the last one if the room runs out).
     const free = PLAYER_COLORS.map((c) => c.id).filter((c) => !ids.some((id) => host.player(id)?.color === c));

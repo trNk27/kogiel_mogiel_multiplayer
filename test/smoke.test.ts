@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from '../client/src/games/rng';
+import { PLAYER_COLORS, colorHex } from '../shared/protocol';
 import {
   CIG_LENGTH,
   HOLD_MAX_MS,
@@ -9,6 +10,7 @@ import {
   SUSPENSE_MS,
   angleDiff,
   crownHops,
+  decoyColors,
   finaleTimes,
   puffAmount,
   ratePuff,
@@ -113,5 +115,18 @@ describe('Fajki', () => {
     expect(crownHops(1, 0, SUSPENSE_MS, mulberry32(1)).every((h) => h.floor === 0)).toBe(true);
     const nobody = crownHops(3, null, SUSPENSE_MS, mulberry32(2));
     expect(nobody[nobody.length - 1].floor).toBeLessThan(3);
+  });
+
+  it('decoys never repeat a player colour and keep away from it', () => {
+    const palette = PLAYER_COLORS.map((c) => c.hex);
+    for (const c of PLAYER_COLORS) {
+      const mine = [colorHex(c.id)];
+      const decoys = decoyColors(mine, palette, 3);
+      expect(decoys).toHaveLength(3);
+      expect(new Set([...mine, ...decoys]).size).toBe(4);
+    }
+    // Beetroot alone: the decoys should not be the warm reds/oranges next to it.
+    expect(decoyColors([colorHex('beetroot')], palette, 3)).not.toContain(colorHex('paprika'));
+    expect(decoyColors(palette.slice(0, 4), palette, 0)).toEqual([]);
   });
 });

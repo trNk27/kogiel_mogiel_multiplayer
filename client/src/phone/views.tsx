@@ -4,6 +4,7 @@ import {
   DIFFICULTIES,
   GAMES,
   KITCHEN_LEVELS,
+  MAX_PLAYERS,
   RALLY_TRACKS,
   SIEGE_MODES,
   TEL_MAX_BOTS,
@@ -201,11 +202,19 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
           <div class="segmented-wrap">
             <div class="toggle-text">
               <b>🤖 AI bots</b>
-              <small>They write, draw and guess along with you</small>
+              <small>
+                {view.players.length + view.options.telBots > MAX_PLAYERS
+                  ? `Only ${Math.max(0, MAX_PLAYERS - view.players.length)} fit with ${view.players.length} players`
+                  : 'They write, draw and guess along with you'}
+              </small>
             </div>
             <div class="segmented">
               {Array.from({ length: TEL_MAX_BOTS + 1 }, (_, n) => (
-                <button class={view.options.telBots === n ? 'on' : ''} onClick={() => send({ t: 'option', key: 'telBots', value: n })}>
+                <button
+                  class={view.options.telBots === n ? 'on' : ''}
+                  disabled={n > 0 && view.players.length + n > MAX_PLAYERS}
+                  onClick={() => send({ t: 'option', key: 'telBots', value: n })}
+                >
                   <b>{n === 0 ? 'Off' : n}</b>
                 </button>
               ))}
