@@ -64,6 +64,22 @@ function randomKey(): string {
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+/** Where the game lives now. The old workers.dev address sends visitors here. */
+const CANONICAL_HOST = 'kogielmogiel.bajasgames.com';
+
+/**
+ * Pages opened on the old couch-party.<account>.workers.dev address move to the new domain, keeping
+ * the path and query (e.g. /join?code=ABCD). API calls and WebSockets are left alone, so a party
+ * already running there keeps working until its pages reload. Preview URLs (<version>-couch-party…)
+ * and localhost are not touched.
+ */
+function legacyRedirect(url: URL, request: Request): Response | null {
+  if (!url.hostname.startsWith('couch-party.') || !url.hostname.endsWith('.workers.dev')) return null;
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws/')) return null;
+  if (request.method !== 'GET' && request.method !== 'HEAD') return null;
+  return Response.redirect(`https://${CANONICAL_HOST}${url.pathname}${url.search}`, 301);
+}
+
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
@@ -79,6 +95,9 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    const moved = legacyRedirect(url, request);
+    if (moved) return moved;
 
     // Create a room: pick a free code and claim it with a secret host key.
     if (path === '/api/rooms' && request.method === 'POST') {

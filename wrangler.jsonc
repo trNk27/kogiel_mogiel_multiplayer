@@ -11,7 +11,9 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/ws/*"]
+    // Pages go through the Worker too, so the old workers.dev address can redirect them;
+    // the hashed build files in /assets are served directly.
+    "run_worker_first": ["/*", "!/assets/*"]
   },
   "durable_objects": {
     "bindings": [{ "name": "ROOMS", "class_name": "RoomDO" }]
