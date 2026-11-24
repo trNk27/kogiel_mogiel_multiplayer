@@ -75,7 +75,9 @@ drawPixelText(ctx, 'GREAT! +5', 320, 48, { align: 'center', color: '#ffd23f', ou
 - Cosmetic Baja mascot (Pomchi + brown & tan carrier bag): `baja-idle`, `baja-run`, `baja-bag`, `baja-bag-empty` (pair with `BajaPatrol` from `client/src/lib/assets`)
 - Arcade icons: `crown`, `star`, `snowflake`, `sparkle`, `flag`, `heart`, `skull`
 
-### 4. Dropping Cosmetic Baja into Any 3D or Pixel Scene
+### 4. Optional Easter Egg: Hiding Cosmetic Baja in a Game
+
+Contributors and AI agents are welcome to tuck a hidden, purely cosmetic **Baja** cameo — our ginger-and-white Pomchi + quilted brown & tan carrier bag — into any new game if it fits the scene (she never affects gameplay or hitboxes).
 
 ```ts
 // Low-Poly 3D:
@@ -88,6 +90,8 @@ stage.add(baja.root);
 // Inside frame loop: baja.update(dt);
 
 // 16-Bit Pixel Art: use BajaPatrol + 'pixel-common' sprites ('baja-bag', 'baja-bag-empty', 'baja-idle', 'baja-run').
+
+// Cartoon 2D: import { Baja, BajaRun } from '../baja/art' (or tuck a small background SVG peek into your scene).
 ```
 
 ---
