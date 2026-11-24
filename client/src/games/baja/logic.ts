@@ -1,14 +1,14 @@
 /**
  * Wybredna Baja ("picky Baja"): pure rules. No DOM.
  *
- * Baja, a very picky pomchi, has a secret craving: one option from each row (what food, how it's
- * served, how she gets it, and in the last craving a trick first). Everyone builds a plate on their
- * phone at the same time and feeds her; she tastes every plate on the TV and her reaction says how
- * many rows were right (Mastermind-style, but every row is its own slot). Everyone sees everyone's
- * plates, so you learn from each other. Feed her exactly right and you score by how early you did it.
+ * A team game. Baja has a secret craving: one option for each part of the plate (food, how it's
+ * served, how she gets it, and with 4+ players a trick first). Everyone builds ONE plate together:
+ * each part belongs to one player, but your secret clues are always about other people's parts, so
+ * you have to talk and trade what you know. Treats buy Baja's trust: she whispers you a sure clue.
+ * She tastes the team plate and her reaction says how many parts were right; three tries.
  *
- * Twists: before each craving she turns her nose up at one thing she doesn't want (a free hint), and
- * from the third craving on she changes her mind about one row after the second try.
+ * From the second craving one player is secretly the neighbour's cat, who wants Baja to stay hungry:
+ * the cat gets real clues but can lie, or quietly pick wrong. After each cat round everyone votes.
  */
 import { mulberry32, type Rng } from '../rng';
 
@@ -71,62 +71,111 @@ export const ROWS: readonly BajaRow[] = [
 ];
 
 /** Full game / tournament version. */
-export const BAJA_ROUNDS = 5;
+export const BAJA_ROUNDS = 4;
 export const BAJA_ROUNDS_SHORT = 2;
-/** Tries per craving. */
-export const BAJA_TRIES = 5;
-/** Points for feeding her right on try 1, 2, 3… */
-export const TRY_POINTS = [1000, 800, 600, 400, 200];
-/** Time to build a plate, ms. */
-export const BUILD_MS = 35_000;
-/** From this craving on (1-based) she changes her mind after try MIND_AFTER_TRY. */
-export const MIND_FROM_ROUND = 3;
-export const MIND_AFTER_TRY = 2;
+/** Tries per craving, and what feeding her on each is worth to the team. */
+export const BAJA_TRIES = 3;
+export const TRY_POINTS = [600, 400, 200];
+/** Time to build the plate together, ms. */
+export const BUILD_MS = 50_000;
+/** Treats each player has for the whole game. */
+export const TREATS = 3;
+/** The cat joins from this craving (1-based), if there are enough players. */
+export const CAT_FROM_ROUND = 2;
+export const CAT_MIN_PLAYERS = 3;
+/** The cat: points for every failed try, a bonus if Baja is never fed, and for fooling the vote. */
+export const CAT_PER_MISS = 200;
+export const CAT_STARVED_BONUS = 300;
+export const CAT_FOOLED_BONUS = 300;
+/** Voting for the cat correctly. */
+export const VOTE_RIGHT = 150;
 
-/** How many rows craving `round` (1-based) of `rounds` uses: the last one is extra picky. */
-export function rowsFor(round: number, rounds: number): number {
-  return round === rounds ? 4 : 3;
+/** How many parts the plate has: the trick joins with 4+ players. */
+export function partsFor(players: number): number {
+  return players >= 4 ? 4 : 3;
 }
 
-export function pointsForTry(tryN: number): number {
-  return TRY_POINTS[tryN - 1] ?? 0;
+/** Who owns each part: round-robin over a shuffled order, so everyone gets a turn at each part. */
+export function owners(order: string[], parts: number): string[] {
+  return Array.from({ length: parts }, (_, i) => order[i % order.length]);
 }
 
-export function makeCraving(rows: number, rng: Rng): number[] {
-  return ROWS.slice(0, rows).map((r) => Math.floor(rng() * r.options.length));
+export function shuffle<T>(xs: T[], rng: Rng): T[] {
+  const a = xs.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
-/** A free hint: one row, and an option in it that she does NOT want. */
-export function makeHint(craving: number[], rng: Rng): { row: number; opt: number } {
-  // Food has the most options, so a hint about food helps the least; prefer it a bit less.
-  const row = rng() < 0.5 ? 0 : 1 + Math.floor(rng() * (craving.length - 1));
-  const n = ROWS[row].options.length;
-  let opt = Math.floor(rng() * (n - 1));
-  if (opt >= craving[row]) opt++;
-  return { row, opt };
+export function makeCraving(parts: number, rng: Rng): number[] {
+  return ROWS.slice(0, parts).map((r) => Math.floor(rng() * r.options.length));
 }
 
-/** She changes her mind about one row: returns the new craving and which row changed. */
-export function changeMind(craving: number[], rng: Rng): { craving: number[]; row: number } {
-  const row = Math.floor(rng() * craving.length);
-  const n = ROWS[row].options.length;
-  let v = Math.floor(rng() * (n - 1));
-  if (v >= craving[row]) v++;
-  const next = craving.slice();
-  next[row] = v;
-  return { craving: next, row };
+export interface Clue {
+  part: number;
+  /** Options she does NOT want, or the one she does (`is`). */
+  not?: number[];
+  is?: number;
 }
 
-/** Whether a plate is well formed for a craving with `rows` rows. */
-export function validPlate(plate: unknown, rows: number): plate is number[] {
+export function clueText(c: Clue): string {
+  const row = ROWS[c.part];
+  if (c.is !== undefined) return `${row.title}: she wants ${row.options[c.is].emoji} ${row.options[c.is].label}!`;
+  const names = (c.not ?? []).map((o) => `${row.options[o].emoji} ${row.options[o].label}`);
+  return `${row.title}: not ${names.join(' or ')}`;
+}
+
+/**
+ * Deal the clues. For every part, the options she doesn't want are split into little cards and dealt
+ * to the players who DON'T own that part (unless nobody else exists). All cards together pin down
+ * the craving, so the team can solve it if everyone shares (and nobody lies).
+ */
+export function dealClues(craving: number[], own: string[], ids: string[], rng: Rng): Record<string, Clue[]> {
+  const out: Record<string, Clue[]> = {};
+  for (const id of ids) out[id] = [];
+  craving.forEach((ans, part) => {
+    const n = ROWS[part].options.length;
+    const wrong = shuffle(
+      Array.from({ length: n }, (_, i) => i).filter((i) => i !== ans),
+      rng,
+    );
+    // Food has 5 wrong options: cards of 2, 2, 1. The others have 2: one card each.
+    const sizes = wrong.length >= 5 ? [2, 2, wrong.length - 4] : wrong.map(() => 1);
+    let holders = ids.filter((id) => id !== own[part]);
+    if (!holders.length) holders = ids.slice();
+    holders = shuffle(holders, rng);
+    let k = 0;
+    sizes.forEach((size, card) => {
+      const not = wrong.slice(k, k + size).sort((a, b) => a - b);
+      k += size;
+      out[holders[card % holders.length]].push({ part, not });
+    });
+  });
+  for (const id of ids) out[id].sort((a, b) => a.part - b.part);
+  return out;
+}
+
+/** A treat: Baja trusts you and whispers the answer for a part you don't know yet (yours too). */
+export function treatClue(craving: number[], known: Clue[], rng: Rng): Clue | null {
+  const sure = new Set(known.filter((c) => c.is !== undefined).map((c) => c.part));
+  const open = craving.map((_, i) => i).filter((i) => !sure.has(i));
+  if (!open.length) return null;
+  const part = open[Math.floor(rng() * open.length)];
+  return { part, is: craving[part] };
+}
+
+/** Whether a plate is well formed for a craving with `parts` parts. */
+export function validPlate(plate: unknown, parts: number): plate is number[] {
   return (
     Array.isArray(plate) &&
-    plate.length === rows &&
+    plate.length === parts &&
     plate.every((v, i) => Number.isInteger(v) && v >= 0 && v < ROWS[i].options.length)
   );
 }
 
-/** How many rows of the plate she likes. */
+/** How many parts of the plate she likes. */
 export function hits(plate: number[], craving: number[]): number {
   let n = 0;
   for (let i = 0; i < craving.length; i++) if (plate[i] === craving[i]) n++;
@@ -135,9 +184,9 @@ export function hits(plate: number[], craving: number[]): number {
 
 export type Reaction = 'snub' | 'lick' | 'spit' | 'eat';
 
-/** Baja's reaction to a plate with `h` of `rows` right. With four rows, 3 right is still a spit. */
-export function reactionFor(h: number, rows: number): Reaction {
-  if (h >= rows) return 'eat';
+/** Baja's reaction to a plate with `h` of `parts` right. */
+export function reactionFor(h: number, parts: number): Reaction {
+  if (h >= parts) return 'eat';
   if (h === 0) return 'snub';
   if (h === 1) return 'lick';
   return 'spit';
@@ -156,116 +205,33 @@ export function reactionText(r: Reaction): string {
   }
 }
 
-export function plateEmoji(plate: number[]): string[] {
-  return plate.map((v, i) => ROWS[i].options[v]?.emoji ?? '?');
+export function plateEmoji(plate: (number | null)[]): string[] {
+  return plate.map((v, i) => (v === null ? '❓' : (ROWS[i].options[v]?.emoji ?? '?')));
 }
 
-export function plateLabel(plate: number[]): string {
-  return plate.map((v, i) => ROWS[i].options[v]?.label ?? '?').join(' · ');
+/** Team points when Baja is fed on try `tryN` (1-based), 0 if never. */
+export function teamPoints(fedOn: number | null): number {
+  return fedOn === null ? 0 : (TRY_POINTS[fedOn - 1] ?? 0);
 }
 
-export interface Tasting {
-  id: string;
-  plate: number[];
-  hits: number;
-  fed: boolean;
-  pts: number;
+/** The cat's points: every failed try, plus a bonus if she starved. */
+export function catPoints(fedOn: number | null): number {
+  const misses = fedOn === null ? BAJA_TRIES : fedOn - 1;
+  return misses * CAT_PER_MISS + (fedOn === null ? CAT_STARVED_BONUS : 0);
 }
 
-/**
- * One craving. Tracks who still has tries, the plates handed in for the current try, and what
- * happened on every try so far.
- */
-export class Craving {
-  tryN = 1;
-  craving: number[];
-  readonly rows: number;
-  /** Plates for the current try. */
-  readonly plates = new Map<string, number[]>();
-  /** Every try so far, per player. */
-  readonly history = new Map<string, { plate: number[] | null; hits: number }[]>();
-  /** Players who fed her right, with the try they did it on. */
-  readonly fedOn = new Map<string, number>();
-  /** Points earned this craving. */
-  readonly pts = new Map<string, number>();
-  ids: string[];
-  /** Rows she changed her mind about (in order). */
-  readonly changed: number[] = [];
-
-  constructor(ids: string[], craving: number[]) {
-    this.ids = ids.slice();
-    this.craving = craving.slice();
-    this.rows = craving.length;
-    for (const id of ids) this.history.set(id, []);
-  }
-
-  /** Still playing this craving: not fed yet. */
-  active(id: string) {
-    return this.ids.includes(id) && !this.fedOn.has(id);
-  }
-
-  activeIds() {
-    return this.ids.filter((id) => this.active(id));
-  }
-
-  /** Hand in a plate for the current try. Returns false if it's not allowed. */
-  submit(id: string, plate: unknown): boolean {
-    if (!this.active(id) || this.plates.has(id) || this.over) return false;
-    if (!validPlate(plate, this.rows)) return false;
-    this.plates.set(id, plate.slice());
-    return true;
-  }
-
-  /** Everyone in `present` (connected players) who is still playing has handed in a plate. */
-  allIn(present: (id: string) => boolean) {
-    const waiting = this.activeIds().filter((id) => present(id));
-    return waiting.length > 0 && waiting.every((id) => this.plates.has(id));
-  }
-
-  /** Taste the plates of this try, in join order. Players without a plate use up the try. */
-  taste(): Tasting[] {
-    const out: Tasting[] = [];
-    for (const id of this.activeIds()) {
-      const plate = this.plates.get(id) ?? null;
-      const h = plate ? hits(plate, this.craving) : 0;
-      const fed = plate !== null && h === this.rows;
-      const pts = fed ? pointsForTry(this.tryN) : 0;
-      this.history.get(id)?.push({ plate, hits: h });
-      if (plate) out.push({ id, plate, hits: h, fed, pts });
-      if (fed) {
-        this.fedOn.set(id, this.tryN);
-        this.pts.set(id, pts);
-      }
-    }
-    this.plates.clear();
-    return out;
-  }
-
-  /** Move on to the next try (after tasting). */
-  nextTry() {
-    this.tryN++;
-  }
-
-  /** No more tries, or nobody left to feed her. */
-  get over() {
-    return this.tryN > BAJA_TRIES || this.activeIds().length === 0;
-  }
-
-  setCraving(next: number[], row: number) {
-    this.craving = next.slice();
-    this.changed.push(row);
-  }
-
-  remove(id: string) {
-    this.ids = this.ids.filter((x) => x !== id);
-    this.plates.delete(id);
-  }
+/** Who got the most votes (ties: everyone tied). */
+export function mostVoted(votes: Record<string, string>): string[] {
+  const n: Record<string, number> = {};
+  for (const v of Object.values(votes)) n[v] = (n[v] ?? 0) + 1;
+  const max = Math.max(0, ...Object.values(n));
+  return max ? Object.keys(n).filter((id) => n[id] === max) : [];
 }
 
 export function howTo(short: boolean): string[] {
   return [
-    'Baja is hungry, but very picky. Build her a plate on your phone',
-    'She tastes every plate: snub, lick, spit… or nom nom! Learn from everyone',
-    `Feed her right on the first try for 1000 · ${short ? '2 cravings' : '5 cravings'}, the last one extra picky`,
+    'Feed Baja together: everyone picks one part of the same plate',
+    'Your clues are about OTHER people’s parts. Talk, trade, give treats for sure clues',
+    `From craving 2 someone is the neighbour’s cat 🐈 and wants her hungry · ${short ? '2 cravings' : '4 cravings'}`,
   ];
 }
