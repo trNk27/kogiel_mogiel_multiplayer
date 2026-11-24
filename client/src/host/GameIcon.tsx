@@ -38,6 +38,7 @@ import { Icon as CastleIcon } from '../games/castle/icon';
 import { Icon as WeseleIcon } from '../games/wesele/icon';
 import { Icon as BajaIcon } from '../games/baja/icon';
 import { Icon as TowerIcon } from '../games/tower/icon';
+import { Icon as OgienIcon } from '../games/ogien/icon';
 
 /** Illustrated icons for the games (and the tournament). */
 export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }) {
@@ -79,6 +80,7 @@ export function GameIcon({ game, size = 80 }: { game: Selection; size?: number }
   if (game === 'premium') return <PremiumIcon size={size} />;
   if (game === 'castle') return <CastleIcon size={size} />;
   if (game === 'tower') return <TowerIcon size={size} />;
+  if (game === 'ogien') return <OgienIcon size={size} />;
   if (game === 'trails')
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
