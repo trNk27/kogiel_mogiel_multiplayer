@@ -4,8 +4,8 @@
  * Each round one pierogi hides at a stall (secretly, on their phone) and everyone else hunts for it,
  * walking stall to stall through the crowds. Seekers can sniff for a hot/cold clue that only they see.
  * The hider fights back with tricks: a fake sighting on the TV, sending the watch seller to block a
- * seeker, or sneaking to the next stall. Walk into the Krampus tent and everyone is pulled into the
- * Krampuslauf on the ice: hold to skate, let go when Krampus looks. Built for playing over a video
+ * seeker, or sneaking to the next stall. Walk into the Krampus tent and everyone is pulled onto the
+ * ice rink to dodge Krampus: jump, duck or swerve. Built for playing over a video
  * call: everything is taps, and anything timing-critical is measured on the phone.
  */
 import { mulberry32, type Rng } from '../rng';
@@ -152,81 +152,72 @@ export function hiderOrder(ids: string[], short: boolean): string[] {
   return short ? ids.slice(0, Math.min(2, ids.length)) : ids.slice();
 }
 
-// ---- Krampuslauf ------------------------------------------------------------------------------
+// ---- Krampus auf dem Eis ---------------------------------------------------------------------
 
-export const LAUF_LEAD_MS = 3_500;
-export const LAUF_MS = 14_000;
-/** Distance to the finish, and how far you skate per second while holding. */
-export const LAUF_GOAL = 100;
-export const LAUF_SPEED = 12;
-/** Let go within this long after Krampus turns, or he catches you. */
-export const LAUF_GRACE_MS = 300;
-/** Caught: pushed back this far. */
-export const LAUF_PENALTY = 20;
-export const LAUF_POINTS = [150, 100, 60, 30];
+/**
+ * Everyone skates laps round the ice rink while Krampus, in the middle, attacks. Each attack shows on
+ * the TV and on every phone at the same moment; you tap the right move in time or fall on your bum.
+ * Your tap is timed on your phone against the host clock, so video-call lag doesn't matter.
+ */
+export type Move = 'jump' | 'duck' | 'swerve';
+export const MOVES: readonly { id: Move; emoji: string; label: string }[] = [
+  { id: 'jump', emoji: '🦘', label: 'JUMP' },
+  { id: 'duck', emoji: '🙇', label: 'DUCK' },
+  { id: 'swerve', emoji: '↪️', label: 'SWERVE' },
+];
+export interface Attack {
+  emoji: string;
+  text: string;
+  dodge: Move;
+}
+export const ATTACKS: readonly Attack[] = [
+  { emoji: '🌿', text: 'Birch switch, low!', dodge: 'jump' },
+  { emoji: '⛓️', text: 'Chains, high!', dodge: 'duck' },
+  { emoji: '❄️', text: 'Snowball!', dodge: 'swerve' },
+];
 
-/** When Krampus looks: [start, end] ms from the start of the race. Fair for everyone (same schedule). */
-export function lookSchedule(rng: Rng): [number, number][] {
+export const LAUF_LEAD_MS = 4_000;
+export const LAUF_ATTACKS = 8;
+/** Time between attacks, and how long you have to react. */
+export const ATTACK_EVERY_MS = 2_600;
+export const DODGE_MS = 1_500;
+export const LAUF_MS = LAUF_ATTACKS * ATTACK_EVERY_MS + 1_200;
+/** Points per dodge, plus a bonus for quick ones. */
+export const DODGE_POINTS = 40;
+export const QUICK_MS = 700;
+export const QUICK_BONUS = 20;
+
+/** The attacks: [ms after the start, attack index]. Never the same one three times running. */
+export function attackSchedule(rng: Rng): [number, number][] {
   const out: [number, number][] = [];
-  let t = 1800 + rng() * 1200;
-  while (t < LAUF_MS - 900) {
-    const len = 1000 + rng() * 1000;
-    out.push([Math.round(t), Math.round(Math.min(LAUF_MS, t + len))]);
-    t += len + 1300 + rng() * 1800;
+  for (let i = 0; i < LAUF_ATTACKS; i++) {
+    let k = Math.floor(rng() * ATTACKS.length);
+    if (i >= 2 && out[i - 1][1] === k && out[i - 2][1] === k) k = (k + 1) % ATTACKS.length;
+    out.push([800 + i * ATTACK_EVERY_MS, k]);
   }
   return out;
 }
 
-/** Krampus is looking at time `t` (ms from the start). */
-export function looking(schedule: [number, number][], t: number): boolean {
-  return schedule.some(([a, b]) => t >= a && t < b);
+/** Points for one reaction: `at` ms after the attack showed (null: no reaction). */
+export function dodgePoints(attack: number, pick: Move | null, at: number | null): number {
+  if (pick === null || at === null || at < 0 || at > DODGE_MS) return 0;
+  if (ATTACKS[attack]?.dodge !== pick) return 0;
+  return DODGE_POINTS + (at <= QUICK_MS ? QUICK_BONUS : 0);
 }
 
-/**
- * Replay a run: `holds` are [press, release] ms from the start (release null: still held at the end).
- * Holding while he looks (after the grace) gets you caught: pushed back, and you have to let go.
- */
-export function simulateLauf(holds: [number, number | null][], schedule: [number, number][]): { dist: number; caught: number } {
-  let dist = 0;
-  let caught = 0;
-  const sorted = holds
-    .filter((h) => Array.isArray(h) && Number.isFinite(h[0]))
-    .map(([p, r]): [number, number] => [Math.max(0, p), Math.min(LAUF_MS, r ?? LAUF_MS)])
-    .filter(([p, r]) => r > p && p < LAUF_MS)
-    .sort((a, b) => a[0] - b[0]);
-  let busyUntil = 0;
-  for (const [p, r] of sorted) {
-    const press = Math.max(p, busyUntil);
-    if (r <= press) continue;
-    busyUntil = r;
-    // Pressing while he's already looking: caught straight away.
-    if (looking(schedule, press)) {
-      caught++;
-      dist = Math.max(0, dist - LAUF_PENALTY);
-      continue;
-    }
-    // Still holding when he turns round (after the grace): caught at that moment.
-    const turn = schedule.find(([a]) => a > press && a + LAUF_GRACE_MS < r);
-    if (turn) {
-      dist = Math.min(LAUF_GOAL, dist + ((turn[0] - press) / 1000) * LAUF_SPEED);
-      if (dist >= LAUF_GOAL) break;
-      caught++;
-      dist = Math.max(0, dist - LAUF_PENALTY);
-      continue;
-    }
-    dist = Math.min(LAUF_GOAL, dist + ((r - press) / 1000) * LAUF_SPEED);
-    if (dist >= LAUF_GOAL) break;
-  }
-  return { dist: Math.round(dist * 10) / 10, caught };
+/** How far round the rink a skater is, in laps: everyone glides, dodges push you on, falls cost you. */
+export function lapsAt(elapsedMs: number, dodged: number, fell: number): number {
+  const t = Math.max(0, Math.min(LAUF_MS, elapsedMs)) / LAUF_MS;
+  return Math.max(0, t * 1.4 + dodged * 0.07 - fell * 0.05);
 }
 
-/** Points for the race by place (furthest first, ties share). */
-export function laufPoints(dists: Record<string, number>): Record<string, number> {
-  const ids = Object.keys(dists);
+/** Points for the race by place (most dodge points first, ties share). */
+export function laufPoints(scores: Record<string, number>): Record<string, number> {
+  const ids = Object.keys(scores);
   const out: Record<string, number> = {};
   for (const id of ids) {
-    const better = ids.filter((o) => dists[o] > dists[id]).length;
-    out[id] = dists[id] > 0 ? (LAUF_POINTS[better] ?? 15) : 0;
+    const better = ids.filter((o) => scores[o] > scores[id]).length;
+    out[id] = scores[id] + (scores[id] > 0 ? ([100, 60, 30][better] ?? 0) : 0);
   }
   return out;
 }

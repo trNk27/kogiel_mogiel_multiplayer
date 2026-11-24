@@ -3,11 +3,60 @@
  * big attractions (Ferris wheel, Christmas tree, heart tree, ice rink, carousel, curling, Krampus tent),
  * with crowds of pierogi squeezing between them. Plus Krampus and the dodgy watch seller.
  */
+import { useEffect, useRef } from 'preact/hooks';
 import { COLS, ROWS, SPOTS, edgeKey, neighbours } from './logic';
 
-/** Where each stall stands on the 1728×972 TV stage: the middle of the stall. */
-export const SPOT_XY: [number, number][] = SPOTS.map((s) => [235 + s.col * 372, 318 + s.row * 228]);
-export const ENTRANCE_XY: [number, number] = [(SPOT_XY[9][0] + SPOT_XY[10][0]) / 2, 935];
+/** Perspective: the back row is further away (smaller, higher), the front row close. */
+const ROW_Y = [372, 568, 800];
+export const ROW_SCALE = [0.7, 0.85, 1];
+/** Where each stall stands on the 1728×972 TV stage (the middle of the stall), and how big it looks. */
+export const SPOT_XY: [number, number][] = SPOTS.map((s) => [864 + (s.col - 1.5) * 400 * ROW_SCALE[s.row], ROW_Y[s.row]]);
+export const SPOT_SCALE: number[] = SPOTS.map((s) => ROW_SCALE[s.row]);
+export const ENTRANCE_XY: [number, number] = [864, 950];
+
+/** Real snow: three depths of flakes drifting in the wind, the near ones big and soft. */
+export function Snow({ count = 220, front = true }: { count?: number; front?: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = ref.current;
+    const ctx = c?.getContext('2d');
+    if (!c || !ctx) return;
+    const W = (c.width = 1728);
+    const H = (c.height = 972);
+    const flakes = Array.from({ length: count }, () => {
+      const z = Math.random();
+      return { x: Math.random() * W, y: Math.random() * H, z, r: 1 + z * z * 5, vy: 0.4 + z * 1.6, ph: Math.random() * 6.28 };
+    });
+    let raf = 0;
+    let t = 0;
+    const loop = () => {
+      t += 0.016;
+      ctx.clearRect(0, 0, W, H);
+      const wind = Math.sin(t * 0.3) * 0.6 + 0.4;
+      for (const f of flakes) {
+        f.y += f.vy;
+        f.x += wind * (0.3 + f.z) + Math.sin(t * 1.3 + f.ph) * 0.4;
+        if (f.y > H + 10) {
+          f.y = -10;
+          f.x = Math.random() * W;
+        }
+        if (f.x > W + 10) f.x = -10;
+        const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+        g.addColorStop(0, `rgba(255,255,255,${0.5 + f.z * 0.5})`);
+        g.addColorStop(f.z > 0.85 ? 0.3 : 0.6, `rgba(255,255,255,${0.3 + f.z * 0.4})`);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+    return () => cancelAnimationFrame(raf);
+  }, [count]);
+  return <canvas ref={ref} class={`mk-snowcanvas ${front ? 'front' : 'back'}`} />;
+}
 
 const CROWD_COLORS = ['#6d5a7a', '#5a6d7a', '#7a6a5a', '#6a7a5a', '#7a5a62', '#5a5f7a'];
 
@@ -23,10 +72,17 @@ export function Market({ crowds }: { crowds: Record<string, number> }) {
   return (
     <div class="mk-market">
       <div class="mk-sky" />
-      <Rathaus />
       <div class="mk-stars" />
-      <div class="mk-ground" />
-      <div class="mk-lights" />
+      <Rathaus />
+      <div class="mk-haze" />
+      <div class="mk-ground3d">
+        <div class="mk-cobbles" />
+      </div>
+      <Snow count={90} front={false} />
+      {SPOTS.map((_, i) => (
+        <div class="mk-pool" style={{ left: `${SPOT_XY[i][0]}px`, top: `${SPOT_XY[i][1] + 70 * SPOT_SCALE[i]}px`, '--s': SPOT_SCALE[i] }} />
+      ))}
+      <Garlands />
       {/* Paths, busier ones packed with pierogi. */}
       {edges.map(([a, b]) => {
         const [x1, y1] = SPOT_XY[a];
@@ -43,10 +99,11 @@ export function Market({ crowds }: { crowds: Record<string, number> }) {
               const dy = y1 === y2 ? (r - 0.5) * 46 : 0;
               const x = x1 + (x2 - x1) * (span[0] + t * span[1]) + dx;
               const y = y1 + (y2 - y1) * (span[0] + t * span[1]) + dy + (y1 === y2 ? 30 : 0);
+              const sc = SPOT_SCALE[a] + (SPOT_SCALE[b] - SPOT_SCALE[a]) * (span[0] + t * span[1]);
               return (
                 <span
                   class={`mk-blob ${r > 0.6 ? 'hat' : ''} ${r < 0.25 ? 'mug' : ''}`}
-                  style={{ left: `${x}px`, top: `${y}px`, '--c': CROWD_COLORS[(a + b + k) % CROWD_COLORS.length], '--d': `${(r * 1.2).toFixed(2)}s` }}
+                  style={{ left: `${x}px`, top: `${y}px`, zIndex: Math.round(y), '--s': sc, '--c': CROWD_COLORS[(a + b + k) % CROWD_COLORS.length], '--d': `${(r * 1.2).toFixed(2)}s` }}
                 />
               );
             })}
@@ -54,7 +111,7 @@ export function Market({ crowds }: { crowds: Record<string, number> }) {
         );
       })}
       {SPOTS.map((s, i) => (
-        <div class={`mk-stall s-${s.id}`} style={{ left: `${SPOT_XY[i][0]}px`, top: `${SPOT_XY[i][1]}px` }}>
+        <div class={`mk-stall s-${s.id}`} style={{ left: `${SPOT_XY[i][0]}px`, top: `${SPOT_XY[i][1]}px`, zIndex: SPOT_XY[i][1], '--s': SPOT_SCALE[i] }}>
           <StallArt id={s.id} />
           <span class="mk-sign">
             {s.emoji} {s.name}
@@ -64,9 +121,69 @@ export function Market({ crowds }: { crowds: Record<string, number> }) {
       <div class="mk-arch" style={{ left: `${ENTRANCE_XY[0]}px`, top: `${ENTRANCE_XY[1]}px` }}>
         <span>✨ Christkindlmarkt ✨</span>
       </div>
-      <div class="mk-snow" />
-      <div class="mk-snow far" />
+      {[
+        [300, 690],
+        [1428, 690],
+        [560, 480],
+        [1168, 480],
+      ].map(([x, y]) => (
+        <Lamp x={x} y={y} s={y > 600 ? 0.95 : 0.8} />
+      ))}
+      <Snow count={170} />
+      <div class="mk-vignette" />
     </div>
+  );
+}
+
+/** A Viennese street lamp with a warm halo. */
+function Lamp({ x, y, s }: { x: number; y: number; s: number }) {
+  return (
+    <div class="mk-lamp" style={{ left: `${x}px`, top: `${y}px`, zIndex: y + 60, '--s': s }}>
+      <span class="mk-lamp-halo" />
+      <svg viewBox="0 0 40 200" aria-hidden="true">
+        <rect x="17" y="40" width="6" height="156" fill="#1c1a22" />
+        <rect x="11" y="190" width="18" height="10" rx="2" fill="#1c1a22" />
+        <path d="M8 40 L32 40 L28 14 L12 14 Z" fill="#ffe9a8" stroke="#1c1a22" stroke-width="3" />
+        <path d="M6 14 L34 14 L20 2 Z" fill="#1c1a22" />
+        <path d="M10 14 h20" stroke="#fff" stroke-width="2" opacity=".6" />
+      </svg>
+    </div>
+  );
+}
+
+/** Strings of fairy lights criss-crossing over the market, sagging into the distance. */
+function Garlands() {
+  const strings: [number, number, number, number][] = [
+    [0, 250, 900, 330],
+    [828, 330, 1728, 250],
+    [80, 470, 1648, 470],
+  ];
+  return (
+    <svg class="mk-garlands" viewBox="0 0 1728 972" aria-hidden="true">
+      {strings.map(([x1, y1, x2, y2], si) => {
+        const sag = si === 2 ? 70 : 50;
+        const mx = (x1 + x2) / 2;
+        const my = Math.max(y1, y2) + sag;
+        const n = si === 2 ? 40 : 24;
+        return (
+          <g>
+            <path d={`M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}`} stroke="#1c2a1c" stroke-width="2" fill="none" />
+            {Array.from({ length: n }, (_, i) => {
+              const t = (i + 0.5) / n;
+              const bx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * mx + t * t * x2;
+              const by = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * my + t * t * y2;
+              const c = ['#ffd23f', '#ff8fb1', '#fff4c9', '#5ad0ff'][i % 4];
+              return (
+                <g class="mk-bulb" style={{ animationDelay: `${(i % 7) * 0.21}s` }}>
+                  <circle cx={bx} cy={by + 5} r="9" fill={c} opacity=".25" />
+                  <circle cx={bx} cy={by + 5} r="3.6" fill={c} />
+                </g>
+              );
+            })}
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -113,7 +230,11 @@ function Rathaus() {
 
 function Hut({ steam, color = '#8a4b2a' }: { steam?: boolean; color?: string }) {
   return (
-    <svg class="mk-hut" viewBox="0 0 220 170" aria-hidden="true">
+    <svg class="mk-hut" viewBox="0 0 236 170" aria-hidden="true">
+      {/* The side of the hut, in shadow, so it reads as a little wooden house. */}
+      <path d="M196 62 L216 74 L216 166 L196 164 Z" fill={color} stroke="#2a120a" stroke-width="3" />
+      <path d="M196 62 L216 74 L216 166 L196 164 Z" fill="#000" opacity=".35" />
+      <path d="M210 66 L230 78 L112 14 L110 10 Z" fill="#4a2414" stroke="#2a120a" stroke-width="3" stroke-linejoin="round" />
       <rect x="22" y="60" width="176" height="104" rx="4" fill={color} stroke="#2a120a" stroke-width="4" />
       <path d="M30 70 v86 M60 70 v86 M90 70 v86 M120 70 v86 M150 70 v86 M180 70 v86" stroke="rgba(0,0,0,.18)" stroke-width="3" />
       {/* Glowing window and counter. */}

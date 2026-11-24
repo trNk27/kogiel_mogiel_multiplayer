@@ -1,10 +1,10 @@
 /** Wo ist der Pieróg? on the phone: hide, seek (walk, sniff, glühwein, shake off the watch seller), tricks, and the Krampuslauf. */
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { colorHex } from '../../../../shared/protocol';
 import { Pierogi } from '../../lib/art';
 import { TimeBar } from '../../phone/timebar';
 import type { Props } from '../../phone/views';
-import { CLUE_TEXT, GLUEHWEIN, LAUF_GOAL, LAUF_MS, SELLER_TAPS, SPOTS, TENT, canHide, edgeKey, looking, neighbours, simulateLauf, walkMs } from './logic';
+import { ATTACKS, CLUE_TEXT, DODGE_MS, GLUEHWEIN, LAUF_MS, MOVES, SELLER_TAPS, SPOTS, TENT, canHide, edgeKey, neighbours, walkMs, type Move } from './logic';
 import { WatchSeller } from './art';
 import './markt.css';
 
@@ -285,91 +285,70 @@ function SeekerPad({ view, send, offset, me }: Props<'markt'>) {
   );
 }
 
-/** Krampuslauf: hold to skate, let go the moment he looks. Holds are recorded here and replayed on the host. */
+/** Krampus auf dem Eis: when an attack flashes up, tap the right move. Timed here against the host clock. */
 function LaufPad({ view, send, offset }: Props<'markt'>) {
   const lf = view.lauf!;
-  const holds = useRef<[number, number | null][]>([]);
-  const sent = useRef(false);
-  const lastLive = useRef(0);
-  const [holding, setHolding] = useState(false);
-  const [t, setT] = useState(-99999);
-  const hostNow = () => Date.now() - offset;
+  const now = useNow(50);
+  const t = now - offset - lf.startAt;
+  const [mine, setMine] = useState<Record<number, Move>>({});
+  const cur = lf.attacks.findIndex(([a]) => t >= a && t < a + DODGE_MS);
+  // The last attack that has finished, for feedback between attacks.
+  const last = lf.attacks.reduce((acc, [a], i) => (t >= a + DODGE_MS ? i : acc), -1);
+  const atk = cur >= 0 ? ATTACKS[lf.attacks[cur][1]] : null;
+  const answered = cur >= 0 && (mine[cur] !== undefined || (lf.done[cur] ?? -1) >= 0);
+  const dodged = lf.done.filter((x) => x > 0).length + Object.entries(mine).filter(([i, m]) => (lf.done[+i] ?? -1) < 0 && ATTACKS[lf.attacks[+i][1]].dodge === m).length;
 
   useEffect(() => {
-    let raf = 0;
-    const loop = () => {
-      const tt = hostNow() - lf.startAt;
-      setT(tt);
-      if (tt > 0 && Date.now() - lastLive.current > 350 && !sent.current) {
-        lastLive.current = Date.now();
-        const cur = holds.current.map(([p, r]): [number, number | null] => [p, r ?? Math.min(tt, LAUF_MS)]);
-        send({ t: 'markt', key: view.key, live: simulateLauf(cur, lf.schedule).dist });
-      }
-      if (tt >= LAUF_MS) {
-        if (!sent.current) {
-          sent.current = true;
-          send({ t: 'markt', key: view.key, holds: holds.current });
-        }
-        return;
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    loop();
-    return () => cancelAnimationFrame(raf);
-  }, [view.key, lf.startAt]);
+    if (cur >= 0 && !answered) vibrate([60, 40, 60]);
+  }, [cur]);
 
-  const press = () => {
-    const tt = hostNow() - lf.startAt;
-    if (tt < 0 || tt > LAUF_MS || sent.current) return;
-    holds.current.push([tt, null]);
-    setHolding(true);
-    vibrate(8);
-  };
-  const release = () => {
-    const last = holds.current[holds.current.length - 1];
-    if (last && last[1] === null) last[1] = hostNow() - lf.startAt;
-    setHolding(false);
+  const pick = (m: Move) => {
+    if (cur < 0 || answered) return;
+    const at = Date.now() - offset - lf.startAt - lf.attacks[cur][0];
+    setMine({ ...mine, [cur]: m });
+    vibrate(ATTACKS[lf.attacks[cur][1]].dodge === m ? 20 : [150]);
+    send({ t: 'markt', key: view.key, dodge: { i: cur, move: m, at } });
   };
 
-  const cur = holds.current.map(([p, r]): [number, number | null] => [p, r ?? Math.max(p, Math.min(t, LAUF_MS))]);
-  const sim = simulateLauf(cur, lf.schedule);
-  const isLooking = t >= 0 && looking(lf.schedule, t);
-  // Caught on the current hold: he saw you.
-  const caughtNow = holding && isLooking;
-  useEffect(() => {
-    if (caughtNow) vibrate([200]);
-  }, [caughtNow]);
+  let cue: preact.ComponentChildren;
+  let cls = '';
+  if (t < 0) cue = <><span>⛸️</span>Get on the ice… {Math.ceil(-t / 1000)}</>;
+  else if (t >= LAUF_MS) cue = <><span>🏁</span>Off the ice!</>;
+  else if (atk && !answered) {
+    cls = 'attack';
+    cue = (
+      <>
+        <span>{atk.emoji}</span>
+        {atk.text}
+      </>
+    );
+  } else {
+    const i = atk ? cur : last;
+    const m = mine[i];
+    const ok = i >= 0 && ((lf.done[i] ?? -1) > 0 || (m !== undefined && ATTACKS[lf.attacks[i][1]].dodge === m));
+    if (i < 0) cue = <><span>👹</span>Watch out for Krampus!</>;
+    else {
+      cls = ok ? 'ok' : 'bad';
+      cue = ok ? <><span>✅</span>Dodged!</> : <><span>💫</span>Ouch! On your bum!</>;
+    }
+  }
 
   return (
     <div class="pv mkp">
-      <div class="mkp-title">KRAMPUSLAUF! ⛸️👹</div>
+      <div class="mkp-title">Krampus auf dem Eis! ⛸️👹</div>
       <div class="mkp-lauf">
-        <div class={`mkp-krampus ${isLooking ? 'looking' : ''}`}>
-          {t < 0 ? `Get ready… ${Math.ceil(-t / 1000)}` : t >= LAUF_MS ? 'Done!' : isLooking ? '👹 HE SEES YOU! FREEZE!' : '💤 He is looking away… GO!'}
+        <div class={`mkp-cue ${cls}`}>{cue}</div>
+        <div class="mkp-moves">
+          {MOVES.map((m) => (
+            <button class="mkp-move" disabled={!atk || answered} onPointerDown={(e) => (e.preventDefault(), pick(m.id))}>
+              <span>{m.emoji}</span>
+              {m.label}
+            </button>
+          ))}
         </div>
-        <div class="mkp-track">
-          <div style={{ width: `${(sim.dist / LAUF_GOAL) * 100}%` }} />
+        <div class="mkp-score">
+          ✅ {dodged} / {lf.attacks.length} dodged
         </div>
-        <div class="mkp-note">
-          {Math.round(sim.dist)} / {LAUF_GOAL} m {sim.caught > 0 ? `· caught ${sim.caught}× 😱` : ''}
-        </div>
-        <button
-          class={`mkp-hold ${holding ? 'holding' : ''} ${caughtNow ? 'caught' : ''}`}
-          onPointerDown={(e) => {
-            e.preventDefault();
-            try {
-              (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-            } catch {
-              /* synthetic pointer */
-            }
-            press();
-          }}
-          onPointerUp={release}
-          onPointerCancel={release}
-        >
-          <span>{caughtNow ? '😱' : '⛸️'}</span>
-          {caughtNow ? 'LET GO!' : holding ? 'Skating…' : 'HOLD to skate'}
-        </button>
       </div>
     </div>
   );

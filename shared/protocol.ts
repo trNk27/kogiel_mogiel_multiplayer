@@ -880,7 +880,7 @@ export type PhoneView =
       sniffReadyAt: number;
       clue: { at: number; clue: 'here' | 'hot' | 'warm' | 'cold' } | null;
       seller: number;
-      lauf?: { startAt: number; endAt: number; schedule: [number, number][] };
+      lauf?: { startAt: number; endAt: number; attacks: [number, number][]; done: number[] };
       result?: { big: string; text: string; good: boolean; pts: number };
     }
   | {
@@ -1127,8 +1127,8 @@ export type PhoneMsg =
   /**
    * Wo ist der Pieróg?, for round `key`. Hider: `hide` a spot, then tricks: `fake` sighting at a spot,
    * send the `seller` to a seeker, `sneak` to a next-door spot. Seeker: `walk` to a next-door spot,
-   * `sniff`, `drink` a glühwein, `nein` to the watch seller. Krampuslauf: `live` distance (for the TV)
-   * and at the end your `holds` ([press, release] ms from the start).
+   * `sniff`, `drink` a glühwein, `nein` to the watch seller. On the ice: `dodge` attack `i` with a
+   * move, `at` ms after it showed (measured on the phone, host clock).
    */
   | {
       t: 'markt';
@@ -1141,8 +1141,7 @@ export type PhoneMsg =
       sniff?: boolean;
       drink?: boolean;
       nein?: boolean;
-      live?: number;
-      holds?: [number, number | null][];
+      dodge?: { i: number; move: 'jump' | 'duck' | 'swerve'; at: number };
     }
   | { t: 'wesele'; key: number; choice?: 'drink' | 'kompot'; v?: number; live?: boolean; moves?: number[] }
   /** Wybredna Baja: your plate for try `tryN` of craving `round` (one option index per row). */

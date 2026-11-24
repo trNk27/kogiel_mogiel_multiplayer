@@ -8,7 +8,6 @@ import {
   GLUEHWEIN,
   HIDE_MS,
   HUNT_MS,
-  LAUF_GOAL,
   LAUF_LEAD_MS,
   LAUF_MS,
   RUMOUR_EVERY_MS,
@@ -24,18 +23,20 @@ import {
   hidePoints,
   hiderOrder,
   laufPoints,
-  lookSchedule,
+  attackSchedule,
+  dodgePoints,
+  MOVES,
   makeCrowds,
   mulberry32,
   neighbours,
-  simulateLauf,
   sniff,
   trueRumour,
   walkMs,
   type Clue,
   type Rng,
 } from './logic';
-import { Krampus, Market, SPOT_XY, WatchSeller } from './art';
+import { Market, SPOT_SCALE, SPOT_XY, WatchSeller } from './art';
+import { IceRink } from './rink';
 import './markt.css';
 
 const INTRO_MS = 7000;
@@ -95,10 +96,10 @@ export class MarktGame implements Game {
   private laufDone = false;
   laufStart = 0;
   laufEnd = 0;
-  schedule: [number, number][] = [];
-  readonly laufLive = new Map<string, number>();
-  private laufHolds = new Map<string, [number, number | null][]>();
-  private laufIds = new Set<string>();
+  attacks: [number, number][] = [];
+  /** Per skater, per attack: the points they got for it (0: fell), or missing if not answered yet. */
+  readonly dodges = new Map<string, (number | undefined)[]>();
+  laufIds = new Set<string>();
   laufCaller = '';
   foundBy: string | null = null;
   private results = new Map<string, Result>();
@@ -319,13 +320,15 @@ export class MarktGame implements Game {
     this.laufDone = true;
     this.laufCaller = caller;
     this.phase = 'lauf';
-    this.schedule = lookSchedule(this.rng);
+    this.attacks = attackSchedule(this.rng);
     this.laufStart = Date.now() + LAUF_LEAD_MS;
     this.laufEnd = this.laufStart + LAUF_MS;
     this.endsAt = this.laufEnd;
-    this.laufLive.clear();
-    this.laufHolds.clear();
+    this.dodges.clear();
     this.laufIds = new Set(this.ids.filter((id) => this.host.player(id)?.connected));
+    for (const id of this.laufIds) this.dodges.set(id, []);
+    // A whoosh and a growl for every attack, in time with the TV.
+    for (const [t] of this.attacks) this.at(this.laufStart - Date.now() + t, () => (sound.whoosh(), this.host.changed()));
     sound.drumroll(LAUF_LEAD_MS / 1000);
     for (const id of this.ids) this.host.buzz(id, [200, 80, 200]);
     this.at(this.laufEnd - Date.now() + LATE_MS, () => this.laufDone_());
@@ -335,13 +338,12 @@ export class MarktGame implements Game {
   private laufDone_() {
     if (this.phase !== 'lauf') return;
     this.clear();
-    const dists: Record<string, number> = {};
+    const sums: Record<string, number> = {};
     for (const id of this.laufIds) {
       if (!this.ids.includes(id)) continue;
-      dists[id] = simulateLauf(this.laufHolds.get(id) ?? [], this.schedule).dist;
-      this.laufLive.set(id, dists[id]);
+      sums[id] = (this.dodges.get(id) ?? []).reduce<number>((a, b) => a + (b ?? 0), 0);
     }
-    const pts = laufPoints(dists);
+    const pts = laufPoints(sums);
     for (const id of Object.keys(pts)) this.scores[id] = (this.scores[id] ?? 0) + pts[id];
     this.laufPts = pts;
     this.phase = 'laufResult';
@@ -382,18 +384,20 @@ export class MarktGame implements Game {
     const s = this.seekers.get(id);
 
     if (this.phase === 'lauf') {
-      if (!this.laufIds.has(id)) return;
-      if (typeof m.live === 'number' && Number.isFinite(m.live)) {
-        this.laufLive.set(id, Math.max(0, Math.min(LAUF_GOAL, m.live)));
-        this.host.changed();
+      const d = m.dodge;
+      const mine = this.dodges.get(id);
+      if (!d || !mine || !Number.isInteger(d.i) || d.i < 0 || d.i >= this.attacks.length || mine[d.i] !== undefined) return;
+      if (!MOVES.some((x) => x.id === d.move) || !Number.isFinite(d.at)) return;
+      // Too early to have seen it: ignore. (The phone only lets you answer while it shows.)
+      if (now < this.laufStart + this.attacks[d.i][0] - 300) return;
+      const pts = dodgePoints(this.attacks[d.i][1], d.move, d.at);
+      mine[d.i] = pts;
+      if (pts > 0) sound.correct();
+      else {
+        sound.wrong();
+        this.host.buzz(id, [200]);
       }
-      if (Array.isArray(m.holds) && !this.laufHolds.has(id)) {
-        this.laufHolds.set(id, m.holds.slice(0, 80));
-        if ([...this.laufIds].every((x) => this.laufHolds.has(x) || !this.host.player(x)?.connected) && now > this.laufEnd) {
-          this.clear();
-          this.at(300, () => this.laufDone_());
-        }
-      }
+      this.host.changed();
       return;
     }
 
@@ -526,12 +530,20 @@ export class MarktGame implements Game {
       sniffReadyAt: s?.sniffReadyAt ?? 0,
       clue: s?.clue ?? null,
       seller: s?.seller ?? 0,
-      lauf: this.phase === 'lauf' && this.laufIds.has(id) ? { startAt: this.laufStart, endAt: this.laufEnd, schedule: this.schedule } : undefined,
+      lauf:
+        this.phase === 'lauf' && this.laufIds.has(id)
+          ? { startAt: this.laufStart, endAt: this.laufEnd, attacks: this.attacks, done: (this.dodges.get(id) ?? []).map((x) => (x === undefined ? -1 : x)) }
+          : undefined,
       result:
         this.phase === 'result' && r
           ? r
           : this.phase === 'laufResult'
-            ? { big: 'Krampuslauf over!', text: `You skated ${Math.round(this.laufLive.get(id) ?? 0)} m.`, good: (this.laufPts[id] ?? 0) > 0, pts: this.laufPts[id] ?? 0 }
+            ? {
+                big: 'Off the ice!',
+                text: `You dodged Krampus ${(this.dodges.get(id) ?? []).filter((x) => (x ?? 0) > 0).length} of ${this.attacks.length} times.`,
+                good: (this.laufPts[id] ?? 0) > 0,
+                pts: this.laufPts[id] ?? 0,
+              }
             : this.phase === 'end'
               ? { big: 'The market closes 🌙', text: 'Frohe Weihnachten!', good: true, pts: 0 }
               : undefined,
@@ -550,7 +562,7 @@ export class MarktGame implements Game {
       case 'hunt':
         return { title: `Find ${hn}!`, sub: 'Walk stall to stall · sniff for clues · rumours can lie' };
       case 'lauf':
-        return { title: 'KRAMPUSLAUF! 👹', sub: `${this.host.player(this.laufCaller)?.name ?? 'Someone'} woke Krampus. Hold to skate, freeze when he looks!` };
+        return { title: 'Krampus auf dem Eis! 👹', sub: `${this.host.player(this.laufCaller)?.name ?? 'Someone'} woke Krampus. Jump, duck or swerve on your phone!` };
       case 'laufResult':
         return { title: 'Krampus goes back to sleep…' };
       case 'result':
@@ -580,7 +592,7 @@ export class MarktGame implements Game {
           this.rumours
             .filter((r) => r.until > now)
             .map((r) => (
-              <div key={`r${r.n}`} class="mk-rumour" style={{ left: `${SPOT_XY[r.at][0]}px`, top: `${SPOT_XY[r.at][1] - 150}px` }}>
+              <div key={`r${r.n}`} class="mk-rumour" style={{ left: `${SPOT_XY[r.at][0]}px`, top: `${SPOT_XY[r.at][1] - 150 * SPOT_SCALE[r.at]}px` }}>
                 👀 Pierogi spotted near here!
               </div>
             ))}
@@ -592,16 +604,19 @@ export class MarktGame implements Game {
           const dest = s.walkingTo ?? s.at;
           const [x, y] = SPOT_XY[dest];
           const walking = s.walkingTo !== null && this.phase === 'hunt';
-          const off = ((k % 4) - 1.5) * 44;
+          const sc = SPOT_SCALE[dest];
+          const off = ((k % 4) - 1.5) * 56 * sc;
           return (
             <div
               key={id}
               class={`mk-seeker ${walking ? 'walking' : ''} ${s.boosted ? 'boosted' : ''} ${this.foundBy === id ? 'finder' : ''}`}
               style={{
                 left: `${x + off}px`,
-                top: `${y + 40 + (k % 2) * 16}px`,
+                top: `${y + (40 + (k % 2) * 16) * sc}px`,
+                zIndex: Math.round(y + 120),
                 transitionDuration: walking ? `${Math.max(0, s.arriveAt - now)}ms` : '400ms',
                 '--pc': colorHex(p.color),
+                '--s': sc,
               }}
             >
               {s.seller > 0 && this.phase === 'hunt' && (
@@ -612,7 +627,7 @@ export class MarktGame implements Game {
               )}
               {s.clue && now - s.sniffedAt < 2500 && this.phase === 'hunt' && <span class="mk-sniff">👃</span>}
               {s.boosted && <span class="mk-mug">🍷</span>}
-              <Pierogi color={colorHex(p.color)} size={78} mood={this.foundBy === id ? 'wow' : 'happy'} />
+              <Pierogi color={colorHex(p.color)} size={96} mood={this.foundBy === id ? 'wow' : 'happy'} />
               <span class="mk-name">{p.name}</span>
             </div>
           );
@@ -620,7 +635,7 @@ export class MarktGame implements Game {
 
         {/* The hider, only when it's safe to show them. */}
         {hp && showHider && this.hideAt >= 0 && (
-          <div class="mk-hider found pop-in" style={{ left: `${SPOT_XY[this.hideAt][0]}px`, top: `${SPOT_XY[this.hideAt][1] - 10}px`, '--pc': colorHex(hp.color) }}>
+          <div class="mk-hider found pop-in" style={{ left: `${SPOT_XY[this.hideAt][0]}px`, top: `${SPOT_XY[this.hideAt][1] - 10}px`, '--pc': colorHex(hp.color), '--s': SPOT_SCALE[this.hideAt], zIndex: 1400 }}>
             <Pierogi color={colorHex(hp.color)} size={80} mood={this.foundBy ? 'dead' : 'wow'} />
             <span class="mk-name">{hp.name}</span>
           </div>
@@ -679,43 +694,7 @@ export class MarktGame implements Game {
   }
 }
 
-/** The Krampuslauf on the TV: lanes of skaters on the ice, Krampus at the far end. */
-function Lauf({ game, now }: { game: MarktGame; now: number }) {
-  const t = now - game.laufStart;
-  const lookingNow = game.phase === 'lauf' && t >= 0 && game.schedule.some(([a, b]) => t >= a && t < b);
-  const count = t < 0 ? Math.ceil(-t / 1000) : null;
-  const ids = game.ids.filter((id) => game.laufLive.has(id) || game.phase === 'lauf');
-  return (
-    <div class={`mk-lauf ${lookingNow ? 'looking' : ''}`}>
-      <div class="mk-ice" />
-      <div class="mk-finish" />
-      <div class="mk-krampus">
-        <Krampus looking={lookingNow} />
-        {lookingNow && <span class="mk-roar">FREEZE!</span>}
-      </div>
-      <div class="mk-lanes">
-        {ids.map((id) => {
-          const p = game.host_player(id);
-          if (!p) return null;
-          const d = game.laufLive.get(id) ?? 0;
-          const pts = game.laufPts[id];
-          return (
-            <div class="mk-lane">
-              <span class="mk-lane-name" style={{ background: colorHex(p.color) }}>
-                {p.name}
-              </span>
-              <div class="mk-lane-track">
-                <div class="mk-skater" style={{ left: `${(d / LAUF_GOAL) * 100}%` }}>
-                  <Pierogi color={colorHex(p.color)} size={58} mood={game.phase === 'laufResult' && pts ? 'wow' : 'happy'} />
-                  <span class="mk-skates">⛸️</span>
-                </div>
-              </div>
-              {game.phase === 'laufResult' && <b class="mk-lane-pts">{pts ? `+${pts}` : '0'}</b>}
-            </div>
-          );
-        })}
-      </div>
-      {count !== null && count > 0 && <div class="mk-count">{count}</div>}
-    </div>
-  );
+/** Krampus auf dem Eis: the rink, the skaters going round, Krampus attacking from the middle. */
+function Lauf({ game }: { game: MarktGame; now: number }) {
+  return <IceRink game={game} />;
 }

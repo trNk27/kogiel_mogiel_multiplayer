@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   ENTRANCES,
   FIND_BASE,
-  LAUF_GOAL,
-  LAUF_GRACE_MS,
+  ATTACKS,
+  DODGE_MS,
+  LAUF_ATTACKS,
   LAUF_MS,
-  LAUF_PENALTY,
-  LAUF_SPEED,
+  QUICK_MS,
   NEVER_FOUND_BONUS,
   SPOTS,
   TENT,
@@ -18,12 +18,12 @@ import {
   hiderOrder,
   howTo,
   laufPoints,
-  lookSchedule,
-  looking,
+  attackSchedule,
+  dodgePoints,
+  lapsAt,
   makeCrowds,
   mulberry32,
   neighbours,
-  simulateLauf,
   sniff,
   trueRumour,
   walkMs,
@@ -101,61 +101,41 @@ describe('scoring', () => {
   });
 });
 
-describe('Krampuslauf', () => {
-  const look: [number, number][] = [[4000, 5500]];
-  it('looks are inside the race and never overlap', () => {
+describe('Krampus auf dem Eis', () => {
+  it('attacks are spaced out inside the race, never the same three times running', () => {
     const rng = mulberry32(2);
     for (let k = 0; k < 50; k++) {
-      const s = lookSchedule(rng);
-      expect(s.length).toBeGreaterThan(0);
+      const s = attackSchedule(rng);
+      expect(s).toHaveLength(LAUF_ATTACKS);
       for (let i = 0; i < s.length; i++) {
-        expect(s[i][0]).toBeLessThan(s[i][1]);
-        expect(s[i][1]).toBeLessThanOrEqual(LAUF_MS);
-        if (i) expect(s[i][0]).toBeGreaterThan(s[i - 1][1]);
+        expect(s[i][0] + DODGE_MS).toBeLessThanOrEqual(LAUF_MS);
+        if (i) expect(s[i][0] - s[i - 1][0]).toBeGreaterThan(DODGE_MS);
+        if (i >= 2) expect(s[i][1] === s[i - 1][1] && s[i][1] === s[i - 2][1]).toBe(false);
       }
     }
-    expect(looking(look, 4500)).toBe(true);
-    expect(looking(look, 3000)).toBe(false);
   });
-  it('skating while he looks away moves you', () => {
-    const r = simulateLauf([[0, 3000]], look);
-    expect(r).toEqual({ dist: 3 * LAUF_SPEED, caught: 0 });
+  it('every attack has its own dodge', () => {
+    expect(new Set(ATTACKS.map((a) => a.dodge)).size).toBe(ATTACKS.length);
   });
-  it('letting go in time is safe; holding on gets you caught', () => {
-    expect(simulateLauf([[0, 4000 + LAUF_GRACE_MS - 50]], look).caught).toBe(0);
-    const held = simulateLauf([[0, 6000]], look);
-    expect(held.caught).toBe(1);
-    expect(held.dist).toBe(Math.max(0, 4 * LAUF_SPEED - LAUF_PENALTY));
+  it('the right move in time scores, quick ones score more', () => {
+    const jump = ATTACKS.findIndex((a) => a.dodge === 'jump');
+    expect(dodgePoints(jump, 'jump', 300)).toBeGreaterThan(dodgePoints(jump, 'jump', QUICK_MS + 100));
+    expect(dodgePoints(jump, 'jump', QUICK_MS + 100)).toBeGreaterThan(0);
   });
-  it('pressing while he looks gets you caught', () => {
-    const r = simulateLauf(
-      [
-        [0, 2000],
-        [4200, 4400],
-      ],
-      look,
-    );
-    expect(r.caught).toBe(1);
+  it('the wrong move, too late, or no move: you fall', () => {
+    const jump = ATTACKS.findIndex((a) => a.dodge === 'jump');
+    expect(dodgePoints(jump, 'duck', 300)).toBe(0);
+    expect(dodgePoints(jump, 'jump', DODGE_MS + 1)).toBe(0);
+    expect(dodgePoints(jump, null, null)).toBe(0);
+    expect(dodgePoints(jump, 'jump', -50)).toBe(0);
   });
-  it('holding the whole race never wins, playing it smart does', () => {
-    const rng = mulberry32(11);
-    const s = lookSchedule(rng);
-    const lazy = simulateLauf([[0, null]], s);
-    const smart: [number, number | null][] = [];
-    let t = 0;
-    for (const [a, b] of s) {
-      if (a - 100 > t) smart.push([t, a - 100]);
-      t = b + 50;
-    }
-    smart.push([t, LAUF_MS]);
-    expect(simulateLauf(smart, s).dist).toBeGreaterThan(lazy.dist);
-    expect(simulateLauf(smart, s).dist).toBeLessThanOrEqual(LAUF_GOAL);
+  it('dodging pushes you round the rink, falling holds you back', () => {
+    expect(lapsAt(5000, 3, 0)).toBeGreaterThan(lapsAt(5000, 0, 0));
+    expect(lapsAt(5000, 0, 3)).toBeLessThan(lapsAt(5000, 0, 0));
+    expect(lapsAt(0, 0, 5)).toBe(0);
   });
-  it('shrugs off junk', () => {
-    expect(simulateLauf([[Number.NaN, 5], [9000, 100]] as [number, number | null][], look)).toEqual({ dist: 0, caught: 0 });
-  });
-  it('places score most, nobody scores for standing still', () => {
-    const p = laufPoints({ a: 80, b: 40, c: 0 });
+  it('places add a bonus, nobody scores for falling every time', () => {
+    const p = laufPoints({ a: 300, b: 100, c: 0 });
     expect(p.a).toBeGreaterThan(p.b);
     expect(p.c).toBe(0);
   });
