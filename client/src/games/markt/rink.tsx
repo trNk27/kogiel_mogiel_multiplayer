@@ -92,7 +92,7 @@ export function IceRink({ game }: { game: MarktGame }) {
       {/* The attack flying across the ice. */}
       {atk && !over && (
         <div class={`mk-rk-attack a-${atk.dodge}`} key={`a${cur}`}>
-          <span>{atk.emoji}</span>
+          <AttackArt kind={atk.dodge} />
         </div>
       )}
 
@@ -141,7 +141,13 @@ export function IceRink({ game }: { game: MarktGame }) {
                 <i />
               </span>
               <span class="mk-rk-spray" />
-              {state === 'fall' && <span class="mk-rk-stars">💫</span>}
+              {state === 'fall' && (
+                <svg class="mk-rk-stars" viewBox="0 0 60 30" aria-hidden="true">
+                  {[10, 30, 50].map((x) => (
+                    <path d={`M${x} 4 l3 7 l7 1 l-5 5 l1 7 l-6 -4 l-6 4 l1 -7 l-5 -5 l7 -1 Z`} fill="#ffd23f" stroke="#2a120a" stroke-width="2" />
+                  ))}
+                </svg>
+              )}
             </div>
             <span class="mk-rk-shadow" />
           </div>
@@ -219,6 +225,39 @@ function RinkBackdrop() {
           })}
         </g>
       ))}
+    </svg>
+  );
+}
+
+/** What Krampus throws: a bundle of birch twigs (low), a swinging chain (high), a snowball (straight at you). */
+function AttackArt({ kind }: { kind: 'jump' | 'duck' | 'swerve' }) {
+  if (kind === 'jump')
+    return (
+      <svg viewBox="0 0 160 60" width="220" height="82" aria-hidden="true">
+        <rect x="4" y="24" width="50" height="14" rx="6" fill="#c9302c" stroke="#2a120a" stroke-width="3" />
+        {[18, 24, 30, 36, 42].map((y, i) => (
+          <path d={`M50 ${31} Q100 ${y - 2} 154 ${y - 14 + i * 7}`} stroke="#6b4a2a" stroke-width="4" fill="none" stroke-linecap="round" />
+        ))}
+        <path d="M90 22 l8 -6 M110 26 l8 -8 M120 40 l10 4 M100 42 l6 8" stroke="#3f7a3a" stroke-width="4" stroke-linecap="round" />
+      </svg>
+    );
+  if (kind === 'duck')
+    return (
+      <svg viewBox="0 0 200 40" width="260" height="52" aria-hidden="true">
+        {Array.from({ length: 9 }, (_, i) => (
+          <ellipse cx={14 + i * 21} cy="20" rx="12" ry="8" fill="none" stroke="#2a120a" stroke-width="8" />
+        ))}
+        {Array.from({ length: 9 }, (_, i) => (
+          <ellipse cx={14 + i * 21} cy="20" rx="12" ry="8" fill="none" stroke="#9aa3b0" stroke-width="4" />
+        ))}
+        <circle cx="194" cy="20" r="6" fill="#c9a23a" stroke="#2a120a" stroke-width="2.5" />
+      </svg>
+    );
+  return (
+    <svg viewBox="0 0 60 60" width="80" height="80" aria-hidden="true">
+      <circle cx="30" cy="30" r="25" fill="#fffaf2" stroke="#2a120a" stroke-width="3.5" />
+      <path d="M14 26 q6 -10 18 -12 M38 40 q6 -2 8 -8" stroke="#c9dceb" stroke-width="4" fill="none" stroke-linecap="round" />
+      <circle cx="22" cy="20" r="4" fill="#fff" />
     </svg>
   );
 }

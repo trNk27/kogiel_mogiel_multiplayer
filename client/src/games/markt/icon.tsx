@@ -22,9 +22,11 @@ export function Icon({ size }: { size: number }) {
       <rect x="20" y="62" width="40" height="13" rx="3" fill="#ffcf6b" stroke="#2a120a" stroke-width="2" />
       <path d="M8 58 L40 40 L72 58 Z" fill="#6e3a22" stroke="#2a120a" stroke-width="2.5" stroke-linejoin="round" />
       <path d="M12 56 Q26 48 40 44 Q54 48 68 56 Q54 60 40 56 Q26 60 12 56 Z" fill="#fffaf2" />
-      <text x="40" y="73" font-size="11" text-anchor="middle">
-        🍷
-      </text>
+      <g transform="translate(33 61)">
+        <path d="M11 3 h3 q3 0 3 4 t-3 4 h-3" fill="none" stroke="#2a120a" stroke-width="2" stroke-linecap="round" />
+        <rect x="0" y="0" width="12" height="13" rx="2.5" fill="#c8243c" stroke="#2a120a" stroke-width="2" />
+        <rect x="0" y="9" width="12" height="4" rx="1.5" fill="#fffaf2" stroke="#2a120a" stroke-width="1.6" />
+      </g>
     </svg>
   );
 }
