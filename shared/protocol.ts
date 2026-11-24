@@ -181,7 +181,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1, maxPlayers: 12 },
   { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1, maxPlayers: 12 },
   { id: 'wesele', title: 'Wesele', tagline: 'A 3D disco polo wedding: win challenges, dodge the shots, last till 3:00.', minPlayers: 2 },
-  { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi. Guess what she wants.', minPlayers: 1 },
+  { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi together. Trade clues. Find the cat.', minPlayers: 2 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
   {
     id: 'mushroom',
@@ -846,27 +846,34 @@ export type PhoneView =
       text?: string;
     }
   /**
-   * Wybredna Baja: build a plate (one option per row, `rows` rows) and feed her. `history` is your
-   * tries this craving (`plate` null if you missed one); `fed` the try you fed her right on.
-   * `changed` lists rows she changed her mind about; `answer` is shown at the reveal.
+   * Wybredna Baja (team version): everyone builds one plate. `mine` are the parts you pick; `plate`
+   * is the team's picks so far (null: not picked). `clues` are your secret clues (text). `cat`: you are
+   * secretly the neighbour's cat this craving. `key` changes every craving.
    */
   | {
       v: 'baja';
-      phase: 'intro' | 'build' | 'taste' | 'mind' | 'reveal';
+      phase: 'intro' | 'build' | 'taste' | 'reveal' | 'vote' | 'cat' | 'end';
+      key: number;
       round: number;
       rounds: number;
       tryN: number;
       tries: number;
-      rows: number;
+      parts: number;
       endsAt: number;
-      hint: { row: number; opt: number };
-      changed: number[];
-      sent: number[] | null;
-      history: { plate: number[] | null; hits: number }[];
-      fed: number | null;
-      pts: number;
       total: number;
+      mine: number[];
+      owners: { name: string; color: ColorId }[];
+      plate: (number | null)[];
+      ready: boolean;
+      clues: string[];
+      treats: number;
+      cat: boolean;
+      catRound: boolean;
+      history: { plate: number[]; hits: number }[];
       answer: number[] | null;
+      players: { id: string; name: string; color: ColorId }[];
+      voted: string | null;
+      result?: { big: string; text: string; good: boolean; pts: number };
     }
   /**
    * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda,
@@ -1093,7 +1100,8 @@ export type PhoneMsg =
    */
   | { t: 'wesele'; key: number; choice?: 'drink' | 'kompot'; v?: number; live?: boolean; moves?: number[] }
   /** Wybredna Baja: your plate for try `tryN` of craving `round` (one option index per row). */
-  | { t: 'feed'; round: number; tryN: number; plate: number[] }
+  /** Wybredna Baja, for craving `key`: pick `opt` for `part`, say you're `ready`, give a `treat`, or `vote` for the cat. */
+  | { t: 'baja'; key: number; part?: number; opt?: number; ready?: boolean; treat?: boolean; vote?: string }
   /** Fajki: reach for the cigarette in front of you. */
   | { t: 'grab' }
   /** Fajki: started pulling on the cigarette (`pull`), or let go: puff quality `q` (0–1) and how it went (`v`, see Verdict). */

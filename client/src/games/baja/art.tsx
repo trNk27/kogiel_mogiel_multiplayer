@@ -263,3 +263,38 @@ export function Offering({ plate, size = 1 }: { plate: number[]; size?: number }
     </div>
   );
 }
+
+/** The neighbour's cat: a smug grey tabby with a sly grin and a crooked tail. */
+export function Cat({ size = 260 }: { size?: number }) {
+  return (
+    <svg class="bt-cat" width={size} height={size} viewBox="0 0 200 200" aria-label="The neighbour's cat">
+      {/* Tail, flicking. */}
+      <path class="bt-cat-tail" d="M150 160 Q196 150 186 100 Q180 76 192 60" fill="none" stroke="#2a120a" stroke-width="20" stroke-linecap="round" />
+      <path class="bt-cat-tail" d="M150 160 Q196 150 186 100 Q180 76 192 60" fill="none" stroke="#8a8f99" stroke-width="13" stroke-linecap="round" />
+      {/* Body. */}
+      <ellipse cx="100" cy="150" rx="58" ry="42" fill="#8a8f99" stroke="#2a120a" stroke-width="5" />
+      <ellipse cx="100" cy="160" rx="30" ry="24" fill="#d9dce2" />
+      <path d="M62 132 q10 6 6 18 M138 132 q-10 6 -6 18" stroke="#5f646d" stroke-width="5" fill="none" stroke-linecap="round" />
+      {/* Ears. */}
+      <path d="M52 62 L58 14 L92 44 Z" fill="#8a8f99" stroke="#2a120a" stroke-width="5" stroke-linejoin="round" />
+      <path d="M148 62 L142 14 L108 44 Z" fill="#8a8f99" stroke="#2a120a" stroke-width="5" stroke-linejoin="round" />
+      <path d="M60 52 L63 28 L80 44 Z M140 52 L137 28 L120 44 Z" fill="#f0a4b4" />
+      {/* Head. */}
+      <ellipse cx="100" cy="80" rx="56" ry="48" fill="#8a8f99" stroke="#2a120a" stroke-width="5" />
+      <path d="M86 38 l4 16 M100 34 v18 M114 38 l-4 16" stroke="#5f646d" stroke-width="5" stroke-linecap="round" />
+      {/* Half-closed, scheming eyes. */}
+      <ellipse cx="78" cy="78" rx="13" ry="10" fill="#c8e34a" stroke="#2a120a" stroke-width="3" />
+      <ellipse cx="122" cy="78" rx="13" ry="10" fill="#c8e34a" stroke="#2a120a" stroke-width="3" />
+      <ellipse cx="80" cy="79" rx="3" ry="8" fill="#2a120a" />
+      <ellipse cx="124" cy="79" rx="3" ry="8" fill="#2a120a" />
+      <path d="M64 72 Q78 64 92 72 L92 70 Q78 60 64 70 Z M108 72 Q122 64 136 72 L136 70 Q122 60 108 70 Z" fill="#5f646d" stroke="#2a120a" stroke-width="3" />
+      {/* Nose and the smug grin. */}
+      <path d="M94 94 h12 l-6 7 Z" fill="#f08aa0" stroke="#2a120a" stroke-width="2.5" stroke-linejoin="round" />
+      <path d="M78 104 Q90 116 100 104 Q110 116 124 102" fill="none" stroke="#2a120a" stroke-width="4" stroke-linecap="round" />
+      <path d="M58 96 h-30 M60 104 l-28 6 M142 96 h30 M140 104 l28 6" stroke="#2a120a" stroke-width="2.5" stroke-linecap="round" />
+      {/* Paws. */}
+      <ellipse cx="80" cy="190" rx="16" ry="9" fill="#d9dce2" stroke="#2a120a" stroke-width="4" />
+      <ellipse cx="120" cy="190" rx="16" ry="9" fill="#d9dce2" stroke="#2a120a" stroke-width="4" />
+    </svg>
+  );
+}

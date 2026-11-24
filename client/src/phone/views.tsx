@@ -108,7 +108,7 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
     case 'wesele':
       return <WeselePad view={view} me={me} send={send} offset={offset} key={`${view.key}-${view.phase}`} />;
     case 'baja':
-      return <BajaPad view={view} me={me} send={send} offset={offset} key={`${view.round}-${view.tryN}`} />;
+      return <BajaPad view={view} me={me} send={send} offset={offset} key={`${view.key}-${view.phase}`} />;
     case 'smoke':
       return <SmokePad view={view} me={me} send={send} offset={offset} />;
     case 'castle':
