@@ -353,6 +353,59 @@ body.phone-body input {
   color: var(--muted);
   margin-top: 6px;
 }
+/* First a category, then that shelf's games. */
+.pcats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.pcat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  color: rgba(251, 240, 217, 0.85);
+  text-align: left;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    background 0.15s;
+}
+.pcat-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+.pcat b {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 15px;
+  line-height: 1.1;
+}
+.pcat small {
+  font-size: 12px;
+  opacity: 0.6;
+  font-weight: 800;
+}
+.pcat:active {
+  transform: scale(0.96);
+}
+.pcat.on {
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--yolk-deep), inset 0 0 0 3px var(--yolk);
+}
+.pcat-tour:not(.on) {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--yolk) 55%, transparent);
+  color: var(--yolk);
+}
+.pcats + .pgames {
+  animation: fade-in 0.25s both;
+}
 /* Games as a grid of icon tiles: one tap, no reading. */
 .pgames {
   display: grid;
