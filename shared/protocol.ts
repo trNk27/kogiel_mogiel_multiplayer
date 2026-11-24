@@ -142,7 +142,8 @@ export type GameId =
   | 'premium'
   | 'wesele'
   | 'baja'
-  | 'tower';
+  | 'tower'
+  | 'kuba';
 
 export interface GameInfo {
   id: GameId;
@@ -229,6 +230,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'marina', title: 'Przystań', tagline: 'Park your boat. Mind the paint.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   { id: 'tower', title: 'Lodowa Wieża', tagline: 'Bounce off the walls. Chain combos to the top.', minPlayers: 1 },
+  { id: 'kuba', title: 'Upij Kubę', tagline: 'Make the sober one laugh. Every laugh is a shot.', minPlayers: 3, maxPlayers: 10 },
   {
     id: 'premium',
     title: 'Maluch Rallye Premium',

@@ -455,6 +455,7 @@ export function trackForGame(game: string): TrackId | null {
     case 'toty':
     case 'bazgroly':
     case 'quip':
+    case 'kuba':
     case 'spy':
     case 'herd':
     case 'wave':
