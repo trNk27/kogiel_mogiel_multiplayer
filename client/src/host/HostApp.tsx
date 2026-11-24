@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 import { DEFAULT_MAX_PLAYERS, GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, gameMaxPlayers, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, siegeMode, type GameId, type Selection } from '../../../shared/protocol';
+import { categoryOf, shelves } from '../../../shared/categories';
 import { KogielGlass, Logo, Pierogi } from '../lib/art';
 import { Orbits } from './OrbitsView';
 import { QrCode } from '../lib/qr';
@@ -368,19 +369,7 @@ function Lobby() {
           })}
         </div>
 
-        <div class="game-picker">
-          {(['tournament', ...GAMES.map((g) => g.id)] as Selection[]).map((id) => {
-            const info = id === 'tournament' ? null : gameInfo(id);
-            const unfit = info ? players.length > gameMaxPlayers(info) : false;
-            return (
-              <div class={`game-card ${id === 'tournament' ? 'tour' : id === 'premium' ? 'premium' : ''} ${id === c.selected ? 'selected' : ''} ${unfit ? 'unfit' : ''}`} key={id}>
-                {info?.maxPlayers === 12 && <span class="game-card-max">12</span>}
-                <GameIcon game={id} size={64} />
-                <div class="game-card-title">{id === 'tournament' ? 'Tournament' : info!.title}</div>
-              </div>
-            );
-          })}
-        </div>
+        <GameShelf sel={c.selected} players={players.length} />
         <SelectedGame sel={c.selected} />
         <div class="lobby-hint">
           {!vip
@@ -389,6 +378,47 @@ function Lobby() {
               ? c.startProblem()
               : `${vip.name} picks on their phone`}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The game picker on the TV: the category bar, then the games on the shelf of the selected game (the VIP
+ * flips through categories on their phone, and picking one selects its first game, so the TV follows).
+ */
+function GameShelf({ sel, players }: { sel: Selection; players: number }) {
+  const list = shelves(GAMES);
+  const active = sel === 'tournament' ? 'tournament' : categoryOf(sel);
+  const shelf = list.find((s) => s.cat.id === active);
+  return (
+    <div class="game-shelf">
+      <div class="cat-bar">
+        <div class={`cat-chip tour ${active === 'tournament' ? 'on' : ''}`}>
+          <span>🏆</span> Tournament
+        </div>
+        {list.map((s) => (
+          <div class={`cat-chip ${active === s.cat.id ? 'on' : ''}`} key={s.cat.id}>
+            <span>{s.cat.emoji}</span> {s.cat.title} <small>{s.games.length}</small>
+          </div>
+        ))}
+      </div>
+      <div class="cat-head" key={`h${active}`}>
+        <b>{shelf ? `${shelf.cat.emoji} ${shelf.cat.title}` : '🏆 Tournament'}</b>
+        <span>{shelf ? shelf.cat.blurb : 'A few random games in a row, with a winner at the end.'}</span>
+      </div>
+      <div class="game-picker shelf" key={`s${active}`}>
+        {(shelf ? shelf.games.map((g) => g.id) : (['tournament'] as Selection[])).map((id) => {
+          const info = id === 'tournament' ? null : gameInfo(id);
+          const unfit = info ? players > gameMaxPlayers(info) : false;
+          return (
+            <div class={`game-card ${id === 'tournament' ? 'tour' : id === 'premium' ? 'premium' : ''} ${id === sel ? 'selected' : ''} ${unfit ? 'unfit' : ''}`} key={id}>
+              {info?.maxPlayers && info.maxPlayers > DEFAULT_MAX_PLAYERS && <span class="game-card-max">{info.maxPlayers}</span>}
+              <GameIcon game={id} size={80} />
+              <div class="game-card-title">{id === 'tournament' ? 'Tournament' : info!.title}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

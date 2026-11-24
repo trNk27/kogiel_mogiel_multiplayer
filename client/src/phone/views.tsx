@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   ANSWER_STYLES,
+  DEFAULT_MAX_PLAYERS,
   DIFFICULTIES,
   GAMES,
   KITCHEN_LEVELS,
@@ -23,13 +24,16 @@ import {
   tournamentPool,
   tournamentProblem,
   type GameId,
+  type GameInfo,
   type LobbyOptions,
+  type Selection,
   type PhoneView,
 } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
 import { QrCode } from '../lib/qr';
 import { Shape } from '../lib/shapes';
 import { GameIcon } from '../host/GameIcon';
+import { categoryOf, shelves, type CategoryId } from '../../../shared/categories';
 import { formatNumber } from '../../../shared/format';
 import type { Me, Send } from './PhoneApp';
 import { KitchenPad } from './kitchen';
@@ -131,6 +135,67 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
 // Lobby
 // ---------------------------------------------------------------------------
 
+/** The VIP's game picker: a category first, then the games on that shelf. The TV shows the same shelf. */
+function GamePicker({ selected, players, noTv, send }: { selected: Selection; players: number; noTv: boolean; send: Send }) {
+  const list = shelves(gamesFor(noTv));
+  const shelfOf = (sel: Selection): CategoryId | 'tournament' => (sel === 'tournament' ? 'tournament' : categoryOf(sel));
+  const [cat, setCat] = useState<CategoryId | 'tournament'>(shelfOf(selected));
+  useEffect(() => setCat(shelfOf(selected)), [selected]);
+  const fits = (g: GameInfo) => players <= gameMaxPlayers(g, noTv);
+  const open = (c: CategoryId | 'tournament') => {
+    setCat(c);
+    if (c === 'tournament') {
+      if (selected !== 'tournament') send({ t: 'select', game: 'tournament' });
+      return;
+    }
+    if (selected !== 'tournament' && categoryOf(selected) === c) return;
+    const games = list.find((s) => s.cat.id === c)?.games ?? [];
+    const first = games.find(fits) ?? games[0];
+    if (first) send({ t: 'select', game: first.id });
+  };
+  const shelf = list.find((s) => s.cat.id === cat);
+  return (
+    <>
+      <div class="pcats">
+        {!noTv && (
+          <button class={`pcat pcat-tour ${cat === 'tournament' ? 'on' : ''}`} onClick={() => open('tournament')}>
+            <span class="pcat-emoji">🏆</span>
+            <b>Tournament</b>
+          </button>
+        )}
+        {list.map((s) => (
+          <button class={`pcat ${cat === s.cat.id ? 'on' : ''}`} onClick={() => open(s.cat.id)} key={s.cat.id}>
+            <span class="pcat-emoji">{s.cat.emoji}</span>
+            <b>{s.cat.title}</b>
+            <small>{s.games.length}</small>
+          </button>
+        ))}
+      </div>
+      {shelf && (
+        <div class="pgames" key={cat}>
+          {shelf.games.map((g) =>
+            g.standalone ? (
+              <button class={`pgame pgame-premium ${g.id === selected ? 'selected' : ''} ${fits(g) ? '' : 'unfit'}`} onClick={() => send({ t: 'select', game: g.id })} key={g.id}>
+                <GameIcon game={g.id} size={54} />
+                <span>
+                  <b>{g.title}</b>
+                  <small>A game of its own: Grand Prix, four cars</small>
+                </span>
+              </button>
+            ) : (
+              <button class={`pgame ${g.id === selected ? 'selected' : ''} ${fits(g) ? '' : 'unfit'}`} onClick={() => send({ t: 'select', game: g.id })} key={g.id}>
+                {!noTv && g.maxPlayers && g.maxPlayers > DEFAULT_MAX_PLAYERS && <span class="pgame-max">{g.maxPlayers}</span>}
+                <GameIcon game={g.id} size={46} />
+                <b>{g.title}</b>
+              </button>
+            ),
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 function Lobby({ view, me, send }: Props<'lobby'>) {
   const [confirmKick, setConfirmKick] = useState<string | null>(null);
   if (!view.vip) {
@@ -159,38 +224,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
     <div class="pv pv-lobby">
       {noTv && <Invite room={me.room ?? ''} />}
       <div class="section-label">👑 Pick a game</div>
-      <div class="pgames">
-        {!noTv && (
-          <button class={`pgame pgame-tour ${tour ? 'selected' : ''}`} onClick={() => send({ t: 'select', game: 'tournament' })}>
-            <GameIcon game="tournament" size={46} />
-            <b>Tournament</b>
-          </button>
-        )}
-        {gamesFor(noTv)
-          .filter((g) => g.standalone)
-          .map((g) => {
-            const unfit = view.players.length > gameMaxPlayers(g, noTv);
-            return (
-              <button class={`pgame pgame-premium ${g.id === view.selected ? 'selected' : ''} ${unfit ? 'unfit' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
-                <GameIcon game={g.id} size={54} />
-                <span>
-                  <b>{g.title}</b>
-                  <small>A game of its own: Grand Prix, four cars</small>
-                </span>
-              </button>
-            );
-          })}
-        {gamesFor(noTv).filter((g) => !g.standalone).map((g) => {
-          const unfit = view.players.length > gameMaxPlayers(g, noTv);
-          return (
-            <button class={`pgame ${g.id === view.selected ? 'selected' : ''} ${unfit ? 'unfit' : ''}`} onClick={() => send({ t: 'select', game: g.id })}>
-              {!noTv && g.maxPlayers === 12 && <span class="pgame-max">12</span>}
-              <GameIcon game={g.id} size={46} />
-              <b>{g.title}</b>
-            </button>
-          );
-        })}
-      </div>
+      <GamePicker selected={view.selected} players={view.players.length} noTv={noTv} send={send} />
       <div class="pgame-detail">
         <b>{selected ? selected.title : 'Tournament'}</b>
         <span>{selected ? (noTv ? selected.noTv : selected.tagline) : `${tourCount} ${view.options.tourParty ? 'games, voted for one by one' : 'random games'} · ${view.options.tourShort ? 'short versions' : 'full length'}`}</span>

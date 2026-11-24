@@ -63,6 +63,7 @@ Pick a short lowercase id for your game, like `clock` or `moles`. Then:
 
 - [ ] `shared/protocol.ts` – add your id to the `GameId` list and an entry to `GAMES`
   (title, tagline, `minPlayers`, and `coop` / `noTv` / `maxPlayers` if they apply)
+- [ ] `shared/categories.ts` – put your id on the shelf it fits (Jokes & words, Drawing, Team up…), so it shows in the lobby's categories
 - [ ] `client/src/games/registry.ts` – import your game and add a `case` to `createGame`
 - [ ] `client/src/host/GameIcon.tsx` – import your icon and add a line for it
 - [ ] `client/src/host/HostApp.tsx` – import your `howTo` and add a `case` to the how-to switch
