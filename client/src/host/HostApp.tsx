@@ -62,6 +62,7 @@ import { howTo as footstepsHowTo } from '../games/footsteps/logic';
 import { howTo as marinaHowTo } from '../games/marina/logic';
 import { howTo as towerHowTo } from '../games/tower/logic';
 import { howTo as ogienHowTo } from '../games/ogien/logic';
+import { howTo as kubaHowTo } from '../games/kuba/logic';
 
 /**
  * The room this page shows: the real one on the host TV, or a second screen's copy of it (see
@@ -538,6 +539,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return towerHowTo(short);
     case 'ogien':
       return ogienHowTo();
+    case 'kuba':
+      return kubaHowTo(short);
     case 'premium':
       return ['Pick a Grand Prix of three tracks – or one track', 'Choose your car: speed, accel, handling, off-road', `Thumb pad, drifts, turbos and new items · ${LAPS} laps a race`];
   }

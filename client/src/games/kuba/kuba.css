@@ -1,0 +1,325 @@
+/* Upij Kubę: the sober one (and their shot glasses) on the left, the jokes on the right. */
+.kb {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 40px;
+  color: #fff4dc;
+}
+
+.kb-side {
+  width: 430px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 20px;
+  border-radius: 36px;
+  background: radial-gradient(
+    circle at 50% 35%,
+    rgba(255, 190, 90, 0.22),
+    rgba(40, 18, 12, 0.85) 70%
+  );
+  border: 3px solid rgba(255, 244, 220, 0.15);
+}
+.kb-sober-label {
+  font-size: 24px;
+  opacity: 0.7;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.kb-sober-name {
+  font-family: var(--display, inherit);
+  font-size: 64px;
+  line-height: 1.1;
+  margin-bottom: 30px;
+}
+.kb-kuba {
+  position: relative;
+  --wob: 0deg;
+  animation: kb-wobble 2.2s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+.kb-kuba.lvl1 {
+  --wob: 2deg;
+}
+.kb-kuba.lvl2 {
+  --wob: 5deg;
+}
+.kb-kuba.lvl3 {
+  --wob: 9deg;
+}
+.kb-kuba.lvl4 {
+  --wob: 13deg;
+  animation-duration: 1.6s;
+}
+.kb-kuba.lvl5 {
+  --wob: 18deg;
+  animation-duration: 1.3s;
+}
+.kb-kuba.drinking {
+  animation: kb-gulp 0.5s ease-in-out 3;
+}
+@keyframes kb-wobble {
+  0%,
+  100% {
+    transform: rotate(calc(var(--wob) * -1));
+  }
+  50% {
+    transform: rotate(var(--wob)) translateX(calc(var(--wob) * 0.6));
+  }
+}
+@keyframes kb-gulp {
+  50% {
+    transform: scale(1.08, 0.92) rotate(-6deg);
+  }
+}
+.kb-blush {
+  position: absolute;
+  top: 54%;
+  width: 46px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 70, 90, 0.55);
+  filter: blur(3px);
+}
+.kb-blush.l {
+  left: 22%;
+}
+.kb-blush.r {
+  right: 20%;
+}
+.kb-hic {
+  position: absolute;
+  top: -10px;
+  right: -26px;
+  font-family: var(--display, inherit);
+  font-size: 36px;
+  color: #ffd23f;
+  animation: kb-hic 2.4s ease-out infinite;
+}
+@keyframes kb-hic {
+  0%,
+  60% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(1);
+  }
+}
+.kb-notes {
+  position: absolute;
+  top: 10px;
+  left: -36px;
+  font-size: 40px;
+  color: #9be15d;
+  animation: kb-hic 1.8s ease-out infinite 0.6s;
+}
+.kb-shot-pop {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  font-size: 130px;
+  animation: kb-shot 1.4s ease-out both;
+}
+@keyframes kb-shot {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2) rotate(0);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -80%) scale(1.2) rotate(-10deg);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(-10%, -80%) scale(1) rotate(-70deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-10%, -80%) scale(0.9) rotate(-90deg);
+    opacity: 0;
+  }
+}
+.kb-level {
+  margin-top: 26px;
+  font-size: 34px;
+  font-weight: 800;
+}
+.kb-glasses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+  max-width: 360px;
+}
+.kb-glass.empty {
+  opacity: 0.55;
+}
+.kb-shots {
+  margin-top: 8px;
+  font-size: 26px;
+  opacity: 0.8;
+}
+
+.kb-main {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.kb-note {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  font-size: 26px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.kb-card {
+  padding: 40px 48px;
+  border-radius: 36px;
+  background: #fbf0d9;
+  color: #2a120a;
+  box-shadow: 0 14px 0 rgba(0, 0, 0, 0.25);
+}
+.kb-big {
+  font-family: var(--display, inherit);
+  font-size: 68px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+.kb-line {
+  font-size: 36px;
+  line-height: 1.3;
+}
+.kb-line.small {
+  font-size: 28px;
+  opacity: 0.7;
+  margin-top: 14px;
+}
+.kb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+.kb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 18px 4px 8px;
+  border-radius: 999px;
+  border: 3px solid var(--pc);
+  font-size: 26px;
+  font-weight: 700;
+  opacity: 0.55;
+}
+.kb-chip.done {
+  opacity: 1;
+  background: color-mix(in srgb, var(--pc) 25%, transparent);
+}
+.kb-prompt {
+  font-size: 30px;
+  font-weight: 700;
+  opacity: 0.65;
+  margin-bottom: 12px;
+}
+.kb-text {
+  font-family: var(--display, inherit);
+  font-size: 62px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.kb-text.long {
+  font-size: 46px;
+}
+.kb-pic {
+  display: flex;
+  justify-content: center;
+}
+.kb-pic .ty-doodle {
+  width: 420px;
+  height: 420px;
+  border-radius: 24px;
+  background: #fff;
+}
+.kb-reader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 10px 18px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--pc) 22%, #fff4dc);
+  font-size: 30px;
+}
+.kb-reader i {
+  font-style: normal;
+  font-weight: 800;
+  color: #b8331a;
+}
+.kb-ask {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 26px;
+  margin-top: 20px;
+  font-size: 30px;
+  font-weight: 800;
+}
+.kb-ask span {
+  padding: 8px 18px;
+  border-radius: 16px;
+  background: #2a120a;
+  color: #ffd23f;
+}
+.kb-reveal {
+  margin-top: 22px;
+  padding: 18px 24px;
+  border-radius: 24px;
+}
+.kb-reveal.shot {
+  background: linear-gradient(90deg, #ff7a2f, #ffb347);
+}
+.kb-reveal.held {
+  background: #c9c2b6;
+}
+.kb-reveal-big {
+  font-family: var(--display, inherit);
+  font-size: 54px;
+  line-height: 1.15;
+}
+.kb-reveal-row {
+  display: flex;
+  gap: 30px;
+  margin-top: 8px;
+  font-size: 28px;
+  font-weight: 800;
+}
+.kb-timer {
+  position: absolute;
+  top: -10px;
+  right: 0;
+}
+.kb-scores .board {
+  max-width: none;
+}
+.kb-scores,
+.kb-end {
+  max-height: 900px;
+  overflow: hidden;
+}
+.kb-best {
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 3px dashed rgba(42, 18, 10, 0.25);
+}
