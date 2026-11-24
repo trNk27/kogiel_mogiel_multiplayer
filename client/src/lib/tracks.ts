@@ -473,6 +473,7 @@ export function trackForGame(game: string): TrackId | null {
     case 'premium':
     case 'trails':
     case 'tower':
+    case 'ogien':
       return 'race';
     case 'smoke':
       return 'lounge';
