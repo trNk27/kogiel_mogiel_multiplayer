@@ -6,12 +6,15 @@
     <title>Styles · Couch Party</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <style>
-      html, body { margin: 0; background: #111; color: #eee; font: 14px system-ui, sans-serif; }
-      .bar { position: fixed; top: 0; left: 0; right: 0; z-index: 2; display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; background: rgba(0,0,0,.6); }
-      .bar a { color: #eee; padding: 4px 10px; border-radius: 6px; background: #333; text-decoration: none; }
+      html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 14px system-ui, sans-serif; overflow: hidden; }
+      body { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .bar { position: fixed; top: 0; left: 0; right: 0; z-index: 2; display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; padding: 8px 14px; background: rgba(0, 0, 0, 0.72); }
+      .bar a { color: #eee; padding: 5px 12px; border-radius: 6px; background: #333; text-decoration: none; font-weight: 600; white-space: nowrap; }
       .bar a.on { background: #e8553a; }
       .bar.hide { display: none; }
-      canvas { display: block; width: 1920px; height: 1080px; image-rendering: pixelated; }
+      canvas { display: block; max-width: 100vw; max-height: calc(100vh - 46px); aspect-ratio: 16 / 9; width: auto; height: auto; margin-top: 46px; image-rendering: pixelated; image-rendering: crisp-edges; }
+      body.bare { display: block; overflow: auto; }
+      body.bare canvas { width: 1920px; height: 1080px; max-width: none; max-height: none; margin-top: 0; }
     </style>
   </head>
   <body>

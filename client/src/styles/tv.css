@@ -105,6 +105,18 @@ body.tv {
   animation: fade-in 0.3s both;
 }
 
+.baja-cameo {
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  width: 1920px;
+  height: 132px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  z-index: 21000;
+}
+
 /* ---- Second screen (📡) ---------------------------------------------------- */
 
 .mirror-btn {

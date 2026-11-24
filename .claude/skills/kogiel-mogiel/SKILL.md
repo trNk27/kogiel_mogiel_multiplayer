@@ -13,6 +13,7 @@ From the user's description, pin down:
 - What the **TV** shows, and whether the game also works without a TV
 - What the **phones** show and what players tap/type
 - Player count (the house standard is 2 to 8)
+- Art style: pick one of the 3 standardized styles (`cartoon`, `3d`, `pixel` — see `client/src/lib/assets/README.md`)
 - A short lowercase id (like `clock` or `moles`) and a title
 
 If one of these is genuinely missing and changes the build, ask ONE short question covering the gaps. Otherwise make sensible choices, build, and list your assumptions when you show the preview.
@@ -27,6 +28,7 @@ If one of these is genuinely missing and changes the build, ask ONE short questi
 - Start from the latest `main` (`git fetch origin main`) on a branch like `game/<id>`. If the session has already given you a branch to work on, use that one instead: some sessions can only push to their own branch. Never commit or push to `main`.
 - Do everything on the checklist in `CONTRIBUTING.md`: your own files, the one-line changes in the shared files (including the music in `tracks.ts` and both README tables), and the phone screen. Don't refactor shared code.
 - For the phone, reuse the generic `ask` or `pad` screen when it fits. Only add your own `PhoneView`/`PhoneMsg` and a `case` in `client/src/phone/views.tsx` when neither does.
+- **Art styles & sprites (`client/src/lib/assets/README.md`)**: read `client/src/lib/assets/README.md` before writing drawing code. Use the unified `resources` manager (`client/src/lib/assets/`) for 2D/pixel sprites, reuse `'pixel-common'`, `'kitchen'`, or `'swap'` (or `client/src/games/arena/kit.ts` for `'3d'`, `client/src/lib/art.tsx` for SVG Pierogi), and register any new sprites as a `SpritePack` instead of writing ad-hoc `new Image()` loaders. Preview styles & packs at `/styles`.
 - Handle the short (tournament) version via `host.short`, players dropping out mid-game (`onRemoved`, `onConnection`), and the design rules (phone buttons at least 48 px, short text, icons and colours do the explaining).
 
 ## 4. Check it

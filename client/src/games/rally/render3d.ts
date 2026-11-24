@@ -44,7 +44,6 @@ import { ITUNING, driftLevel, type Blast, type Bomb, type Car, type ItemBox, typ
 import { buildTown, type Obstacle } from './town3d';
 import { buildKart } from './karts3d';
 import type { KartId } from '../../../../shared/protocol';
-import { StylePass, pickStyle } from '../arena/styles';
 
 /** What the renderer needs from the simulation each frame. */
 export interface RaceState {
@@ -153,8 +152,6 @@ export interface CarLook {
 }
 
 export class RallyScene {
-  /** The look: one of `styles` at random (original or Vaporwave by default), or forced with `?style=`. */
-  readonly style: StylePass;
   readonly renderer: WebGLRenderer;
   private scene = new Scene();
   private world = new Group();
@@ -207,9 +204,7 @@ export class RallyScene {
     canvas: HTMLCanvasElement,
     looks: CarLook[],
     view: Viewport = { width: 1920, height: 1080, scale: RENDER_SCALE },
-    styles?: readonly string[],
   ) {
-    this.style = new StylePass(pickStyle(Math.random, styles));
     this.view = view;
     this.renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(1);
@@ -306,7 +301,6 @@ export class RallyScene {
 
   dispose() {
     this.clearWorld();
-    this.style.dispose();
     this.renderer.dispose();
   }
 
@@ -1143,13 +1137,11 @@ export class RallyScene {
     const high = Math.max(0, this.flyPos.y - 40);
     fog.near = FOG_NEAR + high * 2;
     fog.far = FOG_FAR + high * 6;
-    const sk = this.style.begin(this.renderer, this.scene);
     const W = Math.round(this.view.width * this.view.scale);
     const H = Math.round(this.view.height * this.view.scale);
-    this.renderer.setViewport(0, 0, W * sk, H * sk);
-    this.renderer.setScissor(0, 0, W * sk, H * sk);
+    this.renderer.setViewport(0, 0, W, H);
+    this.renderer.setScissor(0, 0, W, H);
     this.renderer.render(this.scene, cam);
-    this.style.end(this.renderer, cam, true);
     fog.near = FOG_NEAR;
     fog.far = FOG_FAR;
   }
@@ -1212,8 +1204,6 @@ export class RallyScene {
       }
     });
 
-    const sk = this.style.begin(this.renderer, this.scene);
-    let lastCam: PerspectiveCamera | undefined;
     layout.forEach((slot, s) => {
       const i = focus ? focus[s] : s;
       const c = cars[i];
@@ -1239,11 +1229,9 @@ export class RallyScene {
       const w = Math.round(slot.w * k);
       const h = Math.round(slot.h * k);
       const y = H - Math.round(slot.y * k) - h;
-      this.renderer.setViewport(x * sk, y * sk, w * sk, h * sk);
-      this.renderer.setScissor(x * sk, y * sk, w * sk, h * sk);
+      this.renderer.setViewport(x, y, w, h);
+      this.renderer.setScissor(x, y, w, h);
       this.renderer.render(this.scene, cam);
-      lastCam = cam;
     });
-    if (lastCam) this.style.end(this.renderer, lastCam, layout.length === 1);
   }
 }
