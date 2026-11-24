@@ -229,7 +229,6 @@ export class SmokeScene {
     private info: SeatInfo[],
     private game: SmokeState,
   ) {
-    // Vaporwave turns every colour pink or cyan, and here your colour is the whole game.
     const stage = (this.stage = new ArenaStage(canvas, { sky: '#2a1a1e', fog: [34, 80], fov: 40 }));
     this.fog = stage.scene.fog as Fog;
     stage.sun.color.set('#ffd9a8');

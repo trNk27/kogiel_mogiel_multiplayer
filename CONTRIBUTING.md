@@ -90,6 +90,16 @@ If neither fits, your game gets its own phone screen (like Wybredna Baja or Podm
 - **The look**: read *Design language* at the top of the README. Phone buttons at least 48 px,
   short text, icons and colours do the explaining.
 
+## Art styles & Resource Management (`client/src/lib/assets/`)
+
+See [`client/src/lib/assets/README.md`](client/src/lib/assets/README.md) for copy-paste examples and pack lists. Every game uses one of the **three standardized art styles** in `client/src/lib/assets/styles.ts` (`ART_STYLES`):
+
+- `'cartoon'` — Kogiel Mogiel's normal 2D cartoon look: painted WebP sprites (`kitchen`, `swap` packs) preloaded via `resources.preload(...)`, plus cut-paper cards & SVG Pierogi (`client/src/lib/art.tsx`).
+- `'3d'` — Flat-shaded PS2-era low-poly 3D via `ArenaStage`, `buildPierogi`, `groundTexture`, `buildBabcia`, and `Puffs` (`client/src/games/arena/`).
+- `'pixel'` — Crisp 16-bit `640×360` pixel art (`3×` integer scale to `1920×1080`, `imageSmoothingEnabled = false`) with declarative pixel grids and `$out`/`$deep`/`$shade`/`$base`/`$hi` dynamic player color ramps.
+
+To add sprites for a new game, register a `SpritePack` with `resources.registerPack(...)` (supporting `'image'`, `'pixel'`, `'pixelAnim'`, and 3-slice `'pixelTile3'` entries) and draw via `resources.draw(...)` or `resources.drawTileRow(...)`. Shared animated pixel Pierogi (`pierogi-idle`, `pierogi-run`, `pierogi-jump`, `pierogi-fall`, `pierogi-spin`, `pierogi-win`, `pierogi-frozen`) and icons live in the `'pixel-common'` pack so new pixel-art games can reuse them immediately. Preview all three styles and packs at `/styles`.
+
 ## If your pull request has conflicts
 
 Two games added at the same time both add a line in the same spots in the shared files, so GitHub may say
