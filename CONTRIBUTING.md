@@ -67,7 +67,7 @@ Pick a short lowercase id for your game, like `clock` or `moles`. Then:
 - [ ] `client/src/games/registry.ts` – import your game and add a `case` to `createGame`
 - [ ] `client/src/host/GameIcon.tsx` – import your icon and add a line for it
 - [ ] `client/src/host/HostApp.tsx` – import your `howTo` and add a `case` to the how-to switch
-- [ ] `client/src/host/caster.ts` – only for 3D scenes: add your scene to the list
+- [ ] `client/src/host/caster.ts` – for any 3D or `<canvas>` scene: add your scene to `VIEWS` so second-screen mirroring works
 - [ ] `client/src/lib/tracks.ts` – the music: add your id to a `case` in `trackForGame` (`quiz`, `polka`,
   `race` or `lounge`), or to the `null` case if your game makes its own sounds. Games not listed get the arena track.
 - [ ] `README.md` – a row in the games table, and in the tournament table if your game has a short version
@@ -100,6 +100,14 @@ See [`client/src/lib/assets/README.md`](client/src/lib/assets/README.md) for cop
 - `'pixel'` — Crisp 16-bit `640×360` pixel art (`3×` integer scale to `1920×1080`, `imageSmoothingEnabled = false`) with declarative pixel grids and `$out`/`$deep`/`$shade`/`$base`/`$hi` dynamic player color ramps.
 
 To add sprites for a new game, register a `SpritePack` with `resources.registerPack(...)` (supporting `'image'`, `'pixel'`, `'pixelAnim'`, and 3-slice `'pixelTile3'` entries) and draw via `resources.draw(...)` or `resources.drawTileRow(...)`. Shared animated pixel Pierogi (`pierogi-idle`, `pierogi-run`, `pierogi-jump`, `pierogi-fall`, `pierogi-spin`, `pierogi-win`, `pierogi-frozen`) and icons live in the `'pixel-common'` pack so new pixel-art games can reuse them immediately. Preview all three styles and packs at `/styles`.
+
+### Optional easter egg: hidden Baja
+
+If you (or your AI agent) feel like adding a cute touch to a new game, you're welcome to hide a small, **purely cosmetic** cameo of **Baja** — the little ginger-and-white Pomchi with her quilted brown & tan carrier bag (she never affects gameplay or hitboxes). Ready-made helpers exist for every style (see [`client/src/lib/assets/README.md`](client/src/lib/assets/README.md)):
+
+- `'pixel'` — `BajaPatrol` + `'pixel-common'` sprites (`baja-idle`, `baja-run`, `baja-bag`, `baja-bag-empty`)
+- `'3d'` — `BajaCameo3D`, `buildBaja()`, and `buildBajaBag()` in `client/src/games/arena/baja3d.ts`
+- `'cartoon'` — reuse `<Baja />` / `<BajaRun />` from `client/src/games/baja/art.tsx` or tuck a small SVG peek into the background
 
 ## If your pull request has conflicts
 
