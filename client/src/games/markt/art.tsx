@@ -3,6 +3,8 @@
  * big attractions (Ferris wheel, Christmas tree, heart tree, ice rink, carousel, curling, Krampus tent),
  * with crowds of pierogi squeezing between them. Plus Krampus and the dodgy watch seller.
  */
+import { PIEROGI_PATH } from '../../lib/art';
+import { resources } from '../../lib/assets';
 import { COLS, ROWS, SPOTS, edgeKey, neighbours } from './logic';
 
 /** Where each stall stands on the 1728×972 TV stage: the middle of the stall. */
@@ -144,6 +146,70 @@ function Hut({ steam, color = '#8a4b2a' }: { steam?: boolean; color?: string }) 
   );
 }
 
+/** Cartoon mug of hot mulled wine with cinnamon stick, star anise, and thick #2a120a outline. */
+export function GluehweinMug({ class: cls = 'mk-prop-svg' }: { class?: string }) {
+  return (
+    <svg class={cls} viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M44 26 h6 q8 0 8 9 t-8 9 h-6" fill="none" stroke="#2a120a" stroke-width="7" stroke-linecap="round" />
+      <path d="M44 26 h6 q8 0 8 9 t-8 9 h-6" fill="none" stroke="#f5ebdc" stroke-width="3" stroke-linecap="round" />
+      <path d="M26 8 q-4 -5 0 -7 M34 9 q4 -5 0 -7" fill="none" stroke="#fff4dc" stroke-width="2.5" stroke-linecap="round" opacity=".8" />
+      <rect x="29" y="10" width="5" height="15" rx="2" transform="rotate(20 31 18)" fill="#a86434" stroke="#2a120a" stroke-width="2.5" />
+      <rect x="14" y="20" width="32" height="34" rx="8" fill="#a82038" stroke="#2a120a" stroke-width="3.5" />
+      <ellipse cx="30" cy="21" rx="14" ry="5" fill="#4f0c18" stroke="#2a120a" stroke-width="3" />
+      <ellipse cx="26" cy="21" rx="6" ry="2.2" fill="#82182b" />
+      <path d="M14 44 h32 v5 q0 5 -6 5 h-20 q-6 0 -6 -5 Z" fill="#f5ebdc" stroke="#2a120a" stroke-width="3" />
+      <circle cx="30" cy="35" r="3" fill="#ffd23f" />
+    </svg>
+  );
+}
+
+/** Paper cone overflowing with shiny roasted chestnuts. */
+function MaroniCone({ class: cls = 'mk-prop-svg' }: { class?: string }) {
+  return (
+    <svg class={cls} viewBox="0 0 64 64" aria-hidden="true">
+      <ellipse cx="24" cy="22" rx="9" ry="7.5" fill="#70381e" stroke="#2a120a" stroke-width="3" />
+      <ellipse cx="39" cy="21" rx="9.5" ry="7.5" fill="#854524" stroke="#2a120a" stroke-width="3" />
+      <ellipse cx="31" cy="16" rx="9" ry="7" fill="#9a542d" stroke="#2a120a" stroke-width="3" />
+      <circle cx="29" cy="14" r="2" fill="#e6a972" opacity=".7" />
+      <circle cx="41" cy="19" r="2" fill="#e6a972" opacity=".7" />
+      <path d="M14 25 L32 58 L50 25 Q32 32 14 25 Z" fill="#f5deb8" stroke="#2a120a" stroke-width="3.5" stroke-linejoin="round" />
+      <path d="M21 34 h22 M25 42 h14" stroke="#d19a5a" stroke-width="2.5" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+/** Trio of glossy painted Christmas glass baubles. */
+function BaublesCluster({ class: cls = 'mk-prop-svg' }: { class?: string }) {
+  return (
+    <svg class={cls} viewBox="0 0 64 64" aria-hidden="true">
+      {[
+        { cx: 19, cy: 36, r: 12, fill: '#d62845', hi: '#ff8da1' },
+        { cx: 45, cy: 36, r: 12, fill: '#3d88e8', hi: '#a3d4ff' },
+        { cx: 32, cy: 25, r: 13.5, fill: '#f5be2c', hi: '#fff4a8' },
+      ].map((b) => (
+        <g>
+          <rect x={b.cx - 3.5} y={b.cy - b.r - 4} width="7" height="5" rx="1.5" fill="#e3b13b" stroke="#2a120a" stroke-width="2" />
+          <circle cx={b.cx} cy={b.cy} r={b.r} fill={b.fill} stroke="#2a120a" stroke-width="3" />
+          <circle cx={b.cx - b.r * 0.35} cy={b.cy - b.r * 0.32} r={b.r * 0.24} fill={b.hi} opacity=".85" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/** Painted carousel pony inside the Karussell SVG roof. */
+function CarouselHorse({ x, y, tint, saddle }: { x: number; y: number; tint: string; saddle: string }) {
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <ellipse cx="0" cy="0" rx="13" ry="6.5" fill={tint} stroke="#2a120a" stroke-width="2.2" />
+      <path d="M6 -2 L11 -13 L17 -10 L13 0 Z" fill={tint} stroke="#2a120a" stroke-width="2.2" stroke-linejoin="round" />
+      <path d="M-9 5 L-12 13 M-3 6 L-4 13 M6 5 L5 13 M11 4 L15 11" stroke="#2a120a" stroke-width="2.4" stroke-linecap="round" />
+      <path d="M-4 -6 Q0 1 4 -6 Z" fill={saddle} stroke="#2a120a" stroke-width="1.6" />
+      <circle cx="13" cy="-10" r="1.1" fill="#2a120a" />
+    </g>
+  );
+}
+
 function StallArt({ id }: { id: string }) {
   switch (id) {
     case 'wheel':
@@ -239,7 +305,11 @@ function StallArt({ id }: { id: string }) {
             <g class="mk-skaters">
               {[0, 1, 2].map((i) => (
                 <g class="mk-iceskater" style={{ '--i': i }}>
-                  <ellipse rx="12" ry="10" fill={['#ff8fb1', '#ffd23f', '#5ad0ff'][i]} stroke="#2a120a" stroke-width="2" />
+                  <g transform="translate(-14 -11) scale(0.24)">
+                    <path d={PIEROGI_PATH} fill={['#ff8fb1', '#ffd23f', '#5ad0ff'][i]} stroke="#2a120a" stroke-width="8" stroke-linejoin="round" />
+                  </g>
+                  <circle cx="-3.5" cy="1" r="1.4" fill="#2a120a" />
+                  <circle cx="3.5" cy="1" r="1.4" fill="#2a120a" />
                 </g>
               ))}
             </g>
@@ -254,9 +324,7 @@ function StallArt({ id }: { id: string }) {
           {[40, 80, 140, 180].map((x, i) => (
             <g class="mk-horse" style={{ animationDelay: `${i * 0.3}s` }}>
               <rect x={x - 2} y="60" width="4" height="100" fill="#ffd23f" />
-              <text x={x} y="142" font-size="34" text-anchor="middle">
-                🐴
-              </text>
+              <CarouselHorse x={x} y={132} tint={['#fff6e5', '#f3cf8a', '#fff6e5', '#e8b98a'][i]} saddle={['#c8243c', '#2f6bff', '#2fd6a8', '#ff5c8a'][i]} />
             </g>
           ))}
           <path d="M6 66 L110 6 L214 66 Z" fill="#c8243c" stroke="#2a120a" stroke-width="4" stroke-linejoin="round" />
@@ -283,35 +351,35 @@ function StallArt({ id }: { id: string }) {
       return (
         <>
           <Hut steam color="#7a2a3a" />
-          <span class="mk-prop">🍷</span>
+          <GluehweinMug class="mk-prop-svg" />
         </>
       );
     case 'maroni':
       return (
         <>
           <Hut steam />
-          <span class="mk-prop">🌰</span>
+          <MaroniCone class="mk-prop-svg" />
         </>
       );
     case 'punsch':
       return (
         <>
           <Hut steam color="#2f5a7a" />
-          <span class="mk-prop">🍹</span>
+          <img class="mk-prop-img" src={resources.url('swap', 'tea') ?? ''} alt="" />
         </>
       );
     case 'lebkuchen':
       return (
         <>
           <Hut color="#9a5a2a" />
-          <span class="mk-prop">💝</span>
+          <img class="mk-prop-img" src={resources.url('swap', 'gingerbread') ?? ''} alt="" />
         </>
       );
     default:
       return (
         <>
           <Hut color="#3a5a3a" />
-          <span class="mk-prop">🔮</span>
+          <BaublesCluster class="mk-prop-svg" />
         </>
       );
   }

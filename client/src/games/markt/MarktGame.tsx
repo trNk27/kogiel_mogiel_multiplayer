@@ -2,6 +2,7 @@ import { colorHex, type PhoneMsg, type PhoneView } from '../../../../shared/prot
 import type { Game, GameHost } from '../types';
 import { TimerRing } from '../../host/components';
 import { Pierogi } from '../../lib/art';
+import { resources } from '../../lib/assets';
 import { sound } from '../../lib/sound';
 import {
   ENTRANCES,
@@ -35,7 +36,7 @@ import {
   type Clue,
   type Rng,
 } from './logic';
-import { Krampus, Market, SPOT_XY, WatchSeller } from './art';
+import { GluehweinMug, Krampus, Market, SPOT_XY, WatchSeller } from './art';
 import './markt.css';
 
 const INTRO_MS = 7000;
@@ -123,6 +124,7 @@ export class MarktGame implements Game {
   start() {
     this.phase = 'intro';
     this.endsAt = Date.now() + INTRO_MS;
+    void resources.preload(['swap']);
     sound.bell();
     this.at(INTRO_MS, () => this.nextRound());
     this.update();
@@ -611,7 +613,11 @@ export class MarktGame implements Game {
                 </div>
               )}
               {s.clue && now - s.sniffedAt < 2500 && this.phase === 'hunt' && <span class="mk-sniff">👃</span>}
-              {s.boosted && <span class="mk-mug">🍷</span>}
+              {s.boosted && (
+                <span class="mk-mug">
+                  <GluehweinMug class="mk-mug-svg" />
+                </span>
+              )}
               <Pierogi color={colorHex(p.color)} size={78} mood={this.foundBy === id ? 'wow' : 'happy'} />
               <span class="mk-name">{p.name}</span>
             </div>
