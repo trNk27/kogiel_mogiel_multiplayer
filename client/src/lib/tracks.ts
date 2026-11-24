@@ -452,6 +452,7 @@ export function trackForGame(game: string): TrackId | null {
     case 'ballpark':
     case 'swap':
     case 'baja':
+    case 'markt':
     case 'toty':
     case 'bazgroly':
     case 'quip':

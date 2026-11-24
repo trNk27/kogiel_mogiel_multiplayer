@@ -1,0 +1,1262 @@
+/* ---- Wo ist der Pieróg? (TV) ---------------------------------------------------------------- */
+
+.mk-screen {
+  overflow: hidden;
+}
+.mk-market {
+  position: absolute;
+  inset: 0;
+}
+.mk-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 10%, rgba(120, 90, 200, 0.35), transparent 55%),
+    linear-gradient(180deg, #0b0a26 0%, #1b1446 30%, #2a1a4a 45%, #1a1020 46%);
+}
+.mk-stars {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 230px;
+  background:
+    radial-gradient(1.5px 1.5px at 120px 40px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 300px 90px, #fff, transparent),
+    radial-gradient(2px 2px at 520px 30px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 1200px 60px, #fff, transparent),
+    radial-gradient(2px 2px at 1450px 30px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 1620px 100px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 1000px 20px, #fff, transparent);
+  animation: twinkle 2.2s steps(2) infinite;
+}
+.mk-rathaus {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  width: 1728px;
+  height: 300px;
+  filter: drop-shadow(0 0 30px rgba(255, 200, 100, 0.25));
+}
+@keyframes twinkle {
+  50% {
+    filter: brightness(1.4);
+  }
+}
+/* Mist where the market meets the sky. */
+.mk-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 240px;
+  height: 140px;
+  background: linear-gradient(180deg, transparent, rgba(255, 190, 120, 0.22) 50%, transparent);
+  filter: blur(6px);
+}
+/* The square, laid flat in perspective: cobbles shrink into the distance. */
+.mk-ground3d {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 300px;
+  bottom: 0;
+  overflow: hidden;
+  perspective: 600px;
+  perspective-origin: 50% 0%;
+}
+.mk-cobbles {
+  position: absolute;
+  left: -60%;
+  right: -60%;
+  top: 0;
+  height: 1700px;
+  transform-origin: 50% 0;
+  transform: rotateX(62deg);
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 170, 80, 0.32), transparent 55%),
+    radial-gradient(circle at 25px 22px, rgba(255, 255, 255, 0.06) 0 14px, transparent 15px) 0 0 / 52px 44px,
+    radial-gradient(circle at 51px 44px, rgba(255, 255, 255, 0.05) 0 14px, transparent 15px) 0 0 / 52px 44px,
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0 3px, transparent 3px 44px),
+    linear-gradient(180deg, #3d2e3c, #2f2430 50%, #241a26);
+}
+/* Fresh snow lying on the ground. */
+.mk-ground3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 140px 30px at 8% 92%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(ellipse 180px 34px at 92% 94%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(ellipse 120px 20px at 30% 60%, rgba(255, 255, 255, 0.15), transparent),
+    radial-gradient(ellipse 120px 20px at 72% 58%, rgba(255, 255, 255, 0.15), transparent);
+}
+/* Warm light spilling from each stall onto the snow and cobbles. */
+.mk-pool {
+  position: absolute;
+  width: 380px;
+  height: 120px;
+  translate: -50% -50%;
+  scale: var(--s, 1);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 190, 100, 0.45), rgba(255, 150, 60, 0.12) 55%, transparent 70%);
+  mix-blend-mode: screen;
+  z-index: 2;
+}
+.mk-garlands {
+  position: absolute;
+  inset: 0;
+  width: 1728px;
+  height: 972px;
+  z-index: 450;
+  pointer-events: none;
+}
+.mk-lamp {
+  position: absolute;
+  width: 40px;
+  height: 200px;
+  translate: -50% -100%;
+  scale: var(--s, 1);
+  transform-origin: 50% 100%;
+}
+.mk-lamp svg {
+  position: relative;
+  width: 40px;
+  height: 200px;
+}
+.mk-lamp-halo {
+  position: absolute;
+  left: 50%;
+  top: 26px;
+  width: 160px;
+  height: 160px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 220, 140, 0.55), rgba(255, 200, 100, 0.15) 45%, transparent 70%);
+  mix-blend-mode: screen;
+}
+.mk-snowcanvas {
+  position: absolute;
+  inset: 0;
+  width: 1728px;
+  height: 972px;
+  pointer-events: none;
+}
+.mk-snowcanvas.back {
+  z-index: 1;
+  filter: blur(1px);
+  opacity: 0.7;
+}
+.mk-snowcanvas.front {
+  z-index: 1900;
+}
+.mk-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1890;
+  background: radial-gradient(ellipse at 50% 55%, transparent 55%, rgba(5, 3, 15, 0.55));
+}
+
+/* Crowds on the paths: little pierogi bobbing about, some in beanies, some with a mug. */
+.mk-blob {
+  position: absolute;
+  width: 26px;
+  height: 21px;
+  translate: -50% -50%;
+  border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%;
+  background: var(--c);
+  box-shadow:
+    inset 0 -4px 0 rgba(0, 0, 0, 0.2),
+    0 6px 6px -2px rgba(0, 0, 0, 0.4);
+  scale: var(--s, 1);
+  animation: bob 1.4s var(--d) ease-in-out infinite alternate;
+}
+.mk-blob.hat::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: -6px;
+  width: 14px;
+  height: 9px;
+  border-radius: 8px 8px 2px 2px;
+  background: #c8243c;
+  box-shadow: 0 -3px 0 -1px #fff;
+}
+.mk-blob.mug::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 6px;
+  width: 7px;
+  height: 8px;
+  border-radius: 2px;
+  background: #fffaf2;
+}
+.mk-path.c3 .mk-blob {
+  animation-duration: 0.8s;
+}
+@keyframes bob {
+  to {
+    translate: -50% -62%;
+  }
+}
+
+/* Stalls. */
+.mk-stall {
+  position: absolute;
+  width: 236px;
+  height: 186px;
+  translate: -50% -50%;
+  scale: var(--s, 1);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
+}
+.mk-stall > svg {
+  width: 236px;
+  height: 186px;
+  overflow: visible;
+}
+.mk-sign {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: rgba(21, 9, 16, 0.82);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(23px / var(--s, 1));
+  color: var(--cream);
+  z-index: 8;
+}
+.mk-prop {
+  position: absolute;
+  bottom: 40px;
+  font-size: 34px;
+}
+.mk-prop-img,
+.mk-stall > svg.mk-prop-svg {
+  position: absolute;
+  bottom: 36px;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 0 #2a120a);
+  pointer-events: none;
+}
+.mk-bulb {
+  animation: bulb 1.2s ease-in-out infinite alternate;
+}
+@keyframes bulb {
+  to {
+    opacity: 0.35;
+  }
+}
+.mk-steam path {
+  animation: steam 2s ease-in-out infinite;
+}
+.mk-steam path + path {
+  animation-delay: 1s;
+}
+@keyframes steam {
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+}
+.mk-wheel-spin {
+  transform-box: view-box;
+  transform-origin: 110px 100px;
+  animation: spin 24s linear infinite;
+}
+.mk-gondola {
+  transform-box: view-box;
+  transform-origin: 110px 100px;
+  animation: spin 24s linear infinite;
+}
+.mk-gondola-up {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: spin 24s linear infinite reverse;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.mk-star {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: pulse 1.4s ease-in-out infinite alternate;
+}
+@keyframes pulse {
+  to {
+    transform: scale(1.2);
+    filter: brightness(1.3);
+  }
+}
+.mk-heart {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: pulse 1.1s ease-in-out infinite alternate;
+}
+.mk-iceskater {
+  transform-box: view-box;
+  animation: skate 6s linear infinite;
+  animation-delay: calc(var(--i) * -2s);
+}
+@keyframes skate {
+  0% {
+    transform: translate(200px, 110px);
+  }
+  12.5% {
+    transform: translate(176px, 131px);
+  }
+  25% {
+    transform: translate(120px, 140px);
+  }
+  37.5% {
+    transform: translate(64px, 131px);
+  }
+  50% {
+    transform: translate(40px, 110px);
+  }
+  62.5% {
+    transform: translate(64px, 89px);
+  }
+  75% {
+    transform: translate(120px, 80px);
+  }
+  87.5% {
+    transform: translate(176px, 89px);
+  }
+  100% {
+    transform: translate(200px, 110px);
+  }
+}
+.mk-stone {
+  animation: curl 3s ease-in-out infinite;
+}
+@keyframes curl {
+  0%,
+  20% {
+    transform: translateX(0);
+  }
+  80%,
+  100% {
+    transform: translateX(110px);
+  }
+}
+.mk-horse {
+  animation: horse 1.2s ease-in-out infinite alternate;
+}
+@keyframes horse {
+  to {
+    transform: translateY(-12px);
+  }
+}
+.mk-tent-eyes {
+  animation: glare 3s steps(1) infinite;
+}
+@keyframes glare {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  72%,
+  76% {
+    opacity: 0;
+  }
+}
+.ph-lauf .mk-stall.s-tent {
+  filter: drop-shadow(0 0 20px #ff3b3b);
+}
+
+.mk-arch {
+  position: absolute;
+  translate: -50% -50%;
+  padding: 6px 28px 10px;
+  border-radius: 40px 40px 8px 8px;
+  border: 6px solid #6e3a22;
+  border-bottom: 0;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 30px rgba(255, 210, 63, 0.4);
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 24px;
+  color: var(--yolk);
+  z-index: 5;
+  white-space: nowrap;
+}
+
+/* Rumours: true or fake, they look the same. */
+.mk-rumour {
+  position: absolute;
+  translate: -50% 0;
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 22px;
+  white-space: nowrap;
+  box-shadow: var(--drop);
+  z-index: 1500;
+  animation:
+    pop-in 0.4s both,
+    rumour 0.6s 0.4s ease-in-out infinite alternate;
+}
+.mk-rumour::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  translate: -50% 0;
+  border: 10px solid transparent;
+  border-top: 14px solid var(--cream);
+}
+@keyframes rumour {
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+/* Seekers. */
+.mk-seeker,
+.mk-hider {
+  position: absolute;
+  translate: -50% 0;
+  scale: var(--s, 1);
+  transform-origin: 50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.45));
+  transition-property: left, top, scale;
+  transition-timing-function: linear;
+}
+.mk-seeker.walking > svg {
+  animation: waddle 0.35s ease-in-out infinite alternate;
+}
+@keyframes waddle {
+  from {
+    transform: rotate(-8deg);
+  }
+  to {
+    transform: rotate(8deg) translateY(-6px);
+  }
+}
+.mk-seeker.boosted > svg {
+  animation: tipsy 1.2s ease-in-out infinite alternate;
+}
+@keyframes tipsy {
+  from {
+    transform: rotate(-12deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
+}
+.mk-seeker.finder {
+  animation: jump 0.4s ease-in-out infinite alternate;
+}
+@keyframes jump {
+  to {
+    translate: -50% -20px;
+  }
+}
+.mk-name {
+  margin-top: -2px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--pc);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(20px / var(--s, 1));
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mk-sniff,
+.mk-mug {
+  position: absolute;
+  top: -22px;
+  font-size: 28px;
+  animation: pop-in 0.3s both;
+}
+.mk-sniff {
+  left: -12px;
+}
+.mk-mug {
+  right: -14px;
+  top: 0;
+  font-size: 22px;
+}
+.mk-mug-svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+  filter: drop-shadow(0 2px 0 #2a120a);
+}
+.mk-seller-wrap {
+  position: absolute;
+  right: -78px;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: pop-in 0.4s both;
+}
+.mk-seller {
+  width: 70px;
+  height: 94px;
+  overflow: visible;
+  animation: tipsy 0.8s ease-in-out infinite alternate;
+}
+.mk-seller-say {
+  position: absolute;
+  top: -30px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: var(--yolk);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.mk-hider.found {
+  translate: -50% -50%;
+  filter: drop-shadow(0 0 18px #ffd23f);
+}
+.mk-hider.sneaking {
+  left: 0;
+  top: 860px;
+  animation: sneak 11s linear forwards;
+  opacity: 0.85;
+  z-index: 1400;
+}
+@keyframes sneak {
+  0% {
+    left: -80px;
+  }
+  40% {
+    left: 700px;
+    opacity: 0.85;
+  }
+  60% {
+    left: 900px;
+    opacity: 0;
+  }
+  100% {
+    left: 900px;
+    opacity: 0;
+  }
+}
+
+/* Top bar, banner, scoreboard. */
+.mk-top {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 2000;
+}
+.mk-top .pill {
+  font-size: 28px;
+  padding: 6px 22px;
+  background: rgba(21, 9, 16, 0.8);
+}
+.mk-top .pill.mk-hiderpill {
+  background: var(--pc);
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.mk-banner {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  translate: -50% 0;
+  width: 1050px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 1999;
+}
+.mk-banner b {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 58px;
+  line-height: 1.05;
+  color: var(--yolk);
+  -webkit-text-stroke: 7px #120a24;
+  paint-order: stroke fill;
+  text-shadow: 0 7px 0 #120a24;
+}
+.mk-banner span {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 700;
+  padding: 4px 18px;
+  border-radius: 999px;
+  background: rgba(12, 8, 30, 0.8);
+}
+.mk-board {
+  position: absolute;
+  right: 12px;
+  top: 130px;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1998;
+}
+.mk-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: rgba(12, 8, 30, 0.78);
+  box-shadow: inset 4px 0 0 var(--pc);
+  font-size: 18px;
+}
+.mk-row.offline {
+  opacity: 0.45;
+}
+.mk-row-name {
+  flex: 1;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Krampus auf dem Eis. */
+.mk-rinkscene {
+  position: absolute;
+  inset: 0;
+  z-index: 1800;
+  overflow: hidden;
+  animation: rink-in 0.6s ease-out both;
+}
+@keyframes rink-in {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+.mk-rk-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0b0a26 0%, #1b1446 30%, #2a1a40 42%, #1a1424 43%);
+}
+.mk-rk-back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1728px;
+  height: 420px;
+}
+.mk-rk-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 410px;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 30%, #3a2c3a, #1d1520 70%);
+}
+.mk-rk-ice {
+  position: absolute;
+  inset: 0;
+  width: 1728px;
+  height: 972px;
+}
+.mk-rk-krampus {
+  position: absolute;
+  left: 864px;
+  top: 640px;
+  translate: -50% -96%;
+  filter: drop-shadow(0 20px 14px rgba(0, 0, 0, 0.5));
+}
+.mk-rk-krampus .krampus {
+  width: 190px;
+  height: 250px;
+}
+.mk-rk-krampus.attack .krampus {
+  animation: shake 0.1s linear infinite alternate;
+}
+.mk-rk-attack {
+  position: absolute;
+  z-index: 1700;
+  font-size: 110px;
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+/* Low birch sweep across the ice. */
+.mk-rk-attack.a-jump {
+  left: 864px;
+  top: 640px;
+  animation: sweep-low 1.5s ease-in-out both;
+}
+@keyframes sweep-low {
+  from {
+    transform: translate(-50%, -50%) rotate(-80deg) translateY(-260px);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(280deg) translateY(-260px);
+  }
+}
+/* Chains swinging round at head height. */
+.mk-rk-attack.a-duck {
+  left: 864px;
+  top: 470px;
+  animation: sweep-high 1.5s linear both;
+}
+@keyframes sweep-high {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg) translateX(420px) scaleY(0.4);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg) translateX(420px) scaleY(0.4);
+  }
+}
+/* A snowball, flung straight at the skaters. */
+.mk-rk-attack.a-swerve {
+  left: 864px;
+  top: 560px;
+  animation: throw 1.5s ease-in both;
+}
+@keyframes throw {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  60% {
+    transform: translate(-50%, 120px) scale(1.6);
+  }
+  100% {
+    transform: translate(-50%, 380px) scale(2.4);
+    opacity: 0;
+  }
+}
+.mk-rk-skater {
+  position: absolute;
+  translate: -50% -100%;
+  scale: var(--s, 1);
+  transform-origin: 50% 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.mk-rk-tag {
+  padding: 1px 12px;
+  border-radius: 999px;
+  background: var(--pc);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+.mk-rk-tag b {
+  font-size: 18px;
+  margin-left: 4px;
+}
+.mk-rk-pts {
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--dill);
+  color: var(--ink);
+  text-shadow: none;
+}
+.mk-rk-body {
+  position: relative;
+  transform-origin: 50% 100%;
+  animation: stride 0.9s ease-in-out infinite;
+}
+.mk-rk-body.flip {
+  scale: -1 1;
+}
+/* Skating: push off one foot, glide, push off the other, leaning into each stride. */
+@keyframes stride {
+  0%,
+  100% {
+    transform: rotate(-9deg) translateX(-6px);
+  }
+  50% {
+    transform: rotate(9deg) translateX(6px);
+  }
+}
+.mk-rk-body > svg {
+  position: relative;
+  z-index: 2;
+}
+.mk-rk-beanie {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 46px;
+  height: 26px;
+  translate: -50% 0;
+  border-radius: 24px 24px 6px 6px;
+  background: repeating-linear-gradient(90deg, #c8243c 0 8px, #a81c30 8px 12px);
+  box-shadow: 0 -10px 0 -4px #fffaf2;
+  z-index: 3;
+}
+.mk-rk-scarf {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 62%;
+  height: 14px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(90deg, var(--pc) 0 10px, #fffaf2 10px 16px);
+  z-index: 3;
+}
+.mk-rk-scarf::after {
+  /* The loose end, flying out behind. */
+  content: '';
+  position: absolute;
+  right: -34px;
+  top: 2px;
+  width: 40px;
+  height: 11px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(90deg, var(--pc) 0 10px, #fffaf2 10px 16px);
+  transform-origin: 0 50%;
+  animation: scarf 0.45s ease-in-out infinite alternate;
+}
+@keyframes scarf {
+  from {
+    transform: rotate(10deg);
+  }
+  to {
+    transform: rotate(-18deg);
+  }
+}
+.mk-rk-skates {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: -6px;
+}
+.mk-rk-skates i {
+  width: 26px;
+  height: 12px;
+  border-radius: 6px 10px 3px 3px;
+  background: #fffaf2;
+  border-bottom: 4px solid #b8c6d6;
+  animation: foot 0.9s ease-in-out infinite;
+}
+.mk-rk-skates i + i {
+  animation-delay: -0.45s;
+}
+@keyframes foot {
+  0%,
+  100% {
+    transform: translateX(-8px);
+  }
+  50% {
+    transform: translateX(8px) translateY(-6px);
+  }
+}
+.mk-rk-spray {
+  position: absolute;
+  left: -30px;
+  bottom: 0;
+  width: 40px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.9), transparent 70%);
+  animation: spray 0.9s ease-out infinite;
+}
+@keyframes spray {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-30px) scale(1.4);
+  }
+}
+.mk-rk-shadow {
+  width: 80px;
+  height: 14px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: rgba(30, 60, 90, 0.35);
+}
+.st-jump .mk-rk-body {
+  animation: hop 0.6s ease-out both;
+}
+@keyframes hop {
+  50% {
+    transform: translateY(-90px) rotate(-10deg);
+  }
+}
+.st-duck .mk-rk-body {
+  animation: crouch 0.6s ease-out both;
+}
+@keyframes crouch {
+  40%,
+  70% {
+    transform: scaleY(0.55) scaleX(1.15);
+  }
+}
+.st-swerve .mk-rk-body {
+  animation: swerve 0.6s ease-in-out both;
+}
+@keyframes swerve {
+  50% {
+    transform: translateX(70px) rotate(22deg);
+  }
+}
+/* Down you go: spin, sit on the ice, see stars. */
+.st-fall .mk-rk-body {
+  animation: fall 1.2s ease-out both;
+}
+@keyframes fall {
+  0% {
+    transform: rotate(0);
+  }
+  35% {
+    transform: rotate(200deg) translateY(-30px);
+  }
+  60%,
+  100% {
+    transform: rotate(100deg) translate(20px, -10px);
+  }
+}
+.mk-rk-stars {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  width: 70px;
+  height: 36px;
+  margin-left: -35px;
+  z-index: 4;
+  animation: spin 0.8s linear infinite;
+}
+.mk-rk-call {
+  position: absolute;
+  left: 50%;
+  top: 150px;
+  translate: -50% 0;
+  padding: 10px 30px;
+  border-radius: 24px;
+  background: rgba(120, 0, 20, 0.88);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 54px;
+  white-space: nowrap;
+  z-index: 1950;
+  box-shadow: 0 0 40px rgba(255, 40, 40, 0.5);
+  animation: pop-in 0.25s both;
+}
+.mk-rk-call b {
+  color: var(--yolk);
+}
+.mk-rk-call.count {
+  background: none;
+  box-shadow: none;
+  font-size: 160px;
+  -webkit-text-stroke: 12px #241015;
+  paint-order: stroke fill;
+}
+
+/* ---- Phone ---------------------------------------------------------------------------------- */
+
+.mkp {
+  gap: 8px;
+  overflow-y: auto;
+  position: relative;
+}
+.mkp-center {
+  flex: 1;
+}
+.mkp-emoji {
+  font-size: 66px;
+  line-height: 1;
+}
+.mkp-title {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 24px;
+  text-align: center;
+  color: var(--yolk);
+}
+.mkp-note {
+  text-align: center;
+  font-weight: 800;
+  font-size: 16px;
+  min-height: 22px;
+}
+.mkp-map {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 170, 80, 0.2), transparent 70%),
+    #2e2230;
+}
+.mkp-spot {
+  position: relative;
+  min-height: 66px;
+  border-radius: 14px;
+  background: var(--panel-2);
+  color: var(--cream);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  box-shadow: var(--edge);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+}
+.mkp-spot b {
+  font-size: 26px;
+  line-height: 1.1;
+}
+.mkp-spot:disabled {
+  opacity: 0.35;
+}
+.mkp-spot.can {
+  background: #4a3a6a;
+  box-shadow:
+    inset 0 0 0 3px var(--yolk),
+    0 4px 0 rgba(0, 0, 0, 0.4);
+}
+.mkp-spot.here {
+  background: var(--yolk);
+  color: var(--ink);
+}
+.mkp-spot.target {
+  background: var(--dill);
+  color: var(--ink);
+}
+.mkp-spot.picked {
+  background: var(--beet);
+  color: var(--cream);
+}
+.mkp-crowd {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 10px;
+}
+.mkp-dots {
+  position: absolute;
+  bottom: 2px;
+  display: flex;
+  gap: 1px;
+}
+.mkp-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.5);
+}
+.mkp-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mkp-btns.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.mkp-btn {
+  min-height: 60px;
+  border-radius: 16px;
+  background: var(--panel-2);
+  color: var(--cream);
+  box-shadow: var(--edge), 0 4px 0 rgba(0, 0, 0, 0.4);
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.mkp-btn span {
+  font-size: 24px;
+}
+.mkp-btn.on {
+  background: var(--yolk);
+  color: var(--ink);
+}
+.mkp-btn:disabled {
+  opacity: 0.4;
+}
+.mkp-clue {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 22px;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(251, 240, 217, 0.08);
+}
+.mkp-clue.hot {
+  color: #ff7a3c;
+}
+.mkp-clue.warm {
+  color: var(--yolk);
+}
+.mkp-clue.cold {
+  color: #8fd0ff;
+}
+.mkp-walk {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(251, 240, 217, 0.12);
+  overflow: hidden;
+}
+.mkp-walk div {
+  height: 100%;
+  background: var(--yolk);
+}
+.mkp-boosted .mkp-map {
+  animation: tipsy-s 1.6s ease-in-out infinite alternate;
+}
+@keyframes tipsy-s {
+  from {
+    transform: rotate(-2deg) translateX(-6px);
+  }
+  to {
+    transform: rotate(2deg) translateX(6px);
+  }
+}
+/* The watch seller blocks the whole screen. */
+.mkp-seller {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(20, 12, 6, 0.94);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  text-align: center;
+}
+.mkp-seller .mk-seller {
+  width: 140px;
+  height: 188px;
+}
+.mkp-nein {
+  width: 220px;
+  height: 90px;
+  border-radius: 20px;
+  background: var(--beet);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 28px;
+  box-shadow: 0 8px 0 var(--beet-deep);
+  touch-action: manipulation;
+}
+.mkp-nein:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 var(--beet-deep);
+}
+/* On the ice: three big moves. */
+.mkp-lauf {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mkp-cue {
+  min-height: 150px;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 26px;
+  background: #1f3a52;
+}
+.mkp-cue span {
+  font-size: 70px;
+  line-height: 1;
+}
+.mkp-cue.attack {
+  background: #a8001a;
+  animation: shake 0.1s linear infinite alternate;
+}
+.mkp-cue.ok {
+  background: var(--dill);
+  color: var(--ink);
+}
+.mkp-cue.bad {
+  background: #3a1a1a;
+}
+.mkp-moves {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+}
+.mkp-move {
+  border-radius: 22px;
+  min-height: 140px;
+  background: #5ad0ff;
+  color: var(--ink);
+  box-shadow: 0 8px 0 #2a7aa8;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  touch-action: manipulation;
+}
+.mkp-move span {
+  font-size: 46px;
+}
+.mkp-move:disabled {
+  opacity: 0.4;
+}
+.mkp-move:active:not(:disabled) {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #2a7aa8;
+}
+.mkp-score {
+  text-align: center;
+  font-weight: 800;
+}

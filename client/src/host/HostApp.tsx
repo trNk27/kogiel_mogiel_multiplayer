@@ -35,6 +35,7 @@ import { howTo as blastHowTo } from '../games/blast/logic';
 import { howTo as flagsHowTo } from '../games/flags/logic';
 import { howTo as weseleHowTo } from '../games/wesele/logic';
 import { howTo as bajaHowTo } from '../games/baja/logic';
+import { howTo as marktHowTo } from '../games/markt/logic';
 import { howTo as potatoHowTo } from '../games/potato/logic';
 import { howTo as floesHowTo } from '../games/floes/logic';
 import { howTo as chairsHowTo } from '../games/chairs/logic';
@@ -499,6 +500,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return weseleHowTo(short);
     case 'baja':
       return bajaHowTo(short);
+    case 'markt':
+      return marktHowTo(short);
     case 'boules':
       return boulesHowTo(short);
     case 'bells':
