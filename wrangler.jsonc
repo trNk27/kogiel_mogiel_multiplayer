@@ -3,6 +3,9 @@
   "name": "couch-party",
   "main": "worker/index.ts",
   "compatibility_date": "2025-09-01",
+  // Serve the game on its own subdomain. The bajasgames.com zone must be active
+  // in the same Cloudflare account, or the deploy fails.
+  "routes": [{ "pattern": "kogielmogiel.bajasgames.com", "custom_domain": true }],
   // Frontend built by Vite into ./dist and served as static assets.
   // "/join" resolves to join.html, "/dev" to dev.html (auto html handling).
   "assets": {
