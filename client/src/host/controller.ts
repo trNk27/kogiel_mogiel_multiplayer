@@ -40,6 +40,7 @@ import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { sound } from '../lib/sound';
 import { placesFor } from './standings';
 import { currentVip } from './vip';
+import { findReturning, renameIn, renameInLog, type Departed } from './rejoin';
 import { awardGame, cleanTourOff, hasNext, newTournament, nextGame, nextVote, setVoted, tournamentPlaces, type Tournament } from './tournament';
 import { VoteRoom } from './vote/VoteRoom';
 import { MirrorHost } from './mirror';
@@ -105,6 +106,7 @@ interface SavedSession {
   gamesPlayed: number;
   vip?: string | null;
   history?: PartyEntry[];
+  departed?: Departed[];
   savedAt: number;
   noTv?: boolean;
 }
@@ -149,6 +151,8 @@ export class HostController implements GameHost {
   private vip: string | null = null;
   /** Party points per finished game, oldest first – for the standings chart. */
   history: PartyEntry[] = [];
+  /** Players who left, with their party points, in case they join again (see rejoin.ts). */
+  private departed: Departed[] = [];
   status: SocketStatus = 'closed';
   /** Second screens: TVs elsewhere that draw this one from its state (see caster.ts). */
   readonly mirror = new MirrorHost(
@@ -218,6 +222,7 @@ export class HostController implements GameHost {
       this.gamesPlayed = 0;
       this.vip = null;
       this.history = [];
+      this.departed = [];
       this.connect();
       this.screen = { s: 'lobby' };
       this.persist();
@@ -244,6 +249,7 @@ export class HostController implements GameHost {
     this.gamesPlayed = saved.gamesPlayed;
     this.vip = saved.vip ?? null;
     this.history = saved.history ?? [];
+    this.departed = saved.departed ?? [];
     sound.muted = this.noTv || !this.options.sound;
     const now = Date.now();
     for (const p of saved.players) {
@@ -336,6 +342,7 @@ export class HostController implements GameHost {
       gamesPlayed: this.gamesPlayed,
       vip: this.vip,
       history: this.history,
+      departed: this.departed,
       savedAt: Date.now(),
       noTv: this.noTv,
     };
@@ -561,14 +568,32 @@ export class HostController implements GameHost {
       return;
     }
     this.pending.delete(id);
-    this.players.set(id, { id, name, color, connected: true, joinedAt: Date.now(), disconnectedAt: null, party: 0 });
+    this.players.set(id, { id, name, color, connected: true, joinedAt: Date.now(), disconnectedAt: null, party: this.welcomeBack(id, name) });
     sound.join();
     this.afterRosterChange();
+  }
+
+  /** A player joining again gets their party points back; their old id's scores move to the new one. */
+  private welcomeBack(id: string, name: string): number {
+    const back = findReturning(this.departed, id, name);
+    if (!back) return 0;
+    this.departed = this.departed.filter((d) => d !== back);
+    if (back.id !== id) {
+      renameInLog(this.history, back.id, id);
+      const t = this.tournament;
+      if (t) {
+        renameIn(t.points, back.id, id);
+        renameIn(t.gained, back.id, id);
+        renameInLog(t.log, back.id, id);
+      }
+    }
+    return back.party;
   }
 
   private removePlayer(id: string) {
     const p = this.players.get(id);
     if (!p) return;
+    this.departed = [...this.departed.filter((d) => d.id !== id), { id, name: p.name, party: p.party }];
     this.players.delete(id);
     this.lastSent.delete(id);
     sound.leave();
