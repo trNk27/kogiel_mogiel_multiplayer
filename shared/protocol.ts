@@ -143,6 +143,8 @@ export type GameId =
   | 'wesele'
   | 'baja'
   | 'tower'
+  | 'ogien'
+  | 'markt'
   | 'kuba';
 
 export interface GameInfo {
@@ -182,7 +184,8 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'parade', title: 'Pierogi Parade', tagline: 'Count your colour in the crowd.', minPlayers: 1, maxPlayers: 12 },
   { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1, maxPlayers: 12 },
   { id: 'wesele', title: 'Wesele', tagline: 'A 3D disco polo wedding: win challenges, dodge the shots, last till 3:00.', minPlayers: 2 },
-  { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi. Guess what she wants.', minPlayers: 1 },
+  { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi together. Trade clues. Find the cat.', minPlayers: 2 },
+  { id: 'markt', title: 'Wo ist der Pieróg?', tagline: 'Hide-and-seek at the Vienna Christmas market. Beware of Krampus.', minPlayers: 2 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
   {
     id: 'mushroom',
@@ -230,6 +233,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'marina', title: 'Przystań', tagline: 'Park your boat. Mind the paint.', minPlayers: 1 },
   { id: 'castle', title: 'Malbork Castle', tagline: 'Co-op archery. Hold the castle walls together.', minPlayers: 1, coop: true },
   { id: 'tower', title: 'Lodowa Wieża', tagline: 'Bounce off the walls. Chain combos to the top.', minPlayers: 1 },
+  { id: 'ogien', title: 'Ogień i Lód', tagline: 'Fire and ice pierogi. Hold the doors for each other.', minPlayers: 2, maxPlayers: 10, coop: true },
   { id: 'kuba', title: 'Upij Kubę', tagline: 'Make the sober one laugh. Every laugh is a shot.', minPlayers: 3, maxPlayers: 10 },
   {
     id: 'premium',
@@ -848,27 +852,67 @@ export type PhoneView =
       text?: string;
     }
   /**
-   * Wybredna Baja: build a plate (one option per row, `rows` rows) and feed her. `history` is your
-   * tries this craving (`plate` null if you missed one); `fed` the try you fed her right on.
-   * `changed` lists rows she changed her mind about; `answer` is shown at the reveal.
+   * Wybredna Baja (team version): everyone builds one plate. `mine` are the parts you pick; `plate`
+   * is the team's picks so far (null: not picked). `clues` are your secret clues (text). `cat`: you are
+   * secretly the neighbour's cat this craving. `key` changes every craving.
+   */
+  /**
+   * Wo ist der Pieróg?: hide-and-seek at the Christmas market. `key` changes every round. Spots are
+   * indexes into SPOTS in games/markt/logic.ts. Times are host clock ms. The hider's spot is only ever
+   * in the hider's own view (`hideAt`). `seekers` lists where everyone else is (also shown on the TV).
    */
   | {
+      v: 'markt';
+      phase: 'intro' | 'hide' | 'hunt' | 'lauf' | 'result' | 'end';
+      key: number;
+      round: number;
+      rounds: number;
+      role: 'hider' | 'seeker';
+      hider: string;
+      hiderColor: ColorId | null;
+      endsAt: number;
+      total: number;
+      crowds: Record<string, number>;
+      seekers: { id: string; name: string; color: ColorId; at: number }[];
+      /** Hider only. */
+      hideAt: number | null;
+      trickReadyAt: number;
+      sneakUsed: boolean;
+      /** Seeker only. */
+      at: number;
+      walkingTo: number | null;
+      arriveAt: number;
+      boosted: boolean;
+      sniffReadyAt: number;
+      clue: { at: number; clue: 'here' | 'hot' | 'warm' | 'cold' } | null;
+      seller: number;
+      lauf?: { startAt: number; endAt: number; attacks: [number, number][]; done: number[] };
+      result?: { big: string; text: string; good: boolean; pts: number };
+    }
+  | {
       v: 'baja';
-      phase: 'intro' | 'build' | 'taste' | 'mind' | 'reveal';
+      phase: 'intro' | 'build' | 'taste' | 'reveal' | 'vote' | 'cat' | 'end';
+      key: number;
       round: number;
       rounds: number;
       tryN: number;
       tries: number;
-      rows: number;
+      parts: number;
       endsAt: number;
-      hint: { row: number; opt: number };
-      changed: number[];
-      sent: number[] | null;
-      history: { plate: number[] | null; hits: number }[];
-      fed: number | null;
-      pts: number;
       total: number;
+      mine: number[];
+      owners: { name: string; color: ColorId }[];
+      plate: (number | null)[];
+      ready: boolean;
+      clues: string[];
+      treats: number;
+      cat: boolean;
+      catRound: boolean;
+      history: { plate: number[]; hits: number }[];
       answer: number[] | null;
+      players: { id: string; name: string; color: ColorId }[];
+      voted: string | null;
+      result?: { big: string; text: string; good: boolean; pts: number };
     }
   /**
    * Arena games (Czołgi, Grzybki, Pushy Pierogi, Strzelnica, Babcia’s Cookbook, Kafelki, Skakanka, Petarda,
@@ -1093,9 +1137,29 @@ export type PhoneMsg =
    * ms after NOW!, ms taken for the moves, average ms off the beat). `live` updates (so the TV can show
    * progress) don't count as your answer. `moves` are the duck-dance moves you tapped.
    */
+  /**
+   * Wo ist der Pieróg?, for round `key`. Hider: `hide` a spot, then tricks: `fake` sighting at a spot,
+   * send the `seller` to a seeker, `sneak` to a next-door spot. Seeker: `walk` to a next-door spot,
+   * `sniff`, `drink` a glühwein, `nein` to the watch seller. On the ice: `dodge` attack `i` with a
+   * move, `at` ms after it showed (measured on the phone, host clock).
+   */
+  | {
+      t: 'markt';
+      key: number;
+      hide?: number;
+      fake?: number;
+      seller?: string;
+      sneak?: number;
+      walk?: number;
+      sniff?: boolean;
+      drink?: boolean;
+      nein?: boolean;
+      dodge?: { i: number; move: 'jump' | 'duck' | 'swerve'; at: number };
+    }
   | { t: 'wesele'; key: number; choice?: 'drink' | 'kompot'; v?: number; live?: boolean; moves?: number[] }
   /** Wybredna Baja: your plate for try `tryN` of craving `round` (one option index per row). */
-  | { t: 'feed'; round: number; tryN: number; plate: number[] }
+  /** Wybredna Baja, for craving `key`: pick `opt` for `part`, say you're `ready`, give a `treat`, or `vote` for the cat. */
+  | { t: 'baja'; key: number; part?: number; opt?: number; ready?: boolean; treat?: boolean; vote?: string }
   /** Fajki: reach for the cigarette in front of you. */
   | { t: 'grab' }
   /** Fajki: started pulling on the cigarette (`pull`), or let go: puff quality `q` (0–1) and how it went (`v`, see Verdict). */

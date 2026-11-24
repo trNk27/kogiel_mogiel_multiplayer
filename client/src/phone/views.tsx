@@ -37,6 +37,7 @@ import { Stars } from '../lib/stars';
 import { SwapPad } from './swap';
 import { WeselePad } from '../games/wesele/phone';
 import { BajaPad } from '../games/baja/phone';
+import { MarktPad } from '../games/markt/phone';
 import { TimeBar } from './timebar';
 import { RallyPad } from './rally';
 import { PremiumPad } from './premium';
@@ -108,7 +109,9 @@ export function ViewRouter({ view, me, send, offset }: { view: PhoneView; me: Me
     case 'wesele':
       return <WeselePad view={view} me={me} send={send} offset={offset} key={`${view.key}-${view.phase}`} />;
     case 'baja':
-      return <BajaPad view={view} me={me} send={send} offset={offset} key={`${view.round}-${view.tryN}`} />;
+      return <BajaPad view={view} me={me} send={send} offset={offset} key={`${view.key}-${view.phase}`} />;
+    case 'markt':
+      return <MarktPad view={view} me={me} send={send} offset={offset} key={`${view.key}-${view.phase}-${view.role}`} />;
     case 'smoke':
       return <SmokePad view={view} me={me} send={send} offset={offset} />;
     case 'castle':

@@ -13,6 +13,7 @@ import { ParadeGame } from './parade/ParadeGame';
 import { SwapGame } from './swap/SwapGame';
 import { WeseleGame } from './wesele/WeseleGame';
 import { BajaGame } from './baja/BajaGame';
+import { MarktGame } from './markt/MarktGame';
 import { TanksGame } from './tanks/TanksGame';
 import { MushroomGame } from './mushroom/MushroomGame';
 import { PushyGame } from './pushy/PushyGame';
@@ -49,6 +50,7 @@ import { MarinaGame } from './marina/MarinaGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
 import { TowerGame } from './tower/TowerGame';
+import { OgienGame } from './ogien/OgienGame';
 import { KubaGame } from './kuba/KubaGame';
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
@@ -79,6 +81,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new WeseleGame(host, ids);
     case 'baja':
       return new BajaGame(host, ids);
+    case 'markt':
+      return new MarktGame(host, ids);
     case 'tanks':
       return new TanksGame(host, ids);
     case 'mushroom':
@@ -149,6 +153,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new CastleGame(host, ids);
     case 'tower':
       return new TowerGame(host, ids);
+    case 'ogien':
+      return new OgienGame(host, ids);
     case 'kuba':
       return new KubaGame(host, ids);
     case 'premium':

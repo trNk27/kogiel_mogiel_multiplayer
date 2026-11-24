@@ -49,6 +49,7 @@ describe('standardized art styles', () => {
     }
     expect(artStyleForGame('kitchen')).toBe('cartoon');
     expect(artStyleForGame('swap')).toBe('cartoon');
+    expect(artStyleForGame('markt')).toBe('cartoon');
     expect(artStyleForGame('quiz')).toBe('cartoon');
     expect(artStyleForGame('tower')).toBe('pixel');
     expect(artStyleForGame('tanks')).toBe('3d');
