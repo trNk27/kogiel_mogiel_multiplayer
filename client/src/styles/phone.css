@@ -3640,3 +3640,298 @@ body.phone-body input {
 .ask-key.off {
   opacity: 0.35;
 }
+
+/* ---- Lobby Baja feed minigame & Pierogi cosmetics shop ------------------- */
+
+.baja-pierogi-stage {
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.baja-pierogi-stage > svg {
+  max-height: 26dvh;
+  width: auto;
+}
+
+.baja-wallet-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  min-height: 36px;
+  border-radius: 999px;
+  background: rgba(255, 210, 63, 0.16);
+  box-shadow: inset 0 0 0 2px rgba(255, 210, 63, 0.55);
+  color: var(--yolk);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.shop-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe074, #f2b705);
+  box-shadow: 0 4px 0 #a36f00;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 15px;
+}
+.shop-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #a36f00;
+}
+
+.baja-feed-backdrop,
+.baja-shop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(14, 9, 20, 0.86);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+}
+
+.baja-feed-card,
+.baja-shop-card {
+  width: min(100%, 410px);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 24px;
+  background: #231830;
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 210, 63, 0.45),
+    0 18px 40px rgba(0, 0, 0, 0.55);
+  color: var(--cream);
+}
+
+.baja-feed-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.baja-feed-title {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 17px;
+  color: var(--yolk);
+  line-height: 1.1;
+}
+
+.baja-feed-score {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 210, 63, 0.16);
+  color: var(--yolk);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 15px;
+}
+
+.baja-feed-close {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--cream);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.baja-feed-stage {
+  position: relative;
+  width: min(100%, max(104px, calc((100dvh - 175px) * 180 / 280)));
+  aspect-ratio: 180 / 280;
+  flex: 0 0 auto;
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 2px rgba(255, 244, 220, 0.18);
+  background: #241830;
+}
+
+.baja-feed-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  touch-action: none;
+  user-select: none;
+}
+
+.baja-feed-banner {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: 82%;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 7px 0 var(--yolk-deep), inset 0 0 0 3px var(--yolk);
+  text-align: center;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.baja-feed-banner b {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 32px;
+  line-height: 1.05;
+  color: #b52445;
+}
+
+.baja-feed-banner.done b {
+  color: #216e3a;
+}
+
+.baja-feed-banner small {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.baja-feed-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.baja-treats-left {
+  display: flex;
+  gap: 8px;
+  font-size: 17px;
+}
+
+.baja-treat-pip.used {
+  opacity: 0.35;
+}
+
+.baja-feed-hint {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(251, 240, 217, 0.78);
+}
+
+.baja-shop-card {
+  overflow-y: auto;
+}
+
+.baja-shop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.baja-shop-head b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--yolk);
+}
+
+.baja-shop-head small {
+  display: block;
+  font-size: 12px;
+  color: rgba(251, 240, 217, 0.72);
+}
+
+.baja-shop-preview {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 112px;
+  padding-top: 22px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.baja-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 92px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--edge);
+  color: var(--cream);
+  text-align: center;
+}
+
+.shop-item:disabled {
+  opacity: 0.42;
+}
+
+.shop-item.owned {
+  background: rgba(255, 244, 220, 0.1);
+}
+
+.shop-item.equipped {
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--yolk-deep), inset 0 0 0 3px var(--yolk);
+}
+
+.shop-item b {
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-size: 12px;
+  line-height: 1.05;
+}
+
+.shop-tag {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 12px;
+  color: var(--yolk);
+}
+
+.shop-item.equipped .shop-tag {
+  color: #216e3a;
+}
+
+.shop-done {
+  min-height: 48px;
+}

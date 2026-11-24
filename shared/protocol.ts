@@ -10,6 +10,9 @@
  *
  * All messages are JSON objects with a short `t` (type) discriminator to keep payloads small.
  */
+import type { CosmeticId } from './cosmetics';
+
+export type { CosmeticId } from './cosmetics';
 
 // ---------------------------------------------------------------------------
 // Room codes & identifiers
@@ -528,6 +531,7 @@ export interface PlayerSummary {
   color: ColorId;
   connected: boolean;
   vip: boolean;
+  cosmetics?: CosmeticId[];
 }
 
 /** One slot on the Ballpark betting board. */
@@ -639,6 +643,12 @@ export type PhoneView =
       vipName: string;
       /** The worker has an AI key, so AI bots can be switched on. */
       ai?: boolean;
+      /** Lobby bone currency earned by feeding Baja (shown once > 0). */
+      bones?: number;
+      owned?: CosmeticId[];
+      equipped?: CosmeticId[];
+      /** Active Baja feeding minigame on this player's phone. */
+      bajaFeed?: { key: number };
     }
   | { v: 'wait'; title: string; text?: string; icon?: string }
   | {
@@ -1180,7 +1190,11 @@ export type PhoneMsg =
   | { t: 'kick'; id: string }
   /** Play the same game again – or, in a tournament, go on to the next game. */
   | { t: 'again' }
-  | { t: 'lobby' };
+  | { t: 'lobby' }
+  /** Lobby Baja feeding minigame & cosmetic shop actions. */
+  | { t: 'bajaFeedDone'; key: number; fed: number }
+  | { t: 'buyCosmetic'; id: CosmeticId }
+  | { t: 'toggleCosmetic'; id: CosmeticId };
 
 // ---------------------------------------------------------------------------
 // Host -> phone (relayed by the Durable Object)
