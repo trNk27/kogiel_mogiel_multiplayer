@@ -305,8 +305,6 @@ export class PremiumGame implements Game {
       this.scene = new RallyScene(
         canvas,
         KARTS.map((k) => ({ name: '', color: k.paint, kart: k.id })),
-        undefined,
-        ['psx'],
       );
     } catch (err) {
       console.error(err);

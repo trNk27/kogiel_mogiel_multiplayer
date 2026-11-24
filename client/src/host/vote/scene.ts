@@ -20,6 +20,7 @@ import {
   Vector3,
 } from 'three';
 import { ArenaStage, blobShadow, box, buildPierogi, flat, groundTexture, nameTag, pixelTexture, type PierogiModel } from '../../games/arena/kit';
+import { BajaCameo3D } from '../../games/arena/baja3d';
 import { mulberry32 } from '../../games/rng';
 import { BACK_Z, FRONT_Z, HALF_W, MAT_R, matPos, type VoteSim } from './logic';
 
@@ -97,6 +98,7 @@ export class VoteScene {
   private time = 0;
   private lastLit = -1;
   private base = new Vector3(0, 0, -2.4);
+  private baja: BajaCameo3D;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -134,6 +136,21 @@ export class VoteScene {
 
     this.buildStalls(keep);
     this.buildDecor(keep);
+
+    // ---- Cosmetic Baja on the sunlit grass outside the square -------------------------
+    this.baja = new BajaCameo3D(keep, {
+      bagPos: [13.5, 3.6],
+      waypoints: [
+        [13.4, 1.2],
+        [14.1, 4.4],
+        [13.2, -0.8],
+      ],
+      scale: 1.05,
+      bagYaw: -0.9,
+      initialRest: 2.4,
+      seed: 93,
+    });
+    stage.add(this.baja.root);
 
     // ---- confetti --------------------------------------------------------------------------
     this.bits = new InstancedMesh(keep(new IcosahedronGeometry(0.5, 0)), keep(new MeshBasicMaterial({ color: '#fff' })), 160);
@@ -239,6 +256,7 @@ export class VoteScene {
     }
     for (let k = 0; k < 16; k++) spots.push([-26 + rnd() * 52, BACK_Z - 9 - rnd() * 10]);
     for (const [x, z] of spots) {
+      if (Math.hypot(x - 13.6, z - 2.2) < 2.8) continue;
       const t = new Group();
       const tr = new Mesh(trunk, trunkMat);
       tr.position.y = 0.8;
@@ -335,6 +353,7 @@ export class VoteScene {
     if (sim.phase === 'chosen' && this.lastLit !== -2 && winner !== null) {
       const m = matPos(winner, sim.choices);
       this.confetti(m.x, m.z);
+      this.baja.celebrate();
     }
     this.lastLit = sim.phase === 'chosen' ? -2 : lit;
 
@@ -359,6 +378,7 @@ export class VoteScene {
     this.lanterns.forEach((m, k) => m.color.set('#ffd77a').multiplyScalar(0.85 + Math.sin(t * 2.3 + k * 1.9) * 0.15));
 
     this.updateWalkers(dt, t);
+    this.baja.update(dt);
     this.updateBits(dt);
     this.stage.lookAt(this.base, 28, 0.9);
     this.stage.render();
