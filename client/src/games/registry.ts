@@ -13,6 +13,7 @@ import { ParadeGame } from './parade/ParadeGame';
 import { SwapGame } from './swap/SwapGame';
 import { WeseleGame } from './wesele/WeseleGame';
 import { BajaGame } from './baja/BajaGame';
+import { MarktGame } from './markt/MarktGame';
 import { TanksGame } from './tanks/TanksGame';
 import { MushroomGame } from './mushroom/MushroomGame';
 import { PushyGame } from './pushy/PushyGame';
@@ -79,6 +80,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new WeseleGame(host, ids);
     case 'baja':
       return new BajaGame(host, ids);
+    case 'markt':
+      return new MarktGame(host, ids);
     case 'tanks':
       return new TanksGame(host, ids);
     case 'mushroom':
