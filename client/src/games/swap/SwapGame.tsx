@@ -15,6 +15,7 @@ import {
 } from './logic';
 import { TimerRing } from '../../host/components';
 import { Pierogi } from '../../lib/art';
+import { resources } from '../../lib/assets';
 import { sound } from '../../lib/sound';
 
 const RESULT_MS = 7000;
@@ -46,7 +47,7 @@ export class SwapGame implements Game {
     this.rounds = host.short ? SWAP_ROUNDS_SHORT : SWAP_ROUNDS;
     for (const id of ids) this.scores[id] = 0;
     // Warm the TV's image cache so the shelves don't pop in.
-    for (const it of SWAP_ITEMS) new Image().src = it.src;
+    void resources.preload(['kitchen', 'swap']);
   }
 
   start() {

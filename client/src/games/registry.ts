@@ -49,6 +49,7 @@ import { FootstepsGame } from './footsteps/FootstepsGame';
 import { MarinaGame } from './marina/MarinaGame';
 import { PremiumGame } from './premium/PremiumGame';
 import { CastleGame } from './castle/CastleGame';
+import { TowerGame } from './tower/TowerGame';
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
   switch (id) {
@@ -148,6 +149,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new MarinaGame(host, ids);
     case 'castle':
       return new CastleGame(host, ids);
+    case 'tower':
+      return new TowerGame(host, ids);
     case 'premium':
       return new PremiumGame(host, ids);
   }

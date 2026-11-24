@@ -24,6 +24,7 @@ import {
 } from 'three';
 import { ArenaStage, blobShadow, buildPierogi, flat, groundTexture, nameTag, pixelTexture, type PierogiModel } from '../arena/kit';
 import { dressBabcia } from '../arena/babcia';
+import { BajaCameo3D } from '../arena/baja3d';
 import { mulberry32 } from '../rng';
 import { DECK_Y, POND_R, SPECIES, capAngle, capPos, type MEvent, type MushroomSim } from './logic';
 
@@ -196,6 +197,7 @@ export class MushroomScene {
   private leaves: InstancedMesh;
   private leafState: { x: number; z: number; y: number; r: number; kind: 'float' | 'fall'; ph: number; sp: number }[] = [];
   private base = new Vector3();
+  private baja: BajaCameo3D;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -245,6 +247,22 @@ export class MushroomScene {
     // ---- Babcia on her boat ----------------------------------------------------------
     this.babciaModel = buildPierogi('#f4d9b5');
     this.buildBabcia(keep);
+
+    // ---- Cosmetic Baja on the sunlit pond shore --------------------------------------
+    this.baja = new BajaCameo3D(keep, {
+      bagPos: [-13.6, 5.4],
+      waypoints: [
+        [-14.6, 3.0],
+        [-12.8, 6.4],
+        [-14.2, 4.6],
+      ],
+      scale: 1.05,
+      bagYaw: 0.85,
+      y: 0.1,
+      initialRest: 2.8,
+      seed: 41,
+    });
+    stage.add(this.baja.root);
 
     // ---- particles -------------------------------------------------------------------
     this.bits = new InstancedMesh(keep(new IcosahedronGeometry(0.5, 0)), keep(new MeshBasicMaterial({ color: '#fff' })), 200);
@@ -392,7 +410,7 @@ export class MushroomScene {
       const r = POND_R + 2.4 + rnd() * 5;
       const x = Math.cos(a) * r;
       const z = Math.sin(a) * r;
-      if (z > 12) {
+      if (z > 12 || Math.hypot(x + 13.6, z - 5.4) < 2.4) {
         put(bushes, i, 0, -40, 0, 0, 0, 0);
         continue;
       }
@@ -712,6 +730,7 @@ export class MushroomScene {
 
     this.updateBabcia(dt, t);
     this.updatePlayers(dt, t);
+    this.baja.update(dt);
     this.updateBits(dt);
     this.updateLeaves(t);
 

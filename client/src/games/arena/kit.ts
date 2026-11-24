@@ -35,7 +35,6 @@ import {
   type Object3D,
 } from 'three';
 import { mulberry32 } from '../rng';
-import { StylePass, pickStyle } from './styles';
 
 /** Internal resolution as a fraction of the 1920×1080 stage (same as Maluch Rally). */
 export const ARENA_SCALE = 0.45;
@@ -216,16 +215,12 @@ export class ArenaStage {
   /** Everything a game adds goes here, so `clear()` can remove it. */
   readonly world = new Group();
   readonly sun: DirectionalLight;
-  /** The look: always the original one (only Maluch Rally rolls random looks), unless forced with `?style=`. */
-  readonly style: StylePass;
   private disposables: { dispose(): void }[] = [];
 
   constructor(
     canvas: HTMLCanvasElement,
-    /** `styles`: the looks this game may roll. Default: only the original look (random looks are Maluch Rally's). */
-    opts: { sky?: string; fog?: [number, number]; fov?: number; styles?: readonly string[] } = {},
+    opts: { sky?: string; fog?: [number, number]; fov?: number } = {},
   ) {
-    this.style = new StylePass(pickStyle(Math.random, opts.styles ?? ['psx']));
     this.renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(1);
     this.renderer.setSize(Math.round(STAGE_W * ARENA_SCALE), Math.round(STAGE_H * ARENA_SCALE), false);
@@ -265,7 +260,7 @@ export class ArenaStage {
   }
 
   render() {
-    this.style.render(this.renderer, this.scene, this.camera);
+    this.renderer.render(this.scene, this.camera);
   }
 
   /** Remove everything the game added (between rounds, say). */
@@ -284,7 +279,6 @@ export class ArenaStage {
       else mat?.dispose?.();
     });
     this.world.clear();
-    this.style.dispose();
     this.renderer.dispose();
   }
 }

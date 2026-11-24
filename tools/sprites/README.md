@@ -1,4 +1,6 @@
-# Pierogi Panic sprites
+# Pierogi Panic & Cartoon Sprites
+
+All generated WebP sprites in `client/public/sprites/` belong to the `'cartoon'` art style and are registered in `SpritePack`s under [`client/src/lib/assets/packs/`](../../client/src/lib/assets/packs/) (see [`client/src/lib/assets/README.md`](../../client/src/lib/assets/README.md) for how games preload and draw them via `resources`).
 
 The kitchen sprites in `client/public/sprites/kitchen/` were generated with FLUX.2 [pro] from
 Black Forest Labs, then cut out of their white backgrounds.

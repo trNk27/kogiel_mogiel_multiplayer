@@ -12,6 +12,7 @@ import type { CoopResult } from '../games/types';
 import { Stars } from '../lib/stars';
 import { GameIcon } from './GameIcon';
 import { ScoreStory, useAfter, type ChartSeries, type RaceRow } from './Scoreboard';
+import { BajaCameo } from './BajaCameo';
 import { runningTotals, type Tournament } from './tournament';
 import { RACES, RACES_SHORT } from '../games/rally/RallyGame';
 import { LAPS } from '../games/rally/sim';
@@ -59,6 +60,7 @@ import { howTo as splitHowTo } from '../games/split/logic';
 import { howTo as surveyHowTo } from '../games/survey/logic';
 import { howTo as footstepsHowTo } from '../games/footsteps/logic';
 import { howTo as marinaHowTo } from '../games/marina/logic';
+import { howTo as towerHowTo } from '../games/tower/logic';
 
 /**
  * The room this page shows: the real one on the host TV, or a second screen's copy of it (see
@@ -147,10 +149,20 @@ export function HostApp({ room, isReplica = false }: { room: HostController; isR
       break;
   }
 
+  const bajaMode: 'menu' | 'celebrate' | null =
+    s.s === 'landing' && !replica
+      ? 'menu'
+      : s.s === 'lobby'
+        ? 'menu'
+        : s.s === 'results' || s.s === 'tourEnd'
+          ? 'celebrate'
+          : null;
+
   return (
     <div class="viewport">
       <div class="stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
         <div class="safe">{body}</div>
+        {bajaMode && !mirrorOpen && <BajaCameo mode={bajaMode} />}
         {c.code && s.s !== 'landing' && s.s !== 'creating' && <CornerInfo onMirror={() => setMirrorOpen(!mirrorOpen)} />}
         {mirrorOpen && !replica && c.code && s.s !== 'landing' && s.s !== 'creating' && <MirrorPanel onClose={() => setMirrorOpen(false)} />}
         {c.status === 'connecting' && c.code && !replica && <div class="reconnecting">Reconnecting to the server…</div>}
@@ -521,6 +533,8 @@ function howTo(game: GameId, short: boolean): string[] {
       return marinaHowTo(short);
     case 'castle':
       return castleHowTo();
+    case 'tower':
+      return towerHowTo(short);
     case 'premium':
       return ['Pick a Grand Prix of three tracks – or one track', 'Choose your car: speed, accel, handling, off-road', `Thumb pad, drifts, turbos and new items · ${LAPS} laps a race`];
   }

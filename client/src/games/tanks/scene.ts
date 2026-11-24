@@ -30,6 +30,7 @@ import {
   type Texture,
 } from 'three';
 import { ARENA_SCALE, ArenaStage, blobShadow, buildPierogi, flat, groundTexture, nameTag, noise, pixelTexture, type PierogiModel } from '../arena/kit';
+import { BajaCameo3D } from '../arena/baja3d';
 import { CRATE_HALF, HX, HZ, TUNING, type Layout, type Ob, type TankEvent, type TanksSim } from './logic';
 
 export { ARENA_SCALE };
@@ -310,6 +311,7 @@ export class TanksScene {
   private cabGeo = new IcosahedronGeometry(0.62, 1);
   private cabCore = new IcosahedronGeometry(0.4, 0);
   private cabMats = [new MeshLambertMaterial({ color: '#79b936', flatShading: true }), new MeshLambertMaterial({ color: '#c9ec7a', flatShading: true })];
+  private baja: BajaCameo3D;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -362,6 +364,19 @@ export class TanksScene {
     }
     s.keep({ dispose: () => this.disposeAll() });
     this.looks.forEach((l, i) => this.tanks.push(this.buildTank(l, i)));
+    this.baja = new BajaCameo3D((x) => s.keep(x), {
+      bagPos: [16.2, -17.2],
+      waypoints: [
+        [12.5, -17.3],
+        [19.8, -17.8],
+        [14.8, -16.9],
+      ],
+      scale: 1.55,
+      bagYaw: -0.25,
+      initialRest: 2.8,
+      seed: 55,
+    });
+    s.add(this.baja.root);
   }
 
   private disposeAll() {
@@ -1097,6 +1112,7 @@ export class TanksScene {
     this.shockMat.opacity = 0.55;
 
     this.fx.update(dt);
+    this.baja.update(dt);
 
     // camera shake
     this.shake *= Math.exp(-5.5 * dt);
