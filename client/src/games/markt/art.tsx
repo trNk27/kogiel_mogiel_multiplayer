@@ -1,0 +1,387 @@
+/**
+ * The Vienna Christmas market at night: the Rathaus behind, fairy lights, snow, wooden stalls and the
+ * big attractions (Ferris wheel, Christmas tree, heart tree, ice rink, carousel, curling, Krampus tent),
+ * with crowds of pierogi squeezing between them. Plus Krampus and the dodgy watch seller.
+ */
+import { COLS, ROWS, SPOTS, edgeKey, neighbours } from './logic';
+
+/** Where each stall stands on the 1728×972 TV stage: the middle of the stall. */
+export const SPOT_XY: [number, number][] = SPOTS.map((s) => [235 + s.col * 372, 318 + s.row * 228]);
+export const ENTRANCE_XY: [number, number] = [(SPOT_XY[9][0] + SPOT_XY[10][0]) / 2, 935];
+
+const CROWD_COLORS = ['#6d5a7a', '#5a6d7a', '#7a6a5a', '#6a7a5a', '#7a5a62', '#5a5f7a'];
+
+function seeded(n: number) {
+  const x = Math.sin(n * 999.7) * 10000;
+  return x - Math.floor(x);
+}
+
+/** The whole backdrop: sky, Rathaus, lights, snow, ground, paths with crowds, and every stall. */
+export function Market({ crowds }: { crowds: Record<string, number> }) {
+  const edges: [number, number][] = [];
+  for (let i = 0; i < SPOTS.length; i++) for (const j of neighbours(i)) if (i < j) edges.push([i, j]);
+  return (
+    <div class="mk-market">
+      <div class="mk-sky" />
+      <Rathaus />
+      <div class="mk-stars" />
+      <div class="mk-ground" />
+      <div class="mk-lights" />
+      {/* Paths, busier ones packed with pierogi. */}
+      {edges.map(([a, b]) => {
+        const [x1, y1] = SPOT_XY[a];
+        const [x2, y2] = SPOT_XY[b];
+        const crowd = crowds[edgeKey(a, b)] ?? 1;
+        const n = crowd * 3;
+        return (
+          <div class={`mk-path c${crowd}`}>
+            {Array.from({ length: n }, (_, k) => {
+              const t = (k + 0.5) / n;
+              const span = y1 === y2 ? [0.33, 0.34] : [0.38, 0.24];
+              const r = seeded(a * 31 + b * 7 + k);
+              const dx = y1 === y2 ? 0 : (r - 0.5) * 70;
+              const dy = y1 === y2 ? (r - 0.5) * 46 : 0;
+              const x = x1 + (x2 - x1) * (span[0] + t * span[1]) + dx;
+              const y = y1 + (y2 - y1) * (span[0] + t * span[1]) + dy + (y1 === y2 ? 30 : 0);
+              return (
+                <span
+                  class={`mk-blob ${r > 0.6 ? 'hat' : ''} ${r < 0.25 ? 'mug' : ''}`}
+                  style={{ left: `${x}px`, top: `${y}px`, '--c': CROWD_COLORS[(a + b + k) % CROWD_COLORS.length], '--d': `${(r * 1.2).toFixed(2)}s` }}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+      {SPOTS.map((s, i) => (
+        <div class={`mk-stall s-${s.id}`} style={{ left: `${SPOT_XY[i][0]}px`, top: `${SPOT_XY[i][1]}px` }}>
+          <StallArt id={s.id} />
+          <span class="mk-sign">
+            {s.emoji} {s.name}
+          </span>
+        </div>
+      ))}
+      <div class="mk-arch" style={{ left: `${ENTRANCE_XY[0]}px`, top: `${ENTRANCE_XY[1]}px` }}>
+        <span>✨ Christkindlmarkt ✨</span>
+      </div>
+      <div class="mk-snow" />
+      <div class="mk-snow far" />
+    </div>
+  );
+}
+
+/** Vienna's neo-Gothic Rathaus, lit up behind the market. */
+function Rathaus() {
+  return (
+    <svg class="mk-rathaus" viewBox="0 0 1728 300" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="mk-rh" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3a2f5c" />
+          <stop offset="100%" stop-color="#1d1836" />
+        </linearGradient>
+      </defs>
+      <g fill="url(#mk-rh)">
+        {/* Wings. */}
+        <path d="M380 300 V170 l20 -24 l20 24 V150 h60 v-20 l14 -18 l14 18 v20 h60 V160 l18 -20 l18 20 V300 Z" />
+        <path d="M1348 300 V170 l-20 -24 l-20 24 V150 h-60 v-20 l-14 -18 l-14 18 v20 h-60 V160 l-18 -20 l-18 20 V300 Z" />
+        <rect x="610" y="150" width="508" height="150" />
+        {/* The middle tower with its spire and the Rathausmann. */}
+        <path d="M804 300 V90 l14 -16 V40 l18 -30 l18 30 v34 l14 16 V300 Z" />
+        <path d="M836 10 l0 -18" stroke="#ffd23f" stroke-width="4" />
+        {/* Side towers. */}
+        <path d="M640 300 V120 l12 -14 V90 l14 -22 l14 22 v16 l12 14 V300 Z" />
+        <path d="M1088 300 V120 l-12 -14 V90 l-14 -22 l-14 22 v16 l-12 14 V300 Z" />
+      </g>
+      {/* Lit windows. */}
+      <g fill="#ffcf6b" opacity=".85">
+        {Array.from({ length: 22 }, (_, i) => (
+          <rect x={630 + i * 22} y={190 + (i % 2) * 40} width="9" height="16" rx="4" />
+        ))}
+        {Array.from({ length: 6 }, (_, i) => (
+          <rect x={418 + i * 32} y="200" width="9" height="16" rx="4" />
+        ))}
+        {Array.from({ length: 6 }, (_, i) => (
+          <rect x={1140 + i * 32} y="200" width="9" height="16" rx="4" />
+        ))}
+        <circle cx="836" cy="120" r="14" fill="#fff4c9" />
+        <rect x="826" y="160" width="20" height="40" rx="10" />
+      </g>
+      <path d="M380 296 Q864 230 1348 296" stroke="#ffd23f" stroke-width="3" fill="none" stroke-dasharray="2 14" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+function Hut({ steam, color = '#8a4b2a' }: { steam?: boolean; color?: string }) {
+  return (
+    <svg class="mk-hut" viewBox="0 0 220 170" aria-hidden="true">
+      <rect x="22" y="60" width="176" height="104" rx="4" fill={color} stroke="#2a120a" stroke-width="4" />
+      <path d="M30 70 v86 M60 70 v86 M90 70 v86 M120 70 v86 M150 70 v86 M180 70 v86" stroke="rgba(0,0,0,.18)" stroke-width="3" />
+      {/* Glowing window and counter. */}
+      <rect x="42" y="80" width="136" height="44" rx="6" fill="#ffcf6b" stroke="#2a120a" stroke-width="3" />
+      <rect x="42" y="80" width="136" height="44" rx="6" fill="url(#mk-glow)" />
+      <rect x="32" y="120" width="156" height="14" rx="3" fill="#c98a52" stroke="#2a120a" stroke-width="3" />
+      {/* Roof with snow. */}
+      <path d="M6 66 L110 10 L214 66 Z" fill="#6e3a22" stroke="#2a120a" stroke-width="4" stroke-linejoin="round" />
+      <path d="M14 62 Q40 48 62 50 Q90 30 112 22 Q136 32 160 48 Q190 48 206 62 Q190 70 170 64 Q140 72 110 62 Q80 72 50 64 Q30 72 14 62 Z" fill="#fffaf2" />
+      {/* Garland with lights. */}
+      <path d="M22 70 Q66 88 110 70 Q154 88 198 70" stroke="#2f7a4a" stroke-width="7" fill="none" />
+      {[40, 75, 110, 145, 180].map((x, i) => (
+        <circle class="mk-bulb" cx={x} cy={x === 110 ? 72 : 78} r="5" fill={['#ff5c8a', '#ffd23f', '#5ad0ff', '#ffd23f', '#ff5c8a'][i]} style={{ animationDelay: `${i * 0.2}s` }} />
+      ))}
+      {steam && (
+        <g class="mk-steam" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55">
+          <path d="M80 70 q-8 -14 0 -26 q8 -12 0 -24" />
+          <path d="M140 70 q8 -14 0 -26 q-8 -12 0 -24" />
+        </g>
+      )}
+      <defs>
+        <radialGradient id="mk-glow" cx="50%" cy="60%" r="70%">
+          <stop offset="0%" stop-color="#fff4c9" stop-opacity=".8" />
+          <stop offset="100%" stop-color="#ff9a3c" stop-opacity=".2" />
+        </radialGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function StallArt({ id }: { id: string }) {
+  switch (id) {
+    case 'wheel':
+      return (
+        <svg class="mk-wheel" viewBox="0 0 220 200" aria-hidden="true">
+          <path d="M110 100 L60 196 M110 100 L160 196" stroke="#3b2a4a" stroke-width="8" />
+          <g class="mk-wheel-spin">
+            <circle cx="110" cy="100" r="86" fill="none" stroke="#ffd23f" stroke-width="5" />
+            <circle cx="110" cy="100" r="70" fill="none" stroke="#ff5c8a" stroke-width="3" stroke-dasharray="4 10" />
+            {Array.from({ length: 10 }, (_, i) => {
+              const a = (i / 10) * Math.PI * 2;
+              return <path d={`M110 100 L${110 + Math.cos(a) * 86} ${100 + Math.sin(a) * 86}`} stroke="#ffd23f" stroke-width="2.5" />;
+            })}
+          </g>
+          {Array.from({ length: 10 }, (_, i) => (
+            <g class="mk-gondola" style={{ animationDelay: `${-i * 2.4}s` }}>
+              <rect class="mk-gondola-up" x="186" y="100" width="20" height="16" rx="4" fill={['#c8243c', '#ffd23f', '#5ad0ff', '#2fd6a8', '#ff8fb1'][i % 5]} stroke="#2a120a" stroke-width="2" style={{ animationDelay: `${-i * 2.4}s` }} />
+            </g>
+          ))}
+          <circle cx="110" cy="100" r="10" fill="#ffd23f" stroke="#2a120a" stroke-width="3" />
+        </svg>
+      );
+    case 'tree':
+      return (
+        <svg class="mk-tree" viewBox="0 0 220 220" aria-hidden="true">
+          <rect x="98" y="186" width="24" height="30" fill="#6e3a22" />
+          <path d="M110 6 L196 190 L24 190 Z" fill="#1f6b3f" stroke="#0f3a22" stroke-width="4" stroke-linejoin="round" />
+          <path d="M110 6 L170 130 L50 130 Z" fill="#26804b" />
+          <path d="M110 6 L148 80 L72 80 Z" fill="#2f9459" />
+          <path d="M56 150 Q110 176 170 140 M76 104 Q112 122 150 98 M90 62 Q112 74 132 58" stroke="#ffd23f" stroke-width="3" fill="none" stroke-dasharray="3 9" stroke-linecap="round" />
+          {[
+            [70, 170],
+            [150, 166],
+            [96, 136],
+            [134, 120],
+            [84, 96],
+            [120, 70],
+            [104, 44],
+            [180, 182],
+            [40, 182],
+          ].map(([x, y], i) => (
+            <circle class="mk-bulb" cx={x} cy={y} r="7" fill={['#ff5c8a', '#ffd23f', '#5ad0ff', '#fffaf2'][i % 4]} style={{ animationDelay: `${i * 0.17}s` }} />
+          ))}
+          <path class="mk-star" d="M110 -8 l6 14 l15 1 l-11 10 l4 15 l-14 -8 l-14 8 l4 -15 l-11 -10 l15 -1 Z" fill="#ffd23f" stroke="#a06d00" stroke-width="2" />
+        </svg>
+      );
+    case 'hearts':
+      return (
+        <svg class="mk-hearts" viewBox="0 0 220 200" aria-hidden="true">
+          <path d="M110 196 V110 M110 130 Q70 100 60 60 M110 120 Q150 96 162 54 M110 150 Q76 140 44 120 M110 146 Q150 136 180 112" stroke="#5a3a24" stroke-width="9" fill="none" stroke-linecap="round" />
+          {[
+            [60, 50],
+            [100, 40],
+            [140, 36],
+            [168, 60],
+            [44, 96],
+            [84, 80],
+            [128, 74],
+            [176, 100],
+            [70, 120],
+            [150, 116],
+            [110, 100],
+          ].map(([x, y], i) => (
+            <path
+              class="mk-heart"
+              style={{ animationDelay: `${i * 0.23}s` }}
+              d={`M${x} ${y + 12} C${x - 18} ${y} ${x - 14} ${y - 12} ${x} ${y - 4} C${x + 14} ${y - 12} ${x + 18} ${y} ${x} ${y + 12} Z`}
+              fill={i % 3 === 0 ? '#ff5c8a' : i % 3 === 1 ? '#c8243c' : '#ff8fb1'}
+              stroke="#2a120a"
+              stroke-width="2"
+            />
+          ))}
+        </svg>
+      );
+    case 'rink':
+    case 'curling':
+      return (
+        <svg class={`mk-rink ${id}`} viewBox="0 0 240 170" aria-hidden="true">
+          <ellipse cx="120" cy="110" rx="114" ry="54" fill="#bfe3ff" stroke="#fffaf2" stroke-width="8" />
+          <ellipse cx="120" cy="110" rx="90" ry="38" fill="none" stroke="#fff" stroke-width="2" opacity=".6" />
+          <path d="M40 100 q40 -10 80 0 M120 124 q40 10 70 -4" stroke="#fff" stroke-width="3" fill="none" opacity=".7" />
+          {id === 'curling' ? (
+            <g>
+              <circle cx="190" cy="110" r="22" fill="none" stroke="#c8243c" stroke-width="6" />
+              <circle cx="190" cy="110" r="9" fill="none" stroke="#2f6bff" stroke-width="5" />
+              <g class="mk-stone">
+                <ellipse cx="60" cy="112" rx="16" ry="9" fill="#6b6b78" stroke="#2a120a" stroke-width="2.5" />
+                <rect x="54" y="98" width="12" height="9" rx="3" fill="#c8243c" />
+              </g>
+              <ellipse cx="174" cy="122" rx="14" ry="8" fill="#6b6b78" stroke="#2a120a" stroke-width="2.5" />
+            </g>
+          ) : (
+            <g class="mk-skaters">
+              {[0, 1, 2].map((i) => (
+                <g class="mk-iceskater" style={{ '--i': i }}>
+                  <ellipse rx="12" ry="10" fill={['#ff8fb1', '#ffd23f', '#5ad0ff'][i]} stroke="#2a120a" stroke-width="2" />
+                </g>
+              ))}
+            </g>
+          )}
+        </svg>
+      );
+    case 'carousel':
+      return (
+        <svg class="mk-carousel" viewBox="0 0 220 200" aria-hidden="true">
+          <rect x="22" y="170" width="176" height="20" rx="8" fill="#c98a52" stroke="#2a120a" stroke-width="3" />
+          <rect x="106" y="40" width="8" height="132" fill="#ffd23f" />
+          {[40, 80, 140, 180].map((x, i) => (
+            <g class="mk-horse" style={{ animationDelay: `${i * 0.3}s` }}>
+              <rect x={x - 2} y="60" width="4" height="100" fill="#ffd23f" />
+              <text x={x} y="142" font-size="34" text-anchor="middle">
+                🐴
+              </text>
+            </g>
+          ))}
+          <path d="M6 66 L110 6 L214 66 Z" fill="#c8243c" stroke="#2a120a" stroke-width="4" stroke-linejoin="round" />
+          <path d="M110 6 L60 66 M110 6 L160 66 M110 6 L110 66" stroke="#fffaf2" stroke-width="10" />
+          <path d="M6 66 Q30 84 58 66 Q84 84 110 66 Q136 84 162 66 Q190 84 214 66" fill="#fffaf2" stroke="#2a120a" stroke-width="3" />
+          <circle cx="110" cy="4" r="7" fill="#ffd23f" stroke="#2a120a" stroke-width="2" />
+        </svg>
+      );
+    case 'tent':
+      return (
+        <svg class="mk-tent" viewBox="0 0 220 180" aria-hidden="true">
+          <path d="M10 176 L110 8 L210 176 Z" fill="#c8243c" stroke="#2a120a" stroke-width="4" stroke-linejoin="round" />
+          <path d="M110 8 L60 176 M110 8 L160 176 M110 8 L35 176 M110 8 L185 176" stroke="#2a1616" stroke-width="12" opacity=".55" />
+          <path d="M84 176 Q110 96 136 176 Z" fill="#160a0a" />
+          {/* Something glares out of the dark. */}
+          <g class="mk-tent-eyes">
+            <ellipse cx="102" cy="140" rx="5" ry="4" fill="#ff3b3b" />
+            <ellipse cx="118" cy="140" rx="5" ry="4" fill="#ff3b3b" />
+          </g>
+          <path d="M88 40 q-14 -16 -6 -34 q4 16 16 22 Z M132 40 q14 -16 6 -34 q-4 16 -16 22 Z" fill="#3a2418" stroke="#2a120a" stroke-width="2" />
+        </svg>
+      );
+    case 'gluehwein':
+      return (
+        <>
+          <Hut steam color="#7a2a3a" />
+          <span class="mk-prop">🍷</span>
+        </>
+      );
+    case 'maroni':
+      return (
+        <>
+          <Hut steam />
+          <span class="mk-prop">🌰</span>
+        </>
+      );
+    case 'punsch':
+      return (
+        <>
+          <Hut steam color="#2f5a7a" />
+          <span class="mk-prop">🍹</span>
+        </>
+      );
+    case 'lebkuchen':
+      return (
+        <>
+          <Hut color="#9a5a2a" />
+          <span class="mk-prop">💝</span>
+        </>
+      );
+    default:
+      return (
+        <>
+          <Hut color="#3a5a3a" />
+          <span class="mk-prop">🔮</span>
+        </>
+      );
+  }
+}
+
+/** Krampus: shaggy, horned, long red tongue. With his back to you, or glaring, eyes ablaze. */
+export function Krampus({ looking }: { looking: boolean }) {
+  return (
+    <svg class={`krampus ${looking ? 'looking' : ''}`} viewBox="0 0 200 260" aria-label="Krampus">
+      {/* Horns. */}
+      <path d="M62 66 Q20 40 30 -2 Q48 30 82 46 Z" fill="#d9c7a3" stroke="#2a120a" stroke-width="4" stroke-linejoin="round" />
+      <path d="M138 66 Q180 40 170 -2 Q152 30 118 46 Z" fill="#d9c7a3" stroke="#2a120a" stroke-width="4" stroke-linejoin="round" />
+      <path d="M40 30 l12 4 M46 14 l10 8 M160 30 l-12 4 M154 14 l-10 8" stroke="#8a7a5a" stroke-width="3" />
+      {/* Shaggy body. */}
+      <path
+        d="M30 120 Q20 70 60 54 Q100 36 140 54 Q180 70 170 120 Q190 180 176 250 L150 236 L136 256 L118 238 L100 258 L82 238 L64 256 L50 236 L24 250 Q10 180 30 120 Z"
+        fill="#3a2418"
+        stroke="#160a06"
+        stroke-width="4"
+      />
+      <path d="M50 140 l-8 16 M70 170 l-6 18 M130 170 l6 18 M150 140 l8 16 M100 190 v20 M80 120 l-4 14 M120 120 l4 14" stroke="#5a3a28" stroke-width="5" stroke-linecap="round" />
+      {looking ? (
+        <g>
+          {/* Face. */}
+          <ellipse cx="100" cy="96" rx="44" ry="40" fill="#5a2a1a" stroke="#160a06" stroke-width="4" />
+          <path d="M66 82 L92 92 M134 82 L108 92" stroke="#160a06" stroke-width="6" stroke-linecap="round" />
+          <ellipse class="krampus-eye" cx="82" cy="98" rx="10" ry="8" fill="#ffdd33" />
+          <ellipse class="krampus-eye" cx="118" cy="98" rx="10" ry="8" fill="#ffdd33" />
+          <circle cx="82" cy="98" r="3.5" fill="#c8001a" />
+          <circle cx="118" cy="98" r="3.5" fill="#c8001a" />
+          <path d="M74 118 Q100 136 126 118 Q120 128 100 130 Q80 128 74 118 Z" fill="#160a06" />
+          <path d="M80 118 l4 8 l4 -8 M112 118 l4 8 l4 -8" fill="#fffaf2" />
+          <path class="krampus-tongue" d="M94 126 Q90 170 100 196 Q112 172 106 126 Z" fill="#e8314f" stroke="#7a0a1a" stroke-width="2" />
+          {/* Birch switch, raised. */}
+          <path d="M170 60 l26 -50 M176 54 l16 -40 M182 58 l20 -36" stroke="#8a6a4a" stroke-width="3" />
+        </g>
+      ) : (
+        <g>
+          {/* His back: just fur and the bell on his belt. */}
+          <path d="M60 80 Q100 60 140 80 M56 104 Q100 84 144 104" stroke="#5a3a28" stroke-width="5" fill="none" />
+          <circle cx="100" cy="170" r="12" fill="#c9a23a" stroke="#2a120a" stroke-width="3" />
+          <text x="100" y="66" text-anchor="middle" font-size="22">
+            💤
+          </text>
+        </g>
+      )}
+    </svg>
+  );
+}
+
+/** A dodgy guy in a long coat, flashing a row of "genuine" watches. */
+export function WatchSeller() {
+  return (
+    <svg class="mk-seller" viewBox="0 0 90 120" aria-label="Watch seller">
+      <ellipse cx="45" cy="20" rx="14" ry="15" fill="#f2c9a0" stroke="#2a120a" stroke-width="2.5" />
+      <path d="M26 12 Q45 -6 64 12 L68 14 L22 14 Z" fill="#2a2a32" stroke="#2a120a" stroke-width="2" />
+      <path d="M38 22 h4 M48 22 h4" stroke="#2a120a" stroke-width="3" />
+      <path d="M38 29 q7 4 14 0" stroke="#2a120a" stroke-width="2" fill="none" />
+      <path d="M20 40 Q45 30 70 40 L78 116 L12 116 Z" fill="#6b5a3a" stroke="#2a120a" stroke-width="2.5" />
+      {/* The coat flung open: watches everywhere. */}
+      <path d="M12 44 L-6 108 L20 112 Z M78 44 L96 108 L70 112 Z" fill="#7d6a46" stroke="#2a120a" stroke-width="2" />
+      <path d="M30 44 h30 v66 h-30 Z" fill="#c9b48a" />
+      {[52, 66, 80, 94].map((y) => (
+        <g>
+          <circle cx="38" cy={y} r="5" fill="#ffd23f" stroke="#2a120a" stroke-width="1.5" />
+          <circle cx="52" cy={y} r="5" fill="#e0e0e8" stroke="#2a120a" stroke-width="1.5" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+export const GRID = { COLS, ROWS };

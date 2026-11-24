@@ -141,7 +141,8 @@ export type GameId =
   | 'castle'
   | 'premium'
   | 'wesele'
-  | 'baja';
+  | 'baja'
+  | 'markt';
 
 export interface GameInfo {
   id: GameId;
@@ -181,6 +182,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'swap', title: 'Podmianka', tagline: 'Remember the shelves. Spot the swap.', minPlayers: 1, maxPlayers: 12 },
   { id: 'wesele', title: 'Wesele', tagline: 'A 3D disco polo wedding: win challenges, dodge the shots, last till 3:00.', minPlayers: 2 },
   { id: 'baja', title: 'Wybredna Baja', tagline: 'Feed the pickiest pomchi. Guess what she wants.', minPlayers: 1 },
+  { id: 'markt', title: 'Wo ist der Pieróg?', tagline: 'Hide-and-seek at the Vienna Christmas market. Beware of Krampus.', minPlayers: 2 },
   { id: 'tanks', title: 'Czołgi', tagline: 'Bouncing shells. Last tank rolling.', minPlayers: 2 },
   {
     id: 'mushroom',
@@ -848,6 +850,39 @@ export type PhoneView =
    * tries this craving (`plate` null if you missed one); `fed` the try you fed her right on.
    * `changed` lists rows she changed her mind about; `answer` is shown at the reveal.
    */
+  /**
+   * Wo ist der Pieróg?: hide-and-seek at the Christmas market. `key` changes every round. Spots are
+   * indexes into SPOTS in games/markt/logic.ts. Times are host clock ms. The hider's spot is only ever
+   * in the hider's own view (`hideAt`). `seekers` lists where everyone else is (also shown on the TV).
+   */
+  | {
+      v: 'markt';
+      phase: 'intro' | 'hide' | 'hunt' | 'lauf' | 'result' | 'end';
+      key: number;
+      round: number;
+      rounds: number;
+      role: 'hider' | 'seeker';
+      hider: string;
+      hiderColor: ColorId | null;
+      endsAt: number;
+      total: number;
+      crowds: Record<string, number>;
+      seekers: { id: string; name: string; color: ColorId; at: number }[];
+      /** Hider only. */
+      hideAt: number | null;
+      trickReadyAt: number;
+      sneakUsed: boolean;
+      /** Seeker only. */
+      at: number;
+      walkingTo: number | null;
+      arriveAt: number;
+      boosted: boolean;
+      sniffReadyAt: number;
+      clue: { at: number; clue: 'here' | 'hot' | 'warm' | 'cold' } | null;
+      seller: number;
+      lauf?: { startAt: number; endAt: number; schedule: [number, number][] };
+      result?: { big: string; text: string; good: boolean; pts: number };
+    }
   | {
       v: 'baja';
       phase: 'intro' | 'build' | 'taste' | 'mind' | 'reveal';
@@ -1089,6 +1124,26 @@ export type PhoneMsg =
    * ms after NOW!, ms taken for the moves, average ms off the beat). `live` updates (so the TV can show
    * progress) don't count as your answer. `moves` are the duck-dance moves you tapped.
    */
+  /**
+   * Wo ist der Pieróg?, for round `key`. Hider: `hide` a spot, then tricks: `fake` sighting at a spot,
+   * send the `seller` to a seeker, `sneak` to a next-door spot. Seeker: `walk` to a next-door spot,
+   * `sniff`, `drink` a glühwein, `nein` to the watch seller. Krampuslauf: `live` distance (for the TV)
+   * and at the end your `holds` ([press, release] ms from the start).
+   */
+  | {
+      t: 'markt';
+      key: number;
+      hide?: number;
+      fake?: number;
+      seller?: string;
+      sneak?: number;
+      walk?: number;
+      sniff?: boolean;
+      drink?: boolean;
+      nein?: boolean;
+      live?: number;
+      holds?: [number, number | null][];
+    }
   | { t: 'wesele'; key: number; choice?: 'drink' | 'kompot'; v?: number; live?: boolean; moves?: number[] }
   /** Wybredna Baja: your plate for try `tryN` of craving `round` (one option index per row). */
   | { t: 'feed'; round: number; tryN: number; plate: number[] }
