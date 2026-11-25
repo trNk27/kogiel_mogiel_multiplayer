@@ -40,13 +40,13 @@ export function BajaShopModal({ color, bones, owned, equipped, send, onClose }: 
                 type="button"
                 class={`shop-item ${isOwned ? 'owned' : ''} ${isOn ? 'equipped' : ''}`}
                 disabled={!isOwned && !canAfford}
+                aria-pressed={isOwned ? isOn : undefined}
                 onClick={() => send(isOwned ? { t: 'toggleCosmetic', id: item.id } : { t: 'buyCosmetic', id: item.id })}
               >
                 <CosmeticPreview id={item.id} size={42} />
                 <b>{item.name}</b>
-                <span class="shop-tag">
-                  {isOn ? 'Wearing ✓' : isOwned ? 'Wear' : `🦴 ${item.price}`}
-                </span>
+                {/* Owned items need no label: the highlight shows what you're wearing. */}
+                {!isOwned && <span class="shop-tag">🦴 {item.price}</span>}
               </button>
             );
           })}
