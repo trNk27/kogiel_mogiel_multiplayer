@@ -36,6 +36,19 @@ import {
 } from '../../../shared/protocol';
 import type { CoopResult, Game, GameHost } from '../games/types';
 import { createGame } from '../games/registry';
+import {
+  BAJA_LEAP_MS,
+  BAJA_PHONE_TIMEOUT_MS,
+  BAJA_POPUP_MS,
+  buyCosmeticState,
+  clampFedCount,
+  eligibleBajaTargets,
+  isCosmeticId,
+  nextBajaDelayMs,
+  pickBajaTarget,
+  toggleCosmeticState,
+  type CosmeticId,
+} from '../../../shared/cosmetics';
 import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { sound } from '../lib/sound';
 import { placesFor } from './standings';
@@ -55,6 +68,10 @@ export interface Player {
   disconnectedAt: number | null;
   /** Party points across games (3 / 2 / 1 for podium places). */
   party: number;
+  /** Lobby bone currency earned by feeding Baja. */
+  bones: number;
+  owned: CosmeticId[];
+  equipped: CosmeticId[];
 }
 
 /** One finished game (or whole tournament) and the party points it handed out, by player id. */
@@ -100,7 +117,11 @@ const TOUR_INTRO_MS = 9000;
 interface SavedSession {
   code: string;
   hostKey: string;
-  players: Pick<Player, 'id' | 'name' | 'color' | 'joinedAt' | 'party'>[];
+  players: (Pick<Player, 'id' | 'name' | 'color' | 'joinedAt' | 'party'> & {
+    bones?: number;
+    owned?: CosmeticId[];
+    equipped?: CosmeticId[];
+  })[];
   selected: Selection;
   options: LobbyOptions;
   gamesPlayed: number;
@@ -123,7 +144,24 @@ export interface HostOptions {
  */
 export class HostController implements GameHost {
   /** Not copied to second screens: connections, timers and the room's secret key. */
-  static readonly replicaSkip = ['socket', 'listeners', 'mirror', 'caster', 'lastSent', 'pending', 'hostKey', 'sessionKey', 'introTimer', 'sweepTimer', 'version'];
+  static readonly replicaSkip = [
+    'socket',
+    'listeners',
+    'mirror',
+    'caster',
+    'lastSent',
+    'pending',
+    'hostKey',
+    'sessionKey',
+    'introTimer',
+    'sweepTimer',
+    'bajaScheduleTimer',
+    'bajaPhaseTimer',
+    'bajaPopupTimer',
+    'bajaKey',
+    'lastBajaPlayerId',
+    'version',
+  ];
   /** A second screen's copy keeps its own store plumbing. */
   static replicaInit(c: HostController) {
     c.listeners = new Set();
@@ -144,6 +182,10 @@ export class HostController implements GameHost {
   tournament: Tournament | null = null;
   /** Party mode: the vote for the next game, while it's on. */
   vote: VoteRoom | null = null;
+  /** Active Baja lobby feeding minigame visit (leap onto TV player slot -> phone toss -> done). */
+  bajaVisit: { key: number; playerId: string; phase: 'leap' | 'phone'; startedAt: number } | null = null;
+  /** Short popup next to a player's name on the TV after they finish feeding Baja. */
+  bajaPopup: { key: number; playerId: string; fed: number; until: number } | null = null;
   gamesPlayed = 0;
   /** The worker has an AI key (checked once per connect), so AI bots can be offered. */
   aiAvailable = false;
@@ -167,6 +209,11 @@ export class HostController implements GameHost {
   private listeners = new Set<() => void>();
   private introTimer: number | undefined;
   private sweepTimer: number | undefined;
+  private bajaScheduleTimer: number | undefined;
+  private bajaPhaseTimer: number | undefined;
+  private bajaPopupTimer: number | undefined;
+  private bajaKey = 0;
+  private lastBajaPlayerId: string | null = null;
   private version = 0;
 
   constructor(opts: HostOptions = {}) {
@@ -210,6 +257,7 @@ export class HostController implements GameHost {
 
   async create() {
     sound.unlock();
+    this.clearAllBaja();
     this.screen = { s: 'creating' };
     this.changed();
     try {
@@ -225,6 +273,7 @@ export class HostController implements GameHost {
       this.departed = [];
       this.connect();
       this.screen = { s: 'lobby' };
+      this.ensureBajaScheduled();
       this.persist();
     } catch (err) {
       this.screen = { s: 'landing', error: `Could not create a room. ${(err as Error).message}` };
@@ -234,6 +283,7 @@ export class HostController implements GameHost {
 
   async resume(saved: SavedSession) {
     sound.unlock();
+    this.clearAllBaja();
     const res = await fetch(`/api/rooms/${saved.code}`).catch(() => null);
     const info = res && res.ok ? ((await res.json()) as { exists: boolean }) : { exists: false };
     if (!info.exists) {
@@ -253,15 +303,24 @@ export class HostController implements GameHost {
     sound.muted = this.noTv || !this.options.sound;
     const now = Date.now();
     for (const p of saved.players) {
-      this.players.set(p.id, { ...p, connected: false, disconnectedAt: now });
+      this.players.set(p.id, {
+        ...p,
+        bones: p.bones ?? 0,
+        owned: (p.owned ?? []).filter(isCosmeticId),
+        equipped: (p.equipped ?? []).filter(isCosmeticId),
+        connected: false,
+        disconnectedAt: now,
+      });
     }
     this.screen = { s: 'lobby' };
+    this.ensureBajaScheduled();
     this.connect();
     this.changed();
   }
 
   /** Close the room from this side for good (a phone that stops hosting). */
   stop() {
+    this.clearAllBaja();
     this.mirror.stop();
     this.endGame();
     clearInterval(this.sweepTimer);
@@ -318,6 +377,7 @@ export class HostController implements GameHost {
       },
       fatalCodes: [CLOSE.replaced, CLOSE.expired],
       onFatal: (code) => {
+        this.clearAllBaja();
         this.mirror.stop();
         this.endGame();
         sessionStorage.removeItem(this.sessionKey);
@@ -336,7 +396,16 @@ export class HostController implements GameHost {
     const data: SavedSession = {
       code: this.code,
       hostKey: this.hostKey,
-      players: [...this.players.values()].map(({ id, name, color, joinedAt, party }) => ({ id, name, color, joinedAt, party })),
+      players: [...this.players.values()].map(({ id, name, color, joinedAt, party, bones, owned, equipped }) => ({
+        id,
+        name,
+        color,
+        joinedAt,
+        party,
+        bones,
+        owned,
+        equipped,
+      })),
       selected: this.selected,
       options: this.options,
       gamesPlayed: this.gamesPlayed,
@@ -373,10 +442,14 @@ export class HostController implements GameHost {
             this.vote?.onConnection(p.id, p.connected);
           }
         }
+        if (this.bajaVisit && !online.has(this.bajaVisit.playerId)) {
+          this.cancelBajaVisit(this.bajaVisit.key);
+        }
         for (const id of online) {
           if (this.players.has(id)) this.sendView(id, true);
           else this.greet(id);
         }
+        if (this.screen.s === 'lobby') this.ensureBajaScheduled();
         this.mirror.sync(msg.screens ?? []);
         this.changed();
         break;
@@ -415,6 +488,7 @@ export class HostController implements GameHost {
     if (!was) {
       this.game?.onConnection?.(id, true);
       this.vote?.onConnection(id, true);
+      if (this.screen.s === 'lobby') this.ensureBajaScheduled();
       this.refreshLobby();
       this.changed();
     }
@@ -427,6 +501,7 @@ export class HostController implements GameHost {
     if (!p || !p.connected) return;
     p.connected = false;
     p.disconnectedAt = Date.now();
+    if (this.bajaVisit?.playerId === id) this.cancelBajaVisit(this.bajaVisit.key);
     this.game?.onConnection?.(id, false);
     this.vote?.onConnection(id, false);
     this.refreshLobby();
@@ -543,6 +618,50 @@ export class HostController implements GameHost {
           this.changed();
         }
         return;
+      case 'bajaFeedDone':
+        if (this.screen.s === 'lobby' && this.bajaVisit?.key === m.key && this.bajaVisit.playerId === id) {
+          const fed = clampFedCount(m.fed);
+          p.bones += fed;
+          clearTimeout(this.bajaPhaseTimer);
+          this.bajaPhaseTimer = undefined;
+          this.bajaVisit = null;
+          const popupKey = m.key;
+          this.bajaPopup = { key: popupKey, playerId: id, fed, until: Date.now() + BAJA_POPUP_MS };
+          clearTimeout(this.bajaPopupTimer);
+          this.bajaPopupTimer = window.setTimeout(() => {
+            if (this.bajaPopup?.key === popupKey) {
+              this.bajaPopup = null;
+              this.changed();
+            }
+          }, BAJA_POPUP_MS);
+          if (fed > 0) sound.serve();
+          else sound.plop();
+          this.ensureBajaScheduled();
+          this.afterLobbyChange();
+        }
+        return;
+      case 'buyCosmetic':
+        if (this.screen.s === 'lobby' && isCosmeticId(m.id)) {
+          const next = buyCosmeticState({ bones: p.bones, owned: p.owned, equipped: p.equipped }, m.id);
+          if (next) {
+            p.bones = next.bones;
+            p.owned = next.owned;
+            p.equipped = next.equipped;
+            sound.pickup();
+            this.afterLobbyChange();
+          }
+        }
+        return;
+      case 'toggleCosmetic':
+        if (this.screen.s === 'lobby' && isCosmeticId(m.id)) {
+          const next = toggleCosmeticState({ owned: p.owned, equipped: p.equipped }, m.id);
+          if (next) {
+            p.equipped = next;
+            sound.tick();
+            this.afterLobbyChange();
+          }
+        }
+        return;
       default:
         if (this.screen.s === 'game' && this.game?.ids.includes(id)) this.game.onMessage(id, m);
         else if (this.screen.s === 'vote' && this.vote?.ids.includes(id)) this.vote.onMessage(id, m);
@@ -568,15 +687,28 @@ export class HostController implements GameHost {
       return;
     }
     this.pending.delete(id);
-    this.players.set(id, { id, name, color, connected: true, joinedAt: Date.now(), disconnectedAt: null, party: this.welcomeBack(id, name) });
+    const back = this.welcomeBack(id, name);
+    this.players.set(id, {
+      id,
+      name,
+      color,
+      connected: true,
+      joinedAt: Date.now(),
+      disconnectedAt: null,
+      party: back?.party ?? 0,
+      bones: back?.bones ?? 0,
+      owned: (back?.owned ?? []).filter(isCosmeticId),
+      equipped: (back?.equipped ?? []).filter(isCosmeticId),
+    });
     sound.join();
+    if (this.screen.s === 'lobby') this.ensureBajaScheduled();
     this.afterRosterChange();
   }
 
-  /** A player joining again gets their party points back; their old id's scores move to the new one. */
-  private welcomeBack(id: string, name: string): number {
+  /** A player joining again gets their party points, bones and cosmetics back; their old id's scores move to the new one. */
+  private welcomeBack(id: string, name: string): Departed | null {
     const back = findReturning(this.departed, id, name);
-    if (!back) return 0;
+    if (!back) return null;
     this.departed = this.departed.filter((d) => d !== back);
     if (back.id !== id) {
       renameInLog(this.history, back.id, id);
@@ -587,15 +719,28 @@ export class HostController implements GameHost {
         renameInLog(t.log, back.id, id);
       }
     }
-    return back.party;
+    return back;
   }
 
   private removePlayer(id: string) {
     const p = this.players.get(id);
     if (!p) return;
-    this.departed = [...this.departed.filter((d) => d.id !== id), { id, name: p.name, party: p.party }];
+    this.departed = [...this.departed.filter((d) => d.id !== id), {
+      id,
+      name: p.name,
+      party: p.party,
+      bones: p.bones,
+      owned: p.owned,
+      equipped: p.equipped,
+    }];
     this.players.delete(id);
     this.lastSent.delete(id);
+    if (this.bajaVisit?.playerId === id) this.cancelBajaVisit(this.bajaVisit.key);
+    if (this.bajaPopup?.playerId === id) {
+      clearTimeout(this.bajaPopupTimer);
+      this.bajaPopupTimer = undefined;
+      this.bajaPopup = null;
+    }
     sound.leave();
     if (this.game?.ids.includes(id)) this.game.onRemoved?.(id);
     this.vote?.onRemoved(id);
@@ -605,6 +750,11 @@ export class HostController implements GameHost {
   private afterRosterChange() {
     // Colours/fullness changed for phones still at the colour picker.
     for (const pid of this.pending) this.greet(pid);
+    if (this.bajaVisit && this.bajaVisit.playerId === this.vipId()) {
+      this.cancelBajaVisit(this.bajaVisit.key);
+    } else if (this.screen.s === 'lobby') {
+      this.ensureBajaScheduled();
+    }
     // Everybody's lobby (VIP flag, player list) may have changed.
     for (const p of this.players.values()) if (p.connected) this.sendView(p.id);
     this.persist();
@@ -655,6 +805,7 @@ export class HostController implements GameHost {
   }
 
   private startTournament() {
+    this.clearAllBaja();
     this.endGame();
     this.tournament = newTournament(this.tourPool(), [...this.players.keys()], Math.random, {
       games: this.options.tourGames,
@@ -730,6 +881,7 @@ export class HostController implements GameHost {
   }
 
   private startGame(id: GameId) {
+    this.clearAllBaja();
     this.endGame();
     this.screen = { s: 'intro', game: id };
     sound.whoosh();
@@ -755,12 +907,76 @@ export class HostController implements GameHost {
   }
 
   private toLobby() {
+    this.clearAllBaja();
     this.endGame();
     this.tournament = null;
     this.screen = { s: 'lobby' };
+    this.ensureBajaScheduled();
     this.refresh();
     this.persist();
     this.changed();
+  }
+
+  // ---- Baja lobby cameo minigame ---------------------------------------------
+
+  /** Trigger a Baja feeding visit right away (used by the 20-40s lobby timer and `/?debug`). */
+  triggerBajaVisit(targetId?: string): boolean {
+    if (this.screen.s !== 'lobby' || this.bajaVisit) return false;
+    const eligible = eligibleBajaTargets([...this.players.values()], this.vipId());
+    if (targetId && !eligible.includes(targetId)) return false;
+    const playerId = targetId ?? pickBajaTarget(eligible, this.lastBajaPlayerId);
+    if (!playerId) return false;
+
+    clearTimeout(this.bajaScheduleTimer);
+    this.bajaScheduleTimer = undefined;
+    clearTimeout(this.bajaPhaseTimer);
+    this.lastBajaPlayerId = playerId;
+
+    const key = ++this.bajaKey;
+    this.bajaVisit = { key, playerId, phase: 'leap', startedAt: Date.now() };
+    sound.pickup();
+    this.changed();
+
+    this.bajaPhaseTimer = window.setTimeout(() => {
+      if (this.screen.s !== 'lobby' || this.bajaVisit?.key !== key) return;
+      this.bajaVisit = { key, playerId, phase: 'phone', startedAt: Date.now() };
+      this.buzz(playerId, [40, 40, 80]);
+      this.sendView(playerId, true);
+      this.changed();
+      this.bajaPhaseTimer = window.setTimeout(() => this.cancelBajaVisit(key), BAJA_PHONE_TIMEOUT_MS);
+    }, BAJA_LEAP_MS);
+    return true;
+  }
+
+  private ensureBajaScheduled() {
+    if (this.screen.s !== 'lobby' || this.bajaVisit || this.bajaScheduleTimer !== undefined) return;
+    if (eligibleBajaTargets([...this.players.values()], this.vipId()).length === 0) return;
+    this.bajaScheduleTimer = window.setTimeout(() => {
+      this.bajaScheduleTimer = undefined;
+      this.triggerBajaVisit();
+    }, nextBajaDelayMs());
+  }
+
+  private cancelBajaVisit(key?: number) {
+    if (key !== undefined && this.bajaVisit?.key !== key) return;
+    const prev = this.bajaVisit;
+    clearTimeout(this.bajaPhaseTimer);
+    this.bajaPhaseTimer = undefined;
+    this.bajaVisit = null;
+    if (prev && this.screen.s === 'lobby') this.sendView(prev.playerId);
+    if (this.screen.s === 'lobby') this.ensureBajaScheduled();
+    this.changed();
+  }
+
+  private clearAllBaja() {
+    clearTimeout(this.bajaScheduleTimer);
+    this.bajaScheduleTimer = undefined;
+    clearTimeout(this.bajaPhaseTimer);
+    this.bajaPhaseTimer = undefined;
+    clearTimeout(this.bajaPopupTimer);
+    this.bajaPopupTimer = undefined;
+    this.bajaVisit = null;
+    this.bajaPopup = null;
   }
 
   // GameHost
@@ -849,14 +1065,23 @@ export class HostController implements GameHost {
 
   summaries(): PlayerSummary[] {
     const vip = this.vipId();
-    return [...this.players.values()].map((p) => ({ id: p.id, name: p.name, color: p.color, connected: p.connected, vip: p.id === vip }));
+    return [...this.players.values()].map((p) => ({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      connected: p.connected,
+      vip: p.id === vip,
+      cosmetics: p.equipped,
+    }));
   }
 
   private viewFor(id: string): PhoneView {
     const vip = this.vipId() === id;
     const s = this.screen;
     switch (s.s) {
-      case 'lobby':
+      case 'lobby': {
+        const me = this.players.get(id);
+        const feeding = this.bajaVisit?.phase === 'phone' && this.bajaVisit.playerId === id;
         return {
           v: 'lobby',
           vip,
@@ -866,7 +1091,10 @@ export class HostController implements GameHost {
           playerCount: this.players.size,
           vipName: this.players.get(this.vipId() ?? '')?.name ?? '',
           ...(this.aiAvailable ? { ai: true } : {}),
+          ...(me ? { bones: me.bones, owned: me.owned, equipped: me.equipped } : {}),
+          ...(feeding && this.bajaVisit ? { bajaFeed: { key: this.bajaVisit.key } } : {}),
         };
+      }
       case 'intro': {
         const t = this.tournament;
         const ready = this.noTv ? 'Get ready!' : 'Get ready · 📺 look up';

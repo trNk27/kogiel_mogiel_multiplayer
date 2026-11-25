@@ -165,7 +165,7 @@ export function HostApp({ room, isReplica = false }: { room: HostController; isR
     <div class="viewport">
       <div class="stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
         <div class="safe">{body}</div>
-        {bajaMode && !mirrorOpen && <BajaCameo mode={bajaMode} />}
+        {bajaMode && !mirrorOpen && <BajaCameo mode={bajaMode} visit={s.s === 'lobby' ? c.bajaVisit : null} />}
         {c.code && s.s !== 'landing' && s.s !== 'creating' && <CornerInfo onMirror={() => setMirrorOpen(!mirrorOpen)} />}
         {mirrorOpen && !replica && c.code && s.s !== 'landing' && s.s !== 'creating' && <MirrorPanel onClose={() => setMirrorOpen(false)} />}
         {c.status === 'connecting' && c.code && !replica && <div class="reconnecting">Reconnecting to the server…</div>}
@@ -358,11 +358,26 @@ function Lobby() {
                   {i === 0 && <span>First in = VIP</span>}
                 </div>
               );
+            const leaping = c.bajaVisit?.phase === 'leap' && c.bajaVisit.playerId === p.id;
+            const feeding = c.bajaVisit?.phase === 'phone' && c.bajaVisit.playerId === p.id;
+            const popup = c.bajaPopup?.playerId === p.id ? c.bajaPopup : null;
             return (
-              <div class={`player-slot ${p.connected ? '' : 'offline'}`} key={p.id} style={{ '--pc': colorHex(p.color) }}>
+              <div
+                class={`player-slot ${p.connected ? '' : 'offline'} ${leaping ? 'baja-leap-target' : ''} ${feeding ? 'baja-feeding' : ''}`}
+                data-player-id={p.id}
+                key={p.id}
+                style={{ '--pc': colorHex(p.color) }}
+              >
                 {p.vip && <span class="vip-badge">VIP</span>}
-                <Pierogi color={colorHex(p.color)} size={84} mood={p.connected ? 'happy' : 'sleep'} class="bob" />
+                {feeding && <span class="baja-feeding-pill pop-in">🐾 Feeding Baja…</span>}
+                <Pierogi color={colorHex(p.color)} size={84} mood={p.connected ? 'happy' : 'sleep'} cosmetics={p.cosmetics} class="bob" />
                 <span class="player-name">{p.name}</span>
+                {popup && (
+                  <span class="baja-fed-popup pop-in" key={popup.key}>
+                    Fed Baja {popup.fed} {popup.fed === 1 ? 'time' : 'times'}
+                    {popup.fed > 0 && <small>+{popup.fed} 🦴</small>}
+                  </span>
+                )}
                 {!p.connected && <span class="player-status">reconnecting…</span>}
               </div>
             );

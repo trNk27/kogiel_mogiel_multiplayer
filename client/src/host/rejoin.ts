@@ -1,5 +1,5 @@
 /**
- * Players who left the room keep their party points for the rest of the session, so someone who
+ * Players who left the room keep their party points, Baja bones and cosmetics for the rest of the session, so someone who
  * drops out (phone locked too long, kicked by mistake) and joins again carries on where they were.
  *
  * A returning player is found by their phone's id first, then by name (a new phone, or cleared
@@ -12,6 +12,10 @@ export interface Departed {
   id: string;
   name: string;
   party: number;
+  /** Baja bones and cosmetics (missing in rooms saved before the Baja shop existed). */
+  bones?: number;
+  owned?: string[];
+  equipped?: string[];
 }
 
 /** Anything that keeps points by player id: party history entries, tournament logs. */
