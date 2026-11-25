@@ -128,12 +128,19 @@ const CW = 820;
 const CH = 560;
 const PAD = { l: 64, r: 170, t: 24, b: 92 };
 
-/** A "nice" axis maximum and step for 3–5 gridlines. */
-function niceScale(max: number) {
-  const raw = Math.max(1, max) / 4;
+/**
+ * A "nice" axis range and step for 3–5 gridlines. Points don't go below 0, but if a total ever
+ * does (bad data from an older session), the axis reaches down to it instead of the line
+ * disappearing off the bottom of the screen.
+ */
+export function niceScale(max: number, min = 0) {
+  const lo = Math.min(0, min);
+  const span = Math.max(1, max - lo);
+  const raw = span / 4;
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const step = [1, 2, 5, 10].map((m) => m * mag).find((s) => s >= raw)!;
-  return { step, top: Math.ceil(Math.max(1, max) / step) * step };
+  const bottom = lo < 0 ? -Math.ceil(-lo / step) * step : 0;
+  return { step, bottom, top: Math.max(step, Math.ceil(Math.max(1, max) / step) * step) };
 }
 
 /** Spread label positions apart so none are closer than `gap` (keeps their order). */
@@ -154,13 +161,14 @@ export function spread(ys: number[], gap: number, lo: number, hi: number): numbe
 /** Running totals game by game: one line per player, the games along the bottom. */
 export function ScoreChart({ series, games, title }: { series: ChartSeries[]; games: Selection[]; title: string }) {
   const steps = games.length;
-  const { step, top } = niceScale(Math.max(...series.flatMap((s) => s.values)));
+  const all = series.flatMap((s) => s.values);
+  const { step, bottom, top } = niceScale(Math.max(...all), Math.min(...all));
   const iw = CW - PAD.l - PAD.r;
   const ih = CH - PAD.t - PAD.b;
   const x = (k: number) => PAD.l + (steps ? (k / steps) * iw : iw / 2);
-  const y = (v: number) => PAD.t + ih - (v / top) * ih;
+  const y = (v: number) => PAD.t + ih - ((v - bottom) / (top - bottom)) * ih;
   const grid: number[] = [];
-  for (let v = 0; v <= top; v += step) grid.push(v);
+  for (let v = bottom; v <= top; v += step) grid.push(v);
   // Leaders are drawn last so their lines sit on top.
   const drawn = [...series].sort((a, b) => a.values[steps] - b.values[steps]);
   const many = series.length > 8;

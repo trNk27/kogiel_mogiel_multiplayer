@@ -29,15 +29,15 @@ export interface CosmeticItem {
 }
 
 export const COSMETICS: readonly CosmeticItem[] = [
-  { id: 'bowtie', name: 'Bowtie', price: 1, emoji: '🎀' },
-  { id: 'mustache', name: 'Mustache', price: 1, emoji: '🥸' },
-  { id: 'flower', name: 'Folk Flower', price: 1, emoji: '🌸' },
-  { id: 'shades', name: 'Sunglasses', price: 2, emoji: '🕶️' },
-  { id: 'chef', name: 'Chef Hat', price: 2, emoji: '👨‍🍳' },
-  { id: 'monocle', name: 'Monocle', price: 2, emoji: '🧐' },
-  { id: 'tophat', name: 'Top Hat', price: 3, emoji: '🎩' },
-  { id: 'halo', name: 'Halo', price: 3, emoji: '😇' },
-  { id: 'crown', name: 'Tiny Crown', price: 4, emoji: '👑' },
+  { id: 'bowtie', name: 'Bowtie', price: 2, emoji: '🎀' },
+  { id: 'mustache', name: 'Mustache', price: 2, emoji: '🥸' },
+  { id: 'flower', name: 'Folk Flower', price: 2, emoji: '🌸' },
+  { id: 'shades', name: 'Sunglasses', price: 4, emoji: '🕶️' },
+  { id: 'chef', name: 'Chef Hat', price: 4, emoji: '👨‍🍳' },
+  { id: 'monocle', name: 'Monocle', price: 4, emoji: '🧐' },
+  { id: 'tophat', name: 'Top Hat', price: 6, emoji: '🎩' },
+  { id: 'halo', name: 'Halo', price: 6, emoji: '😇' },
+  { id: 'crown', name: 'Tiny Crown', price: 8, emoji: '👑' },
 ];
 
 const COSMETIC_SET = new Set<string>(COSMETICS.map((c) => c.id));
