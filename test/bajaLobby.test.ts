@@ -29,6 +29,10 @@ function step(sim: BajaFeedSim, seconds: number, dt = 1 / 60) {
 }
 
 describe('lobby Baja cosmetics & rules', () => {
+  it('prices cosmetics from 2 bones up to 8 for the crown', () => {
+    expect(COSMETICS.map((c) => c.price)).toEqual([2, 2, 2, 4, 4, 4, 6, 6, 8]);
+  });
+
   it('defines 9 valid cosmetics with positive bone prices', () => {
     expect(COSMETICS).toHaveLength(9);
     for (const c of COSMETICS) {
@@ -73,21 +77,21 @@ describe('lobby Baja cosmetics & rules', () => {
   });
 
   it('buys and stacks unlimited cosmetics on Pierogi wallets', () => {
-    let wallet: CosmeticWallet = { bones: 5, owned: [], equipped: [] };
+    let wallet: CosmeticWallet = { bones: 10, owned: [], equipped: [] };
     wallet = buyCosmeticState(wallet, 'bowtie')!;
-    expect(wallet).toEqual({ bones: 4, owned: ['bowtie'], equipped: ['bowtie'] });
+    expect(wallet).toEqual({ bones: 8, owned: ['bowtie'], equipped: ['bowtie'] });
 
     // Buying already owned fails cleanly
     expect(buyCosmeticState(wallet, 'bowtie')).toBeNull();
 
     // Buying unaffordable item fails cleanly
-    expect(buyCosmeticState({ bones: 1, owned: [], equipped: [] }, 'crown')).toBeNull();
+    expect(buyCosmeticState({ bones: 7, owned: [], equipped: [] }, 'crown')).toBeNull();
 
     // Stacking multiple items works without unequipping previous ones
     wallet = buyCosmeticState(wallet, 'shades')!;
     wallet = buyCosmeticState(wallet, 'mustache')!;
     expect(wallet.equipped).toEqual(['bowtie', 'shades', 'mustache']);
-    expect(wallet.bones).toBe(1);
+    expect(wallet.bones).toBe(2);
 
     // Toggling removes or restores any single item
     const unequipped = toggleCosmeticState(wallet, 'shades')!;
