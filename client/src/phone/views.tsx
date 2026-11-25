@@ -37,7 +37,6 @@ import { categoryOf, shelves, type CategoryId } from '../../../shared/categories
 import { formatNumber } from '../../../shared/format';
 import type { Me, Send } from './PhoneApp';
 import { BajaFeedModal } from './bajaFeed';
-import { BajaShopModal } from './bajaShop';
 import { KitchenPad } from './kitchen';
 import { Stars } from '../lib/stars';
 import { SwapPad } from './swap';
@@ -200,22 +199,9 @@ function GamePicker({ selected, players, noTv, send }: { selected: Selection; pl
 
 function Lobby({ view, me, send }: Props<'lobby'>) {
   const [confirmKick, setConfirmKick] = useState<string | null>(null);
-  const [shopOpen, setShopOpen] = useState(false);
   const [dismissedFeedKey, setDismissedFeedKey] = useState<number | null>(null);
 
-  const bones = view.bones ?? 0;
-  const owned = view.owned ?? [];
   const equipped = view.equipped ?? [];
-
-  const shopBar =
-    bones > 0 ? (
-      <div class="baja-wallet-bar">
-        <span class="bone-pill">🦴 {bones}</span>
-        <button type="button" class="shop-btn" onClick={() => setShopOpen(true)}>
-          🛍️ Shop
-        </button>
-      </div>
-    ) : null;
 
   const feedModal =
     view.bajaFeed && view.bajaFeed.key !== dismissedFeedKey ? (
@@ -229,17 +215,6 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
       />
     ) : null;
 
-  const shopModal = shopOpen ? (
-    <BajaShopModal
-      color={me.color}
-      bones={bones}
-      owned={owned}
-      equipped={equipped}
-      send={send}
-      onClose={() => setShopOpen(false)}
-    />
-  ) : null;
-
   if (!view.vip) {
     return (
       <div class="pv pv-center">
@@ -250,9 +225,7 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         <div class="pill">
           👑 {view.vipName ? `${view.vipName} picks` : 'Waiting for the VIP'} · {view.playerCount} 🥟
         </div>
-        {shopBar}
         {me.noTv && <Invite room={me.room ?? ''} />}
-        {shopModal}
         {feedModal}
       </div>
     );
@@ -270,7 +243,6 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
   return (
     <div class="pv pv-lobby">
       {noTv && <Invite room={me.room ?? ''} />}
-      {shopBar}
       <div class="section-label">👑 Pick a game</div>
       <GamePicker selected={view.selected} players={view.players.length} noTv={noTv} send={send} />
       <div class="pgame-detail">
@@ -396,7 +368,6 @@ function Lobby({ view, me, send }: Props<'lobby'>) {
         ))}
       </div>
       {me.hosting && <div class="muted small center">Keep this page open – you’re hosting.</div>}
-      {shopModal}
       {feedModal}
     </div>
   );

@@ -16,12 +16,22 @@ import {
 import {
   BAG_INTRO_S,
   BajaFeedSim,
+  BONE_FLIGHT_S,
+  BONE_FLOOR_Y,
+  bonePosition,
+  DROP_S,
   FEED_H,
   FEED_W,
   HOP_OUT_S,
+  LAND_S,
   PROMPT_S,
   RUN_BACK_S,
+  SPIT_GAP_S,
+  SPIT_WALK_S,
 } from '../client/src/phone/bajaFeedLogic';
+
+/** Everything before the player can fling. */
+const INTRO_S = BAG_INTRO_S + DROP_S + LAND_S + HOP_OUT_S + RUN_BACK_S + PROMPT_S;
 
 function step(sim: BajaFeedSim, seconds: number, dt = 1 / 60) {
   const n = Math.ceil(seconds / dt);
@@ -103,14 +113,26 @@ describe('lobby Baja cosmetics & rules', () => {
 });
 
 describe('BajaFeedSim phone minigame', () => {
-  it('plays the intro choreography: big in bag -> hop out -> run back & shrink -> FEED ME! -> play', () => {
+  it('plays the intro: empty bag -> Baja drops in with a thump -> hop out -> run back & shrink -> FEED ME! -> play', () => {
     const sim = new BajaFeedSim(42);
     expect(sim.phase).toBe('bagIntro');
-    expect(sim.bagScale).toBe(3);
+    expect(sim.bagEmpty).toBe(true);
+    expect(sim.bajaVisible).toBe(false);
 
-    step(sim, BAG_INTRO_S + 0.05);
+    step(sim, BAG_INTRO_S + 0.02);
+    expect(sim.phase).toBe('drop');
+    expect(sim.bagScale).toBe(3);
+    expect(sim.dropProgress()).toBeLessThan(0.2);
+
+    step(sim, DROP_S);
+    expect(sim.phase).toBe('land');
+    expect(sim.bagEmpty).toBe(false);
+    expect(sim.bagSquash).toBeGreaterThan(0.5);
+
+    step(sim, LAND_S);
     expect(sim.phase).toBe('hopOut');
     expect(sim.bagEmpty).toBe(true);
+    expect(sim.bagSquash).toBe(0);
     expect(sim.bajaVisible).toBe(true);
 
     step(sim, HOP_OUT_S + 0.05);
@@ -123,13 +145,19 @@ describe('BajaFeedSim phone minigame', () => {
     expect(sim.bajaScale).toBeLessThan(midScale);
     expect(sim.bajaY).toBeLessThan(105);
 
-    step(sim, PROMPT_S + 0.05);
+    // She stands still while yelling.
+    const x = sim.bajaX;
+    step(sim, PROMPT_S / 2);
+    expect(sim.bajaX).toBe(x);
+    expect(sim.bajaRunning).toBe(false);
+
+    step(sim, PROMPT_S / 2 + 0.05);
     expect(sim.phase).toBe('play');
   });
 
   it('ignores downward or tiny swipes without spending treats', () => {
     const sim = new BajaFeedSim(12);
-    step(sim, BAG_INTRO_S + HOP_OUT_S + RUN_BACK_S + PROMPT_S + 0.1);
+    step(sim, INTRO_S + 0.1);
     expect(sim.phase).toBe('play');
     expect(sim.fling(0, 40, 120)).toBe(false);
     expect(sim.fling(3, -5, 120)).toBe(false);
@@ -138,7 +166,7 @@ describe('BajaFeedSim phone minigame', () => {
 
   it('flings treats all the way off-screen when aimed away from Baja', () => {
     const sim = new BajaFeedSim(19);
-    step(sim, BAG_INTRO_S + HOP_OUT_S + RUN_BACK_S + PROMPT_S + 0.1);
+    step(sim, INTRO_S + 0.1);
 
     // Push Baja to left edge or aim straight for opposite wall/top edge
     const aimDx = sim.bajaX > FEED_W / 2 ? -80 : 80;
@@ -155,7 +183,7 @@ describe('BajaFeedSim phone minigame', () => {
 
   it('awards a bone on a direct hit and finishes once all 5 items resolve', () => {
     const sim = new BajaFeedSim(7);
-    step(sim, BAG_INTRO_S + HOP_OUT_S + RUN_BACK_S + PROMPT_S + 0.1);
+    step(sim, INTRO_S + 0.1);
 
     for (let i = 0; i < BAJA_FEED_ITEMS; i++) {
       // Aim directly at Baja's current position with a fast upward fling
@@ -169,7 +197,46 @@ describe('BajaFeedSim phone minigame', () => {
     expect(sim.projectiles).toHaveLength(0);
     expect(sim.fed).toBeGreaterThanOrEqual(3);
     expect(sim.fed).toBeLessThanOrEqual(BAJA_FEED_ITEMS);
-    expect(sim.phase).toBe('done');
+    expect(['spit', 'done']).toContain(sim.phase);
     expect(FEED_H).toBe(280);
+  });
+
+  it('spits out one bone per treat caught, lands them on the floor, then finishes', () => {
+    const sim = new BajaFeedSim(7);
+    step(sim, INTRO_S + 0.1);
+    for (let i = 0; i < BAJA_FEED_ITEMS; i++) {
+      const dx = sim.bajaX - FEED_W / 2;
+      const dy = -Math.max(60, 244 - sim.bajaY);
+      sim.fling(dx, dy, 100, FEED_W / 2);
+      step(sim, 0.75);
+    }
+    const fed = sim.fed;
+    expect(fed).toBeGreaterThan(0);
+    step(sim, SPIT_WALK_S + fed * SPIT_GAP_S + BONE_FLIGHT_S + 0.1);
+    expect(sim.phase).toBe('done');
+    expect(sim.bones).toHaveLength(fed);
+    for (const b of sim.bones) {
+      const pos = bonePosition(b);
+      expect(pos.landed).toBe(true);
+      expect(pos.y).toBeCloseTo(BONE_FLOOR_Y);
+      expect(pos.x).toBeGreaterThan(0);
+      expect(pos.x).toBeLessThan(FEED_W);
+    }
+  });
+
+  it('skips the spitting when Baja caught nothing', () => {
+    const sim = new BajaFeedSim(19);
+    step(sim, INTRO_S + 0.1);
+    for (let i = 0; i < BAJA_FEED_ITEMS; i++) {
+      // Straight up the right edge while she's held at the far left.
+      expect(sim.fling(0, -190, 140, FEED_W - 20)).toBe(true);
+      for (let f = 0; f < 72; f++) {
+        sim.bajaX = 24;
+        sim.update(1 / 60);
+      }
+    }
+    expect(sim.fed).toBe(0);
+    expect(sim.phase).toBe('done');
+    expect(sim.bones).toHaveLength(0);
   });
 });

@@ -78,7 +78,7 @@ The VIP can also start a **Tournament**: five random games in a row by default, 
 
 ## How a party works
 
-1. On the TV, open the site and press **Host a party**. That's the only time anyone touches the TV.
+1. On the TV, open the site and tap the **Kogiel Mogiel logo** to host a party. That's the only time anyone touches the TV.
 2. Phones scan the QR code, or go to `/join` and type the 4-letter code. Then they enter a name and pick a pierogi colour.
 3. The **first player to join is the VIP**. The VIP picks the game, toggles options, starts rounds,
    ends a game early (⋯ menu) and can remove players, all from their phone.
@@ -409,7 +409,7 @@ Cloudflare can build and deploy straight from this GitHub repo, all from a phone
 
 Share that single URL:
 
-- **Laptop, TV or tablet** → the host screen. Press **Host a party**.
+- **Laptop, TV or tablet** → the host screen. Tap the **logo** to host a party.
 - **Phone** → automatically sent to `/join` (the controller). Scan the QR code on the laptop,
   or type the 4-letter code. To host on a phone anyway, use `/?host`.
 
@@ -453,7 +453,7 @@ step (or rolls the dice for its first sentence), like a player whose time ran ou
 
 3. Wrangler prints your URL, e.g. `https://couch-party.<your-subdomain>.workers.dev`. On first
    deploy it may ask you to pick a `workers.dev` subdomain.
-4. Open that URL on the TV (Xbox: Microsoft Edge), press **Host a party**, and scan the QR code
+4. Open that URL on the TV (Xbox: Microsoft Edge), tap the **logo** to host a party, and scan the QR code
    with a phone.
 
 The free plan covers this comfortably. The Durable Object uses the SQLite backend, which the free

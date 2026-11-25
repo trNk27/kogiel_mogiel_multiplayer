@@ -1,4 +1,6 @@
-/** Hand-made SVG art: pierogi avatars, folk paper-cut (wycinanki) rosettes, the kogiel mogiel logo. */
+/** Hand-made SVG art: pierogi avatars, folk paper-cut (wycinanki) rosettes; and the Kogiel Mogiel logo picture. */
+import logoWide from '../assets/logo-wide.webp';
+import logoTall from '../assets/logo-tall.webp';
 import type { JSX } from 'preact';
 import type { CosmeticId } from '../../../shared/cosmetics';
 import { PierogiCosmetics } from './cosmeticsArt';
@@ -109,31 +111,9 @@ export function Rosette({
   );
 }
 
-/** A glass of kogiel mogiel – the brand mark. */
-export function KogielGlass({ size = 80 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 80 96" aria-hidden="true">
-      <path d="M 14 22 L 66 22 L 58 88 Q 40 94 22 88 Z" fill="rgba(255,255,255,.18)" stroke="#fff4dc" stroke-width="3" stroke-linejoin="round" />
-      <path d="M 17 34 L 63 34 L 57.5 86 Q 40 91 22.5 86 Z" fill="#ffc93c" />
-      <path d="M 17 34 L 63 34 L 62 42 Q 40 48 18 42 Z" fill="#ffe08a" />
-      <path d="M 22 24 Q 26 6 40 10 Q 52 2 58 18 Q 64 22 58 26 L 22 26 Q 16 24 22 24 Z" fill="#fff4dc" />
-      <path d="M 30 18 Q 40 10 50 18" fill="none" stroke="#ffc93c" stroke-width="3" stroke-linecap="round" />
-      <path d="M 60 4 L 52 40" stroke="#ff3d6e" stroke-width="4" stroke-linecap="round" />
-      <circle cx="62" cy="2" r="4" fill="#ff3d6e" />
-    </svg>
-  );
-}
-
-export function Logo({ size = 1 }: { size?: number }) {
-  return (
-    <div class="logo" style={{ fontSize: `${size}em` }}>
-      <KogielGlass size={84 * size} />
-      <div class="logo-text">
-        <div class="logo-small">Kogiel Mogiel</div>
-        <div class="logo-big">Couch Party</div>
-      </div>
-    </div>
-  );
+/** The Kogiel Mogiel logo picture: `wide` (one line) or `tall` (two lines). */
+export function Logo({ shape = 'wide', class: cls = '' }: { shape?: 'wide' | 'tall'; class?: string }) {
+  return <img class={`brand-logo ${cls}`} src={shape === 'wide' ? logoWide : logoTall} alt="Kogiel Mogiel" draggable={false} />;
 }
 
 /** A row of rosettes used as a decorative border. */

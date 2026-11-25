@@ -13,13 +13,14 @@ import {
   type RoomInfoResponse,
   type ServerToPhone,
 } from '../../../shared/protocol';
-import { KogielGlass, Pierogi, Rosette } from '../lib/art';
+import { Logo, Pierogi, Rosette } from '../lib/art';
 import { ReconnectingSocket, wsUrl, type SocketStatus } from '../lib/socket';
 import { forgetRoom, loadStored, saveStored, type Stored } from './storage';
 import { setWakeLock } from './wakelock';
 import { ViewRouter } from './views';
 import { arenaBus, rallyBus, savedHostCode } from './rallyBus';
 import { VipMenu } from './vipMenu';
+import { BajaShopModal } from './bajaShop';
 import { putPhoto } from './photos';
 
 const params = new URLSearchParams(location.search);
@@ -58,6 +59,7 @@ export function PhoneApp() {
   const [view, setView] = useState<{ view: PhoneView; me: Me; offset: number } | null>(null);
   /** Code of the room this phone hosts without a TV, if any. */
   const [hosting, setHosting] = useState<string | null>(null);
+  const [shopOpen, setShopOpen] = useState(false);
   const hostingRef = useRef(hosting);
   hostingRef.current = hosting;
   const socket = useRef<ReconnectingSocket<ServerToPhone, PhoneMsg> | null>(null);
@@ -240,13 +242,7 @@ export function PhoneApp() {
   if (stage.s === 'form' || stage.s === 'gone') {
     return (
       <div class="phone phone-form">
-        <div class="phone-brand">
-          <KogielGlass size={64} />
-          <div>
-            <div class="logo-small">Kogiel Mogiel</div>
-            <div class="phone-brand-big">Couch Party</div>
-          </div>
-        </div>
+        <Logo class="phone-brand" />
         {stage.s === 'gone' && (
           <div class="notice card-paper">
             <b>{stage.title}</b>
@@ -338,19 +334,40 @@ export function PhoneApp() {
   // stage 'in'
   if (!view) return null;
   const { me } = view;
+  // Baja's bones and the shop live in the header while in the lobby (the only place they're used).
+  const lobby = view.view.v === 'lobby' ? view.view : null;
+  const bones = lobby?.bones ?? 0;
+  const owned = lobby?.owned ?? [];
+  const wallet = lobby && (bones > 0 || owned.length > 0);
   return (
     <div class="phone phone-in" style={{ '--me': colorHex(me.color) }}>
       <header class="phone-head">
-        <Pierogi color={colorHex(me.color)} size={44} cosmetics={view.view.v === 'lobby' ? view.view.equipped : undefined} />
+        <Pierogi color={colorHex(me.color)} size={44} cosmetics={lobby?.equipped} />
         <span class="phone-name">{me.name}</span>
         {me.vip && <span class="vip-badge small">VIP</span>}
         <span class="grow" />
+        {wallet && (
+          <button type="button" class="head-wallet" onClick={() => setShopOpen(true)} aria-label={`${bones} bones – open Baja's shop`}>
+            <span class="head-bones gain" key={bones}>🦴 {bones}</span>
+            <span class="head-shop">🛍️</span>
+          </button>
+        )}
         <span class="phone-code">{code}</span>
         {me.vip && view.view.v !== 'lobby' && view.view.v !== 'results' && <VipMenu send={send} />}
       </header>
       <main class="phone-main">
         <ViewRouter view={view.view} me={me} send={send} offset={view.offset} />
       </main>
+      {shopOpen && lobby && (
+        <BajaShopModal
+          color={me.color}
+          bones={bones}
+          owned={owned}
+          equipped={lobby.equipped ?? []}
+          send={send}
+          onClose={() => setShopOpen(false)}
+        />
+      )}
       {(!hostOnline || status === 'connecting') && (
         <div class="phone-overlay">
           <Pierogi color={colorHex(me.color)} size={100} mood="sleep" class="bob" />

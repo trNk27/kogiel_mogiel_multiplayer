@@ -84,7 +84,7 @@ export function ScreenApp() {
     return (
       <div class="screen-enter">
         <FolkBorder count={9} size={52} />
-        <Logo size={1.3} />
+        <Logo class="screen-logo" />
         <form
           class="screen-form card-paper"
           onSubmit={(e) => {
@@ -175,7 +175,7 @@ function Mirror({ receiver: r, onLeave }: { receiver: Receiver; onLeave: () => v
         <HostApp room={root} isReplica key={r.replica.epochKey} />
       ) : (
         <div class="mirror-wait">
-          <Logo size={1.1} />
+          <Logo class="screen-logo" />
           <div class="mirror-wait-card card-paper">
             <div class="eyebrow">Room</div>
             <div class="mirror-wait-code">{r.code}</div>

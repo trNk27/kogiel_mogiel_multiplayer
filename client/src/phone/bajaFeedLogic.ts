@@ -1,7 +1,9 @@
 /**
  * Pure, Node-safe simulation for the phone "Feed Baja" minigame.
- * Choreography: Baja appears big in her carrier bag -> hops out -> runs to the back (shrinking) ->
- * "FEED ME!" prompt -> runs across the top while the player flings 5 treats upward.
+ * Choreography: her empty carrier bag appears -> Baja drops in from the top of the phone screen and
+ * lands in it with a thump -> hops out -> runs to the back (shrinking) -> stops and yells "FEED ME!" ->
+ * runs across the top while the player flings 5 treats upward -> comes forward and spits out one
+ * bone per treat she caught -> "+X 🦴".
  */
 import { BAJA_FEED_ITEMS } from '../../../shared/cosmetics';
 
@@ -17,15 +19,46 @@ export const BAJA_TOP_Y_MAX = 94;
 export const BAJA_TOP_X_MIN = 26;
 export const BAJA_TOP_X_MAX = 154;
 
-export const BAG_INTRO_S = 0.85;
+/** The empty bag pops up on its own first. */
+export const BAG_INTRO_S = 0.6;
+/** Baja falls from the top of the phone screen into the bag (drawn above the whole page). */
+export const DROP_S = 0.55;
+/** The thump: the bag squashes, dust flies. */
+export const LAND_S = 0.55;
 export const HOP_OUT_S = 0.42;
 export const RUN_BACK_S = 0.95;
-export const PROMPT_S = 0.65;
+/** Baja stands still and yells "FEED ME!". */
+export const PROMPT_S = 1.25;
+/** After the last treat: Baja trots forward before spitting out her bones. */
+export const SPIT_WALK_S = 0.55;
+/** Time between two spat-out bones, and how long each one flies. */
+export const SPIT_GAP_S = 0.3;
+export const BONE_FLIGHT_S = 0.55;
+
+/** Where Baja stands to spit, and the floor line where the bones land. */
+export const SPIT_X = 90;
+export const SPIT_Y = 132;
+export const BONE_FLOOR_Y = 236;
+/** Where Baja stops to yell "FEED ME!" (far enough forward for the speech bubble to fit above her). */
+export const PROMPT_Y = 96;
+/** The bag's opening (top of the empty bag at scale 3, a little inside it). */
+export const BAG_MOUTH_Y = BAG_START_Y - 16 * 3 + 10;
 
 export type TreatKind = 'kielbasa' | 'cheese' | 'chicken' | 'pierogi' | 'biscuit';
 export const TREAT_ORDER: readonly TreatKind[] = ['kielbasa', 'cheese', 'chicken', 'pierogi', 'biscuit'];
 
-export type BajaFeedPhase = 'bagIntro' | 'hopOut' | 'runBack' | 'prompt' | 'play' | 'done';
+export type BajaFeedPhase = 'bagIntro' | 'drop' | 'land' | 'hopOut' | 'runBack' | 'prompt' | 'play' | 'spit' | 'done';
+
+/** A bone Baja spat out: flies in an arc from her mouth to its spot on the floor. */
+export interface SpatBone {
+  id: number;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+  /** Seconds since it left her mouth. */
+  age: number;
+}
 
 export interface TreatProjectile {
   id: number;
@@ -49,6 +82,22 @@ export interface FeedCue {
   ttl: number;
 }
 
+/** 0 → 1 with a small overshoot past 1 (for things popping into view). */
+function popIn(u: number): number {
+  const c = 1.7;
+  const x = u - 1;
+  return 1 + (c + 1) * x * x * x + c * x * x;
+}
+
+/** Position of a spat bone `age` seconds into its flight: an arc that lands on its spot. */
+export function bonePosition(b: SpatBone): { x: number; y: number; landed: boolean } {
+  const u = Math.min(1, b.age / BONE_FLIGHT_S);
+  const x = b.fromX + (b.toX - b.fromX) * u;
+  const arc = Math.sin(u * Math.PI) * 46;
+  const y = b.fromY + (b.toY - b.fromY) * u * u - arc;
+  return { x, y, landed: u >= 1 };
+}
+
 function makeRng(seed: number): () => number {
   let a = seed >>> 0 || 1;
   return () => {
@@ -69,7 +118,9 @@ export class BajaFeedSim {
   bagY = BAG_START_Y;
   bagScale = 3.0;
   bagVisible = true;
-  bagEmpty = false;
+  bagEmpty = true;
+  /** 1 right at the thump, easing back to 0: the bag squashes flat and wide. */
+  bagSquash = 0;
 
   bajaVisible = false;
   bajaX = BAG_START_X;
@@ -84,6 +135,7 @@ export class BajaFeedSim {
   fed = 0;
   projectiles: TreatProjectile[] = [];
   cues: FeedCue[] = [];
+  bones: SpatBone[] = [];
 
   private nextId = 1;
   private rnd: () => number;
@@ -91,6 +143,9 @@ export class BajaFeedSim {
   private targetY = 70;
   private speed = 70;
   private pauseTimer = 0;
+  private walkFromX = SPIT_X;
+  private walkFromY = SPIT_Y;
+  private walkFromScale = 1.5;
 
   constructor(seed = 77) {
     this.rnd = makeRng(seed);
@@ -169,12 +224,36 @@ export class BajaFeedSim {
 
     switch (this.phase) {
       case 'bagIntro': {
+        // The empty bag pops up with a little overshoot.
+        const u = Math.min(1, this.phaseTime / BAG_INTRO_S);
         this.bagVisible = true;
-        this.bagEmpty = false;
-        this.bagScale = 3.0;
+        this.bagEmpty = true;
+        this.bagScale = 3.0 * popIn(Math.min(1, u / 0.6));
         this.bagY = BAG_START_Y;
         this.bajaVisible = false;
-        if (this.phaseTime >= BAG_INTRO_S) {
+        if (u >= 1) {
+          this.bagScale = 3.0;
+          this.phase = 'drop';
+          this.phaseTime = 0;
+        }
+        break;
+      }
+      case 'drop': {
+        // Baja is drawn by the page above everything while she falls (dropProgress()).
+        if (this.phaseTime >= DROP_S) {
+          this.phase = 'land';
+          this.phaseTime = 0;
+          this.bagEmpty = false;
+          this.bagSquash = 1;
+        }
+        break;
+      }
+      case 'land': {
+        const u = Math.min(1, this.phaseTime / LAND_S);
+        // A springy wobble that dies down.
+        this.bagSquash = Math.cos(u * Math.PI * 2.5) * Math.pow(1 - u, 2);
+        if (u >= 1) {
+          this.bagSquash = 0;
           this.phase = 'hopOut';
           this.phaseTime = 0;
           this.bagEmpty = true;
@@ -208,10 +287,10 @@ export class BajaFeedSim {
         const ease = 1 - Math.pow(1 - u, 2);
         this.bajaVisible = true;
         this.bajaRunning = true;
-        this.bajaY = 192 + (70 - 192) * ease;
+        this.bajaY = 192 + (PROMPT_Y - 192) * ease;
         this.bajaX = BAG_START_X + Math.sin(u * Math.PI * 2) * 16;
         this.bajaFacing = Math.cos(u * Math.PI * 2) >= 0 ? 1 : -1;
-        this.bajaScale = 2.65 + (1.45 - 2.65) * ease;
+        this.bajaScale = 2.65 + (this.scaleForY(PROMPT_Y) - 2.65) * ease;
         this.bajaHopY = Math.abs(Math.sin(u * Math.PI * 6)) * 4;
         this.bagY = BAG_START_Y + ease * 115;
         if (this.bagY > FEED_H + 30) this.bagVisible = false;
@@ -220,17 +299,22 @@ export class BajaFeedSim {
           this.phaseTime = 0;
           this.bagVisible = false;
           this.bajaHopY = 0;
-          this.bajaY = 70;
+          this.bajaX = BAG_START_X;
+          this.bajaY = PROMPT_Y;
           this.bajaScale = this.scaleForY(this.bajaY);
-          this.pickTarget();
         }
         break;
       }
       case 'prompt': {
-        this.updatePatrol(dt);
+        // Standing still, facing the player, barking: tiny quick hops.
+        this.bajaRunning = false;
+        this.bajaFacing = 1;
+        this.bajaHopY = Math.abs(Math.sin(this.phaseTime * 16)) * 2.5;
         if (this.phaseTime >= PROMPT_S) {
           this.phase = 'play';
           this.phaseTime = 0;
+          this.bajaHopY = 0;
+          this.pickTarget();
         }
         break;
       }
@@ -238,17 +322,85 @@ export class BajaFeedSim {
         this.updatePatrol(dt);
         this.updateProjectiles(dt);
         if (this.remaining === 0 && this.projectiles.length === 0) {
-          this.phase = 'done';
           this.phaseTime = 0;
-          this.bajaRunning = false;
+          this.bajaHopY = 0;
+          if (this.fed > 0) {
+            this.phase = 'spit';
+            this.walkFromX = this.bajaX;
+            this.walkFromY = this.bajaY;
+            this.walkFromScale = this.bajaScale;
+          } else {
+            this.phase = 'done';
+            this.bajaRunning = false;
+          }
         }
+        break;
+      }
+      case 'spit': {
+        this.updateSpit(dt);
         break;
       }
       case 'done': {
         this.bajaRunning = false;
-        this.bajaHopY = this.fed > 0 ? Math.abs(Math.sin(this.time * 5)) * 5 : 0;
+        this.bajaHopY = this.fed > 0 ? Math.abs(Math.sin(this.time * 5)) * 3 : 0;
+        for (const b of this.bones) b.age += dt;
         break;
       }
+    }
+  }
+
+  /** 0 → 1 while Baja falls into her bag (only meaningful in the 'drop' phase). */
+  dropProgress(): number {
+    return this.phase === 'drop' ? Math.min(1, this.phaseTime / DROP_S) : this.phase === 'bagIntro' ? 0 : 1;
+  }
+
+  /** Where Baja's mouth is, for spitting bones from. */
+  mouth() {
+    return { x: this.bajaX + 8 * this.bajaScale * this.bajaFacing, y: this.bajaY - 8 * this.bajaScale };
+  }
+
+  /** Spot on the floor for the i-th of n bones: a neat row, centred. */
+  static boneSpot(i: number, n: number) {
+    // Bones are 28 px wide: leave a little air between them.
+    const gap = Math.min(34, 140 / Math.max(1, n - 1));
+    return { x: SPIT_X + (i - (n - 1) / 2) * gap, y: BONE_FLOOR_Y };
+  }
+
+  private updateSpit(dt: number) {
+    for (const b of this.bones) b.age += dt;
+    const t = this.phaseTime;
+    if (t < SPIT_WALK_S) {
+      // Trot forward to the middle, growing as she comes closer.
+      const u = t / SPIT_WALK_S;
+      const e = 1 - Math.pow(1 - u, 2);
+      this.bajaRunning = true;
+      this.bajaX = this.walkFromX + (SPIT_X - this.walkFromX) * e;
+      this.bajaY = this.walkFromY + (SPIT_Y - this.walkFromY) * e;
+      this.bajaScale = this.walkFromScale + (2.2 - this.walkFromScale) * e;
+      this.bajaFacing = 1;
+      this.bajaHopY = Math.abs(Math.sin(u * Math.PI * 4)) * 3;
+      return;
+    }
+    this.bajaRunning = false;
+    this.bajaX = SPIT_X;
+    this.bajaY = SPIT_Y;
+    this.bajaScale = 2.2;
+    this.bajaFacing = 1;
+    const st = t - SPIT_WALK_S;
+    // One bone per treat she caught, each with a little "ptoo" hop.
+    const due = Math.min(this.fed, Math.floor(st / SPIT_GAP_S) + 1);
+    while (this.bones.length < due) {
+      const m = this.mouth();
+      const spot = BajaFeedSim.boneSpot(this.bones.length, this.fed);
+      this.bones.push({ id: this.nextId++, fromX: m.x, fromY: m.y, toX: spot.x, toY: spot.y, age: 0 });
+    }
+    const sinceSpit = st - (due - 1) * SPIT_GAP_S;
+    this.bajaHopY = sinceSpit < 0.15 ? Math.sin((sinceSpit / 0.15) * Math.PI) * 5 : 0;
+    const allLanded = this.bones.length === this.fed && this.bones.every((b) => b.age >= BONE_FLIGHT_S);
+    if (allLanded) {
+      this.phase = 'done';
+      this.phaseTime = 0;
+      this.bajaHopY = 0;
     }
   }
 
@@ -311,7 +463,7 @@ export class BajaFeedSim {
         this.bajaHappyTimer = 0.75;
         this.cues.push({
           id: this.nextId++,
-          text: 'NOM! +1 🦴',
+          text: 'NOM!',
           good: true,
           x: hit.cx,
           y: hit.cy - 14,

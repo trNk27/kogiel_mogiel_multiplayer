@@ -274,68 +274,112 @@ body.tv {
   background: radial-gradient(closest-side, var(--bg) 55%, transparent);
   pointer-events: none;
 }
-/* The title is centred on its own; the glass hangs just to its left. */
+/* The Kogiel Mogiel logo (assets/logo-wide.webp), with a sheen of light sweeping over it now and then. */
 .landing-title {
-  position: relative;
+  margin: 0;
+  line-height: 0;
+  /* Floats gently, like the old glass did. */
+  animation: landing-float 3.6s ease-in-out infinite;
 }
-.landing-title svg {
-  position: absolute;
-  right: calc(100% + 18px);
-  bottom: 22px;
-  animation: landing-bob 3.2s ease-in-out infinite;
-}
-@keyframes landing-bob {
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
   50% {
-    transform: translateY(-10px) rotate(-4deg);
+    transform: translateY(-16px) rotate(-1.5deg);
   }
 }
-.landing-title h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 150px;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  color: var(--cream);
-  text-shadow: 0 10px 0 var(--beet-deep);
-  white-space: nowrap;
-}
-.landing-title h1 small {
+/* The logo is the "host a party" button. */
+.landing-logo-btn {
+  position: relative;
   display: block;
-  margin-bottom: 8px;
-  font-family: var(--font-body);
-  font-weight: 800;
-  font-size: 34px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--yolk);
-  text-shadow: none;
+  padding: 0;
+  border: 0;
+  border-radius: 40px;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4);
 }
-.landing-sub {
-  font-family: var(--font-display);
-  font-weight: 650;
-  font-size: 32px;
-  color: var(--muted);
+.landing-logo-btn:hover,
+.landing-logo-btn:focus-visible {
+  transform: scale(1.04);
+}
+.landing-logo-btn:focus-visible {
+  outline: none;
+}
+.landing-logo-btn:active {
+  transform: scale(0.97);
+}
+.landing-logo-btn.busy {
+  cursor: progress;
+  animation: landing-busy 0.9s ease-in-out infinite;
+}
+@keyframes landing-busy {
+  50% {
+    transform: scale(0.96);
+  }
+}
+.landing-logo {
+  width: 820px;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.45));
+}
+.landing-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  background: linear-gradient(
+      110deg,
+      transparent 47%,
+      rgba(255, 252, 240, 0.3) 48.6%,
+      rgba(255, 255, 255, 0.9) 50%,
+      rgba(255, 252, 240, 0.3) 51.4%,
+      transparent 53%
+    )
+    no-repeat;
+  background-size: 300% 100%;
+  background-position: 80% 0;
+  mix-blend-mode: screen;
+  animation: landing-sheen 7s ease-in-out 1.2s infinite;
+}
+/* With the band 3× the logo's width, 80% → 20% is exactly the stretch where it crosses the logo. */
+@keyframes landing-sheen {
+  0% {
+    background-position: 80% 0;
+  }
+  20%,
+  100% {
+    background-position: 20% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-title,
+  .landing-sheen,
+  .landing-hint {
+    animation: none;
+  }
+}
+.landing-hint {
   margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  color: var(--muted);
+  animation: landing-hint 2.4s ease-in-out infinite;
 }
-.landing-actions {
-  display: flex;
-  gap: 28px;
-  align-items: center;
+@keyframes landing-hint {
+  50% {
+    opacity: 0.45;
+  }
 }
-.landing-actions .btn-big {
-  font-size: 56px;
-  padding: 26px 84px;
-  box-shadow: 0 10px 0 var(--key);
-}
-.landing-actions .btn-big:not(:disabled):active {
-  transform: translateY(8px);
-  box-shadow: 0 2px 0 var(--key);
-}
-.landing-actions .btn-ghost {
+.landing-rejoin {
   font-size: 32px;
 }
-.landing-actions .btn:focus-visible {
+.landing-rejoin:focus-visible {
   outline: 6px solid var(--cream);
   outline-offset: 8px;
 }
@@ -383,6 +427,17 @@ body.tv {
   display: flex;
   flex-direction: column;
   gap: 26px;
+}
+.lobby-logo {
+  display: block;
+  align-self: center;
+  width: auto;
+  height: 210px;
+  max-width: 100%;
+  margin: -8px 0 -12px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.4));
+  user-select: none;
 }
 .join-card {
   padding: 30px 34px 34px;
@@ -4373,4 +4428,42 @@ body.tv {
 .baja-fed-popup small {
   color: #a85400;
   font-size: 14px;
+}
+
+/* ---- Version label (VersionBadge.tsx) ------------------------------------------------ */
+.version-badge {
+  position: absolute;
+  left: 16px;
+  top: 10px;
+  z-index: 20000;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cream);
+  opacity: 0.38;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.version-badge.newer {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--yolk);
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 800;
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--yolk-deep);
+  animation: version-nudge 2.4s ease-in-out infinite;
+}
+@keyframes version-nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }

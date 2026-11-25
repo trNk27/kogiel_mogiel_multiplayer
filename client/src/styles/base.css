@@ -228,29 +228,13 @@ h3 {
 
 /* ---- Logo --------------------------------------------------------------- */
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-.logo-text {
-  line-height: 1;
-}
-.logo-small {
-  font-family: var(--font-body);
-  font-weight: 800;
-  color: var(--yolk);
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  font-size: 0.75em;
-}
-.logo-big {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 2.6em;
-  letter-spacing: -0.02em;
-  color: var(--cream);
-  text-shadow: 0 0.07em 0 var(--beet-deep);
+/* The Kogiel Mogiel logo picture (Logo in art.tsx); each place sets its own size. */
+.brand-logo {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .folk-border {
