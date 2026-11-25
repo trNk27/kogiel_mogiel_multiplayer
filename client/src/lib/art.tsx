@@ -1,5 +1,7 @@
 /** Hand-made SVG art: pierogi avatars, folk paper-cut (wycinanki) rosettes, the kogiel mogiel logo. */
 import type { JSX } from 'preact';
+import type { CosmeticId } from '../../../shared/cosmetics';
+import { PierogiCosmetics } from './cosmeticsArt';
 
 function pierogiPath(): string {
   const cx = 60;
@@ -24,14 +26,17 @@ interface PierogiProps {
   color: string;
   size?: number;
   mood?: 'happy' | 'dead' | 'wow' | 'sleep';
+  cosmetics?: readonly CosmeticId[];
   class?: string;
   style?: JSX.CSSProperties;
 }
 
 /** A cute pierogi in the player's colour. */
-export function Pierogi({ color, size = 64, mood = 'happy', class: cls, style }: PierogiProps) {
+export function Pierogi({ color, size = 64, mood = 'happy', cosmetics, class: cls, style }: PierogiProps) {
+  const hasCosmetics = !!(cosmetics && cosmetics.length > 0);
+  const svgStyle = hasCosmetics ? { overflow: 'visible' as const, ...style } : style;
   return (
-    <svg class={cls} style={style} width={size} height={size * 0.8} viewBox="0 0 120 96" aria-hidden="true">
+    <svg class={cls} style={svgStyle} width={size} height={size * 0.8} viewBox="0 0 120 96" aria-hidden="true">
       <path d={PIEROGI} fill={color} stroke="rgba(40,16,8,.55)" stroke-width="3" stroke-linejoin="round" />
       <path d="M 18 64 A 42 42 0 0 1 102 64" fill="none" stroke="rgba(40,16,8,.22)" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round" />
       <path d="M 12 70 Q 60 92 108 70 Q 60 84 12 70 Z" fill="rgba(40,16,8,.14)" />
@@ -60,6 +65,7 @@ export function Pierogi({ color, size = 64, mood = 'happy', class: cls, style }:
           <ellipse cx="88" cy="62" rx="6" ry="3.5" fill="#ff5a7a" opacity=".45" />
         </g>
       )}
+      {hasCosmetics && <PierogiCosmetics ids={cosmetics!} />}
     </svg>
   );
 }

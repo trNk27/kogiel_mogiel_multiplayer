@@ -341,7 +341,7 @@ export function PhoneApp() {
   return (
     <div class="phone phone-in" style={{ '--me': colorHex(me.color) }}>
       <header class="phone-head">
-        <Pierogi color={colorHex(me.color)} size={44} />
+        <Pierogi color={colorHex(me.color)} size={44} cosmetics={view.view.v === 'lobby' ? view.view.equipped : undefined} />
         <span class="phone-name">{me.name}</span>
         {me.vip && <span class="vip-badge small">VIP</span>}
         <span class="grow" />

@@ -169,7 +169,7 @@
     inset 0 -4px 0 rgba(0, 0, 0, 0.2),
     0 6px 6px -2px rgba(0, 0, 0, 0.4);
   scale: var(--s, 1);
-  animation: bob 1.4s var(--d) ease-in-out infinite alternate;
+  animation: mk-bob 1.4s var(--d) ease-in-out infinite alternate;
 }
 .mk-blob.hat::before {
   content: '';
@@ -195,7 +195,7 @@
 .mk-path.c3 .mk-blob {
   animation-duration: 0.8s;
 }
-@keyframes bob {
+@keyframes mk-bob {
   to {
     translate: -50% -62%;
   }
@@ -257,12 +257,12 @@
   }
 }
 .mk-steam path {
-  animation: steam 2s ease-in-out infinite;
+  animation: mk-steam 2s ease-in-out infinite;
 }
 .mk-steam path + path {
   animation-delay: 1s;
 }
-@keyframes steam {
+@keyframes mk-steam {
   0% {
     transform: translateY(6px);
     opacity: 0;
