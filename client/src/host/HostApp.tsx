@@ -3,7 +3,7 @@ import { DEFAULT_MAX_PLAYERS, GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAM
 import { categoryOf, shelves } from '../../../shared/categories';
 import { Logo, Pierogi } from '../lib/art';
 import { VersionBadge } from './VersionBadge';
-import logoWide from '../assets/logo-wide.webp';
+import logoWide from '../assets/logo-wide.svg';
 import { Orbits } from './OrbitsView';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';

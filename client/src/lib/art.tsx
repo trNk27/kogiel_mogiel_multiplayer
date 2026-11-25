@@ -1,6 +1,6 @@
 /** Hand-made SVG art: pierogi avatars, folk paper-cut (wycinanki) rosettes; and the Kogiel Mogiel logo picture. */
-import logoWide from '../assets/logo-wide.webp';
-import logoStacked from '../assets/logo-stacked.webp';
+import logoWide from '../assets/logo-wide.svg';
+import logoStacked from '../assets/logo-stacked.svg';
 import type { JSX } from 'preact';
 import type { CosmeticId } from '../../../shared/cosmetics';
 import { PierogiCosmetics } from './cosmeticsArt';

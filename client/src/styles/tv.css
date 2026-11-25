@@ -274,7 +274,7 @@ body.tv {
   background: radial-gradient(closest-side, var(--bg) 55%, transparent);
   pointer-events: none;
 }
-/* The Kogiel Mogiel logo (assets/logo-wide.webp), with a sheen of light sweeping over it now and then. */
+/* The Kogiel Mogiel logo (assets/logo-wide.svg), with a sheen of light sweeping over it now and then. */
 .landing-title {
   margin: 0;
   line-height: 0;
