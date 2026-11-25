@@ -289,7 +289,7 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
             <span class="landing-sheen" style={{ maskImage: `url(${logoWide})`, WebkitMaskImage: `url(${logoWide})` }} aria-hidden="true" />
           </button>
         </h1>
-        <p class="landing-hint">{busy ? 'Warming up the pierogi…' : 'Tap the logo to start a party'}</p>
+        {busy && <p class="landing-hint">Warming up the pierogi…</p>}
         {saved && !busy && (
           <button class="btn btn-ghost landing-rejoin" onClick={() => controller.resume(saved)}>
             Rejoin room {saved.code}
@@ -321,7 +321,7 @@ function Lobby() {
   return (
     <div class="screen lobby">
       <div class="lobby-left">
-        <Logo shape="tall" class="lobby-logo" />
+        <Logo shape="stacked" class="lobby-logo" />
         <div class="join-card card-paper">
           <div class="join-steps">
             <div class="join-step-title">Scan to join</div>

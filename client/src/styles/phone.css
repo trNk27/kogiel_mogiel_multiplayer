@@ -4060,10 +4060,6 @@ body.phone-body input {
   color: var(--yolk);
 }
 
-.shop-item.equipped .shop-tag {
-  color: #216e3a;
-}
-
 .shop-done {
   min-height: 48px;
 }

@@ -1,6 +1,6 @@
 /** Hand-made SVG art: pierogi avatars, folk paper-cut (wycinanki) rosettes; and the Kogiel Mogiel logo picture. */
 import logoWide from '../assets/logo-wide.webp';
-import logoTall from '../assets/logo-tall.webp';
+import logoStacked from '../assets/logo-stacked.webp';
 import type { JSX } from 'preact';
 import type { CosmeticId } from '../../../shared/cosmetics';
 import { PierogiCosmetics } from './cosmeticsArt';
@@ -111,9 +111,9 @@ export function Rosette({
   );
 }
 
-/** The Kogiel Mogiel logo picture: `wide` (one line) or `tall` (two lines). */
-export function Logo({ shape = 'wide', class: cls = '' }: { shape?: 'wide' | 'tall'; class?: string }) {
-  return <img class={`brand-logo ${cls}`} src={shape === 'wide' ? logoWide : logoTall} alt="Kogiel Mogiel" draggable={false} />;
+/** The Kogiel Mogiel logo picture: `wide` (name on one line) or `stacked` (name on two lines). */
+export function Logo({ shape = 'wide', class: cls = '' }: { shape?: 'wide' | 'stacked'; class?: string }) {
+  return <img class={`brand-logo ${cls}`} src={shape === 'wide' ? logoWide : logoStacked} alt="Kogiel Mogiel" draggable={false} />;
 }
 
 /** A row of rosettes used as a decorative border. */
