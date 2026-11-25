@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 import { DEFAULT_MAX_PLAYERS, GAMES, MAX_PLAYERS, TOURNAMENT_CANDIDATES, TOURNAMENT_POINTS, gameMaxPlayers, tournamentLength, tournamentPool, colorHex, difficultyName, gameInfo, rallyTrack, siegeMode, type GameId, type Selection } from '../../../shared/protocol';
 import { categoryOf, shelves } from '../../../shared/categories';
-import { KogielGlass, Logo, Pierogi } from '../lib/art';
+import { Logo, Pierogi } from '../lib/art';
+import { VersionBadge } from './VersionBadge';
+import logoWide from '../assets/logo-wide.webp';
 import { Orbits } from './OrbitsView';
 import { QrCode } from '../lib/qr';
 import { sound } from '../lib/sound';
@@ -169,6 +171,7 @@ export function HostApp({ room, isReplica = false }: { room: HostController; isR
         {c.code && s.s !== 'landing' && s.s !== 'creating' && <CornerInfo onMirror={() => setMirrorOpen(!mirrorOpen)} />}
         {mirrorOpen && !replica && c.code && s.s !== 'landing' && s.s !== 'creating' && <MirrorPanel onClose={() => setMirrorOpen(false)} />}
         {c.status === 'connecting' && c.code && !replica && <div class="reconnecting">Reconnecting to the server…</div>}
+        <VersionBadge />
       </div>
     </div>
   );
@@ -278,24 +281,20 @@ function Landing({ busy, error }: { busy: boolean; error?: string }) {
     <div class="screen landing">
       <Orbits />
       <div class="landing-center">
-        <div class="landing-title">
-          <KogielGlass size={128} />
-          <h1>
-            <small>Couch Party</small>
-            Kogiel Mogiel
-          </h1>
-        </div>
-        <p class="landing-sub">One screen · everyone’s phones · no installs</p>
-        <div class="landing-actions">
-          <button class="btn btn-big btn-yolk" autofocus disabled={busy} onClick={() => controller.create()}>
-            {busy ? 'Warming up the pierogi…' : 'Host a party'}
+        {/* The logo is the start button: tap it (or press OK on a remote) to host a party. */}
+        <h1 class="landing-title">
+          <button class={`landing-logo-btn ${busy ? 'busy' : ''}`} autofocus disabled={busy} onClick={() => controller.create()} aria-label="Host a party">
+            <Logo class="landing-logo" />
+            {/* The sheen: a band of light masked to the logo's shape, sweeping across now and then. */}
+            <span class="landing-sheen" style={{ maskImage: `url(${logoWide})`, WebkitMaskImage: `url(${logoWide})` }} aria-hidden="true" />
           </button>
-          {saved && !busy && (
-            <button class="btn btn-ghost" onClick={() => controller.resume(saved)}>
-              Rejoin room {saved.code}
-            </button>
-          )}
-        </div>
+        </h1>
+        <p class="landing-hint">{busy ? 'Warming up the pierogi…' : 'Tap the logo to start a party'}</p>
+        {saved && !busy && (
+          <button class="btn btn-ghost landing-rejoin" onClick={() => controller.resume(saved)}>
+            Rejoin room {saved.code}
+          </button>
+        )}
         {error && <p class="landing-error">{error}</p>}
       </div>
       {touch && (
@@ -322,7 +321,7 @@ function Lobby() {
   return (
     <div class="screen lobby">
       <div class="lobby-left">
-        <Logo size={1.15} />
+        <Logo shape="tall" class="lobby-logo" />
         <div class="join-card card-paper">
           <div class="join-steps">
             <div class="join-step-title">Scan to join</div>

@@ -63,22 +63,9 @@ body.phone-body input {
   overflow: hidden;
 }
 .phone-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-.phone-brand .logo-small {
-  font-size: 12px;
-}
-.phone-brand-big {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 42px;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  text-shadow: 0 3px 0 var(--beet-deep);
+  width: min(100%, 330px);
+  margin: 0 auto 8px;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.4));
 }
 .join-form {
   display: flex;
@@ -3654,12 +3641,46 @@ body.phone-body input {
   width: auto;
 }
 
-.baja-wallet-bar {
-  display: flex;
+/* Bones and Baja's shop, in the phone header while in the lobby (PhoneApp.tsx). */
+.head-wallet {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 44px;
+  padding: 3px 4px 3px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 210, 63, 0.16);
+  box-shadow: inset 0 0 0 2px rgba(255, 210, 63, 0.55);
+  color: var(--yolk);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 17px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.head-shop {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe074, #f2b705);
+  box-shadow: 0 3px 0 #a36f00;
+  font-size: 18px;
+}
+.head-wallet:active .head-shop {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #a36f00;
+}
+/* Pops when bones come in from Baja. */
+.head-bones.gain {
+  animation: head-bones-gain 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+@keyframes head-bones-gain {
+  40% {
+    transform: scale(1.45);
+  }
 }
 
 .bone-pill {
@@ -3675,26 +3696,6 @@ body.phone-body input {
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 16px;
-}
-
-.shop-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 48px;
-  padding: 8px 16px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ffe074, #f2b705);
-  box-shadow: 0 4px 0 #a36f00;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 15px;
-}
-.shop-btn:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #a36f00;
 }
 
 .baja-feed-backdrop,
@@ -3815,8 +3816,132 @@ body.phone-body input {
   overflow-wrap: anywhere;
 }
 
+.baja-feed-banner.done {
+  /* Up top, so Baja and the bones she spat out stay in view. */
+  inset: 7% 0 auto 0;
+  width: auto;
+  min-width: 46%;
+  max-width: 82%;
+  padding: 10px 20px;
+}
 .baja-feed-banner.done b {
   color: #216e3a;
+  white-space: nowrap;
+}
+
+/* Baja falling in from the top of the phone screen (drawn above the header and everything else). */
+.baja-drop-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* "FEED ME!": a jagged, shouting speech bubble above Baja's head. The wrapper places it, the
+   inner SVG animates (so the pop/shake transforms never fight the positioning). */
+.baja-shout {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 84%;
+  pointer-events: none;
+}
+.baja-shout-in {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transform-origin: 50% 95%;
+  animation:
+    shout-pop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.5) both,
+    shout-shake 0.11s linear 0.32s infinite;
+}
+.baja-shout-shape {
+  fill: var(--cream);
+  stroke: #120d1b;
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+.baja-shout-fill {
+  fill: var(--cream);
+}
+.baja-shout-in text {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 28px;
+  fill: #c81f45;
+  paint-order: stroke;
+  stroke: #ffd23f;
+  stroke-width: 3px;
+  letter-spacing: 0.02em;
+}
+/* The whole play area jolts when Baja lands in her bag. */
+.baja-feed-stage.thump {
+  animation: feed-thump 0.32s linear;
+}
+@keyframes feed-thump {
+  0% {
+    transform: translate(0, 5px);
+  }
+  20% {
+    transform: translate(-4px, -2px);
+  }
+  40% {
+    transform: translate(3px, 2px);
+  }
+  60% {
+    transform: translate(-2px, -1px);
+  }
+  80% {
+    transform: translate(1px, 1px);
+  }
+  100% {
+    transform: none;
+  }
+}
+/* While Baja visits, the phone's top bar (name, bones, room code) stays visible above the minigame. */
+.phone-in:has(.baja-feed-backdrop) .phone-head {
+  position: relative;
+  z-index: 950;
+}
+.phone-in .baja-feed-backdrop {
+  padding-top: calc(max(10px, env(safe-area-inset-top)) + 56px + 10px);
+}
+/* …so the play area is that much shorter (the card's header and footer still need their room). */
+.phone-in .baja-feed-stage {
+  width: min(100%, max(104px, calc((100dvh - 175px - 76px) * 180 / 280)));
+}
+@keyframes shout-pop {
+  0% {
+    transform: scale(0.2) rotate(-10deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+@keyframes shout-shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-1.5px, 1px) rotate(-1deg);
+  }
+  75% {
+    transform: translate(1.5px, -1px) rotate(1deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .baja-shout-in {
+    animation: shout-pop 0.32s ease-out both;
+  }
 }
 
 .baja-feed-banner small {
