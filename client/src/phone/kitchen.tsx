@@ -6,6 +6,7 @@ import { itemName } from '../games/kitchen/logic';
 import { mulberry32 } from '../games/rng';
 import type { Me, Send } from './PhoneApp';
 import { keepStickInSync } from './stickSync';
+import { trackDrag, type DragPoint } from './drag';
 
 type View = Extract<PhoneView, { v: 'kitchen' }>;
 
@@ -49,7 +50,6 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
     const el = zone.current!;
     // Fingers still swiping from a just-finished minigame shouldn't start walking.
     const mountedAt = performance.now();
-    let pid: number | null = null;
     let ox = 0;
     let oy = 0;
     let sent = { x: 0, y: 0 };
@@ -98,42 +98,31 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
     };
     rest();
 
-    const down = (e: PointerEvent) => {
-      e.preventDefault();
-      if (performance.now() - mountedAt < 500) return;
-      // A new touch always takes over: if the last finger's "up" never arrived (it happens on
-      // iOS), refusing it would leave the stick dead.
-      const old = pid;
-      pid = e.pointerId;
-      if (old !== null && old !== pid && el.hasPointerCapture?.(old)) el.releasePointerCapture(old);
-      el.setPointerCapture?.(pid);
+    const onStart = (p: DragPoint) => {
+      if (performance.now() - mountedAt < 500) return false;
       const r = el.getBoundingClientRect();
-      ox = e.clientX;
-      oy = e.clientY;
+      ox = p.clientX;
+      oy = p.clientY;
       place(ox - r.left, oy - r.top, 0, 0);
       setActive(true);
       vibrate(6);
     };
-    const move = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      e.preventDefault();
-      let dx = e.clientX - ox;
-      let dy = e.clientY - oy;
+    const onMove = (p: DragPoint) => {
+      let dx = p.clientX - ox;
+      let dy = p.clientY - oy;
       const m = Math.hypot(dx, dy);
       if (m > STICK_R) {
         // Drag the base along so reversing direction is instant.
         ox += dx * (1 - STICK_R / m);
         oy += dy * (1 - STICK_R / m);
-        dx = e.clientX - ox;
-        dy = e.clientY - oy;
+        dx = p.clientX - ox;
+        dy = p.clientY - oy;
       }
       const r = el.getBoundingClientRect();
       place(ox - r.left, oy - r.top, dx, dy);
       queue(dx / STICK_R, dy / STICK_R);
     };
-    const up = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      pid = null;
+    const onEnd = () => {
       setActive(false);
       rest();
       queue(0, 0);
@@ -157,18 +146,14 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
     const keyDown = onKey(true);
     const keyUp = onKey(false);
     const reset = () => {
-      pid = null;
+      drag.forget();
       keys.u = keys.d = keys.l = keys.r = false;
       setActive(false);
       rest();
       queue(0, 0);
     };
 
-    el.addEventListener('pointerdown', down);
-    el.addEventListener('pointermove', move);
-    el.addEventListener('pointerup', up);
-    el.addEventListener('pointercancel', up);
-    el.addEventListener('lostpointercapture', up);
+    const drag = trackDrag(el, { start: onStart, move: onMove, end: onEnd });
     const stopSync = keepStickInSync(() => sent, (x, y) => sendRef.current({ t: 'stick', x, y }));
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
@@ -176,11 +161,7 @@ function Controller({ view, me, send }: { view: View; me: Me; send: Send }) {
     window.addEventListener('resize', rest);
     document.addEventListener('visibilitychange', reset);
     return () => {
-      el.removeEventListener('pointerdown', down);
-      el.removeEventListener('pointermove', move);
-      el.removeEventListener('pointerup', up);
-      el.removeEventListener('pointercancel', up);
-      el.removeEventListener('lostpointercapture', up);
+      drag.stop();
       stopSync();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
@@ -313,7 +294,7 @@ function Minigame({ mini, send }: { mini: KitchenMini; send: Send }) {
 }
 
 /** Pointer position in the 300×300 SVG space. */
-function svgPoint(svg: SVGSVGElement, e: PointerEvent) {
+function svgPoint(svg: SVGSVGElement, e: DragPoint) {
   const r = svg.getBoundingClientRect();
   const s = Math.min(r.width, r.height);
   return { x: ((e.clientX - r.left - (r.width - s) / 2) / s) * 300, y: ((e.clientY - r.top - (r.height - s) / 2) / s) * 300 };
@@ -327,41 +308,21 @@ function useDrag(onMove: (p: { x: number; y: number }, prev: { x: number; y: num
   useEffect(() => {
     const svg = ref.current!;
     let prev: { x: number; y: number } | null = null;
-    let pid: number | null = null;
-    const down = (e: PointerEvent) => {
-      e.preventDefault();
-      // A new touch always takes over, in case the last one's "up" never arrived.
-      const old = pid;
-      pid = e.pointerId;
-      if (old !== null && old !== pid && svg.hasPointerCapture?.(old)) svg.releasePointerCapture(old);
-      svg.setPointerCapture?.(pid);
-      prev = svgPoint(svg, e);
-      cb.current(prev, null, true);
-    };
-    const move = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      e.preventDefault();
-      const p = svgPoint(svg, e);
-      cb.current(p, prev, false);
-      prev = p;
-    };
-    const up = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      pid = null;
-      prev = null;
-    };
-    svg.addEventListener('pointerdown', down);
-    svg.addEventListener('pointermove', move);
-    svg.addEventListener('pointerup', up);
-    svg.addEventListener('pointercancel', up);
-    svg.addEventListener('lostpointercapture', up);
-    return () => {
-      svg.removeEventListener('lostpointercapture', up);
-      svg.removeEventListener('pointerdown', down);
-      svg.removeEventListener('pointermove', move);
-      svg.removeEventListener('pointerup', up);
-      svg.removeEventListener('pointercancel', up);
-    };
+    const drag = trackDrag(svg, {
+      start: (e) => {
+        prev = svgPoint(svg, e);
+        cb.current(prev, null, true);
+      },
+      move: (e) => {
+        const p = svgPoint(svg, e);
+        cb.current(p, prev, false);
+        prev = p;
+      },
+      end: () => {
+        prev = null;
+      },
+    });
+    return drag.stop;
   }, []);
   return ref;
 }
