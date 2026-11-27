@@ -1,5 +1,6 @@
 /** Shared Maluch Rally controls: a steering wheel you swipe, and buttons you hold. */
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { trackDrag } from './drag';
 
 /** Swipe this far (fraction of the steering pad's width) for full lock. */
 const DRAG_FULL = 0.24;
@@ -21,44 +22,24 @@ export function DragPad(props: { steer: number; onSteer: (v: number) => void; cl
   onSteerRef.current = onSteer;
   useEffect(() => {
     const pad = el.current!;
-    let pid: number | null = null;
     let x0 = 0;
-    const down = (e: PointerEvent) => {
-      e.preventDefault();
-      // A new touch always takes over, in case the last one's "up" never arrived.
-      const old = pid;
-      pid = e.pointerId;
-      if (old !== null && old !== pid && pad.hasPointerCapture?.(old)) pad.releasePointerCapture(old);
-      pad.setPointerCapture?.(pid);
-      x0 = e.clientX;
-      const r = pad.getBoundingClientRect();
-      setOrigin({ x: e.clientX - r.left, y: e.clientY - r.top });
-      vibrate(6);
-    };
-    const move = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      e.preventDefault();
-      const full = pad.getBoundingClientRect().width * DRAG_FULL;
-      onSteerRef.current(Math.max(-1, Math.min(1, (e.clientX - x0) / full)));
-    };
-    const up = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      pid = null;
-      setOrigin(null);
-      onSteerRef.current(0);
-    };
-    pad.addEventListener('pointerdown', down);
-    pad.addEventListener('pointermove', move);
-    pad.addEventListener('pointerup', up);
-    pad.addEventListener('pointercancel', up);
-    pad.addEventListener('lostpointercapture', up);
-    return () => {
-      pad.removeEventListener('lostpointercapture', up);
-      pad.removeEventListener('pointerdown', down);
-      pad.removeEventListener('pointermove', move);
-      pad.removeEventListener('pointerup', up);
-      pad.removeEventListener('pointercancel', up);
-    };
+    const drag = trackDrag(pad, {
+      start: (p) => {
+        x0 = p.clientX;
+        const r = pad.getBoundingClientRect();
+        setOrigin({ x: p.clientX - r.left, y: p.clientY - r.top });
+        vibrate(6);
+      },
+      move: (p) => {
+        const full = pad.getBoundingClientRect().width * DRAG_FULL;
+        onSteerRef.current(Math.max(-1, Math.min(1, (p.clientX - x0) / full)));
+      },
+      end: () => {
+        setOrigin(null);
+        onSteerRef.current(0);
+      },
+    });
+    return drag.stop;
   }, []);
   return (
     <div class={`drive-pad ${props.class ?? ''}`} ref={el}>

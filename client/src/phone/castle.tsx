@@ -10,6 +10,7 @@ import { colorHex } from '../../../shared/protocol';
 import { Pierogi } from '../lib/art';
 import { COOLDOWN_S, MAX_ANGLE, MIN_DRAW, VOLLEY_ARROWS, VOLLEY_SHOTS } from '../games/castle/logic';
 import type { Props } from './views';
+import { trackDrag, type DragPoint } from './drag';
 
 function vibrate(p: number | number[]) {
   try {
@@ -57,7 +58,6 @@ function Bow({ view, me, send, offset }: Props<'castle'>) {
   useEffect(() => {
     const el = zone.current;
     if (!el) return;
-    let pid: number | null = null;
     let ox = 0;
     let oy = 0;
     let cur: Draw = { a: 0, p: 0, charged: false };
@@ -100,7 +100,7 @@ function Bow({ view, me, send, offset }: Props<'castle'>) {
       push();
       // A held full draw charges without moving: check again when it should be ready.
       clearTimeout(chargeTimer);
-      if (p >= 0.95 && !charged) chargeTimer = window.setTimeout(() => pid !== null || keys.space ? update(cur.a, cur.p) : undefined, CHARGE_MS - (now - fullSince) + 5);
+      if (p >= 0.95 && !charged) chargeTimer = window.setTimeout(() => drag.active() || keys.space ? update(cur.a, cur.p) : undefined, CHARGE_MS - (now - fullSince) + 5);
     };
 
     const release = (shoot: boolean) => {
@@ -121,34 +121,21 @@ function Bow({ view, me, send, offset }: Props<'castle'>) {
       } else sendRef.current({ t: 'bow', ev: 'cancel', a: Math.round(d.a), p: 0 });
     };
 
-    const pdown = (e: PointerEvent) => {
-      e.preventDefault();
-      const old = pid;
-      pid = e.pointerId;
-      if (old !== null && old !== pid && el.hasPointerCapture?.(old)) el.releasePointerCapture(old);
-      el.setPointerCapture?.(pid);
-      ox = e.clientX;
-      oy = e.clientY;
+    const onStart = (p: DragPoint) => {
+      ox = p.clientX;
+      oy = p.clientY;
       fullSince = 0;
       update(cur.a, 0);
       vibrate(6);
     };
-    const pmove = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      e.preventDefault();
-      const dx = e.clientX - ox;
-      const dy = e.clientY - oy;
+    const onMove = (p: DragPoint) => {
+      const dx = p.clientX - ox;
+      const dy = p.clientY - oy;
       const len = Math.hypot(dx, dy);
       // Pull back (down) to shoot up the field; the arrow flies away from the thumb.
       const a = len > 12 ? (Math.atan2(-dx, Math.max(dy, 1)) * 180) / Math.PI : cur.a;
       update(a, Math.min(1, len / pullPx()));
     };
-    const pup = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      pid = null;
-      release(e.type === 'pointerup');
-    };
-
     const keyLoop = (now: number) => {
       const dt = Math.min(0.05, (now - keyLast) / 1000);
       keyLast = now;
@@ -181,27 +168,19 @@ function Bow({ view, me, send, offset }: Props<'castle'>) {
     const keyUp = onKey(false);
     const reset = () => {
       keys.l = keys.r = keys.space = false;
-      if (pid !== null || cur.p > 0) {
-        pid = null;
+      if (drag.active() || cur.p > 0) {
+        drag.forget();
         release(false);
       }
     };
 
-    el.addEventListener('pointerdown', pdown);
-    el.addEventListener('pointermove', pmove);
-    el.addEventListener('pointerup', pup);
-    el.addEventListener('pointercancel', pup);
-    el.addEventListener('lostpointercapture', pup);
+    const drag = trackDrag(el, { start: onStart, move: onMove, end: (released) => release(released) });
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
     window.addEventListener('blur', reset);
     document.addEventListener('visibilitychange', reset);
     return () => {
-      el.removeEventListener('pointerdown', pdown);
-      el.removeEventListener('pointermove', pmove);
-      el.removeEventListener('pointerup', pup);
-      el.removeEventListener('pointercancel', pup);
-      el.removeEventListener('lostpointercapture', pup);
+      drag.stop();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       window.removeEventListener('blur', reset);

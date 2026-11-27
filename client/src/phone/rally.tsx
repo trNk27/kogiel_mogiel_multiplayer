@@ -15,6 +15,7 @@ import { RallyDrive } from './rallyDrive';
 import { keepStickInSync } from './stickSync';
 import { PedalButton, SteeringWheel, vibrate } from './steer';
 import { isIOS, requestTilt, screenAngle, tiltSteer } from './tilt';
+import { trackDrag, type DragPoint } from './drag';
 
 type TvMode = 'pad' | 'tilt';
 const TV_MODE_KEY = 'cp.tvsteer';
@@ -175,7 +176,6 @@ function ThumbPad({ view, me, send, chips, toggle }: Props<'rally'> & Extra) {
     let sent = { x: 0, y: 0 };
     let lastSend = 0;
     let timer: number | undefined;
-    let pointer: number | null = null;
     const keys = { l: false, r: false, u: false, d: false };
 
     const flush = () => {
@@ -200,25 +200,15 @@ function ThumbPad({ view, me, send, chips, toggle }: Props<'rally'> & Extra) {
       want = { x: shape(nx * 100), y: shape(ny * 100) };
       flush();
     };
-    const down = (e: PointerEvent) => {
-      e.preventDefault();
-      pointer = e.pointerId;
-      el.setPointerCapture?.(e.pointerId);
+    const onStart = (p: DragPoint) => {
       try {
         navigator.vibrate?.(8);
       } catch {
         /* not supported */
       }
-      fromPoint(e.clientX, e.clientY);
+      fromPoint(p.clientX, p.clientY);
     };
-    const move = (e: PointerEvent) => {
-      if (e.pointerId !== pointer) return;
-      e.preventDefault();
-      fromPoint(e.clientX, e.clientY);
-    };
-    const up = (e: PointerEvent) => {
-      if (e.pointerId !== pointer) return;
-      pointer = null;
+    const onEnd = () => {
       setDot(null);
       want = { x: 0, y: 0 };
       flush();
@@ -251,17 +241,13 @@ function ThumbPad({ view, me, send, chips, toggle }: Props<'rally'> & Extra) {
     const keyDown = key(true);
     const keyUp = key(false);
     const reset = () => {
-      pointer = null;
+      drag.forget();
       keys.l = keys.r = keys.u = keys.d = false;
       setDot(null);
       want = { x: 0, y: 0 };
       flush();
     };
-    el.addEventListener('pointerdown', down);
-    el.addEventListener('pointermove', move);
-    el.addEventListener('pointerup', up);
-    el.addEventListener('pointercancel', up);
-    el.addEventListener('lostpointercapture', up);
+    const drag = trackDrag(el, { start: onStart, move: (p) => fromPoint(p.clientX, p.clientY), end: onEnd });
     const stopSync = keepStickInSync(() => sent, (x, y) => sendRef.current({ t: 'stick', x, y }));
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
@@ -269,11 +255,7 @@ function ThumbPad({ view, me, send, chips, toggle }: Props<'rally'> & Extra) {
     document.addEventListener('visibilitychange', reset);
     return () => {
       clearTimeout(timer);
-      el.removeEventListener('pointerdown', down);
-      el.removeEventListener('pointermove', move);
-      el.removeEventListener('pointerup', up);
-      el.removeEventListener('pointercancel', up);
-      el.removeEventListener('lostpointercapture', up);
+      drag.stop();
       stopSync();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);

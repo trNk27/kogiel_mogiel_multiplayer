@@ -11,6 +11,7 @@ import { colorHex, type PadButton, type PadView } from '../../../shared/protocol
 import { Pierogi } from '../lib/art';
 import type { Me, Send } from './PhoneApp';
 import { keepStickInSync } from './stickSync';
+import { trackDrag, type DragPoint } from './drag';
 import { ArenaScreen } from './arenaScreen';
 
 function vibrate(p: number | number[]) {
@@ -58,7 +59,6 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
   useEffect(() => {
     const el = zone.current;
     if (!el) return;
-    let pid: number | null = null;
     let ox = 0;
     let oy = 0;
     let sent = { x: 0, y: 0 };
@@ -107,41 +107,30 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
     };
     rest();
 
-    const pdown = (e: PointerEvent) => {
-      e.preventDefault();
-      // A new touch always takes over: if the last finger's "up" never arrived (it happens on
-      // iOS), refusing it would leave the stick dead.
-      const old = pid;
-      pid = e.pointerId;
-      if (old !== null && old !== pid && el.hasPointerCapture?.(old)) el.releasePointerCapture(old);
-      el.setPointerCapture?.(pid);
+    const onStart = (p: DragPoint) => {
       const r = el.getBoundingClientRect();
-      ox = e.clientX;
-      oy = e.clientY;
+      ox = p.clientX;
+      oy = p.clientY;
       place(ox - r.left, oy - r.top, 0, 0);
       setActive(true);
       vibrate(6);
     };
-    const pmove = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      e.preventDefault();
-      let dx = e.clientX - ox;
-      let dy = e.clientY - oy;
+    const onMove = (p: DragPoint) => {
+      let dx = p.clientX - ox;
+      let dy = p.clientY - oy;
       const m = Math.hypot(dx, dy);
       if (m > STICK_R) {
         // Drag the base along so reversing direction is instant.
         ox += dx * (1 - STICK_R / m);
         oy += dy * (1 - STICK_R / m);
-        dx = e.clientX - ox;
-        dy = e.clientY - oy;
+        dx = p.clientX - ox;
+        dy = p.clientY - oy;
       }
       const r = el.getBoundingClientRect();
       place(ox - r.left, oy - r.top, dx, dy);
       queue(dx / STICK_R, dy / STICK_R);
     };
-    const pup = (e: PointerEvent) => {
-      if (e.pointerId !== pid) return;
-      pid = null;
+    const onEnd = () => {
       setActive(false);
       rest();
       queue(0, 0);
@@ -166,7 +155,7 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
     const keyDown = onKey(true);
     const keyUp = onKey(false);
     const reset = () => {
-      pid = null;
+      drag.forget();
       keys.u = keys.d = keys.l = keys.r = false;
       setActive(false);
       rest();
@@ -175,11 +164,7 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
       pressRef.current(1, false);
     };
 
-    el.addEventListener('pointerdown', pdown);
-    el.addEventListener('pointermove', pmove);
-    el.addEventListener('pointerup', pup);
-    el.addEventListener('pointercancel', pup);
-    el.addEventListener('lostpointercapture', pup);
+    const drag = trackDrag(el, { start: onStart, move: onMove, end: onEnd });
     const stopSync = keepStickInSync(() => sent, (x, y) => sendRef.current({ t: 'stick', x, y }));
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
@@ -187,11 +172,7 @@ export function ArenaPad({ view, me, send, offset }: { view: PadView; me: Me; se
     window.addEventListener('resize', rest);
     document.addEventListener('visibilitychange', reset);
     return () => {
-      el.removeEventListener('pointerdown', pdown);
-      el.removeEventListener('pointermove', pmove);
-      el.removeEventListener('pointerup', pup);
-      el.removeEventListener('pointercancel', pup);
-      el.removeEventListener('lostpointercapture', pup);
+      drag.stop();
       stopSync();
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
