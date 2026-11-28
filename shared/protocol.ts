@@ -148,7 +148,8 @@ export type GameId =
   | 'tower'
   | 'ogien'
   | 'markt'
-  | 'kuba';
+  | 'kuba'
+  | 'spacer';
 
 export interface GameInfo {
   id: GameId;
@@ -238,6 +239,7 @@ export const GAMES: readonly GameInfo[] = [
   { id: 'tower', title: 'Lodowa Wieża', tagline: 'Bounce off the walls. Chain combos to the top.', minPlayers: 1 },
   { id: 'ogien', title: 'Ogień i Lód', tagline: 'Fire and ice pierogi. Hold the doors for each other.', minPlayers: 2, maxPlayers: 10, coop: true },
   { id: 'kuba', title: 'Upij Kubę', tagline: 'Make the sober one laugh. Every laugh is a shot.', minPlayers: 3, maxPlayers: 10 },
+  { id: 'spacer', title: 'Spacer z Bają', tagline: 'Walk the street. Anything weird? Turn back. Reach Exit 8.', minPlayers: 1, maxPlayers: 12 },
   {
     id: 'premium',
     title: 'Maluch Rallye Premium',

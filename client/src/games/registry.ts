@@ -52,6 +52,7 @@ import { CastleGame } from './castle/CastleGame';
 import { TowerGame } from './tower/TowerGame';
 import { OgienGame } from './ogien/OgienGame';
 import { KubaGame } from './kuba/KubaGame';
+import { SpacerGame } from './spacer/SpacerGame';
 
 export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
   switch (id) {
@@ -157,6 +158,8 @@ export function createGame(id: GameId, host: GameHost, ids: string[]): Game {
       return new OgienGame(host, ids);
     case 'kuba':
       return new KubaGame(host, ids);
+    case 'spacer':
+      return new SpacerGame(host, ids);
     case 'premium':
       return new PremiumGame(host, ids);
   }
