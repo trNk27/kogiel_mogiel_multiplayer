@@ -32,7 +32,7 @@ export const CATEGORIES: readonly Category[] = [
 const SHELVES: Record<Exclude<CategoryId, 'new'>, readonly string[]> = {
   laughs: ['quip', 'kuba', 'gossip', 'dictionary', 'spy', 'herd', 'split', 'survey'],
   draw: ['bazgroly', 'telephone', 'toty'],
-  brains: ['quiz', 'ballpark', 'wave', 'swap', 'parade', 'bells', 'footsteps', 'clock'],
+  brains: ['quiz', 'spacer', 'ballpark', 'wave', 'swap', 'parade', 'bells', 'footsteps', 'clock'],
   together: ['ogien', 'baja', 'kitchen', 'castle'],
   battle: ['tanks', 'pushy', 'blast', 'potato', 'chairs', 'floes', 'crown', 'tiles', 'mushroom', 'flags'],
   hands: ['fork', 'gallery', 'moles', 'coins', 'chickens', 'sheep', 'cows', 'cookbook', 'rope', 'pedal', 'boules', 'marina', 'smoke'],

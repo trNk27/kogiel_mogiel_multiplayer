@@ -44,8 +44,8 @@ describe('tournament pool', () => {
     }
   });
 
-  it('supports exactly the 16 non-action games up to 12 players and keeps noTv at 8', () => {
-    const upgraded = ['quiz', 'ballpark', 'toty', 'bazgroly', 'fork', 'parade', 'swap', 'quip', 'spy', 'herd', 'wave', 'telephone', 'survey', 'split', 'dictionary', 'gossip'].sort();
+  it('supports exactly the 17 non-action games up to 12 players and keeps noTv at 8', () => {
+    const upgraded = ['quiz', 'ballpark', 'toty', 'bazgroly', 'fork', 'parade', 'swap', 'quip', 'spy', 'herd', 'wave', 'telephone', 'survey', 'split', 'dictionary', 'gossip', 'spacer'].sort();
     expect(tournamentPool(12, 12).sort()).toEqual(upgraded);
     expect(gameMaxPlayers(gameInfo('quiz'))).toBe(12);
     expect(gameMaxPlayers(gameInfo('rally'))).toBe(4);
